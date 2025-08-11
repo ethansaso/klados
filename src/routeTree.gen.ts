@@ -8,35 +8,96 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createServerRootRoute } from '@tanstack/react-start/server'
+
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TaxaIndexRouteImport } from './routes/taxa/index'
+import { Route as TaxaIdRouteImport } from './routes/taxa/$id'
+import { ServerRoute as ApiTaxaIndexServerRouteImport } from './routes/api/taxa/index'
+import { ServerRoute as ApiTaxaIdServerRouteImport } from './routes/api/taxa/$id'
+
+const rootServerRouteImport = createServerRootRoute()
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TaxaIndexRoute = TaxaIndexRouteImport.update({
+  id: '/taxa/',
+  path: '/taxa/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TaxaIdRoute = TaxaIdRouteImport.update({
+  id: '/taxa/$id',
+  path: '/taxa/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTaxaIndexServerRoute = ApiTaxaIndexServerRouteImport.update({
+  id: '/api/taxa/',
+  path: '/api/taxa/',
+  getParentRoute: () => rootServerRouteImport,
+} as any)
+const ApiTaxaIdServerRoute = ApiTaxaIdServerRouteImport.update({
+  id: '/api/taxa/$id',
+  path: '/api/taxa/$id',
+  getParentRoute: () => rootServerRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/taxa/$id': typeof TaxaIdRoute
+  '/taxa': typeof TaxaIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/taxa/$id': typeof TaxaIdRoute
+  '/taxa': typeof TaxaIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/taxa/$id': typeof TaxaIdRoute
+  '/taxa/': typeof TaxaIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/taxa/$id' | '/taxa'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/taxa/$id' | '/taxa'
+  id: '__root__' | '/' | '/taxa/$id' | '/taxa/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  TaxaIdRoute: typeof TaxaIdRoute
+  TaxaIndexRoute: typeof TaxaIndexRoute
+}
+export interface FileServerRoutesByFullPath {
+  '/api/taxa/$id': typeof ApiTaxaIdServerRoute
+  '/api/taxa': typeof ApiTaxaIndexServerRoute
+}
+export interface FileServerRoutesByTo {
+  '/api/taxa/$id': typeof ApiTaxaIdServerRoute
+  '/api/taxa': typeof ApiTaxaIndexServerRoute
+}
+export interface FileServerRoutesById {
+  __root__: typeof rootServerRouteImport
+  '/api/taxa/$id': typeof ApiTaxaIdServerRoute
+  '/api/taxa/': typeof ApiTaxaIndexServerRoute
+}
+export interface FileServerRouteTypes {
+  fileServerRoutesByFullPath: FileServerRoutesByFullPath
+  fullPaths: '/api/taxa/$id' | '/api/taxa'
+  fileServerRoutesByTo: FileServerRoutesByTo
+  to: '/api/taxa/$id' | '/api/taxa'
+  id: '__root__' | '/api/taxa/$id' | '/api/taxa/'
+  fileServerRoutesById: FileServerRoutesById
+}
+export interface RootServerRouteChildren {
+  ApiTaxaIdServerRoute: typeof ApiTaxaIdServerRoute
+  ApiTaxaIndexServerRoute: typeof ApiTaxaIndexServerRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,12 +109,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/taxa/': {
+      id: '/taxa/'
+      path: '/taxa'
+      fullPath: '/taxa'
+      preLoaderRoute: typeof TaxaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taxa/$id': {
+      id: '/taxa/$id'
+      path: '/taxa/$id'
+      fullPath: '/taxa/$id'
+      preLoaderRoute: typeof TaxaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+  }
+}
+declare module '@tanstack/react-start/server' {
+  interface ServerFileRoutesByPath {
+    '/api/taxa/': {
+      id: '/api/taxa/'
+      path: '/api/taxa'
+      fullPath: '/api/taxa'
+      preLoaderRoute: typeof ApiTaxaIndexServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
+    '/api/taxa/$id': {
+      id: '/api/taxa/$id'
+      path: '/api/taxa/$id'
+      fullPath: '/api/taxa/$id'
+      preLoaderRoute: typeof ApiTaxaIdServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  TaxaIdRoute: TaxaIdRoute,
+  TaxaIndexRoute: TaxaIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+const rootServerRouteChildren: RootServerRouteChildren = {
+  ApiTaxaIdServerRoute: ApiTaxaIdServerRoute,
+  ApiTaxaIndexServerRoute: ApiTaxaIndexServerRoute,
+}
+export const serverRouteTree = rootServerRouteImport
+  ._addFileChildren(rootServerRouteChildren)
+  ._addFileTypes<FileServerRouteTypes>()

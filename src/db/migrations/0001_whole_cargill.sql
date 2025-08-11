@@ -1,0 +1,1 @@
+ALTER TYPE "public"."taxon_rank" ADD VALUE 'superorder' BEFORE 'order';

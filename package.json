@@ -6,7 +6,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build"
+    "build": "vite build",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:studio": "drizzle-kit studio",
+    "db:reset": "dropdb --if-exists taxokeys && createdb taxokeys && npm run db:generate && npm run db:migrate",
+    "db:seed": "tsx scripts/seed.ts"
   },
   "keywords": [],
   "author": "",
