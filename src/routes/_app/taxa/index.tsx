@@ -4,7 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 type Item = { id: number; canonical: string; rank: string; updatedAt: string };
 
-export const Route = createFileRoute("/taxa/")({
+export const Route = createFileRoute("/_app/taxa/")({
   loader: async () => {
     const res = await fetch(`/api/taxa?limit=50`, { cache: "no-store" });
     if (!res.ok) throw new Error("Failed to load taxa");

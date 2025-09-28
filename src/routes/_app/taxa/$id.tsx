@@ -10,7 +10,7 @@ type Taxon = {
   scientificNames: SciName[];
 };
 
-export const Route = createFileRoute("/taxa/$id")({
+export const Route = createFileRoute("/_app/taxa/$id")({
   loader: async ({ params }) => {
     const res = await fetch(`/api/taxa/${params.id}`, { cache: "no-store" });
     if (!res.ok) throw new Error("Not found");
