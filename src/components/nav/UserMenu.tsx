@@ -1,25 +1,28 @@
 import { CSSProperties, useState } from "react";
 import { DropdownMenu, Avatar, Box, Text, Flex } from "@radix-ui/themes";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { getInitials } from "../../lib/utils/getInitials";
+import { authClient } from "../../lib/auth/authClient";
 
 type UserMenuProps = {
-  name?: string;
-  email?: string;
+  name: string;
+  username: string;
+  email: string;
   imageUrl?: string;
-  initials?: string;
   className?: string;
   style?: CSSProperties;
 };
 
 export function UserMenu({
-  name = "User",
+  name,
+  username,
   email,
   imageUrl,
-  initials = "U",
   className,
   style,
 }: UserMenuProps) {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Hover opens/closes instantly; click toggles
   return (
@@ -43,7 +46,7 @@ export function UserMenu({
           >
             <Avatar
               src={imageUrl}
-              fallback={initials}
+              fallback={getInitials(name)}
               radius="full"
               size="2"
               variant="soft"
@@ -70,12 +73,12 @@ export function UserMenu({
           <DropdownMenu.Separator />
 
           <DropdownMenu.Item asChild>
-            <Link to="/users" preload="intent">
+            <Link to="/users/$username" params={{ username }} preload="intent">
               Profile
             </Link>
           </DropdownMenu.Item>
-          <DropdownMenu.Item asChild>
-            <Link to="/users/edit" preload="intent">
+          <DropdownMenu.Item asChild disabled>
+            <Link to="/users/edit" preload="intent" disabled>
               Settings
             </Link>
           </DropdownMenu.Item>
@@ -84,10 +87,13 @@ export function UserMenu({
 
           <DropdownMenu.Item
             color="red"
-            onSelect={(e) => {
-              e.preventDefault();
-              // await authClient.signOut();
-              // window.location.assign("/");
+            onSelect={async () => {
+              const { error } = await authClient.signOut();
+              if (error) {
+                console.error("Sign out failed:", error);
+              } else {
+                navigate({ to: "/" });
+              }
             }}
           >
             Sign out

@@ -1,8 +1,9 @@
 import { betterAuth } from "better-auth";
-import { username } from "better-auth/plugins";
+import { admin, username } from "better-auth/plugins";
 import { createAuthMiddleware, APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db } from "../db/client";
+import { db } from "../../db/client";
+import { ac, user as userRole, curator as curatorRole, admin as adminRole } from "./permissions";
 
 const STRONG_PW = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,128}$/;
 
@@ -22,6 +23,12 @@ export const auth = betterAuth({
     username({
       // validator: only letters/numbers/underscore/dash
       usernameValidator: (u) => /^[A-Za-z0-9_-]+$/.test(u),
+    }),
+    admin({
+      defaultRole: "user",
+      adminRoles: ["admin"],
+      ac,
+      roles: { user: userRole, curator: curatorRole, admin: adminRole },
     }),
   ],
   hooks: {

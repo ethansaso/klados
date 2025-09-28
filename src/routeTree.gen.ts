@@ -23,6 +23,7 @@ import { Route as AppUsersUsernameRouteImport } from './routes/_app/users/$usern
 import { Route as AppTaxaIdRouteImport } from './routes/_app/taxa/$id'
 import { Route as AppUsersEditIndexRouteImport } from './routes/_app/users/edit/index'
 import { ServerRoute as ApiTaxaIndexServerRouteImport } from './routes/api/taxa/index'
+import { ServerRoute as ApiUsersUsernameServerRouteImport } from './routes/api/users/$username'
 import { ServerRoute as ApiTaxaIdServerRouteImport } from './routes/api/taxa/$id'
 import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/$'
 
@@ -85,6 +86,11 @@ const AppUsersEditIndexRoute = AppUsersEditIndexRouteImport.update({
 const ApiTaxaIndexServerRoute = ApiTaxaIndexServerRouteImport.update({
   id: '/api/taxa/',
   path: '/api/taxa/',
+  getParentRoute: () => rootServerRouteImport,
+} as any)
+const ApiUsersUsernameServerRoute = ApiUsersUsernameServerRouteImport.update({
+  id: '/api/users/$username',
+  path: '/api/users/$username',
   getParentRoute: () => rootServerRouteImport,
 } as any)
 const ApiTaxaIdServerRoute = ApiTaxaIdServerRouteImport.update({
@@ -181,30 +187,43 @@ export interface RootRouteChildren {
 export interface FileServerRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatServerRoute
   '/api/taxa/$id': typeof ApiTaxaIdServerRoute
+  '/api/users/$username': typeof ApiUsersUsernameServerRoute
   '/api/taxa': typeof ApiTaxaIndexServerRoute
 }
 export interface FileServerRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatServerRoute
   '/api/taxa/$id': typeof ApiTaxaIdServerRoute
+  '/api/users/$username': typeof ApiUsersUsernameServerRoute
   '/api/taxa': typeof ApiTaxaIndexServerRoute
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
   '/api/auth/$': typeof ApiAuthSplatServerRoute
   '/api/taxa/$id': typeof ApiTaxaIdServerRoute
+  '/api/users/$username': typeof ApiUsersUsernameServerRoute
   '/api/taxa/': typeof ApiTaxaIndexServerRoute
 }
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/api/auth/$' | '/api/taxa/$id' | '/api/taxa'
+  fullPaths:
+    | '/api/auth/$'
+    | '/api/taxa/$id'
+    | '/api/users/$username'
+    | '/api/taxa'
   fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/auth/$' | '/api/taxa/$id' | '/api/taxa'
-  id: '__root__' | '/api/auth/$' | '/api/taxa/$id' | '/api/taxa/'
+  to: '/api/auth/$' | '/api/taxa/$id' | '/api/users/$username' | '/api/taxa'
+  id:
+    | '__root__'
+    | '/api/auth/$'
+    | '/api/taxa/$id'
+    | '/api/users/$username'
+    | '/api/taxa/'
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
   ApiAuthSplatServerRoute: typeof ApiAuthSplatServerRoute
   ApiTaxaIdServerRoute: typeof ApiTaxaIdServerRoute
+  ApiUsersUsernameServerRoute: typeof ApiUsersUsernameServerRoute
   ApiTaxaIndexServerRoute: typeof ApiTaxaIndexServerRoute
 }
 
@@ -298,6 +317,13 @@ declare module '@tanstack/react-start/server' {
       preLoaderRoute: typeof ApiTaxaIndexServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
+    '/api/users/$username': {
+      id: '/api/users/$username'
+      path: '/api/users/$username'
+      fullPath: '/api/users/$username'
+      preLoaderRoute: typeof ApiUsersUsernameServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
     '/api/taxa/$id': {
       id: '/api/taxa/$id'
       path: '/api/taxa/$id'
@@ -363,6 +389,7 @@ export const routeTree = rootRouteImport
 const rootServerRouteChildren: RootServerRouteChildren = {
   ApiAuthSplatServerRoute: ApiAuthSplatServerRoute,
   ApiTaxaIdServerRoute: ApiTaxaIdServerRoute,
+  ApiUsersUsernameServerRoute: ApiUsersUsernameServerRoute,
   ApiTaxaIndexServerRoute: ApiTaxaIndexServerRoute,
 }
 export const serverRouteTree = rootServerRouteImport

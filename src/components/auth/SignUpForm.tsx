@@ -1,7 +1,7 @@
 import { Button, Flex, Text, TextField } from "@radix-ui/themes";
 import { useState } from "react";
 import { PiAt, PiUser } from "react-icons/pi";
-import { authClient } from "../../lib/authClient";
+import { authClient } from "../../lib/auth/authClient";
 import { useNavigate } from "@tanstack/react-router";
 
 export function SignUpForm() {

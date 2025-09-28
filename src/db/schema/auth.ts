@@ -1,4 +1,6 @@
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, pgEnum } from "drizzle-orm/pg-core";
+
+export const userRoleEnum = pgEnum("user_role", ["user", "curator", "admin"]);
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -11,8 +13,12 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-  username: text("username").unique(),
-  displayUsername: text("display_username"),
+  username: text("username").notNull().unique(),
+  displayUsername: text("display_username").notNull().unique(),
+  role: userRoleEnum("role").notNull().default("user"),
+  banned: boolean("banned").default(false),
+  banReason: text("ban_reason"),
+  banExpires: timestamp("ban_expires"),
 });
 
 export const session = pgTable("session", {
@@ -28,6 +34,7 @@ export const session = pgTable("session", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
+  impersonatedBy: text("impersonated_by"),
 });
 
 export const account = pgTable("account", {
