@@ -1,15 +1,60 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { Button, Flex, Heading } from "@radix-ui/themes";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  redirect,
+} from "@tanstack/react-router";
+import { getUser } from "../../lib/auth/server-funcs";
+import { useIsActive } from "../../lib/hooks/useIsActive";
 
-export const Route = createFileRoute('/admin')({
+export const Route = createFileRoute("/admin")({
+  beforeLoad: async ({ location }) => {
+    const user = await getUser();
+    if (!user || user.role !== "admin") {
+      throw redirect({ to: "/" });
+    }
+    return {
+      user,
+    };
+  },
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
+  const homeActive = useIsActive("/admin/");
+  const usersActive = useIsActive("/admin/users");
+
   return (
-    <div>
-      <h1>Admin Layout</h1>
-      <hr />
-      <Outlet />
+    <div className="admin__container">
+      <Flex align="center" justify="between" py="3" px="4" asChild>
+        <header className="admin__header">
+          <Heading>TaxoKeys Admin Panel</Heading>
+          <Flex asChild gap="4">
+            <nav>
+              <Link to="/">Visit Site</Link>
+              <Link to="/logout">Log Out</Link>
+            </nav>
+          </Flex>
+        </header>
+      </Flex>
+      <Flex flexGrow="1">
+        <aside className="admin__sidebar">
+          <ul>
+            <li className={homeActive ? "active" : ""}>
+              <Button asChild>
+                <Link to="/admin">Home</Link>
+              </Button>
+            </li>
+            <li className={usersActive ? "active" : ""}>
+              <Button asChild>
+                <Link to="/admin/users">Users</Link>
+              </Button>
+            </li>
+          </ul>
+        </aside>
+        <Outlet />
+      </Flex>
     </div>
-  )
+  );
 }

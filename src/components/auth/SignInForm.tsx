@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { Button, TextField, Flex, Text } from "@radix-ui/themes";
 import { authClient } from "../../lib/auth/authClient";
-import { Form } from "radix-ui";
 import { useNavigate } from "@tanstack/react-router";
+
+function isEmail(s: string) {
+  // simple heuristic; server remains the source of truth
+  return /\S+@\S+\.\S+/.test(s);
+}
 
 export function SignInForm() {
   const [err, setErr] = useState<string | null>(null);
@@ -11,20 +15,55 @@ export function SignInForm() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErr(null);
+
     const fd = new FormData(e.currentTarget);
-    const email = String(fd.get("email") || "");
+    const identifier = String(fd.get("identifier") || "").trim();
     const password = String(fd.get("password") || "");
     const rememberMe = true; // persistent cookie
-    const { error } = await authClient.signIn.email({ email, password, rememberMe });
-    if (error) setErr(error.message ?? "Sign in failed");
+
+    let res:
+      | Awaited<ReturnType<typeof authClient.signIn.email>>
+      | Awaited<ReturnType<typeof authClient.signIn.username>>;
+
+    if (isEmail(identifier)) {
+      res = await authClient.signIn.email({
+        email: identifier,
+        password,
+        rememberMe,
+      });
+    } else {
+      res = await authClient.signIn.username({
+        username: identifier,
+        password,
+        rememberMe,
+      });
+    }
+
+    if (res.error) {
+      setErr(res.error.message ?? "Sign in failed");
+      return;
+    }
+
     navigate({ to: "/" });
   }
 
   return (
     <form onSubmit={onSubmit}>
       <Flex direction="column" gap="3">
-        <TextField.Root name="email" type="email" placeholder="Email" required />
-        <TextField.Root name="password" type="password" placeholder="Password" required />
+        <TextField.Root
+          name="identifier"
+          type="text"
+          placeholder="Email or username"
+          autoComplete="username"
+          required
+        />
+        <TextField.Root
+          name="password"
+          type="password"
+          placeholder="Password"
+          autoComplete="current-password"
+          required
+        />
         {err ? <Text color="red">{err}</Text> : null}
         <Button type="submit">Sign in</Button>
       </Flex>

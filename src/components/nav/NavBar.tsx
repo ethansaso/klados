@@ -1,15 +1,9 @@
-import { Link as RtLink, Flex, Text, TabNav, Box, Button } from "@radix-ui/themes";
-import { Link as RouterLink, useRouterState } from "@tanstack/react-router";
-import { Route as RootRoute } from "../../routes/__root";
+import { Button, Flex, Link as RtLink, TabNav, Text } from "@radix-ui/themes";
+import { Link as RouterLink } from "@tanstack/react-router";
+import { useStrictSession } from "../../lib/auth/useStrictSession";
+import { useIsActive } from "../../lib/hooks/useIsActive";
 import { Logo } from "./Logo";
 import { UserMenu } from "./UserMenu";
-
-function useIsActive(to: string) {
-  const { location } = useRouterState();
-  return to === "/"
-    ? location.pathname === "/"
-    : location.pathname.startsWith(to);
-}
 
 function NavBarBrand() {
   return (
@@ -27,7 +21,7 @@ function NavBarBrand() {
 }
 
 export function NavBar() {
-  const { user } = RootRoute.useLoaderData();
+  const { data } = useStrictSession();
 
   const homeActive = useIsActive("/");
   const taxaActive = useIsActive("/taxa");
@@ -54,12 +48,12 @@ export function NavBar() {
         </RouterLink>
       </TabNav.Link>
 
-      {user ? (
+      {data ? (
         <UserMenu
-          name={user.name}
-          email={user.email}
-          username={user.username}
-          imageUrl={user.image ?? undefined}
+          name={data.user.name}
+          email={data.user.email}
+          username={data.user.username}
+          imageUrl={data.user.image ?? undefined}
           style={{ marginLeft: "auto" }}
         />
       ) : (

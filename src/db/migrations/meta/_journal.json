@@ -71,6 +71,20 @@
       "when": 1759035256033,
       "tag": "0009_omniscient_celestials",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1759077950170,
+      "tag": "0010_early_warhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1759087574676,
+      "tag": "0011_fantastic_mauler",
+      "breakpoints": true
     }
   ]
 }

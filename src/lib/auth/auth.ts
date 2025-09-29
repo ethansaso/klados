@@ -1,11 +1,14 @@
 import { betterAuth } from "better-auth";
-import { admin, username } from "better-auth/plugins";
-import { createAuthMiddleware, APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { admin, username } from "better-auth/plugins";
 import { db } from "../../db/client";
-import { ac, user as userRole, curator as curatorRole, admin as adminRole } from "./permissions";
-
-const STRONG_PW = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,128}$/;
+import { requireAccountPolicyMiddleware } from "./enforcement";
+import {
+  ac,
+  admin as adminRole,
+  curator as curatorRole,
+  user as userRole,
+} from "./permissions";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg" }),
@@ -16,13 +19,11 @@ export const auth = betterAuth({
     // requireEmailVerification: true,
     // sendResetPassword: async ({ user, url, token }, req) => { await sendEmail({ to: user.email, subject: "Reset your password", text: url }); },
   },
-  advanced: {
-    useSecureCookies: process.env.NODE_ENV === "production",
-  },
   plugins: [
     username({
       // validator: only letters/numbers/underscore/dash
       usernameValidator: (u) => /^[A-Za-z0-9_-]+$/.test(u),
+      validationOrder: { username: "post-normalization" },
     }),
     admin({
       defaultRole: "user",
@@ -31,30 +32,18 @@ export const auth = betterAuth({
       roles: { user: userRole, curator: curatorRole, admin: adminRole },
     }),
   ],
-  hooks: {
-    before: createAuthMiddleware(async (ctx) => {
-      // Enforce on all endpoints that accept a new password
-      const pathsNeedingCheck = new Set([
-        "/sign-up/email",
-        "/reset-password",
-        "/change-password",
-      ]);
-
-      if (!pathsNeedingCheck.has(ctx.path)) return;
-
-      // sign-up uses `password`; reset/change use `newPassword`
-      const pwd: string | undefined =
-        (ctx.body as any)?.password ?? (ctx.body as any)?.newPassword;
-
-      if (!pwd || !STRONG_PW.test(pwd)) {
-        throw new APIError("BAD_REQUEST", {
-          message:
-            "Password must be 8-128 chars and include at least 1 uppercase, 1 lowercase, 1 number, and 1 symbol.",
-        });
-      }
-    }),
+  user: {
+    additionalFields: {
+      username: { type: "string", required: true, unique: true },
+    }
   },
-  // TODO: Hooks & logging
+  hooks: {
+    before: requireAccountPolicyMiddleware,
+  },
+  advanced: {
+    useSecureCookies: process.env.NODE_ENV === "production",
+  },
+  // TODO: Logging
   // hooks: {
   //   before: createAuthMiddleware(async (ctx) => { /* audit/log */ }),
   //   after: createAuthMiddleware(async (ctx) => { /* metrics */ }),
@@ -62,3 +51,5 @@ export const auth = betterAuth({
   // onAPIError: { errorURL: "/auth/error" },
   // logger: { level: "error" },
 });
+
+export type Session = typeof auth.$Infer.Session;

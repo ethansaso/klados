@@ -1,25 +1,15 @@
+import { defaultStatements, adminAc } from "better-auth/plugins/admin/access";
 import { createAccessControl } from "better-auth/plugins/access";
+import { auth } from "./auth";
 
 export const statement = {
   key: [],
   taxon: [],
-  user: [],
-  session: [],
+  ...defaultStatements,
 } as const;
 
 export const ac = createAccessControl(statement);
 
-// Baseline roles
-export const user = ac.newRole({
-  taxon: [], // can propose new taxa
-});
-
-export const curator = ac.newRole({
-  taxon: [], // extra powers for curation
-});
-
-export const admin = ac.newRole({
-  taxon: [],
-  user: [],
-  session: [],
-});
+export const user = ac.newRole({});
+export const curator = ac.newRole({});
+export const admin = ac.newRole({...adminAc.statements});

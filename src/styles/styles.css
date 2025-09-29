@@ -1,5 +1,6 @@
 @import "@radix-ui/themes/styles.css";
 @import "navbar.css";
+@import "admin.css";
 
 body {
   margin: 0;

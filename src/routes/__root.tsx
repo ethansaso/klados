@@ -1,32 +1,16 @@
-import type { ReactNode } from "react";
+import { Theme } from "@radix-ui/themes";
+import { QueryClient } from "@tanstack/react-query";
 import {
-  Outlet,
   HeadContent,
+  Outlet,
   Scripts,
   createRootRouteWithContext,
 } from "@tanstack/react-router";
-import { Theme } from "@radix-ui/themes";
-import { auth } from "../lib/auth/auth";
-import { db } from "../db/client";
-import { user as userTbl } from "../db/schema/auth";
-import { getWebRequest } from "@tanstack/react-start/server";
-import { getCurrentUser } from "../lib/getCurrentUser";
-
-type UserRow = typeof userTbl.$inferSelect;
-export type CurrentUser = Pick<
-  UserRow,
-  "id" | "username" | "displayUsername" | "name" | "email" | "image" | "role"
-> | null;
+import type { ReactNode } from "react";
 
 export const Route = createRootRouteWithContext<{
-  user: CurrentUser;
+  queryClient: QueryClient;
 }>()({
-  loader: async ({ context }) => {
-    // TanStack Start provides the original Request at context.request
-    const user = await getCurrentUser();
-    return { user };
-  },
-
   head: () => ({
     meta: [
       {

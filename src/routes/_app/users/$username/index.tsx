@@ -1,10 +1,10 @@
 import { createFileRoute, useLoaderData, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { UserDTO } from "../../api/users/$username";
 import { Avatar } from "@radix-ui/themes";
-import { getInitials } from "../../../lib/utils/getInitials";
+import { getInitials } from "../../../../lib/utils/getInitials";
+import { UserDTO } from "../../../../lib/serverFns/user";
 
-export const Route = createFileRoute("/_app/users/$username")({
+export const Route = createFileRoute("/_app/users/$username/")({
   // Loader runs on server for SSR and can refetch on client as needed.
   // Using the API keeps DB code server-only.
   loader: async ({ params, location }) => {
@@ -16,7 +16,6 @@ export const Route = createFileRoute("/_app/users/$username")({
     });
 
     if (res.status === 404) {
-      // Throwing produces TanStack Router's notFound boundary
       throw new Response("User not found", { status: 404 });
     }
     if (!res.ok) {
