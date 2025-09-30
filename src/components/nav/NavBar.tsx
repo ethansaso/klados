@@ -1,9 +1,13 @@
 import { Button, Flex, Link as RtLink, TabNav, Text } from "@radix-ui/themes";
 import { Link as RouterLink } from "@tanstack/react-router";
-import { useStrictSession } from "../../lib/auth/useStrictSession";
 import { useIsActive } from "../../lib/hooks/useIsActive";
+import { getMe } from "../../lib/serverFns/user";
 import { Logo } from "./Logo";
 import { UserMenu } from "./UserMenu";
+
+interface NavBarProps {
+  user: Awaited<ReturnType<typeof getMe>> | undefined;
+}
 
 function NavBarBrand() {
   return (
@@ -20,9 +24,7 @@ function NavBarBrand() {
   );
 }
 
-export function NavBar() {
-  const { data } = useStrictSession();
-
+export function NavBar({ user }: NavBarProps) {
   const homeActive = useIsActive("/");
   const taxaActive = useIsActive("/taxa");
   const usersActive = useIsActive("/users");
@@ -48,12 +50,12 @@ export function NavBar() {
         </RouterLink>
       </TabNav.Link>
 
-      {data ? (
+      {user ? (
         <UserMenu
-          name={data.user.name}
-          email={data.user.email}
-          username={data.user.username}
-          imageUrl={data.user.image ?? undefined}
+          name={user.name}
+          email={user.email}
+          username={user.username}
+          imageUrl={user.image ?? undefined}
           style={{ marginLeft: "auto" }}
         />
       ) : (

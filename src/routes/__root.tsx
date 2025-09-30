@@ -8,6 +8,16 @@ import {
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
+function NotFound() {
+  return (
+    <main style={{ padding: 24 }}>
+      <h1>404 — Page not found</h1>
+      <p>We couldn't find that page.</p>
+      <a href="/">Go home</a>
+    </main>
+  );
+}
+
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
@@ -26,6 +36,7 @@ export const Route = createRootRouteWithContext<{
     ],
   }),
   component: RootComponent,
+  notFoundComponent: NotFound,
 });
 
 function RootComponent() {

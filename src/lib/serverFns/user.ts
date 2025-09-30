@@ -3,6 +3,7 @@ import { z } from "zod";
 import { user as userTbl } from "../../db/schema/auth";
 import { db } from "../../db/client";
 import { asc, count, inArray, SQL } from "drizzle-orm";
+import { userSessionMiddleware } from "../auth/middleware";
 
 type UserRow = typeof userTbl.$inferSelect;
 export type UserDTO = Pick<
@@ -80,8 +81,11 @@ export const getUser = createServerFn({
     })
   )
   .handler(async ({ data }): Promise<UserDTO | undefined> => {
+    const { id } = data;
+
     const u = await db.query.user.findFirst({
-      where: (t, { eq }) => eq(t.id, data.id),
+      where: (t, { eq, or }) =>
+        or(eq(t.id, id), eq(t.username, id)),
       columns: {
         id: true,
         username: true,
@@ -94,4 +98,10 @@ export const getUser = createServerFn({
     });
 
     return u;
+  });
+
+export const getMe = createServerFn({ method: "GET" })
+  .middleware([userSessionMiddleware])
+  .handler(async ({ context }) => {
+    return context.user;
   });

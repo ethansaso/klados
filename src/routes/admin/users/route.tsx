@@ -4,11 +4,6 @@ import { Box, Heading } from '@radix-ui/themes';
 import { AdminSectionHeader } from '../-components/AdminSectionHeader';
 
 export const Route = createFileRoute("/admin/users")({
-  loader: async ({ context }) => {
-    await context.queryClient.ensureQueryData(
-      usersQueryOptions()
-    );
-  },
   component: RouteComponent,
 });
 

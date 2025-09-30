@@ -20,6 +20,11 @@
     list-style: none;
     padding: 0;
     margin: 0;
+
+    a {
+      width: 100%;
+      border-radius: 0;
+    }
   }
 }
 

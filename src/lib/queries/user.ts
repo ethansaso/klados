@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { listUsers, getUser } from "../serverFns/user";
+import { listUsers, getUser, getMe } from "../serverFns/user";
 import type { UserDTO, UsersPageResult } from "../serverFns/user";
 
 /**
@@ -19,4 +19,15 @@ export const userQueryOptions = (id: string) =>
   queryOptions({
     queryKey: ["users", id],
     queryFn: () => getUser({ data: { id } }) as Promise<UserDTO | undefined>,
+  });
+
+/**
+ * Query options for fetching the current authenticated user.
+ */
+export const meQuery = () =>
+  queryOptions({
+    queryKey: ["me"],
+    queryFn: getMe,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });

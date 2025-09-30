@@ -14,6 +14,7 @@ import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppSignupRouteImport } from './routes/_app/signup'
+import { Route as AppLogoutRouteImport } from './routes/_app/logout'
 import { Route as AppLoginRouteImport } from './routes/_app/login'
 import { Route as AdminUsersRouteRouteImport } from './routes/admin/users/route'
 import { Route as ApiUsersIndexRouteImport } from './routes/api/users/index'
@@ -48,6 +49,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppSignupRoute = AppSignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppLogoutRoute = AppLogoutRouteImport.update({
+  id: '/logout',
+  path: '/logout',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppLoginRoute = AppLoginRouteImport.update({
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
   '/login': typeof AppLoginRoute
+  '/logout': typeof AppLogoutRoute
   '/signup': typeof AppSignupRoute
   '/': typeof AppIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof AppLoginRoute
+  '/logout': typeof AppLogoutRoute
   '/signup': typeof AppSignupRoute
   '/': typeof AppIndexRoute
   '/admin': typeof AdminIndexRoute
@@ -144,6 +152,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
   '/_app/login': typeof AppLoginRoute
+  '/_app/logout': typeof AppLogoutRoute
   '/_app/signup': typeof AppSignupRoute
   '/_app/': typeof AppIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -163,6 +172,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/users'
     | '/login'
+    | '/logout'
     | '/signup'
     | '/'
     | '/admin/'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/logout'
     | '/signup'
     | '/'
     | '/admin'
@@ -196,6 +207,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/users'
     | '/_app/login'
+    | '/_app/logout'
     | '/_app/signup'
     | '/_app/'
     | '/admin/'
@@ -253,6 +265,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof AppSignupRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/logout': {
+      id: '/_app/logout'
+      path: '/logout'
+      fullPath: '/logout'
+      preLoaderRoute: typeof AppLogoutRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/login': {
@@ -337,6 +356,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteRouteChildren {
   AppLoginRoute: typeof AppLoginRoute
+  AppLogoutRoute: typeof AppLogoutRoute
   AppSignupRoute: typeof AppSignupRoute
   AppIndexRoute: typeof AppIndexRoute
   AppTaxaIdRoute: typeof AppTaxaIdRoute
@@ -348,6 +368,7 @@ interface AppRouteRouteChildren {
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppLoginRoute: AppLoginRoute,
+  AppLogoutRoute: AppLogoutRoute,
   AppSignupRoute: AppSignupRoute,
   AppIndexRoute: AppIndexRoute,
   AppTaxaIdRoute: AppTaxaIdRoute,
@@ -397,3 +418,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

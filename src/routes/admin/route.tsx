@@ -5,12 +5,12 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
-import { getUser } from "../../lib/auth/server-funcs";
 import { useIsActive } from "../../lib/hooks/useIsActive";
+import { getMe } from "../../lib/serverFns/user";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async ({ location }) => {
-    const user = await getUser();
+    const user = await getMe();
     if (!user || user.role !== "admin") {
       throw redirect({ to: "/" });
     }
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 function RouteComponent() {
-  const homeActive = useIsActive("/admin/");
+  const homeActive = useIsActive("/admin");
   const usersActive = useIsActive("/admin/users");
 
   return (
@@ -42,12 +42,12 @@ function RouteComponent() {
         <aside className="admin__sidebar">
           <ul>
             <li className={homeActive ? "active" : ""}>
-              <Button asChild>
+              <Button variant={homeActive ? "solid" : "soft"} asChild>
                 <Link to="/admin">Home</Link>
               </Button>
             </li>
             <li className={usersActive ? "active" : ""}>
-              <Button asChild>
+              <Button variant={usersActive ? "solid" : "soft"} asChild>
                 <Link to="/admin/users">Users</Link>
               </Button>
             </li>

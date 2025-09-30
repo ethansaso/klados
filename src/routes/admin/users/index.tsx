@@ -1,7 +1,8 @@
 import { Table } from '@radix-ui/themes'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useSearch } from '@tanstack/react-router'
 import { usersQueryOptions } from '../../../lib/queries/user'
 import { z } from "zod";
+import { useQuery } from '@tanstack/react-query';
 
 export const Route = createFileRoute("/admin/users/")({
   // Coerce query-string values to numbers, set sane defaults (1-based page)
@@ -24,22 +25,35 @@ export const Route = createFileRoute("/admin/users/")({
 });
 
 function RouteComponent() {
+  const { page, pageSize } = useSearch({ from: "/admin/users/" });
+  const { data, isLoading, isError, error } = useQuery(
+    usersQueryOptions(page, pageSize)
+  );
+
+  if (isLoading) return <p>Loading…</p>;
+  if (isError) return <p>Failed to load users: {(error as Error).message}</p>;
+  if (!data) return <p>No data.</p>;
+  
+  const { items, total } = data;
   return (
     <Table.Root>
       <Table.Header>
         <Table.Row>
-          <Table.ColumnHeaderCell>User ID</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Email</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Role</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>ID</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Username</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Creation Date</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Banned?</Table.ColumnHeaderCell>
         </Table.Row>
       </Table.Header>
       <Table.Body>
-        {/* Example static data, replace with dynamic data as needed */}
-        <Table.Row>
-          <Table.Cell>1</Table.Cell>
-          <Table.Cell>user@example.com</Table.Cell>
-          <Table.Cell>Admin</Table.Cell>
-        </Table.Row>
+        {items.map((user) => (
+          <Table.Row key={user.id}>
+            <Table.Cell>{user.id}</Table.Cell>
+            <Table.Cell>{user.username}</Table.Cell>
+            <Table.Cell>{new Date(user.createdAt).toLocaleDateString()}</Table.Cell>
+            <Table.Cell>{user.banned ? 'Yes' : 'No'}</Table.Cell>
+          </Table.Row>
+        ))}
       </Table.Body>
     </Table.Root>
   )
