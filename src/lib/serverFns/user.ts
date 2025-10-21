@@ -4,6 +4,7 @@ import { user as userTbl } from "../../db/schema/auth";
 import { db } from "../../db/client";
 import { asc, count, inArray, SQL } from "drizzle-orm";
 import { userSessionMiddleware } from "../auth/middleware";
+import { PaginatedResult } from "./returnTypes";
 
 type UserRow = typeof userTbl.$inferSelect;
 export type UserDTO = Pick<
@@ -17,11 +18,8 @@ export type UserDTO = Pick<
   | "banned"
 >;
 
-export type UsersPageResult = {
+export interface UsersPageResult extends PaginatedResult {
   items: UserDTO[];
-  page: number;
-  pageSize: number;
-  total: number;
 };
 
 export const listUsers = createServerFn({ method: "GET" })

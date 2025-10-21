@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { Button, TextField, Flex, Text } from "@radix-ui/themes";
-import { authClient } from "../../lib/auth/authClient";
+import { Button, Flex, Text, TextField } from "@radix-ui/themes";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { authClient } from "../../lib/auth/authClient";
+import { meQuery } from "../../lib/queries/user";
 
 function isEmail(s: string) {
   // simple heuristic; server remains the source of truth
@@ -11,6 +13,7 @@ function isEmail(s: string) {
 export function SignInForm() {
   const [err, setErr] = useState<string | null>(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -43,6 +46,9 @@ export function SignInForm() {
       setErr(res.error.message ?? "Sign in failed");
       return;
     }
+
+    await queryClient.invalidateQueries({ queryKey: meQuery().queryKey });
+    await queryClient.refetchQueries({ queryKey: meQuery().queryKey });
 
     navigate({ to: "/" });
   }

@@ -7,8 +7,8 @@ import {
   text,
   varchar
 } from "drizzle-orm/pg-core";
-import { withTimestamps } from "../utils/withTimestamps";
-import { taxa } from "./taxa";
+import { withTimestamps } from "../utils/timestamps";
+import { taxa } from "./taxa/taxa";
 
 export const nameKind = pgEnum("name_kind", [
   "common",

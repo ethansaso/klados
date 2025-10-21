@@ -1,9 +1,12 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { authClient } from "../../lib/auth/authClient";
+import { meQuery } from "../../lib/queries/user";
 
 export const Route = createFileRoute("/_app/logout")({
-  beforeLoad: async () => {
+  beforeLoad: async ({ context }) => {
     await authClient.signOut();
+    context.queryClient.setQueryData(meQuery().queryKey, null);
+    context.queryClient.invalidateQueries({ queryKey: meQuery().queryKey });
     throw redirect({ to: "/" });
   },
   component: () => null,
