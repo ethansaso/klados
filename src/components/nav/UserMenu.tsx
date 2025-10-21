@@ -77,7 +77,12 @@ export function UserMenu({
             </Link>
           </DropdownMenu.Item>
           <DropdownMenu.Item asChild disabled>
-            <Link to="/users/edit" preload="intent" disabled>
+            <Link
+              to="/users/$username/edit"
+              params={{ username }}
+              preload="intent"
+              disabled
+            >
               Settings
             </Link>
           </DropdownMenu.Item>

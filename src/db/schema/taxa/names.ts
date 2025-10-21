@@ -46,6 +46,8 @@ export const names = pgTable(
     index("names_taxon_idx").on(t.taxonId),
     index("names_taxon_kind_idx").on(t.taxonId, t.kind),
     index("names_taxon_locale_idx").on(t.taxonId, t.locale),
+    // ! TODO: Trigram GIN index for searching names w/ ILIKE
+    // index("names_value_trgm_idx").using("gin", sql`(${t.value} gin_trgm_ops)`),
 
     // Enforce field applicability by kind
     // - Common: locale required; isAccepted must be false
@@ -70,9 +72,11 @@ export const names = pgTable(
       .where(sql`${t.kind} = 'common' AND ${t.isPreferred} = true`),
 
     // De-dup per taxon/kind/locale by normalized value (case/space insensitive)
-    uniqueIndex("names_value_norm_uq").using(
-      "btree",
-      sql`(${t.taxonId}, ${t.kind}, coalesce(${t.locale}, ''), lower(btrim(${t.value})))`
+    uniqueIndex("names_value_norm_uq").on(
+      t.taxonId,
+      t.kind,
+      sql`coalesce(${t.locale}, '')`,
+      sql`lower(btrim(${t.value}))`
     ),
   ]
 );

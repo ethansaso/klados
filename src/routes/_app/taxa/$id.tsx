@@ -1,55 +1,28 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-
-type CommonName = { value: string; locale: string | null };
-type SciName = { value: string };
-type Taxon = {
-  id: number;
-  canonical: string;
-  rank: string;
-  commonNames: CommonName[];
-  scientificNames: SciName[];
-};
+import { taxonQueryOptions } from "../../../lib/queries/taxa";
 
 export const Route = createFileRoute("/_app/taxa/$id")({
-  loader: async ({ params }) => {
-    const res = await fetch(`/api/taxa/${params.id}`, { cache: "no-store" });
-    if (!res.ok) throw new Error("Not found");
-    return (await res.json()) as Taxon;
+  loader: async ({ context, params }) => {
+    const numericId = Number(params.id);
+    await context.queryClient.ensureQueryData(taxonQueryOptions(numericId));
+
+    return { id: numericId };
   },
   component: TaxonPage,
 });
 
 function TaxonPage() {
-  const t = Route.useLoaderData() as Taxon;
+  const { id } = Route.useLoaderData();
+  const { data: taxon } = useSuspenseQuery(taxonQueryOptions(id));
+
   return (
     <div style={{ padding: 16 }}>
       <h1>
-        {t.canonical} <small>({t.rank})</small>
+        <small>({taxon.rank})</small>
+        {taxon.sourceGbifId}
+        {taxon.sourceInatId}
       </h1>
-
-      {t.commonNames?.length ? (
-        <>
-          <h2>Common names</h2>
-          <ul>
-            {t.commonNames.map((n, i) => (
-              <li key={i}>
-                {n.value} {n.locale ? <small>({n.locale})</small> : null}
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : null}
-
-      {t.scientificNames?.length ? (
-        <>
-          <h2>Other scientific names</h2>
-          <ul>
-            {t.scientificNames.map((n, i) => (
-              <li key={i}>{n.value}</li>
-            ))}
-          </ul>
-        </>
-      ) : null}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   check,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -34,12 +35,11 @@ export const taxa = pgTable(
   "taxa",
   withTimestamps({
     id: serial("id").primaryKey(),
-    parentId: integer("parent_id").references(() => taxa.id, {
-      onDelete: "restrict",
-    }),
+
+    // Leave this without .references(...) inline:
+    parentId: integer("parent_id"),
 
     rank: taxonRank("rank").notNull(),
-
     sourceGbifId: integer("source_gbif_id"),
     sourceInatId: integer("source_inat_id"),
 
@@ -55,16 +55,19 @@ export const taxa = pgTable(
     notes: text("notes"),
   }),
   (t) => [
+    // ? FK here avoids circular reference causing TS problems
+    foreignKey({
+      name: "taxa_parent_fk",
+      columns: [t.parentId],
+      foreignColumns: [t.id],
+    }).onDelete("restrict"),
+
     check(
       "taxa_parent_not_self",
       sql`${t.parentId} IS NULL OR ${t.parentId} <> ${t.id}`
     ),
-
-    // Common lookups/filters
     index("taxa_parent_idx").on(t.parentId),
     index("taxa_rank_idx").on(t.rank),
-
-    // Provenance indexing
     uniqueIndex("taxa_source_gbif_uq")
       .on(t.sourceGbifId)
       .where(sql`${t.sourceGbifId} IS NOT NULL`),

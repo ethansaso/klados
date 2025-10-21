@@ -1,3 +1,4 @@
+import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { asc, count, inArray, SQL } from "drizzle-orm";
 import { z } from "zod";
@@ -6,7 +7,10 @@ import { taxa as taxaTbl } from "../../db/schema/taxa/taxa";
 import { PaginatedResult } from "./returnTypes";
 
 type TaxonRow = typeof taxaTbl.$inferSelect;
-export type TaxonDTO = Pick<TaxonRow, "id" | "rank">;
+export type TaxonDTO = Pick<
+  TaxonRow,
+  "id" | "rank" | "sourceGbifId" | "sourceInatId"
+>;
 
 export interface TaxonPageResult extends PaginatedResult {
   items: TaxonDTO[];
@@ -15,6 +19,7 @@ export interface TaxonPageResult extends PaginatedResult {
 export const listTaxa = createServerFn({ method: "GET" })
   .inputValidator(
     z.object({
+      q: z.string().optional(),
       ids: z.array(z.number()).optional(),
       page: z.number().int().min(1).default(1),
       pageSize: z.number().int().min(1).max(100).default(20),
@@ -31,6 +36,8 @@ export const listTaxa = createServerFn({ method: "GET" })
       .select({
         id: taxaTbl.id,
         rank: taxaTbl.rank,
+        sourceGbifId: taxaTbl.sourceGbifId,
+        sourceInatId: taxaTbl.sourceInatId,
       })
       .from(taxaTbl)
       .where(predicate)
@@ -50,4 +57,31 @@ export const listTaxa = createServerFn({ method: "GET" })
       pageSize,
       total,
     };
+  });
+
+export const getTaxon = createServerFn({
+  method: "GET",
+})
+  .inputValidator(
+    z.object({
+      id: z.number(),
+    })
+  )
+  .handler(async ({ data }): Promise<TaxonDTO> => {
+    const { id } = data;
+
+    const u = await db.query.taxa.findFirst({
+      where: (t, { eq }) => eq(t.id, id),
+      columns: {
+        id: true,
+        rank: true,
+        sourceGbifId: true,
+        sourceInatId: true,
+      },
+    });
+
+    if (!u) {
+      throw notFound();
+    }
+    return u;
   });

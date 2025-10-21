@@ -50,7 +50,10 @@ export const taxonCharacterNumber = pgTable(
   }),
   (t) => [
     uniqueIndex("tcn_taxon_char_uq").on(t.taxonId, t.characterId),
-    check("tcn_value_finite", sql`isfinite(${t.valueNum})`),
+    check(
+      "tcn_value_finite",
+      sql`${t.valueNum} = ${t.valueNum} AND ${t.valueNum} > '-Infinity'::float8 AND ${t.valueNum} < 'Infinity'::float8`
+    ),
     index("tcn_taxon_idx").on(t.taxonId),
     index("tcn_char_idx").on(t.characterId),
   ]
@@ -77,7 +80,11 @@ export const taxonCharacterNumberRange = pgTable(
     check("tcnr_min_le_max", sql`${t.valueMin} <= ${t.valueMax}`),
     check(
       "tcnr_values_finite",
-      sql`isfinite(${t.valueMin}) AND isfinite(${t.valueMax})`
+      sql`
+    ${t.valueMin} = ${t.valueMin} AND ${t.valueMin} > '-Infinity'::float8 AND ${t.valueMin} < 'Infinity'::float8
+    AND
+    ${t.valueMax} = ${t.valueMax} AND ${t.valueMax} > '-Infinity'::float8 AND ${t.valueMax} < 'Infinity'::float8
+  `
     ),
     index("tcnr_taxon_idx").on(t.taxonId),
     index("tcnr_char_idx").on(t.characterId),

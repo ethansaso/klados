@@ -1,26 +1,15 @@
 import { queryOptions } from "@tanstack/react-query";
-import axios from "axios";
-import { taxa as taxaTbl } from "../../db/schema/taxa/taxa";
-import { listTaxa, TaxonPageResult } from "../serverFns/taxa";
+import { getTaxon, listTaxa, TaxonPageResult } from "../serverFns/taxa";
 
-type TaxonRow = typeof taxaTbl.$inferSelect;
-export const DEPLOY_URL = "http://localhost:3000";
-
-export const taxonQueryOptions = (id: string) =>
+export const taxonQueryOptions = (id: number) =>
   queryOptions({
     queryKey: ["taxa", id],
-    queryFn: () =>
-      axios
-        .get<TaxonRow>(DEPLOY_URL + "/api/taxa/" + id)
-        .then((r) => r.data)
-        .catch(() => {
-          throw new Error("Failed to fetch taxon");
-        }),
+    queryFn: () => getTaxon({ data: { id } }),
   });
 
-export const taxaQueryOptions = (page: number, pageSize: number) =>
+export const taxaQueryOptions = (page: number, pageSize: number, q?: string) =>
   queryOptions({
-    queryKey: ["taxa", { page, pageSize }],
+    queryKey: ["taxa", { page, pageSize, q: q ?? null }] as const,
     queryFn: () =>
-      listTaxa({ data: { page, pageSize } }) as Promise<TaxonPageResult>,
+      listTaxa({ data: { page, pageSize, q } }) as Promise<TaxonPageResult>,
   });

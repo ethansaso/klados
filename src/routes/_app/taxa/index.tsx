@@ -1,9 +1,10 @@
+import { Box, Flex, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { PiMagnifyingGlass } from "react-icons/pi";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
-import { TaxonCard } from "./-TaxonCard";
-
-type Item = { id: number; canonical: string; rank: string; updatedAt: string };
+import { TaxonGrid } from "./-TaxonGrid";
 
 export const Route = createFileRoute("/_app/taxa/")({
   loader: async ({ context, params }) => {
@@ -13,17 +14,26 @@ export const Route = createFileRoute("/_app/taxa/")({
 });
 
 function TaxaList() {
-  const { data: paginatedResult } = useSuspenseQuery(taxaQueryOptions(1, 20));
+  const [search, setSearch] = useState("");
+  const { data: paginatedResult } = useSuspenseQuery(
+    taxaQueryOptions(1, 20, search)
+  );
 
-  if (!paginatedResult.items.length) return <p>No taxa yet.</p>;
   return (
-    <div style={{ padding: 16 }}>
-      <h1>Taxa</h1>
-      <ul>
-        {paginatedResult.items.map((t) => (
-          <TaxonCard key={t.id} taxon={t} />
-        ))}
-      </ul>
-    </div>
+    <Flex direction="column">
+      <Box mb="4">
+        <TextField.Root
+          placeholder="Search taxa..."
+          id="taxa-search"
+          value={search}
+          onChange={(e) => setSearch(e.currentTarget.value)}
+        >
+          <TextField.Slot>
+            <PiMagnifyingGlass size="16" />
+          </TextField.Slot>
+        </TextField.Root>
+      </Box>
+      <TaxonGrid paginatedResult={paginatedResult} />
+    </Flex>
   );
 }

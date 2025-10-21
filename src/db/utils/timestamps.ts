@@ -1,7 +1,9 @@
-import { timestamp } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import { PgColumnBuilderBase, timestamp } from "drizzle-orm/pg-core";
 
-export function withTimestamps<T extends Record<string, any>>(cols: T) {
+export function withTimestamps<T extends Record<string, PgColumnBuilderBase>>(
+  cols: T
+) {
   return {
     ...cols,
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -10,7 +12,10 @@ export function withTimestamps<T extends Record<string, any>>(cols: T) {
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
-  } as const;
+  } as T & {
+    createdAt: ReturnType<typeof timestamp>;
+    updatedAt: ReturnType<typeof timestamp>;
+  };
 }
 
 export function withTouch<T extends Record<string, unknown>>(
