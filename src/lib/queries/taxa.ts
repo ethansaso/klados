@@ -1,10 +1,9 @@
 import { queryOptions } from "@tanstack/react-query";
 import axios from "axios";
 import { taxa as taxaTbl } from "../../db/schema/taxa/taxa";
+import { listTaxa, TaxonPageResult } from "../serverFns/taxa";
 
 type TaxonRow = typeof taxaTbl.$inferSelect;
-export type CurrentTaxon = Pick<TaxonRow, "id" | "canonical" | "rank"> | null;
-
 export const DEPLOY_URL = "http://localhost:3000";
 
 export const taxonQueryOptions = (id: string) =>
@@ -19,14 +18,9 @@ export const taxonQueryOptions = (id: string) =>
         }),
   });
 
-export const taxaQueryOptions = () =>
+export const taxaQueryOptions = (page: number, pageSize: number) =>
   queryOptions({
-    queryKey: ["taxa"],
+    queryKey: ["taxa", { page, pageSize }],
     queryFn: () =>
-      axios
-        .get<TaxonRow[]>(DEPLOY_URL + "/api/taxa")
-        .then((r) => r.data)
-        .catch(() => {
-          throw new Error("Failed to fetch taxa");
-        }),
+      listTaxa({ data: { page, pageSize } }) as Promise<TaxonPageResult>,
   });

@@ -1,5 +1,4 @@
 import { Avatar, Box, DropdownMenu, Flex, Text } from "@radix-ui/themes";
-import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { CSSProperties, useState } from "react";
 import { getInitials } from "../../lib/utils/getInitials";
@@ -23,7 +22,6 @@ export function UserMenu({
 }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   // Hover opens/closes instantly; click toggles
   return (

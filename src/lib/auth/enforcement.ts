@@ -1,7 +1,7 @@
 import { APIError, createAuthMiddleware } from "better-auth/api";
 
 const STRONG_PW = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,128}$/;
-const RESERVED = new Set(["admin", "settings", "edit"]);
+const RESERVED = new Set(["admin", "settings", "edit", "me"]);
 
 function isReserved(u: unknown) {
   return typeof u === "string" && RESERVED.has(u.trim().toLowerCase());
@@ -9,8 +9,7 @@ function isReserved(u: unknown) {
 async function enforceReservedUsernames(ctx: any) {
   // Sign-up / update
   if (ctx.path === "/sign-up/email" || ctx.path === "/update-user") {
-    const u =
-      (ctx.body as any)?.username ?? (ctx.body as any)?.displayUsername;
+    const u = (ctx.body as any)?.username ?? (ctx.body as any)?.displayUsername;
     if (isReserved(u)) {
       throw new APIError("BAD_REQUEST", {
         message: "That username is reserved.",
@@ -72,11 +71,13 @@ async function enforceStrongPassword(ctx: any) {
   }
 }
 
-export const requireAccountPolicyMiddleware = createAuthMiddleware(async (ctx) => {
-  // Order matters: reserved check can short-circuit availability with ctx.json
-  const maybeResponse = await enforceReservedUsernames(ctx);
-  if (maybeResponse) return;
+export const requireAccountPolicyMiddleware = createAuthMiddleware(
+  async (ctx) => {
+    // Order matters: reserved check can short-circuit availability with ctx.json
+    const maybeResponse = await enforceReservedUsernames(ctx);
+    if (maybeResponse) return;
 
-  await enforceUsername(ctx);
-  await enforceStrongPassword(ctx);
-});
+    await enforceUsername(ctx);
+    await enforceStrongPassword(ctx);
+  }
+);

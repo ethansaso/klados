@@ -1,27 +1,26 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import { taxaQueryOptions } from "../../../lib/queries/taxa";
 import { TaxonCard } from "./-TaxonCard";
 
 type Item = { id: number; canonical: string; rank: string; updatedAt: string };
 
 export const Route = createFileRoute("/_app/taxa/")({
-  loader: async () => {
-    const res = await fetch(`/api/taxa?limit=50`, { cache: "no-store" });
-    if (!res.ok) throw new Error("Failed to load taxa");
-    const data = (await res.json()) as { items: Item[] };
-    return data.items;
+  loader: async ({ context, params }) => {
+    await context.queryClient.ensureQueryData(taxaQueryOptions(1, 20));
   },
   component: TaxaList,
 });
 
 function TaxaList() {
-  const items = Route.useLoaderData() as Item[];
-  
-  if (!items.length) return <p>No taxa yet.</p>;
+  const { data: paginatedResult } = useSuspenseQuery(taxaQueryOptions(1, 20));
+
+  if (!paginatedResult.items.length) return <p>No taxa yet.</p>;
   return (
     <div style={{ padding: 16 }}>
       <h1>Taxa</h1>
       <ul>
-        {items.map((t) => (
+        {paginatedResult.items.map((t) => (
           <TaxonCard key={t.id} taxon={t} />
         ))}
       </ul>

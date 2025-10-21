@@ -1,8 +1,6 @@
-import * as fs from "node:fs";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { auth } from "../../lib/auth/auth";
-import { getRequest } from "@tanstack/react-start/server";
+import * as fs from "node:fs";
 
 const filePath = "count.txt";
 

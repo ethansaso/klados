@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { NavBar } from "../../components/nav/NavBar";
 import { meQuery } from "../../lib/queries/user";
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_app")({
 });
 
 function RouteComponent() {
-  const { data: user } = useQuery(meQuery());
+  const { data: user } = useSuspenseQuery(meQuery());
 
   return (
     <>

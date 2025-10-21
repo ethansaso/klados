@@ -1,29 +1,26 @@
-import { createFileRoute, useLoaderData, Link } from "@tanstack/react-router";
+import { Avatar, Badge, Flex, Heading, Text } from "@radix-ui/themes";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { Avatar } from "@radix-ui/themes";
-import { getInitials } from "../../../../lib/utils/getInitials";
+import { meQuery, userQueryOptions } from "../../../../lib/queries/user";
 import { UserDTO } from "../../../../lib/serverFns/user";
+import { capitalizeWord } from "../../../../lib/utils/capitalizeWord";
+import { getInitials } from "../../../../lib/utils/getInitials";
 
 export const Route = createFileRoute("/_app/users/$username/")({
-  // Loader runs on server for SSR and can refetch on client as needed.
-  // Using the API keeps DB code server-only.
-  loader: async ({ params, location }) => {
-    const res = await fetch(`/api/users/${encodeURIComponent(params.username)}`, {
-      headers: {
-        // Forward cookies for SSR hydration correctness (helps auth-related UIs if added)
-        cookie: typeof document === "undefined" ? (location.state as any)?.cookie ?? "" : document.cookie,
-      },
-    });
-
-    if (res.status === 404) {
-      throw new Response("User not found", { status: 404 });
-    }
-    if (!res.ok) {
-      throw new Response("Failed to load user", { status: 500 });
+  loader: async ({ context, params }) => {
+    let effectiveUsername = params.username;
+    if (params.username === "me") {
+      const me = await context.queryClient.fetchQuery(meQuery());
+      if (!me) throw redirect({ to: "/login" });
+      effectiveUsername = me.username;
     }
 
-    const user = (await res.json()) as UserDTO;
-    return { user };
+    await context.queryClient.ensureQueryData(
+      userQueryOptions(effectiveUsername)
+    );
+
+    return { effectiveUsername };
   },
 
   component: UserProfilePage,
@@ -34,11 +31,11 @@ function preferredDisplay(u: UserDTO) {
 }
 
 function UserProfilePage() {
-  const { user } = useLoaderData({ from: Route.id }) as { user: UserDTO };
+  const { effectiveUsername } = Route.useLoaderData();
+  const { data: user } = useSuspenseQuery(userQueryOptions(effectiveUsername));
 
   const joined = useMemo(() => {
     try {
-      // createdAt comes back as ISO string from the API
       return new Date(user.createdAt).toLocaleDateString();
     } catch {
       return "";
@@ -46,26 +43,47 @@ function UserProfilePage() {
   }, [user.createdAt]);
 
   return (
-    <main style={{ maxWidth: 720, margin: "0 auto", padding: "24px" }}>
-      <header style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <Avatar
-          src={user.image ?? undefined}
-          fallback={getInitials(user.name)}
-          alt={`${preferredDisplay(user)}`}
-          style={{borderRadius: 0}}
-        />
-        <div>
-          <h1 style={{ margin: 0 }}>{preferredDisplay(user)}</h1>
-          <div style={{ color: "var(--gray-11)" }}>@{user.username}</div>
-          {joined ? <div style={{ color: "var(--gray-10)", marginTop: 4 }}>Joined {joined}</div> : null}
-        </div>
+    <div>
+      <header>
+        <Flex align="start" gap="4">
+          <Avatar
+            src={user.image ?? undefined}
+            fallback={getInitials(user.name)}
+            alt={`${preferredDisplay(user)}`}
+            size="7"
+            radius="none"
+          />
+          <Flex direction="column" gap="0">
+            <Heading size="7">{preferredDisplay(user)}</Heading>
+            <Flex align="center">
+              <Text as="div" color="gray">
+                @{user.username}
+              </Text>
+              {user.role !== "user" && (
+                <Badge
+                  variant="soft"
+                  color={user.role === "admin" ? "tomato" : undefined}
+                  ml="2"
+                >
+                  {capitalizeWord(user.role)}
+                </Badge>
+              )}
+            </Flex>
+            <Text as="div" color="gray">
+              Joined {joined}
+            </Text>
+          </Flex>
+        </Flex>
       </header>
 
       <section style={{ marginTop: 24 }}>
         <div style={{ marginTop: 24 }}>
-          <p>This is the user's public profile. Add sections like curated taxa, recent activity, etc.</p>
+          <p>
+            This is the user's public profile. Add sections like curated taxa,
+            recent activity, etc.
+          </p>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

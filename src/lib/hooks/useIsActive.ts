@@ -1,6 +1,6 @@
 import { useMatchRoute } from "@tanstack/react-router";
 
-export function useIsActive(to: string) {
+export function useIsActive(to: string, fuzzy: boolean = false) {
   const matchRoute = useMatchRoute();
-  return !!matchRoute({ to });
+  return !!matchRoute({ to, fuzzy });
 }

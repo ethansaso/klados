@@ -10,16 +10,6 @@ import type { ReactNode } from "react";
 import { GA_ID, seo } from "../lib/seo";
 import appCssUrl from "../styles/styles.css?url";
 
-function NotFound() {
-  return (
-    <main style={{ padding: 24 }}>
-      <h1>404 — Page not found</h1>
-      <p>We couldn't find that page.</p>
-      <a href="/">Go home</a>
-    </main>
-  );
-}
-
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
@@ -32,6 +22,12 @@ export const Route = createRootRouteWithContext<{
     });
 
     const baseLinks = [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap",
+      },
       { rel: "stylesheet", href: appCssUrl },
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
@@ -72,7 +68,6 @@ export const Route = createRootRouteWithContext<{
     };
   },
   component: RootComponent,
-  notFoundComponent: NotFound,
 });
 
 function RootComponent() {
@@ -92,8 +87,8 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <body>
         <Theme accentColor="amber" panelBackground="solid">
           {children}
-          <Scripts />
         </Theme>
+        <Scripts />
       </body>
     </html>
   );

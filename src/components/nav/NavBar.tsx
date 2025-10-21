@@ -26,8 +26,8 @@ function NavBarBrand() {
 
 export function NavBar({ user }: NavBarProps) {
   const homeActive = useIsActive("/");
-  const taxaActive = useIsActive("/taxa");
-  const usersActive = useIsActive("/users");
+  const taxaActive = useIsActive("/taxa", true);
+  const usersActive = useIsActive("/users", true);
 
   return (
     <TabNav.Root className="navbar">

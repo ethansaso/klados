@@ -1,8 +1,9 @@
+import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
-import { user as userTbl } from "../../db/schema/auth";
-import { db } from "../../db/client";
 import { asc, count, inArray, SQL } from "drizzle-orm";
+import { z } from "zod";
+import { db } from "../../db/client";
+import { user as userTbl } from "../../db/schema/auth";
 import { userSessionMiddleware } from "../auth/middleware";
 import { PaginatedResult } from "./returnTypes";
 
@@ -16,11 +17,12 @@ export type UserDTO = Pick<
   | "image"
   | "createdAt"
   | "banned"
+  | "role"
 >;
 
 export interface UsersPageResult extends PaginatedResult {
   items: UserDTO[];
-};
+}
 
 export const listUsers = createServerFn({ method: "GET" })
   .inputValidator(
@@ -46,6 +48,7 @@ export const listUsers = createServerFn({ method: "GET" })
         image: userTbl.image,
         createdAt: userTbl.createdAt,
         banned: userTbl.banned,
+        role: userTbl.role,
       })
       .from(userTbl)
       .where(predicate)
@@ -78,12 +81,11 @@ export const getUser = createServerFn({
       id: z.string(),
     })
   )
-  .handler(async ({ data }): Promise<UserDTO | undefined> => {
+  .handler(async ({ data }): Promise<UserDTO> => {
     const { id } = data;
 
     const u = await db.query.user.findFirst({
-      where: (t, { eq, or }) =>
-        or(eq(t.id, id), eq(t.username, id)),
+      where: (t, { eq, or }) => or(eq(t.id, id), eq(t.username, id)),
       columns: {
         id: true,
         username: true,
@@ -92,14 +94,19 @@ export const getUser = createServerFn({
         image: true,
         createdAt: true,
         banned: true,
+        role: true,
       },
     });
 
+    if (!u) {
+      throw notFound();
+    }
     return u;
   });
 
 export const getMe = createServerFn({ method: "GET" })
   .middleware([userSessionMiddleware])
   .handler(async ({ context }) => {
-    return context.user;
+    const u = context.user;
+    return u;
   });
