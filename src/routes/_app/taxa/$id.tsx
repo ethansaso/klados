@@ -1,3 +1,4 @@
+import { Callout } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { taxonQueryOptions } from "../../../lib/queries/taxa";
@@ -17,7 +18,20 @@ function TaxonPage() {
   const { data: taxon } = useSuspenseQuery(taxonQueryOptions(id));
 
   return (
-    <div style={{ padding: 16 }}>
+    <div>
+      {taxon.status !== "active" && (
+        <Callout.Root
+          color={taxon.status === "deprecated" ? "tomato" : undefined}
+        >
+          <Callout.Text>
+            Heads up! This taxon is{" "}
+            {taxon.status === "draft"
+              ? "currently under review."
+              : "not active."}
+          </Callout.Text>
+        </Callout.Root>
+      )}
+
       <h1>
         <small>({taxon.rank})</small>
         {taxon.sourceGbifId}

@@ -31,15 +31,22 @@ export const taxonRank = pgEnum("taxon_rank", [
   "variety",
 ]);
 
+export const taxonStatus = pgEnum("taxon_status", [
+  "draft",
+  "active",
+  "deprecated",
+]);
+
 export const taxa = pgTable(
   "taxa",
   withTimestamps({
     id: serial("id").primaryKey(),
 
-    // Leave this without .references(...) inline:
     parentId: integer("parent_id"),
 
     rank: taxonRank("rank").notNull(),
+    status: taxonStatus("status").notNull().default("draft"),
+
     sourceGbifId: integer("source_gbif_id"),
     sourceInatId: integer("source_inat_id"),
 

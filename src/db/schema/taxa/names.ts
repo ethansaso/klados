@@ -46,8 +46,15 @@ export const names = pgTable(
     index("names_taxon_idx").on(t.taxonId),
     index("names_taxon_kind_idx").on(t.taxonId, t.kind),
     index("names_taxon_locale_idx").on(t.taxonId, t.locale),
-    // ! TODO: Trigram GIN index for searching names w/ ILIKE
-    // index("names_value_trgm_idx").using("gin", sql`(${t.value} gin_trgm_ops)`),
+    // Fast for fetching accepted scientific name
+    index("names_sci_accepted_idx")
+      .on(t.taxonId)
+      .where(sql`${t.kind} = 'scientific' AND ${t.synonymKind} IS NULL`),
+    // ! Trigram GIN index for searching names w/ ILIKE
+    index("names_value_trgm_lower_idx").using(
+      "gin",
+      sql`lower(${t.value}) gin_trgm_ops`
+    ),
 
     // Enforce field applicability by kind
     // - Common: locale required; isAccepted must be false

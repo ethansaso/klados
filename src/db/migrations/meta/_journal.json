@@ -127,6 +127,27 @@
       "when": 1761088132017,
       "tag": "0017_ambitious_true_believers",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1761088246738,
+      "tag": "0018_extend_pg_trgm",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1761088340529,
+      "tag": "0019_plain_ultimatum",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1761090831616,
+      "tag": "0020_fine_kitty_pryde",
+      "breakpoints": true
     }
   ]
 }

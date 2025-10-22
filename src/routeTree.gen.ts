@@ -22,6 +22,8 @@ import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
 import { Route as AppUsersIndexRouteImport } from './routes/_app/users/index'
 import { Route as AppTaxaIndexRouteImport } from './routes/_app/taxa/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AppTaxaNewRouteImport } from './routes/_app/taxa/new'
+import { Route as AppTaxaDraftsRouteImport } from './routes/_app/taxa/drafts'
 import { Route as AppTaxaIdRouteImport } from './routes/_app/taxa/$id'
 import { Route as AppUsersUsernameRouteRouteImport } from './routes/_app/users/$username/route'
 import { Route as AppUsersUsernameIndexRouteImport } from './routes/_app/users/$username/index'
@@ -91,6 +93,16 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppTaxaNewRoute = AppTaxaNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppTaxaRouteRoute,
+} as any)
+const AppTaxaDraftsRoute = AppTaxaDraftsRouteImport.update({
+  id: '/drafts',
+  path: '/drafts',
+  getParentRoute: () => AppTaxaRouteRoute,
+} as any)
 const AppTaxaIdRoute = AppTaxaIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -123,6 +135,8 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/users/$username': typeof AppUsersUsernameRouteRouteWithChildren
   '/taxa/$id': typeof AppTaxaIdRoute
+  '/taxa/drafts': typeof AppTaxaDraftsRoute
+  '/taxa/new': typeof AppTaxaNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/taxa/': typeof AppTaxaIndexRoute
   '/users': typeof AppUsersIndexRoute
@@ -137,6 +151,8 @@ export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/admin': typeof AdminIndexRoute
   '/taxa/$id': typeof AppTaxaIdRoute
+  '/taxa/drafts': typeof AppTaxaDraftsRoute
+  '/taxa/new': typeof AppTaxaNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/taxa': typeof AppTaxaIndexRoute
   '/users': typeof AppUsersIndexRoute
@@ -157,6 +173,8 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/_app/users/$username': typeof AppUsersUsernameRouteRouteWithChildren
   '/_app/taxa/$id': typeof AppTaxaIdRoute
+  '/_app/taxa/drafts': typeof AppTaxaDraftsRoute
+  '/_app/taxa/new': typeof AppTaxaNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_app/taxa/': typeof AppTaxaIndexRoute
   '/_app/users/': typeof AppUsersIndexRoute
@@ -177,6 +195,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/users/$username'
     | '/taxa/$id'
+    | '/taxa/drafts'
+    | '/taxa/new'
     | '/api/auth/$'
     | '/taxa/'
     | '/users'
@@ -191,6 +211,8 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/taxa/$id'
+    | '/taxa/drafts'
+    | '/taxa/new'
     | '/api/auth/$'
     | '/taxa'
     | '/users'
@@ -210,6 +232,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/_app/users/$username'
     | '/_app/taxa/$id'
+    | '/_app/taxa/drafts'
+    | '/_app/taxa/new'
     | '/api/auth/$'
     | '/_app/taxa/'
     | '/_app/users/'
@@ -317,6 +341,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/taxa/new': {
+      id: '/_app/taxa/new'
+      path: '/new'
+      fullPath: '/taxa/new'
+      preLoaderRoute: typeof AppTaxaNewRouteImport
+      parentRoute: typeof AppTaxaRouteRoute
+    }
+    '/_app/taxa/drafts': {
+      id: '/_app/taxa/drafts'
+      path: '/drafts'
+      fullPath: '/taxa/drafts'
+      preLoaderRoute: typeof AppTaxaDraftsRouteImport
+      parentRoute: typeof AppTaxaRouteRoute
+    }
     '/_app/taxa/$id': {
       id: '/_app/taxa/$id'
       path: '/$id'
@@ -350,11 +388,15 @@ declare module '@tanstack/react-router' {
 
 interface AppTaxaRouteRouteChildren {
   AppTaxaIdRoute: typeof AppTaxaIdRoute
+  AppTaxaDraftsRoute: typeof AppTaxaDraftsRoute
+  AppTaxaNewRoute: typeof AppTaxaNewRoute
   AppTaxaIndexRoute: typeof AppTaxaIndexRoute
 }
 
 const AppTaxaRouteRouteChildren: AppTaxaRouteRouteChildren = {
   AppTaxaIdRoute: AppTaxaIdRoute,
+  AppTaxaDraftsRoute: AppTaxaDraftsRoute,
+  AppTaxaNewRoute: AppTaxaNewRoute,
   AppTaxaIndexRoute: AppTaxaIndexRoute,
 }
 
