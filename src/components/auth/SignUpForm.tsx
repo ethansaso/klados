@@ -23,7 +23,7 @@ export function SignUpForm() {
       password,
       username,
     });
-    
+
     if (error) {
       setErr(error.message ?? "Sign up failed. Please try again later.");
       return;

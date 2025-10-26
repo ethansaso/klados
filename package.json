@@ -12,7 +12,8 @@
     "db:studio": "drizzle-kit studio",
     "db:drop-create": "psql \"postgres://app:app@127.0.0.1:5432/postgres\" -v ON_ERROR_STOP=1 -c \"DROP DATABASE IF EXISTS taxokeys;\" -c \"CREATE DATABASE taxokeys;\"",
     "db:reset": "npm run db:drop-create && npm run db:generate && npm run db:migrate",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "db:admin": "tsx scripts/forceAdmin.ts"
   },
   "keywords": [],
   "author": "",

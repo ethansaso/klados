@@ -24,10 +24,11 @@ import { Route as AppTaxaIndexRouteImport } from './routes/_app/taxa/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppTaxaNewRouteImport } from './routes/_app/taxa/new'
 import { Route as AppTaxaDraftsRouteImport } from './routes/_app/taxa/drafts'
-import { Route as AppTaxaIdRouteImport } from './routes/_app/taxa/$id'
 import { Route as AppUsersUsernameRouteRouteImport } from './routes/_app/users/$username/route'
 import { Route as AppUsersUsernameIndexRouteImport } from './routes/_app/users/$username/index'
+import { Route as AppTaxaIdIndexRouteImport } from './routes/_app/taxa/$id/index'
 import { Route as AppUsersUsernameEditRouteImport } from './routes/_app/users/$username/edit'
+import { Route as AppTaxaIdEditRouteImport } from './routes/_app/taxa/$id/edit'
 
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
@@ -103,11 +104,6 @@ const AppTaxaDraftsRoute = AppTaxaDraftsRouteImport.update({
   path: '/drafts',
   getParentRoute: () => AppTaxaRouteRoute,
 } as any)
-const AppTaxaIdRoute = AppTaxaIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AppTaxaRouteRoute,
-} as any)
 const AppUsersUsernameRouteRoute = AppUsersUsernameRouteRouteImport.update({
   id: '/users/$username',
   path: '/users/$username',
@@ -118,10 +114,20 @@ const AppUsersUsernameIndexRoute = AppUsersUsernameIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppUsersUsernameRouteRoute,
 } as any)
+const AppTaxaIdIndexRoute = AppTaxaIdIndexRouteImport.update({
+  id: '/$id/',
+  path: '/$id/',
+  getParentRoute: () => AppTaxaRouteRoute,
+} as any)
 const AppUsersUsernameEditRoute = AppUsersUsernameEditRouteImport.update({
   id: '/edit',
   path: '/edit',
   getParentRoute: () => AppUsersUsernameRouteRoute,
+} as any)
+const AppTaxaIdEditRoute = AppTaxaIdEditRouteImport.update({
+  id: '/$id/edit',
+  path: '/$id/edit',
+  getParentRoute: () => AppTaxaRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -134,14 +140,15 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/users/$username': typeof AppUsersUsernameRouteRouteWithChildren
-  '/taxa/$id': typeof AppTaxaIdRoute
   '/taxa/drafts': typeof AppTaxaDraftsRoute
   '/taxa/new': typeof AppTaxaNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/taxa/': typeof AppTaxaIndexRoute
   '/users': typeof AppUsersIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/taxa/$id/edit': typeof AppTaxaIdEditRoute
   '/users/$username/edit': typeof AppUsersUsernameEditRoute
+  '/taxa/$id': typeof AppTaxaIdIndexRoute
   '/users/$username/': typeof AppUsersUsernameIndexRoute
 }
 export interface FileRoutesByTo {
@@ -150,14 +157,15 @@ export interface FileRoutesByTo {
   '/signup': typeof AppSignupRoute
   '/': typeof AppIndexRoute
   '/admin': typeof AdminIndexRoute
-  '/taxa/$id': typeof AppTaxaIdRoute
   '/taxa/drafts': typeof AppTaxaDraftsRoute
   '/taxa/new': typeof AppTaxaNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/taxa': typeof AppTaxaIndexRoute
   '/users': typeof AppUsersIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
+  '/taxa/$id/edit': typeof AppTaxaIdEditRoute
   '/users/$username/edit': typeof AppUsersUsernameEditRoute
+  '/taxa/$id': typeof AppTaxaIdIndexRoute
   '/users/$username': typeof AppUsersUsernameIndexRoute
 }
 export interface FileRoutesById {
@@ -172,14 +180,15 @@ export interface FileRoutesById {
   '/_app/': typeof AppIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/_app/users/$username': typeof AppUsersUsernameRouteRouteWithChildren
-  '/_app/taxa/$id': typeof AppTaxaIdRoute
   '/_app/taxa/drafts': typeof AppTaxaDraftsRoute
   '/_app/taxa/new': typeof AppTaxaNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_app/taxa/': typeof AppTaxaIndexRoute
   '/_app/users/': typeof AppUsersIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/_app/taxa/$id/edit': typeof AppTaxaIdEditRoute
   '/_app/users/$username/edit': typeof AppUsersUsernameEditRoute
+  '/_app/taxa/$id/': typeof AppTaxaIdIndexRoute
   '/_app/users/$username/': typeof AppUsersUsernameIndexRoute
 }
 export interface FileRouteTypes {
@@ -194,14 +203,15 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/'
     | '/users/$username'
-    | '/taxa/$id'
     | '/taxa/drafts'
     | '/taxa/new'
     | '/api/auth/$'
     | '/taxa/'
     | '/users'
     | '/admin/users/'
+    | '/taxa/$id/edit'
     | '/users/$username/edit'
+    | '/taxa/$id'
     | '/users/$username/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -210,14 +220,15 @@ export interface FileRouteTypes {
     | '/signup'
     | '/'
     | '/admin'
-    | '/taxa/$id'
     | '/taxa/drafts'
     | '/taxa/new'
     | '/api/auth/$'
     | '/taxa'
     | '/users'
     | '/admin/users'
+    | '/taxa/$id/edit'
     | '/users/$username/edit'
+    | '/taxa/$id'
     | '/users/$username'
   id:
     | '__root__'
@@ -231,14 +242,15 @@ export interface FileRouteTypes {
     | '/_app/'
     | '/admin/'
     | '/_app/users/$username'
-    | '/_app/taxa/$id'
     | '/_app/taxa/drafts'
     | '/_app/taxa/new'
     | '/api/auth/$'
     | '/_app/taxa/'
     | '/_app/users/'
     | '/admin/users/'
+    | '/_app/taxa/$id/edit'
     | '/_app/users/$username/edit'
+    | '/_app/taxa/$id/'
     | '/_app/users/$username/'
   fileRoutesById: FileRoutesById
 }
@@ -355,13 +367,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTaxaDraftsRouteImport
       parentRoute: typeof AppTaxaRouteRoute
     }
-    '/_app/taxa/$id': {
-      id: '/_app/taxa/$id'
-      path: '/$id'
-      fullPath: '/taxa/$id'
-      preLoaderRoute: typeof AppTaxaIdRouteImport
-      parentRoute: typeof AppTaxaRouteRoute
-    }
     '/_app/users/$username': {
       id: '/_app/users/$username'
       path: '/users/$username'
@@ -376,6 +381,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersUsernameIndexRouteImport
       parentRoute: typeof AppUsersUsernameRouteRoute
     }
+    '/_app/taxa/$id/': {
+      id: '/_app/taxa/$id/'
+      path: '/$id'
+      fullPath: '/taxa/$id'
+      preLoaderRoute: typeof AppTaxaIdIndexRouteImport
+      parentRoute: typeof AppTaxaRouteRoute
+    }
     '/_app/users/$username/edit': {
       id: '/_app/users/$username/edit'
       path: '/edit'
@@ -383,21 +395,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersUsernameEditRouteImport
       parentRoute: typeof AppUsersUsernameRouteRoute
     }
+    '/_app/taxa/$id/edit': {
+      id: '/_app/taxa/$id/edit'
+      path: '/$id/edit'
+      fullPath: '/taxa/$id/edit'
+      preLoaderRoute: typeof AppTaxaIdEditRouteImport
+      parentRoute: typeof AppTaxaRouteRoute
+    }
   }
 }
 
 interface AppTaxaRouteRouteChildren {
-  AppTaxaIdRoute: typeof AppTaxaIdRoute
   AppTaxaDraftsRoute: typeof AppTaxaDraftsRoute
   AppTaxaNewRoute: typeof AppTaxaNewRoute
   AppTaxaIndexRoute: typeof AppTaxaIndexRoute
+  AppTaxaIdEditRoute: typeof AppTaxaIdEditRoute
+  AppTaxaIdIndexRoute: typeof AppTaxaIdIndexRoute
 }
 
 const AppTaxaRouteRouteChildren: AppTaxaRouteRouteChildren = {
-  AppTaxaIdRoute: AppTaxaIdRoute,
   AppTaxaDraftsRoute: AppTaxaDraftsRoute,
   AppTaxaNewRoute: AppTaxaNewRoute,
   AppTaxaIndexRoute: AppTaxaIndexRoute,
+  AppTaxaIdEditRoute: AppTaxaIdEditRoute,
+  AppTaxaIdIndexRoute: AppTaxaIdIndexRoute,
 }
 
 const AppTaxaRouteRouteWithChildren = AppTaxaRouteRoute._addFileChildren(
@@ -477,12 +498,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

@@ -33,9 +33,6 @@ export const Route = createRootRouteWithContext<{
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/site.webmanifest" },
-      // TODO: consider these font optimizations?
-      // { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
-      // { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;600;700&display=swap" },
     ];
 
     const scripts =

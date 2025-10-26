@@ -1,9 +1,9 @@
-import { Callout } from "@radix-ui/themes";
+import { Button, Callout } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { taxonQueryOptions } from "../../../lib/queries/taxa";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 
-export const Route = createFileRoute("/_app/taxa/$id")({
+export const Route = createFileRoute("/_app/taxa/$id/")({
   loader: async ({ context, params }) => {
     const numericId = Number(params.id);
     await context.queryClient.ensureQueryData(taxonQueryOptions(numericId));
@@ -13,8 +13,10 @@ export const Route = createFileRoute("/_app/taxa/$id")({
   component: TaxonPage,
 });
 
+// TODO: figure out whether to preload in Route and/or useSuspenseQuery
 function TaxonPage() {
   const { id } = Route.useLoaderData();
+  const navigate = useNavigate();
   const { data: taxon } = useSuspenseQuery(taxonQueryOptions(id));
 
   return (
@@ -32,11 +34,17 @@ function TaxonPage() {
         </Callout.Root>
       )}
 
-      <h1>
-        <small>({taxon.rank})</small>
-        {taxon.sourceGbifId}
-        {taxon.sourceInatId}
-      </h1>
+      <small>({taxon.rank})</small>
+      <h1>{taxon.acceptedName}</h1>
+      {taxon.sourceGbifId}
+      {taxon.sourceInatId}
+      <Button
+        onClick={() =>
+          navigate({ to: "/taxa/$id/edit", params: { id: String(id) } })
+        }
+      >
+        Edit
+      </Button>
     </div>
   );
 }

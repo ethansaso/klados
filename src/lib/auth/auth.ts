@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { reactStartCookies } from "better-auth/react-start"
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, username } from "better-auth/plugins";
 import { db } from "../../db/client";
@@ -31,6 +32,7 @@ export const auth = betterAuth({
       ac,
       roles: { user: userRole, curator: curatorRole, admin: adminRole },
     }),
+    reactStartCookies(),
   ],
   user: {
     additionalFields: {

@@ -14,7 +14,7 @@ import {
 import { mediaLicense } from "../../utils/mediaLicense";
 import { withTimestamps } from "../../utils/timestamps";
 
-export const taxonRank = pgEnum("taxon_rank", [
+export const TAXON_RANKS_DESCENDING = [
   "domain",
   "kingdom",
   "phylum",
@@ -29,13 +29,11 @@ export const taxonRank = pgEnum("taxon_rank", [
   "species",
   "subspecies",
   "variety",
-]);
+] as const;
+export const taxonRank = pgEnum("taxon_rank", TAXON_RANKS_DESCENDING);
 
-export const taxonStatus = pgEnum("taxon_status", [
-  "draft",
-  "active",
-  "deprecated",
-]);
+export const TAXON_STATUSES = ["draft", "active", "deprecated"] as const;
+export const taxonStatus = pgEnum("taxon_status", TAXON_STATUSES);
 
 export const taxa = pgTable(
   "taxa",

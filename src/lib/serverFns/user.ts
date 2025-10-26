@@ -4,7 +4,7 @@ import { asc, count, inArray, SQL } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../../db/client";
 import { user as userTbl } from "../../db/schema/auth";
-import { userSessionMiddleware } from "../auth/middleware";
+import { userSessionMiddleware } from "../auth/serverFnMiddleware";
 import { PaginatedResult } from "./returnTypes";
 
 type UserRow = typeof userTbl.$inferSelect;

@@ -6,7 +6,7 @@ export const TaxonCard = ({ taxon }: { taxon: TaxonDTO }) => {
   return (
     <Card className="taxon-card" asChild>
       <Link to="/taxa/$id" params={{ id: String(taxon.id) }}>
-        {taxon.id} <small>({taxon.rank})</small>
+        {taxon.acceptedName} <small>({taxon.rank})</small>
       </Link>
     </Card>
   );
