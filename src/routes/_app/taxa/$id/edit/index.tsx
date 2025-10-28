@@ -1,15 +1,16 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { getMe } from "../../../../lib/serverFns/user";
-import { roleHasCuratorRights } from "../../../../lib/auth/utils";
-import { taxonQueryOptions } from "../../../../lib/queries/taxa";
+import { getMe } from "../../../../../lib/serverFns/user";
+import { roleHasCuratorRights } from "../../../../../lib/auth/utils";
+import { taxonQueryOptions } from "../../../../../lib/queries/taxa";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Box, Button, Flex, Heading } from "@radix-ui/themes";
 import { FormEventHandler, MouseEventHandler, useState } from "react";
 import { Form } from "radix-ui";
 import { useServerFn } from "@tanstack/react-start";
-import { updateTaxon } from "../../../../lib/serverFns/taxa";
+import { updateTaxon } from "../../../../../lib/serverFns/taxa";
+import { taxonCharacterValuesQueryOptions } from "../../../../../lib/queries/taxonCharacterValues";
 
-export const Route = createFileRoute("/_app/taxa/$id/edit")({
+export const Route = createFileRoute("/_app/taxa/$id/edit/")({
   beforeLoad: async ({ location }) => {
     const user = await getMe();
     if (!roleHasCuratorRights(user?.role)) {
@@ -22,6 +23,9 @@ export const Route = createFileRoute("/_app/taxa/$id/edit")({
   loader: async ({ context, params }) => {
     const numericId = Number(params.id);
     await context.queryClient.ensureQueryData(taxonQueryOptions(numericId));
+    await context.queryClient.ensureQueryData(
+      taxonCharacterValuesQueryOptions(numericId)
+    );
 
     return { id: numericId };
   },
@@ -69,14 +73,22 @@ function RouteComponent() {
       .catch((e) => console.error(e));
   };
 
-  // TODO: sort out use of form elements (form.control?)
+  // TODO: sort out use of form elements (form.control?) and form wrapping maybe unused elements
   return (
     <Box>
       <small>Editing details for:</small>
-      <Heading>{originalTaxon.acceptedName}</Heading>
+      <Heading mb="2">{originalTaxon.acceptedName}</Heading>
       <Form.Form onSubmit={handlePublish}>
+        <Box mb="2">
+          <Heading size="4">Characters</Heading>
+        </Box>
+
         <Flex>
-          <Button variant="ghost" onClick={() => navigate({ to: ".." })}>
+          <Button
+            variant="ghost"
+            onClick={() => navigate({ to: ".." })}
+            disabled={!dirty}
+          >
             Cancel
           </Button>
           <Button variant="soft" onClick={handleSaveDraft} disabled={!dirty}>

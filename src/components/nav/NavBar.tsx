@@ -28,6 +28,7 @@ export function NavBar({ user }: NavBarProps) {
   const homeActive = useIsActive("/");
   const taxaActive = useIsActive("/taxa", true);
   const usersActive = useIsActive("/users", true);
+  const keysActive = useIsActive("/keys", true);
 
   return (
     <TabNav.Root className="navbar">
@@ -47,6 +48,12 @@ export function NavBar({ user }: NavBarProps) {
       <TabNav.Link asChild active={usersActive}>
         <RouterLink to="/users" preload="intent">
           Users
+        </RouterLink>
+      </TabNav.Link>
+
+      <TabNav.Link asChild active={keysActive}>
+        <RouterLink to="/keys" preload="intent">
+          Keys
         </RouterLink>
       </TabNav.Link>
 

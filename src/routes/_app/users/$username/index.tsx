@@ -1,4 +1,4 @@
-import { Avatar, Badge, Flex, Heading, Text } from "@radix-ui/themes";
+import { Avatar, Badge, Button, Flex, Heading, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -7,20 +7,26 @@ import { UserDTO } from "../../../../lib/serverFns/user";
 import { capitalizeWord } from "../../../../lib/utils/capitalizeWord";
 import { getInitials } from "../../../../lib/utils/getInitials";
 
+// TODO: loader efficiency, redundancy
 export const Route = createFileRoute("/_app/users/$username/")({
   loader: async ({ context, params }) => {
     let effectiveUsername = params.username;
+    let isMe = false;
+
+    const me = await context.queryClient.fetchQuery(meQuery());
+
     if (params.username === "me") {
-      const me = await context.queryClient.fetchQuery(meQuery());
       if (!me) throw redirect({ to: "/login" });
       effectiveUsername = me.username;
     }
+
+    if (me?.username === effectiveUsername) isMe = true;
 
     await context.queryClient.ensureQueryData(
       userQueryOptions(effectiveUsername)
     );
 
-    return { effectiveUsername };
+    return { effectiveUsername, isMe };
   },
 
   component: UserProfilePage,
@@ -31,7 +37,8 @@ function preferredDisplay(u: UserDTO) {
 }
 
 function UserProfilePage() {
-  const { effectiveUsername } = Route.useLoaderData();
+  const { effectiveUsername, isMe } = Route.useLoaderData();
+  const navigate = Route.useNavigate();
   const { data: user } = useSuspenseQuery(userQueryOptions(effectiveUsername));
 
   const joined = useMemo(() => {
@@ -84,6 +91,8 @@ function UserProfilePage() {
           </p>
         </div>
       </section>
+
+      {isMe && <Button onClick={() => navigate({ to: "edit" })}>Edit</Button>}
     </div>
   );
 }

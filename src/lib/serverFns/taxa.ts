@@ -17,7 +17,6 @@ import { z, ZodEnum } from "zod";
 import { db } from "../../db/client";
 import { names as namesTbl } from "../../db/schema/taxa/names";
 import {
-  taxa,
   taxa as taxaTbl,
   taxonStatus,
   TAXON_RANKS_DESCENDING,
@@ -30,7 +29,13 @@ type TaxonRow = typeof taxaTbl.$inferSelect;
 type NameRow = typeof namesTbl.$inferSelect;
 export type TaxonDTO = Pick<
   TaxonRow,
-  "id" | "parentId" | "rank" | "sourceGbifId" | "sourceInatId" | "status"
+  | "id"
+  | "parentId"
+  | "rank"
+  | "sourceGbifId"
+  | "sourceInatId"
+  | "status"
+  | "media"
 > & {
   acceptedName: string | null;
 };
@@ -48,6 +53,7 @@ function formatTaxonDTO(row: TaxonRow, acceptedNameRow: NameRow): TaxonDTO {
     sourceGbifId: row.sourceGbifId,
     sourceInatId: row.sourceInatId,
     status: row.status,
+    media: row.media,
     acceptedName: acceptedNameRow.value,
   };
 }
@@ -103,6 +109,7 @@ export const listTaxa = createServerFn({ method: "GET" })
           sourceGbifId: taxaTbl.sourceGbifId,
           sourceInatId: taxaTbl.sourceInatId,
           status: taxaTbl.status,
+          media: taxaTbl.media,
           acceptedName: sci.value,
         })
         .from(taxaTbl)
@@ -146,6 +153,7 @@ export const listTaxa = createServerFn({ method: "GET" })
         sourceGbifId: taxaTbl.sourceGbifId,
         sourceInatId: taxaTbl.sourceInatId,
         status: taxaTbl.status,
+        media: taxaTbl.media,
         acceptedName: sci.value,
       })
       .from(taxaTbl)
@@ -180,6 +188,7 @@ export const getTaxon = createServerFn({ method: "GET" })
         sourceGbifId: taxaTbl.sourceGbifId,
         sourceInatId: taxaTbl.sourceInatId,
         status: taxaTbl.status,
+        media: taxaTbl.media,
         acceptedName: sci.value,
       })
       .from(taxaTbl)
@@ -230,6 +239,7 @@ export const createTaxon = createServerFn({ method: "POST" })
       sourceGbifId: taxon.sourceGbifId,
       sourceInatId: taxon.sourceInatId,
       status: taxon.status,
+      media: taxon.media,
       acceptedName: name.value,
     };
   });
@@ -254,9 +264,9 @@ export const updateTaxon = createServerFn({ method: "POST" })
     const { id, parent_id, rank, status } = data;
 
     const [taxon] = await db
-      .update(taxa)
+      .update(taxaTbl)
       .set({ parentId: parent_id, rank, status })
-      .where(eq(taxa.id, id))
+      .where(eq(taxaTbl.id, id))
       .returning();
     const [name] = await db
       .select()

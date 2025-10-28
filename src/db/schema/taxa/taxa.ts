@@ -48,14 +48,17 @@ export const taxa = pgTable(
     sourceGbifId: integer("source_gbif_id"),
     sourceInatId: integer("source_inat_id"),
 
-    media: jsonb("media").$type<
-      Array<{
-        url: string;
-        license?: (typeof mediaLicense.enumValues)[number];
-        owner?: string;
-        source?: string;
-      }>
-    >(),
+    media: jsonb("media")
+      .$type<
+        Array<{
+          url: string;
+          license?: (typeof mediaLicense.enumValues)[number];
+          owner?: string;
+          source?: string;
+        }>
+      >()
+      .notNull()
+      .default([]),
 
     notes: text("notes"),
   }),
