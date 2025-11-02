@@ -1,14 +1,14 @@
+import { Box, Button, Flex, Heading } from "@radix-ui/themes";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { getMe } from "../../../../../lib/serverFns/user";
+import { useServerFn } from "@tanstack/react-start";
+import { Form } from "radix-ui";
+import { FormEventHandler, MouseEventHandler, useState } from "react";
 import { roleHasCuratorRights } from "../../../../../lib/auth/utils";
 import { taxonQueryOptions } from "../../../../../lib/queries/taxa";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { Box, Button, Flex, Heading } from "@radix-ui/themes";
-import { FormEventHandler, MouseEventHandler, useState } from "react";
-import { Form } from "radix-ui";
-import { useServerFn } from "@tanstack/react-start";
-import { updateTaxon } from "../../../../../lib/serverFns/taxa";
 import { taxonCharacterValuesQueryOptions } from "../../../../../lib/queries/taxonCharacterValues";
+import { updateTaxon } from "../../../../../lib/serverFns/taxa";
+import { getMe } from "../../../../../lib/serverFns/user";
 
 export const Route = createFileRoute("/_app/taxa/$id/edit/")({
   beforeLoad: async ({ location }) => {

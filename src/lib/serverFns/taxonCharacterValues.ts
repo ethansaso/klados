@@ -1,12 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
+import { eq } from "drizzle-orm";
 import z from "zod";
+import { db } from "../../db/client";
 import {
   taxonCharacterNumber as numberTbl,
   taxonCharacterNumberRange as rangeTbl,
   taxonCharacterState as stateTbl,
 } from "../../db/schema/taxa/taxonCharacterValues";
-import { db } from "../../db/client";
-import { eq, sql } from "drizzle-orm";
 
 type StateRow = typeof stateTbl.$inferSelect;
 type NumberRow = typeof numberTbl.$inferSelect;
@@ -21,43 +21,26 @@ export type TaxonCharacterValueDTO = StateDTO | NumberDTO | RangeDTO;
 export const getTaxonCharacterValues = createServerFn({ method: "GET" })
   .inputValidator(z.object({ taxonId: z.number().int().nonnegative() }))
   .handler(async ({ data }): Promise<TaxonCharacterValueDTO[]> => {
-    // guard against stringy numbers coming through any edge path
-    const taxonId = Number.isFinite(data.taxonId)
-      ? Math.trunc(data.taxonId)
-      : NaN;
-    if (!Number.isFinite(taxonId)) {
-      throw new Error("Invalid taxonId");
-    }
-
-    // Helper that tries Drizzle builder first, then falls back to a raw query
-    // with an explicit ::int4 cast if your driver is picky in this environment.
-    const selectIds = async (
-      table: typeof stateTbl | typeof numberTbl | typeof rangeTbl
-    ) => {
-      try {
-        return await db
-          .select({ id: table.id })
-          .from(table)
-          .where(eq(table.taxonId, taxonId));
-      } catch {
-        const rows = await db.execute<{ id: number }>(sql`
-          select ${table.id} as id
-          from ${table}
-          where ${table.taxonId} = ${sql.raw(`${taxonId}::int4`)}
-        `);
-        return rows.rows;
-      }
-    };
+    const taxonId = data.taxonId;
 
     const [states, numbers, ranges] = await Promise.all([
-      selectIds(stateTbl),
-      selectIds(numberTbl),
-      selectIds(rangeTbl),
+      db
+        .select({ id: stateTbl.id })
+        .from(stateTbl)
+        .where(eq(stateTbl.taxonId, taxonId)),
+      db
+        .select({ id: numberTbl.id })
+        .from(numberTbl)
+        .where(eq(numberTbl.taxonId, taxonId)),
+      db
+        .select({ id: rangeTbl.id })
+        .from(rangeTbl)
+        .where(eq(rangeTbl.taxonId, taxonId)),
     ]);
 
     return [
-      ...states.map((r) => ({ id: r.id, kind: "state" as const })),
-      ...numbers.map((r) => ({ id: r.id, kind: "number" as const })),
-      ...ranges.map((r) => ({ id: r.id, kind: "range" as const })),
+      ...states.map(({ id }) => ({ id, kind: "state" as const })),
+      ...numbers.map(({ id }) => ({ id, kind: "number" as const })),
+      ...ranges.map(({ id }) => ({ id, kind: "range" as const })),
     ];
   });

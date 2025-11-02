@@ -155,6 +155,13 @@
       "when": 1761524365857,
       "tag": "0021_material_spot",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1762055909631,
+      "tag": "0022_clumsy_omega_sentinel",
+      "breakpoints": true
     }
   ]
 }

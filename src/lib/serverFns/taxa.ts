@@ -8,22 +8,21 @@ import {
   eq,
   ilike,
   inArray,
-  isNull,
   sql,
   SQL,
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import { z, ZodEnum } from "zod";
+import { z } from "zod";
 import { db } from "../../db/client";
 import { names as namesTbl } from "../../db/schema/taxa/names";
 import {
   taxa as taxaTbl,
-  taxonStatus,
   TAXON_RANKS_DESCENDING,
   TAXON_STATUSES,
 } from "../../db/schema/taxa/taxa";
-import { PaginatedResult } from "./returnTypes";
 import { requireCuratorMiddleware } from "../auth/serverFnMiddleware";
+import { assertHierarchyInvariant } from "../utils/assertHierarchyInvariant";
+import { PaginatedResult } from "./returnTypes";
 
 type TaxonRow = typeof taxaTbl.$inferSelect;
 type NameRow = typeof namesTbl.$inferSelect;
@@ -40,22 +39,26 @@ export type TaxonDTO = Pick<
   acceptedName: string | null;
 };
 
+const sci = alias(namesTbl, "sci");
+const sciJoinPred = and(
+  eq(sci.taxonId, taxaTbl.id),
+  sql`${sci.kind} = 'scientific' AND ${sci.synonymKind} IS NULL`
+);
+
+// Reusable selection shape for a TaxonDTO
+const selectTaxonDTO = {
+  id: taxaTbl.id,
+  parentId: taxaTbl.parentId,
+  rank: taxaTbl.rank,
+  sourceGbifId: taxaTbl.sourceGbifId,
+  sourceInatId: taxaTbl.sourceInatId,
+  status: taxaTbl.status,
+  media: taxaTbl.media,
+  acceptedName: sci.value,
+};
+
 export interface TaxonPageResult extends PaginatedResult {
   items: TaxonDTO[];
-}
-
-// TODO: ask where to use, if everywhere (also reusable names queries, etc. just reduce redundancy)
-function formatTaxonDTO(row: TaxonRow, acceptedNameRow: NameRow): TaxonDTO {
-  return {
-    id: row.id,
-    parentId: row.parentId,
-    rank: row.rank,
-    sourceGbifId: row.sourceGbifId,
-    sourceInatId: row.sourceInatId,
-    status: row.status,
-    media: row.media,
-    acceptedName: acceptedNameRow.value,
-  };
 }
 
 export const listTaxa = createServerFn({ method: "GET" })
@@ -69,11 +72,11 @@ export const listTaxa = createServerFn({ method: "GET" })
     })
   )
   .handler(async ({ data }): Promise<TaxonPageResult> => {
-    const { ids, page, pageSize, status } = data;
+    const { q, ids, page, pageSize, status } = data;
     const offset = (page - 1) * pageSize;
 
     // Escape %, _ and \ in the search string (no user wildcards)
-    const rawQ = data.q?.trim();
+    const rawQ = q?.trim();
     const likeAnywhere =
       rawQ && rawQ.length
         ? `%${rawQ.replace(/([%_\\])/g, "\\$1")}%`
@@ -81,16 +84,11 @@ export const listTaxa = createServerFn({ method: "GET" })
 
     // Aliases: one for filtering (any name), one for the accepted scientific name
     const searchNames = alias(namesTbl, "search_names");
-    const sci = alias(namesTbl, "sci");
 
     // Common predicates
-    const statusFilter = data.status
-      ? eq(taxaTbl.status, data.status)
+    const statusFilter = status
+      ? eq(taxaTbl.status, status)
       : eq(taxaTbl.status, "active");
-    const sciJoinPred = and(
-      eq(sci.taxonId, taxaTbl.id),
-      sql`${sci.kind} = 'scientific' AND ${sci.synonymKind} IS NULL`
-    );
 
     // When q is provided, filter on names.value (trigram index)
     if (likeAnywhere) {
@@ -102,16 +100,7 @@ export const listTaxa = createServerFn({ method: "GET" })
       const where = and(...(filters.filter(Boolean) as SQL[]));
 
       const items = await db
-        .select({
-          id: taxaTbl.id,
-          parentId: taxaTbl.parentId,
-          rank: taxaTbl.rank,
-          sourceGbifId: taxaTbl.sourceGbifId,
-          sourceInatId: taxaTbl.sourceInatId,
-          status: taxaTbl.status,
-          media: taxaTbl.media,
-          acceptedName: sci.value,
-        })
+        .select(selectTaxonDTO)
         .from(taxaTbl)
         .innerJoin(searchNames, eq(searchNames.taxonId, taxaTbl.id))
         .leftJoin(sci, sciJoinPred)
@@ -146,16 +135,7 @@ export const listTaxa = createServerFn({ method: "GET" })
     const where = and(...(baseFilters.filter(Boolean) as SQL[]));
 
     const items = await db
-      .select({
-        id: taxaTbl.id,
-        parentId: taxaTbl.parentId,
-        rank: taxaTbl.rank,
-        sourceGbifId: taxaTbl.sourceGbifId,
-        sourceInatId: taxaTbl.sourceInatId,
-        status: taxaTbl.status,
-        media: taxaTbl.media,
-        acceptedName: sci.value,
-      })
+      .select(selectTaxonDTO)
       .from(taxaTbl)
       .leftJoin(sci, sciJoinPred)
       .where(where)
@@ -178,27 +158,10 @@ export const getTaxon = createServerFn({ method: "GET" })
     })
   )
   .handler(async ({ data }): Promise<TaxonDTO> => {
-    const sci = alias(namesTbl, "sci");
-
     const rows = await db
-      .select({
-        id: taxaTbl.id,
-        parentId: taxaTbl.parentId,
-        rank: taxaTbl.rank,
-        sourceGbifId: taxaTbl.sourceGbifId,
-        sourceInatId: taxaTbl.sourceInatId,
-        status: taxaTbl.status,
-        media: taxaTbl.media,
-        acceptedName: sci.value,
-      })
+      .select(selectTaxonDTO)
       .from(taxaTbl)
-      .leftJoin(
-        sci,
-        and(
-          eq(sci.taxonId, taxaTbl.id),
-          sql`${sci.kind} = 'scientific' AND ${sci.synonymKind} IS NULL`
-        )
-      )
+      .leftJoin(sci, sciJoinPred)
       .where(eq(taxaTbl.id, data.id))
       .limit(1);
 
@@ -207,7 +170,6 @@ export const getTaxon = createServerFn({ method: "GET" })
     return u;
   });
 
-// TODO: enforce taxon rank shouldn't match or outrank parent
 export const createTaxon = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
   .inputValidator(
@@ -219,36 +181,42 @@ export const createTaxon = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }): Promise<TaxonDTO> => {
     const { accepted_name: scientific_name, parent_id, rank } = data;
-    const [taxon] = await db
-      .insert(taxaTbl)
-      .values({ parentId: parent_id, rank })
-      .returning();
-    const [name] = await db
-      .insert(namesTbl)
-      .values({
-        value: scientific_name,
-        taxonId: taxon.id,
-        kind: "scientific",
-      })
-      .returning({ value: namesTbl.value });
 
-    return {
-      id: taxon.id,
-      parentId: taxon.parentId,
-      rank: taxon.rank,
-      sourceGbifId: taxon.sourceGbifId,
-      sourceInatId: taxon.sourceInatId,
-      status: taxon.status,
-      media: taxon.media,
-      acceptedName: name.value,
-    };
+    return await db.transaction(async (tx) => {
+      await assertHierarchyInvariant({
+        tx,
+        nextParentId: parent_id,
+        nextRank: rank,
+      });
+      const [taxon] = await db
+        .insert(taxaTbl)
+        .values({ parentId: parent_id, rank })
+        .returning();
+      const [name] = await db
+        .insert(namesTbl)
+        .values({
+          value: scientific_name,
+          taxonId: taxon.id,
+          kind: "scientific",
+        })
+        .returning({ value: namesTbl.value });
+
+      return {
+        id: taxon.id,
+        parentId: taxon.parentId,
+        rank: taxon.rank,
+        sourceGbifId: taxon.sourceGbifId,
+        sourceInatId: taxon.sourceInatId,
+        status: taxon.status,
+        media: taxon.media,
+        acceptedName: name.value,
+      };
+    });
   });
 
 // TODO: should we even allow deleting taxa?
 // TODO: should be separate endpoints for publish/unpublish/deprecate?
 // TODO: maybe don't require all fields, and if so, how to properly set?
-// TODO: same rank guard as above
-// TODO: is it less efficient not to use 'returning'?
 // TODO: names -- join?
 export const updateTaxon = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
@@ -263,17 +231,39 @@ export const updateTaxon = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<TaxonDTO> => {
     const { id, parent_id, rank, status } = data;
 
-    const [taxon] = await db
-      .update(taxaTbl)
-      .set({ parentId: parent_id, rank, status })
-      .where(eq(taxaTbl.id, id))
-      .returning();
-    const [name] = await db
-      .select()
-      .from(namesTbl)
-      .where(
-        and(eq(namesTbl.kind, "scientific"), isNull(namesTbl.synonymKind))
-      );
+    return await db.transaction(async (tx) => {
+      // Ensure the target exists, and prevent self-parenting
+      const [current] = await tx
+        .select({ id: taxaTbl.id })
+        .from(taxaTbl)
+        .where(eq(taxaTbl.id, id))
+        .limit(1);
+      if (!current) throw notFound();
+      if (parent_id === id)
+        throw new Error("A taxon cannot be its own parent.");
 
-    return formatTaxonDTO(taxon, name);
+      await assertHierarchyInvariant({
+        tx,
+        nextParentId: parent_id,
+        nextRank: rank,
+      });
+
+      const updated = await tx
+        .update(taxaTbl)
+        .set({ parentId: parent_id, rank, status })
+        .where(eq(taxaTbl.id, id))
+        .returning({ id: taxaTbl.id });
+
+      if (updated.length === 0) throw notFound();
+
+      const [dto] = await tx
+        .select(selectTaxonDTO)
+        .from(taxaTbl)
+        .leftJoin(sci, sciJoinPred)
+        .where(eq(taxaTbl.id, updated[0].id))
+        .limit(1);
+
+      if (!dto) throw notFound();
+      return dto;
+    });
   });

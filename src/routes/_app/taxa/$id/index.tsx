@@ -1,8 +1,8 @@
 import { Button, Callout, Flex, Heading } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 import placeholderImage from "../../../../assets/LogoDotted.svg";
+import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 
 export const Route = createFileRoute("/_app/taxa/$id/")({
   loader: async ({ context, params }) => {
@@ -21,6 +21,7 @@ function TaxonPage() {
   const { id } = Route.useLoaderData();
   const navigate = useNavigate();
   const { data: taxon } = useSuspenseQuery(taxonQueryOptions(id));
+  console.log(taxon);
   const primaryMedia = taxon.media[0];
 
   return (
