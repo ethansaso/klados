@@ -7,19 +7,20 @@ import { getMe, getUser, listUsers } from "../serverFns/user";
  * Wraps the getUsers server function with React Query integration.
  */
 export const usersQueryOptions = (page: number, pageSize: number) =>
-  queryOptions({
+  queryOptions<UsersPageResult>({
     queryKey: ["users", { page, pageSize }],
-    queryFn: () =>
-      listUsers({ data: { page, pageSize } }) as Promise<UsersPageResult>,
+    queryFn: () => listUsers({ data: { page, pageSize } }),
+    staleTime: 30_000,
   });
 
 /**
  * Query options for fetching a single user by ID.
  */
 export const userQueryOptions = (id: string) =>
-  queryOptions({
-    queryKey: ["users", id],
-    queryFn: () => getUser({ data: { id } }) as Promise<UserDTO>,
+  queryOptions<UserDTO>({
+    queryKey: ["user", id],
+    queryFn: () => getUser({ data: { id } }),
+    staleTime: 60_000,
   });
 
 /**

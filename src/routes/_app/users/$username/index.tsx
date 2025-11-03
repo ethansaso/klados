@@ -1,22 +1,20 @@
 import { Avatar, Badge, Button, Flex, Heading, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useMemo } from "react";
 import { meQuery, userQueryOptions } from "../../../../lib/queries/user";
 import { UserDTO } from "../../../../lib/serverFns/user";
 import { capitalizeWord } from "../../../../lib/utils/capitalizeWord";
 import { getInitials } from "../../../../lib/utils/getInitials";
 
-// TODO: loader efficiency, redundancy
 export const Route = createFileRoute("/_app/users/$username/")({
   loader: async ({ context, params }) => {
     let effectiveUsername = params.username;
     let isMe = false;
 
     const me = await context.queryClient.fetchQuery(meQuery());
-
     if (params.username === "me") {
-      if (!me) throw redirect({ to: "/login" });
+      if (!me)
+        throw redirect({ to: "/login", search: { redirect: "/users/me" } });
       effectiveUsername = me.username;
     }
 
@@ -41,13 +39,7 @@ function UserProfilePage() {
   const navigate = Route.useNavigate();
   const { data: user } = useSuspenseQuery(userQueryOptions(effectiveUsername));
 
-  const joined = useMemo(() => {
-    try {
-      return new Date(user.createdAt).toLocaleDateString();
-    } catch {
-      return "";
-    }
-  }, [user.createdAt]);
+  const joined = new Date(user.createdAt).toLocaleDateString();
 
   return (
     <div>

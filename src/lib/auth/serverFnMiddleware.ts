@@ -13,51 +13,47 @@ export const userSessionMiddleware = createMiddleware({
   });
 });
 
-// TODO: sort out the 'request' / 'context' usage here
 export const requireAuthenticationMiddleware = createMiddleware({
   type: "function",
-}).server(async ({ next }) => {
-  const request = getRequest();
-  const session = await auth.api.getSession({ headers: request?.headers });
+})
+  .middleware([userSessionMiddleware])
+  .server(async ({ context, next }) => {
+    const request = getRequest();
+    const session = context.user;
 
-  if (!session) {
-    forceLoginRedirect(request);
-  }
+    if (!session) {
+      forceLoginRedirect(request);
+    }
 
-  // Enrich downstream server-fn context
-  return next({
-    context: { session },
+    return next();
   });
-});
 
 export const requireCuratorMiddleware = createMiddleware({
   type: "function",
-}).server(async ({ context, next }) => {
-  const request = getRequest();
-  const session = await auth.api.getSession({ headers: request?.headers });
-  const role = session?.user.role;
+})
+  .middleware([userSessionMiddleware])
+  .server(async ({ context, next }) => {
+    const request = getRequest();
+    const role = context.user?.role;
 
-  if (!session || !roleHasCuratorRights(role)) {
-    forceLoginRedirect(request);
-  }
+    if (!context.user || !roleHasCuratorRights(role)) {
+      forceLoginRedirect(request);
+    }
 
-  return next({
-    context: { session },
+    return next();
   });
-});
 
 export const requireAdminMiddleware = createMiddleware({
   type: "function",
-}).server(async ({ context, next }) => {
-  const request = getRequest();
-  const session = await auth.api.getSession({ headers: request?.headers });
-  const role = session?.user.role;
+})
+  .middleware([userSessionMiddleware])
+  .server(async ({ context, next }) => {
+    const request = getRequest();
+    const role = context.user?.role;
 
-  if (!session || !roleIsAdmin(role)) {
-    forceLoginRedirect(request);
-  }
+    if (!context.user || !roleIsAdmin(role)) {
+      forceLoginRedirect(request);
+    }
 
-  return next({
-    context: { session },
+    return next();
   });
-});

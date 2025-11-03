@@ -1,6 +1,6 @@
 import { Card } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
-import { TaxonDTO } from "../../../lib/serverFns/taxa";
+import { TaxonDTO } from "../../../lib/serverFns/taxa/types";
 
 export const TaxonCard = ({ taxon }: { taxon: TaxonDTO }) => {
   return (

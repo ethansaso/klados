@@ -1,3 +1,4 @@
+import NiceModal from "@ebay/nice-modal-react";
 import { Theme } from "@radix-ui/themes";
 import { QueryClient } from "@tanstack/react-query";
 import {
@@ -70,7 +71,9 @@ export const Route = createRootRouteWithContext<{
 function RootComponent() {
   return (
     <RootDocument>
-      <Outlet />
+      <NiceModal.Provider>
+        <Outlet />
+      </NiceModal.Provider>
     </RootDocument>
   );
 }

@@ -8,15 +8,15 @@ import {
 } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { Form, Label } from "radix-ui";
-import { taxaQueryOptions } from "../../../lib/queries/taxa";
 import { FormEventHandler, useState } from "react";
 import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
-import { capitalizeWord } from "../../../lib/utils/capitalizeWord";
-import { useServerFn } from "@tanstack/react-start";
-import { createTaxon } from "../../../lib/serverFns/taxa";
-import { getMe } from "../../../lib/serverFns/user";
 import { roleHasCuratorRights } from "../../../lib/auth/utils";
+import { taxaQueryOptions } from "../../../lib/queries/taxa";
+import { createTaxon } from "../../../lib/serverFns/taxa/fns";
+import { getMe } from "../../../lib/serverFns/user";
+import { capitalizeWord } from "../../../lib/utils/capitalizeWord";
 
 export const Route = createFileRoute("/_app/taxa/new")({
   beforeLoad: async ({ context, location }) => {

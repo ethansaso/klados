@@ -4,6 +4,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import placeholderImage from "../../../../assets/LogoDotted.svg";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 
+const IMG_SIZE = 128;
+
 export const Route = createFileRoute("/_app/taxa/$id/")({
   loader: async ({ context, params }) => {
     const numericId = Number(params.id);
@@ -14,9 +16,6 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
   component: TaxonPage,
 });
 
-const IMG_SIZE = 128;
-
-// TODO: figure out whether to preload in Route and/or useSuspenseQuery
 function TaxonPage() {
   const { id } = Route.useLoaderData();
   const navigate = useNavigate();

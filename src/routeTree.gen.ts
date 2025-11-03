@@ -31,6 +31,7 @@ import { Route as AppUsersUsernameRouteRouteImport } from './routes/_app/users/$
 import { Route as AppUsersUsernameIndexRouteImport } from './routes/_app/users/$username/index'
 import { Route as AppTaxaIdIndexRouteImport } from './routes/_app/taxa/$id/index'
 import { Route as AppUsersUsernameEditRouteImport } from './routes/_app/users/$username/edit'
+import { Route as AppTaxaIdEditRouteRouteImport } from './routes/_app/taxa/$id/edit/route'
 import { Route as AppTaxaIdEditIndexRouteImport } from './routes/_app/taxa/$id/edit/index'
 
 const AdminRouteRoute = AdminRouteRouteImport.update({
@@ -142,10 +143,15 @@ const AppUsersUsernameEditRoute = AppUsersUsernameEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => AppUsersUsernameRouteRoute,
 } as any)
-const AppTaxaIdEditIndexRoute = AppTaxaIdEditIndexRouteImport.update({
-  id: '/$id/edit/',
-  path: '/$id/edit/',
+const AppTaxaIdEditRouteRoute = AppTaxaIdEditRouteRouteImport.update({
+  id: '/$id/edit',
+  path: '/$id/edit',
   getParentRoute: () => AppTaxaRouteRoute,
+} as any)
+const AppTaxaIdEditIndexRoute = AppTaxaIdEditIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppTaxaIdEditRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -167,10 +173,11 @@ export interface FileRoutesByFullPath {
   '/taxa/': typeof AppTaxaIndexRoute
   '/users': typeof AppUsersIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/taxa/$id/edit': typeof AppTaxaIdEditRouteRouteWithChildren
   '/users/$username/edit': typeof AppUsersUsernameEditRoute
   '/taxa/$id': typeof AppTaxaIdIndexRoute
   '/users/$username/': typeof AppUsersUsernameIndexRoute
-  '/taxa/$id/edit': typeof AppTaxaIdEditIndexRoute
+  '/taxa/$id/edit/': typeof AppTaxaIdEditIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof AppLoginRoute
@@ -212,6 +219,7 @@ export interface FileRoutesById {
   '/_app/taxa/': typeof AppTaxaIndexRoute
   '/_app/users/': typeof AppUsersIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/_app/taxa/$id/edit': typeof AppTaxaIdEditRouteRouteWithChildren
   '/_app/users/$username/edit': typeof AppUsersUsernameEditRoute
   '/_app/taxa/$id/': typeof AppTaxaIdIndexRoute
   '/_app/users/$username/': typeof AppUsersUsernameIndexRoute
@@ -238,10 +246,11 @@ export interface FileRouteTypes {
     | '/taxa/'
     | '/users'
     | '/admin/users/'
+    | '/taxa/$id/edit'
     | '/users/$username/edit'
     | '/taxa/$id'
     | '/users/$username/'
-    | '/taxa/$id/edit'
+    | '/taxa/$id/edit/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -282,6 +291,7 @@ export interface FileRouteTypes {
     | '/_app/taxa/'
     | '/_app/users/'
     | '/admin/users/'
+    | '/_app/taxa/$id/edit'
     | '/_app/users/$username/edit'
     | '/_app/taxa/$id/'
     | '/_app/users/$username/'
@@ -450,12 +460,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersUsernameEditRouteImport
       parentRoute: typeof AppUsersUsernameRouteRoute
     }
-    '/_app/taxa/$id/edit/': {
-      id: '/_app/taxa/$id/edit/'
+    '/_app/taxa/$id/edit': {
+      id: '/_app/taxa/$id/edit'
       path: '/$id/edit'
       fullPath: '/taxa/$id/edit'
-      preLoaderRoute: typeof AppTaxaIdEditIndexRouteImport
+      preLoaderRoute: typeof AppTaxaIdEditRouteRouteImport
       parentRoute: typeof AppTaxaRouteRoute
+    }
+    '/_app/taxa/$id/edit/': {
+      id: '/_app/taxa/$id/edit/'
+      path: '/'
+      fullPath: '/taxa/$id/edit/'
+      preLoaderRoute: typeof AppTaxaIdEditIndexRouteImport
+      parentRoute: typeof AppTaxaIdEditRouteRoute
     }
   }
 }
@@ -474,20 +491,31 @@ const AppKeysRouteRouteWithChildren = AppKeysRouteRoute._addFileChildren(
   AppKeysRouteRouteChildren,
 )
 
+interface AppTaxaIdEditRouteRouteChildren {
+  AppTaxaIdEditIndexRoute: typeof AppTaxaIdEditIndexRoute
+}
+
+const AppTaxaIdEditRouteRouteChildren: AppTaxaIdEditRouteRouteChildren = {
+  AppTaxaIdEditIndexRoute: AppTaxaIdEditIndexRoute,
+}
+
+const AppTaxaIdEditRouteRouteWithChildren =
+  AppTaxaIdEditRouteRoute._addFileChildren(AppTaxaIdEditRouteRouteChildren)
+
 interface AppTaxaRouteRouteChildren {
   AppTaxaDraftsRoute: typeof AppTaxaDraftsRoute
   AppTaxaNewRoute: typeof AppTaxaNewRoute
   AppTaxaIndexRoute: typeof AppTaxaIndexRoute
+  AppTaxaIdEditRouteRoute: typeof AppTaxaIdEditRouteRouteWithChildren
   AppTaxaIdIndexRoute: typeof AppTaxaIdIndexRoute
-  AppTaxaIdEditIndexRoute: typeof AppTaxaIdEditIndexRoute
 }
 
 const AppTaxaRouteRouteChildren: AppTaxaRouteRouteChildren = {
   AppTaxaDraftsRoute: AppTaxaDraftsRoute,
   AppTaxaNewRoute: AppTaxaNewRoute,
   AppTaxaIndexRoute: AppTaxaIndexRoute,
+  AppTaxaIdEditRouteRoute: AppTaxaIdEditRouteRouteWithChildren,
   AppTaxaIdIndexRoute: AppTaxaIdIndexRoute,
-  AppTaxaIdEditIndexRoute: AppTaxaIdEditIndexRoute,
 }
 
 const AppTaxaRouteRouteWithChildren = AppTaxaRouteRoute._addFileChildren(
@@ -569,3 +597,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

@@ -1,5 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getTaxon, listTaxa, TaxonPageResult } from "../serverFns/taxa";
+import { getTaxon, listTaxa } from "../serverFns/taxa/fns";
+import { TaxonPageResult } from "../serverFns/taxa/types";
 
 export const taxonQueryOptions = (id: number) =>
   queryOptions({

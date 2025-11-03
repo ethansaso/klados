@@ -11,7 +11,7 @@ import {
   text,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { mediaLicense } from "../../utils/mediaLicense";
+import { mediaLicenseEnum } from "../../utils/mediaLicense";
 import { withTimestamps } from "../../utils/timestamps";
 
 export const TAXON_RANKS_DESCENDING = [
@@ -41,6 +41,7 @@ export const taxa = pgTable(
     id: serial("id").primaryKey(),
 
     parentId: integer("parent_id"),
+    replacedById: integer("replaced_by_id"),
 
     rank: taxonRank("rank").notNull(),
     status: taxonStatus("status").notNull().default("draft"),
@@ -52,7 +53,7 @@ export const taxa = pgTable(
       .$type<
         Array<{
           url: string;
-          license?: (typeof mediaLicense.enumValues)[number];
+          license?: (typeof mediaLicenseEnum.enumValues)[number];
           owner?: string;
           source?: string;
         }>
@@ -63,12 +64,17 @@ export const taxa = pgTable(
     notes: text("notes"),
   }),
   (t) => [
-    // ? FK here avoids circular reference causing TS problems
+    // ? FKs here avoids circular reference causing TS problems
     foreignKey({
       name: "taxa_parent_fk",
       columns: [t.parentId],
       foreignColumns: [t.id],
     }).onDelete("restrict"),
+    foreignKey({
+      name: "taxa_replaced_by_fk",
+      columns: [t.replacedById],
+      foreignColumns: [t.id],
+    }).onDelete("set null"),
 
     check(
       "taxa_parent_not_self",
