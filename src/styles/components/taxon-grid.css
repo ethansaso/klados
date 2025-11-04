@@ -1,0 +1,16 @@
+.taxon-grid {
+  .taxon-card {
+    img {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      border-radius: var(--radius-4);
+    }
+
+    .summary {
+      svg {
+        font-size: var(--font-size-2);
+      }
+    }
+  }
+}

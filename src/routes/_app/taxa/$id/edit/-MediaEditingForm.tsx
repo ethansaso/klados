@@ -84,7 +84,7 @@ export const MediaEditingForm = ({ value, onChange }: MediaEditorProps) => {
           <Table.Row>
             <Table.ColumnHeaderCell>#</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell>Preview</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell>URL</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell>Image URL</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell>License</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell>Owner</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell>Source</Table.ColumnHeaderCell>

@@ -6,6 +6,7 @@ export const taxonQueryOptions = (id: number) =>
   queryOptions({
     queryKey: ["taxon", id],
     queryFn: () => getTaxon({ data: { id } }),
+    staleTime: 60_000,
   });
 
 export const taxaQueryOptions = (

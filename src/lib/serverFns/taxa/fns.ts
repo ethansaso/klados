@@ -46,6 +46,10 @@ const selectTaxonDTO = {
   media: taxaTbl.media,
   notes: taxaTbl.notes,
   acceptedName: sci.value,
+  activeChildCount: sql<number>`(
+    SELECT COUNT(*) FROM ${taxaTbl} AS c
+    WHERE c.parent_id = ${taxaTbl.id} AND c.status = 'active'
+  )`,
 };
 
 export const listTaxa = createServerFn({ method: "GET" })

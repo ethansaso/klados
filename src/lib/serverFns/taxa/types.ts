@@ -14,6 +14,7 @@ export type TaxonDTO = Pick<
   | "notes"
 > & {
   acceptedName: string;
+  activeChildCount: number;
 };
 
 export interface TaxonPageResult extends PaginatedResult {

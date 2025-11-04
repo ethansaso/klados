@@ -46,6 +46,7 @@ export const ExternalResultSummary = ({
         <Text as="div">
           <Link
             href={link}
+            target="_blank"
             weight="bold"
             size="4"
             color="gray"

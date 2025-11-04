@@ -1,8 +1,6 @@
-import {
-  QueryClient
-} from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
-import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query';
+import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { NotFound } from "./components/NotFound";
 import { routeTree } from "./routeTree.gen";
 
@@ -11,7 +9,7 @@ export type RouterContext = {
 };
 
 export function getRouter() {
-  const queryClient = new QueryClient()
+  const queryClient = new QueryClient();
 
   const router = createRouter({
     routeTree,
@@ -19,14 +17,15 @@ export function getRouter() {
       queryClient,
     },
     scrollRestoration: true,
-    defaultPreload: 'intent',
+    defaultPreload: "intent",
+    defaultPreloadStaleTime: 0,
     defaultNotFoundComponent: NotFound,
   });
 
   setupRouterSsrQueryIntegration({
     router,
     queryClient,
-  })
+  });
 
   return router;
 }

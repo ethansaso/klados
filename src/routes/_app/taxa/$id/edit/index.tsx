@@ -44,18 +44,20 @@ type EditState = Omit<TaxonPatch, "media" | "rank"> & {
   rank: (typeof TAXON_RANKS_DESCENDING)[number];
 };
 
-// TODO: form enter submit?
 // TODO: validation
+// TODO: suspense
 export const Route = createFileRoute("/_app/taxa/$id/edit/")({
-  // ! Important: without this, loader will come from Router cache and seed with old data.
-  gcTime: 0,
-  loader: async ({ context, params }) => {
+  beforeLoad: async ({ context, params }) => {
     const id = Number(params.id);
     if (isNaN(id)) {
       throw notFound();
     }
 
-    await context.queryClient.invalidateQueries({ queryKey: ["taxon", id] });
+    // ! Forcibly refetch data to ensure we have the latest version to seed form
+    await context.queryClient.invalidateQueries(taxonQueryOptions(id));
+    await context.queryClient.invalidateQueries(
+      taxonCharacterValuesQueryOptions(id)
+    );
     const taxon = await context.queryClient.fetchQuery(taxonQueryOptions(id));
     const values = await context.queryClient.fetchQuery(
       taxonCharacterValuesQueryOptions(id)
@@ -66,6 +68,10 @@ export const Route = createFileRoute("/_app/taxa/$id/edit/")({
     }
 
     return { id, initialTaxon: taxon, initialCharacterValues: values };
+  },
+  loader: async ({ context, params }) => {
+    const { id, initialTaxon, initialCharacterValues } = context;
+    return { id, initialTaxon, initialCharacterValues };
   },
   component: RouteComponent,
 });
@@ -81,6 +87,7 @@ const seedEditState = (taxon: TaxonDTO): EditState => ({
 
 function RouteComponent() {
   const { id, initialTaxon, initialCharacterValues } = Route.useLoaderData();
+  console.log(initialTaxon.sourceGbifId);
   const qc = useQueryClient();
   const navigate = useNavigate();
 

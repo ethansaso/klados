@@ -36,7 +36,9 @@ function RouteComponent() {
   const [parentQ, setParentQ] = useState("");
   const [acceptedName, setAcceptedName] = useState("");
   const [parentId, setParentId] = useState<number | null>(null);
-  const [rank, setRank] = useState(TAXON_RANKS_DESCENDING[0]);
+  const [rank, setRank] = useState<(typeof TAXON_RANKS_DESCENDING)[number]>(
+    TAXON_RANKS_DESCENDING[0]
+  );
   const serverCreate = useServerFn(createTaxon);
   const navigate = useNavigate();
   // TODO: why doesn't useQuery work here?
