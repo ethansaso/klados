@@ -4,7 +4,7 @@ import { TaxonPageResult } from "../serverFns/taxa/types";
 
 export const taxonQueryOptions = (id: number) =>
   queryOptions({
-    queryKey: ["taxa", id],
+    queryKey: ["taxon", id],
     queryFn: () => getTaxon({ data: { id } }),
   });
 

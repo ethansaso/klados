@@ -1,0 +1,16 @@
+.toast-viewport {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  bottom: 0;
+  right: 0;
+  z-index: 9999;
+
+  margin: 0;
+  padding: var(--space-5);
+  width: 448px;
+  gap: 8px;
+  
+  outline: none;
+  list-style: none;
+}

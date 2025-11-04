@@ -8,8 +8,9 @@ import {
   createRootRouteWithContext,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { ToastHost } from "../components/ToastHost";
 import { GA_ID, seo } from "../lib/seo";
-import appCssUrl from "../styles/styles.css?url";
+import appCssUrl from "../styles/main.css?url";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -73,6 +74,7 @@ function RootComponent() {
     <RootDocument>
       <NiceModal.Provider>
         <Outlet />
+        <ToastHost />
       </NiceModal.Provider>
     </RootDocument>
   );

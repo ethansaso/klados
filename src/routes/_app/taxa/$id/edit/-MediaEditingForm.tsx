@@ -147,7 +147,9 @@ export const MediaEditingForm = ({ value, onChange }: MediaEditorProps) => {
                         )
                       }
                     >
-                      <Select.Trigger />
+                      <Select.Trigger>
+                        {m.license ? LEGIBLE_LICENSES[m.license] : "—"}
+                      </Select.Trigger>
                       <Select.Content>
                         <Select.Item value="__none__">—</Select.Item>
                         {MEDIA_LICENSES.map((lic) => (

@@ -5,8 +5,8 @@ import { taxaQueryOptions } from "../../../lib/queries/taxa";
 import { TaxonGrid } from "./-TaxonGrid";
 
 const SearchSchema = z.object({
-  page: z.coerce.number().int().min(1).catch(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).catch(20).default(20),
+  page: z.coerce.number().int().min(1).max(9999).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
 });
 
 export const Route = createFileRoute("/_app/taxa/drafts")({

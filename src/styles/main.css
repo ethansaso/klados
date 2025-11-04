@@ -2,6 +2,8 @@
 @import "navbar.css";
 @import "admin.css";
 @import "forms.css";
+@import "./vendors/_index.css";
+@import "./components/_index.css";
 
 :root,
 .radix-themes {

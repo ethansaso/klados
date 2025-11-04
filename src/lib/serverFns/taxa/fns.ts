@@ -27,7 +27,7 @@ import {
   getChildCount,
   getCurrentTaxonMinimal,
 } from "./utils";
-import { TaxonPatchSchema } from "./zod";
+import { taxonPatchSchema } from "./zod";
 
 const sci = alias(namesTbl, "sci");
 const sciJoinPred = and(
@@ -325,7 +325,7 @@ export const updateTaxon = createServerFn({ method: "POST" })
       .object({
         id: z.number(),
       })
-      .and(TaxonPatchSchema)
+      .and(taxonPatchSchema)
       .superRefine((data, ctx) => {
         // enforce
         const { id, ...rest } = data as Record<string, unknown>;

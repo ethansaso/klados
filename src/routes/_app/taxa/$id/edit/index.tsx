@@ -5,12 +5,21 @@ import {
   Flex,
   Heading,
   IconButton,
+  Link as RadixLink,
   Select,
   Text,
   TextArea,
   TextField,
+  Tooltip,
 } from "@radix-ui/themes";
-import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  createFileRoute,
+  notFound,
+  Link as TanStackLink,
+  useBlocker,
+  useNavigate,
+} from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Form } from "radix-ui";
 import { MouseEventHandler, useState } from "react";
@@ -23,77 +32,119 @@ import {
   publishTaxon,
   updateTaxon,
 } from "../../../../../lib/serverFns/taxa/fns";
+import { TaxonDTO } from "../../../../../lib/serverFns/taxa/types";
 import { MediaItem, TaxonPatch } from "../../../../../lib/serverFns/taxa/zod";
+import { toast } from "../../../../../lib/utils/toast";
 import { MediaEditingForm } from "./-MediaEditingForm";
 import { pickInatTaxon } from "./-dialogs/InatConfirmModal";
+import { pickGBIFTaxon } from "./-dialogs/gbifConfirmModal";
 
-type EditState = Omit<TaxonPatch, "media"> & { media: MediaItem[] };
+type EditState = Omit<TaxonPatch, "media" | "rank"> & {
+  media: MediaItem[];
+  rank: (typeof TAXON_RANKS_DESCENDING)[number];
+};
 
+// TODO: form enter submit?
+// TODO: validation
 export const Route = createFileRoute("/_app/taxa/$id/edit/")({
+  // ! Important: without this, loader will come from Router cache and seed with old data.
+  gcTime: 0,
   loader: async ({ context, params }) => {
-    const numericId = Number(params.id);
-
-    const originalTaxon = await context.queryClient.fetchQuery(
-      taxonQueryOptions(numericId)
-    );
-    const originalCharacterValues = await context.queryClient.fetchQuery(
-      taxonCharacterValuesQueryOptions(numericId)
-    );
-
-    if (!originalTaxon || !originalCharacterValues) {
+    const id = Number(params.id);
+    if (isNaN(id)) {
       throw notFound();
     }
 
-    return { id: numericId, originalTaxon, originalCharacterValues };
+    await context.queryClient.invalidateQueries({ queryKey: ["taxon", id] });
+    const taxon = await context.queryClient.fetchQuery(taxonQueryOptions(id));
+    const values = await context.queryClient.fetchQuery(
+      taxonCharacterValuesQueryOptions(id)
+    );
+
+    if (!taxon || !values) {
+      throw notFound();
+    }
+
+    return { id, initialTaxon: taxon, initialCharacterValues: values };
   },
   component: RouteComponent,
 });
 
+const seedEditState = (taxon: TaxonDTO): EditState => ({
+  parent_id: taxon.parentId ?? null,
+  rank: taxon.rank,
+  source_gbif_id: taxon.sourceGbifId ?? null,
+  source_inat_id: taxon.sourceInatId ?? null,
+  media: taxon.media ?? [],
+  notes: taxon.notes ?? null,
+});
+
 function RouteComponent() {
-  const { id, originalTaxon } = Route.useLoaderData();
+  const { id, initialTaxon, initialCharacterValues } = Route.useLoaderData();
+  const qc = useQueryClient();
   const navigate = useNavigate();
 
   const serverUpdate = useServerFn(updateTaxon);
   const serverPublish = useServerFn(publishTaxon);
   const serverDelete = useServerFn(deleteTaxon);
 
-  const [form, setForm] = useState<EditState>({
-    parent_id: originalTaxon.parentId ?? null,
-    rank: originalTaxon.rank,
-    source_gbif_id: originalTaxon.sourceGbifId ?? null,
-    source_inat_id: originalTaxon.sourceInatId ?? null,
-    media: originalTaxon.media ?? [],
-    notes: originalTaxon.notes ?? null,
-  });
+  const [form, setForm] = useState<EditState>(seedEditState(initialTaxon));
 
   const [dirty, setDirty] = useState(false);
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const isDraft = originalTaxon.status === "draft";
+  useBlocker({
+    shouldBlockFn: () =>
+      dirty && !pending ? !confirm("Leave without saving?") : false,
+    enableBeforeUnload: dirty,
+  });
+
+  const isDraft = initialTaxon.status === "draft";
   const statusBadgeColor =
-    originalTaxon.status === "active"
+    initialTaxon.status === "active"
       ? "green"
-      : originalTaxon.status === "draft"
+      : initialTaxon.status === "draft"
         ? "yellow"
         : "gray";
+
+  async function invalidateTaxon(id: number) {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ["taxon", id] }),
+      qc.invalidateQueries({ queryKey: ["taxonCharacterValues", id] }),
+      qc.invalidateQueries({ queryKey: ["taxa"] }),
+    ]);
+  }
 
   const setField = <K extends keyof EditState>(key: K, value: EditState[K]) => {
     setDirty(true);
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSaveDraft: MouseEventHandler<HTMLButtonElement> = async (e) => {
-    e.preventDefault();
+  const handleDiscard = () => {
     if (!dirty) return;
+    if (!confirm("Discard unsaved changes?")) return;
+    setForm(seedEditState(initialTaxon));
+    setDirty(false);
+  };
 
+  const handleSave: React.FormEventHandler<HTMLFormElement> = async (e) => {
+    e.preventDefault();
+
+    if (!dirty) return;
     setPending(true);
-    setError(null);
     try {
       await serverUpdate({ data: { id, ...form } });
       setDirty(false);
+      await invalidateTaxon(id);
+      toast({
+        description: "Taxon saved.",
+        variant: "success",
+      });
     } catch (err: any) {
-      setError(err?.message ?? "Failed to save changes.");
+      toast({
+        description: err?.message ?? "Failed to save changes.",
+        variant: "error",
+      });
     } finally {
       setPending(false);
     }
@@ -104,16 +155,23 @@ function RouteComponent() {
     if (!isDraft) return;
 
     setPending(true);
-    setError(null);
     try {
       if (dirty) {
         await serverUpdate({ data: { id, ...form } });
         setDirty(false);
       }
       await serverPublish({ data: { id } });
+      await invalidateTaxon(id);
+      toast({
+        description: "Taxon published.",
+        variant: "success",
+      });
       navigate({ to: ".." });
     } catch (err: any) {
-      setError(err?.message ?? "Failed to publish taxon.");
+      toast({
+        description: err?.message ?? "Failed to publish taxon.",
+        variant: "error",
+      });
     } finally {
       setPending(false);
     }
@@ -128,45 +186,35 @@ function RouteComponent() {
     if (!ok) return;
 
     setPending(true);
-    setError(null);
     try {
       await serverDelete({ data: { id } });
-      navigate({ to: "/taxa/drafts" });
+      await invalidateTaxon(id);
+      navigate({ to: "/taxa/drafts", search: { page: 0, pageSize: 20 } });
     } catch (err: any) {
-      setError(err?.message ?? "Failed to delete taxon.");
+      toast({
+        description: err?.message ?? "Failed to delete taxon.",
+        variant: "error",
+      });
     } finally {
       setPending(false);
     }
   };
 
-  // https://api.gbif.org/v1/species?name=${taxon.taxon_name}&limit=1&offset=0
-  // https://api.inaturalist.org/v1/taxa?q=${taxon.taxon_name}
-
-  // TODO: sort out use of form elements (form.control?) and form wrapping maybe unused elements
   return (
     <Box>
-      <small>Editing details for:</small>
-      <Heading mb="2">{originalTaxon.acceptedName}</Heading>
+      <Box>
+        <RadixLink asChild size="2">
+          <TanStackLink to="..">Back</TanStackLink>
+        </RadixLink>
+      </Box>
+      <Text size="2">Editing details for:</Text>
+      <Heading mb="2">{initialTaxon.acceptedName}</Heading>
       <Flex align="center" gap="2" mb="3">
-        <Badge color={statusBadgeColor}>{originalTaxon.status}</Badge>
+        <Badge color={statusBadgeColor}>{initialTaxon.status}</Badge>
         <Text size="2">ID: {id}</Text>
       </Flex>
 
-      {error ? (
-        <Box
-          mb="3"
-          p="2"
-          style={{ border: "1px solid var(--red-7)", borderRadius: 6 }}
-        >
-          <Text color="red">{error}</Text>
-        </Box>
-      ) : null}
-
-      <Form.Root
-        onSubmit={(e) => {
-          e.preventDefault();
-        }}
-      >
+      <Form.Root onSubmit={handleSave}>
         <Box mb="4">
           {/* Accepted Name (TODO) */}
           <Form.Field name="accepted-name" asChild>
@@ -183,8 +231,13 @@ function RouteComponent() {
             <Box mb="2">
               <Form.Label>Rank</Form.Label>
               <Form.Control asChild>
-                <Select.Root value={form.rank} onValueChange={() => {}}>
-                  <Select.Trigger style={{ display: "flex" }} />
+                <Select.Root
+                  value={form.rank}
+                  onValueChange={(v) => setField("rank", v as typeof form.rank)}
+                >
+                  <Select.Trigger style={{ display: "flex" }}>
+                    {form.rank}
+                  </Select.Trigger>
                   <Select.Content>
                     {TAXON_RANKS_DESCENDING.map((rank) => (
                       <Select.Item key={rank} value={rank}>
@@ -215,9 +268,23 @@ function RouteComponent() {
                   }
                 >
                   <TextField.Slot side="right" pr="3">
-                    <IconButton variant="ghost">
-                      <FaLeaf />
-                    </IconButton>
+                    <Tooltip content="Fetch from GBIF">
+                      <IconButton
+                        type="button"
+                        variant="ghost"
+                        onClick={async () => {
+                          const picked = await pickGBIFTaxon(
+                            initialTaxon.acceptedName,
+                            form.rank
+                          );
+                          if (picked) {
+                            setField("source_gbif_id", picked.id);
+                          }
+                        }}
+                      >
+                        <FaLeaf />
+                      </IconButton>
+                    </Tooltip>
                   </TextField.Slot>
                 </TextField.Root>
               </Form.Control>
@@ -241,21 +308,23 @@ function RouteComponent() {
                   }
                 >
                   <TextField.Slot side="right" pr="3">
-                    <IconButton
-                      variant="ghost"
-                      title="TODO tooltip"
-                      onClick={async () => {
-                        const picked = await pickInatTaxon(
-                          originalTaxon.acceptedName,
-                          form.rank
-                        );
-                        if (picked) {
-                          setField("source_inat_id", picked.id);
-                        }
-                      }}
-                    >
-                      <FaDove />
-                    </IconButton>
+                    <Tooltip content="Fetch from iNaturalist">
+                      <IconButton
+                        type="button"
+                        variant="ghost"
+                        onClick={async () => {
+                          const picked = await pickInatTaxon(
+                            initialTaxon.acceptedName,
+                            form.rank
+                          );
+                          if (picked) {
+                            setField("source_inat_id", picked.id);
+                          }
+                        }}
+                      >
+                        <FaDove />
+                      </IconButton>
+                    </Tooltip>
                   </TextField.Slot>
                 </TextField.Root>
               </Form.Control>
@@ -287,19 +356,39 @@ function RouteComponent() {
         />
 
         <Flex gap="2" justify="end">
-          <Button type="button" onClick={() => {}} variant="soft">
+          <Button
+            type="button"
+            disabled={!dirty || pending}
+            loading={pending}
+            onClick={handleDiscard}
+            variant="soft"
+          >
             Discard Changes
           </Button>
-          <Button type="button" onClick={handleSaveDraft}>
-            Save
-          </Button>
+          <Form.Submit asChild>
+            <Button loading={pending} disabled={!dirty || pending}>
+              Save
+            </Button>
+          </Form.Submit>
           {isDraft ? (
-            <Button type="button" color="green" onClick={handlePublish}>
+            <Button
+              type="button"
+              disabled={pending}
+              loading={pending}
+              color="green"
+              onClick={handlePublish}
+            >
               Publish
             </Button>
           ) : null}
           {isDraft ? (
-            <Button type="button" color="red" onClick={handleDelete}>
+            <Button
+              type="button"
+              disabled={pending}
+              loading={pending}
+              color="red"
+              onClick={handleDelete}
+            >
               Delete Draft
             </Button>
           ) : null}

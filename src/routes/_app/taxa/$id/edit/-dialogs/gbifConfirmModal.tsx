@@ -1,83 +1,113 @@
+//   https://api.gbif.org/v1/species/suggest?q={q}&rank={RANK}&limit=1
+//   https://api.gbif.org/v1/species/{key}?language=en
+//   https://api.gbif.org/v1/occurrence/search?taxonKey={key}&mediaType=StillImage&limit=1
+
 import NiceModal, { useModal } from "@ebay/nice-modal-react";
 import { Button, Dialog, Flex, Spinner, Strong, Text } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
 import { ExternalResultSummary } from "./-ExternalResultSummary";
 
-type InatTaxon = {
+type GbifTaxon = {
   id: number;
-  scientific_name: string;
   rank: string;
-  common_name?: string;
-  medium_src?: string;
+  scientific_name: string;
+  src_image?: string;
 };
 
 type Props = {
   taxonName: string;
   rank?: string;
-  onConfirm: (taxon: InatTaxon) => void;
+  onConfirm: (taxon: GbifTaxon) => void;
 };
 
-const INTERNAL_RANK_TO_INAT_MAPPING: Record<
+const INTERNAL_RANK_TO_GBIF_MAPPING: Record<
   (typeof TAXON_RANKS_DESCENDING)[number],
   string | null
 > = {
-  domain: null,
-  kingdom: "kingdom",
-  phylum: "phylum",
-  class: "class",
-  subclass: "subclass",
-  superorder: "superorder",
-  order: "order",
-  family: "family",
-  subfamily: "subfamily",
-  tribe: "tribe",
-  genus: "genus",
-  species: "species",
-  subspecies: "subspecies",
-  variety: "variety",
+  domain: "DOMAIN",
+  kingdom: "KINGDOM",
+  phylum: "PHYLUM",
+  class: "CLASS",
+  subclass: "SUBCLASS",
+  superorder: "SUPERORDER",
+  order: "ORDER",
+  family: "FAMILY",
+  subfamily: "SUBFAMILY",
+  tribe: "TRIBE",
+  genus: "GENUS",
+  species: "SPECIES",
+  subspecies: "SUBSPECIES",
+  variety: "VARIETY",
 };
 
-export const InatConfirmModal = NiceModal.create<Props>(
+export const GbifConfirmModal = NiceModal.create<Props>(
   ({ taxonName, rank, onConfirm }) => {
     const modal = useModal();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [taxon, setTaxon] = useState<InatTaxon | null>(null);
+    const [taxon, setTaxon] = useState<GbifTaxon | null>(null);
 
     useEffect(() => {
       const controller = new AbortController();
-
-      async function fetchTaxon() {
+      const run = async () => {
         try {
           setLoading(true);
           setError(null);
           setTaxon(null);
-          const url = new URL("https://api.inaturalist.org/v1/taxa");
-          url.searchParams.set("q", taxonName);
-          url.searchParams.set("per_page", "1");
-          const iNatRank =
-            INTERNAL_RANK_TO_INAT_MAPPING[
-              rank as keyof typeof INTERNAL_RANK_TO_INAT_MAPPING
-            ];
-          if (iNatRank) url.searchParams.set("rank", iNatRank);
-          const res = await fetch(url.toString(), {
+
+          // 1) Suggest to get ID
+          const gbifRank = rank
+            ? (INTERNAL_RANK_TO_GBIF_MAPPING[
+                rank as keyof typeof INTERNAL_RANK_TO_GBIF_MAPPING
+              ] ?? undefined)
+            : undefined;
+
+          const suggest = new URL("https://api.gbif.org/v1/species/suggest");
+          suggest.searchParams.set("q", taxonName);
+          suggest.searchParams.set("limit", "1");
+          if (gbifRank) {
+            suggest.searchParams.set("taxonRank", gbifRank);
+          }
+
+          const res = await fetch(suggest.toString(), {
             signal: controller.signal,
           });
           if (!res.ok) throw new Error(`Failed: ${res.status}`);
           const data = await res.json();
-          const first = data.results?.[0];
-          if (!first) {
+          const taxon = data?.[0];
+          if (!taxon) {
             setError("No matching taxon found.");
-          } else {
-            setTaxon({
-              id: first.id,
-              rank: first.rank,
-              scientific_name: first.name,
-              common_name: first.preferred_common_name,
-              medium_src: first.default_photo?.medium_url ?? null,
-            });
+            return;
           }
+
+          // 2) One image from occurrences (best-effort)
+          const occUrl = new URL("https://api.gbif.org/v1/occurrence/search");
+          occUrl.searchParams.set("taxonKey", String(taxon.key));
+          occUrl.searchParams.set("mediaType", "StillImage");
+          occUrl.searchParams.set("limit", "1");
+
+          let medium_src: string | undefined;
+          try {
+            const res = await fetch(occUrl.toString(), {
+              signal: controller.signal,
+            });
+            if (!res.ok) throw new Error(`Failed: ${res.status}`);
+            const data = await res.json();
+            const first = data?.results?.[0];
+            medium_src =
+              first?.media?.[0]?.identifier ?? first?.associatedMedia ?? null;
+          } catch {
+            // If occurrence search fails, we still proceed without image
+            medium_src = undefined;
+          }
+
+          setTaxon({
+            id: taxon.key,
+            rank: taxon.rank,
+            scientific_name: taxon.scientificName,
+            src_image: medium_src,
+          });
         } catch (e: any) {
           if (e.name !== "AbortError") {
             if (!controller.signal.aborted)
@@ -86,11 +116,11 @@ export const InatConfirmModal = NiceModal.create<Props>(
         } finally {
           if (!controller.signal.aborted) setLoading(false);
         }
-      }
+      };
 
-      fetchTaxon();
+      run();
       return () => controller.abort();
-    }, [taxonName]);
+    }, [taxonName, rank]);
 
     return (
       <Dialog.Root
@@ -99,7 +129,7 @@ export const InatConfirmModal = NiceModal.create<Props>(
       >
         <Dialog.Content maxWidth="400px" aria-describedby={undefined}>
           <Dialog.Title align="center" mb="5">
-            iNaturalist Taxon Lookup
+            GBIF Taxon Lookup
           </Dialog.Title>
 
           <Flex justify="center">
@@ -115,10 +145,9 @@ export const InatConfirmModal = NiceModal.create<Props>(
             ) : taxon ? (
               <ExternalResultSummary
                 scientific_name={taxon.scientific_name}
-                common_name={taxon.common_name}
                 rank={taxon.rank}
-                link={`https://www.inaturalist.org/taxa/${taxon.id}`}
-                imgSrc={taxon.medium_src}
+                link={`https://www.gbif.org/species/${taxon.id}`}
+                imgSrc={taxon.src_image}
               />
             ) : null}
           </Flex>
@@ -149,9 +178,9 @@ export const InatConfirmModal = NiceModal.create<Props>(
 );
 
 // Helper to await a result
-export async function pickInatTaxon(taxonName: string, rank?: string) {
-  return new Promise<InatTaxon | null>((resolve) => {
-    NiceModal.show(InatConfirmModal, {
+export async function pickGBIFTaxon(taxonName: string, rank?: string) {
+  return new Promise<GbifTaxon | null>((resolve) => {
+    NiceModal.show(GbifConfirmModal, {
       taxonName,
       rank,
       onConfirm: (taxon) => resolve(taxon),
