@@ -1,8 +1,8 @@
 import { Grid, Text } from "@radix-ui/themes";
-import { TaxonPageResult } from "../../../lib/serverFns/taxa/types";
+import { TaxonPaginatedResult } from "../../../lib/serverFns/taxa/types";
 import { TaxonCard } from "./-TaxonCard";
 
-export const TaxonGrid = ({ results }: { results: TaxonPageResult }) => {
+export const TaxonGrid = ({ results }: { results: TaxonPaginatedResult }) => {
   if (!results.items.length) return <Text>No taxa found.</Text>;
   return (
     <Grid columns={{ initial: "3", md: "5" }} gap="4" className="taxon-grid">

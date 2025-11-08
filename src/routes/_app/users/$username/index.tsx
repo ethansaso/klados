@@ -3,7 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { meQuery, userQueryOptions } from "../../../../lib/queries/user";
 import { UserDTO } from "../../../../lib/serverFns/user";
-import { capitalizeWord } from "../../../../lib/utils/capitalizeWord";
+import { capitalizeWord } from "../../../../lib/utils/casing";
 import { getInitials } from "../../../../lib/utils/getInitials";
 
 export const Route = createFileRoute("/_app/users/$username/")({

@@ -9,8 +9,8 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
+import { taxa } from "../taxa/taxa";
 import { characters, characterStates } from "./characters";
-import { taxa } from "./taxa";
 
 /**
  * Categorical selections (one row per selected state).

@@ -27,6 +27,7 @@ function NavBarBrand() {
 export function NavBar({ user }: NavBarProps) {
   const homeActive = useIsActive("/");
   const taxaActive = useIsActive("/taxa", true);
+  const charactersActive = useIsActive("/characters", true);
   const usersActive = useIsActive("/users", true);
   const keysActive = useIsActive("/keys", true);
 
@@ -46,6 +47,12 @@ export function NavBar({ user }: NavBarProps) {
           search={{ q: "", page: 1, pageSize: 20 }}
         >
           Taxa
+        </RouterLink>
+      </TabNav.Link>
+
+      <TabNav.Link asChild active={charactersActive}>
+        <RouterLink to="/characters" preload="intent">
+          Characters
         </RouterLink>
       </TabNav.Link>
 

@@ -16,7 +16,7 @@ import { roleHasCuratorRights } from "../../../lib/auth/utils";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
 import { createTaxon } from "../../../lib/serverFns/taxa/fns";
 import { getMe } from "../../../lib/serverFns/user";
-import { capitalizeWord } from "../../../lib/utils/capitalizeWord";
+import { capitalizeWord } from "../../../lib/utils/casing";
 
 export const Route = createFileRoute("/_app/taxa/new")({
   beforeLoad: async ({ context, location }) => {

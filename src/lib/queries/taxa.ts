@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { getTaxon, listTaxa } from "../serverFns/taxa/fns";
-import { TaxonPageResult } from "../serverFns/taxa/types";
+import { TaxonPaginatedResult } from "../serverFns/taxa/types";
 
 export const taxonQueryOptions = (id: number) =>
   queryOptions({
@@ -22,5 +22,5 @@ export const taxaQueryOptions = (
     queryFn: () =>
       listTaxa({
         data: { page, pageSize, q: opts?.q, status: opts?.status },
-      }) as Promise<TaxonPageResult>,
+      }) as Promise<TaxonPaginatedResult>,
   });

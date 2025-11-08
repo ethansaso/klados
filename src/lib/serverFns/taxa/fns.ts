@@ -21,7 +21,7 @@ import {
 } from "../../../db/schema/taxa/taxa";
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
 import { assertHierarchyInvariant } from "../../utils/assertHierarchyInvariant";
-import { TaxonDTO, TaxonPageResult } from "./types";
+import { TaxonDTO, TaxonPaginatedResult } from "./types";
 import {
   assertExactlyOneAcceptedScientificName,
   getChildCount,
@@ -62,7 +62,7 @@ export const listTaxa = createServerFn({ method: "GET" })
       pageSize: z.number().int().min(1).max(100).default(20),
     })
   )
-  .handler(async ({ data }): Promise<TaxonPageResult> => {
+  .handler(async ({ data }): Promise<TaxonPaginatedResult> => {
     const { q, ids, page, pageSize, status } = data;
     const offset = (page - 1) * pageSize;
 

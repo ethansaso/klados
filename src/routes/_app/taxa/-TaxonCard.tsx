@@ -2,7 +2,7 @@ import { Card, Flex, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import { PiTreeStructure } from "react-icons/pi";
 import { TaxonDTO } from "../../../lib/serverFns/taxa/types";
-import { capitalizeWord } from "../../../lib/utils/capitalizeWord";
+import { capitalizeWord } from "../../../lib/utils/casing";
 
 export const TaxonCard = ({ taxon }: { taxon: TaxonDTO }) => {
   return (
@@ -12,7 +12,9 @@ export const TaxonCard = ({ taxon }: { taxon: TaxonDTO }) => {
         <Text as="div" size="1" weight="bold" color="gray">
           {capitalizeWord(taxon.rank)}
         </Text>
-        <Text weight="bold">{taxon.acceptedName}</Text>
+        <Text as="div" weight="bold" mb="1">
+          {taxon.acceptedName}
+        </Text>
         <Flex align="center" gap="1" className="summary" asChild>
           <Text as="div" size="1" color="gray">
             <PiTreeStructure />

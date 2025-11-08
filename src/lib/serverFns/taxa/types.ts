@@ -17,6 +17,6 @@ export type TaxonDTO = Pick<
   activeChildCount: number;
 };
 
-export interface TaxonPageResult extends PaginatedResult {
+export interface TaxonPaginatedResult extends PaginatedResult {
   items: TaxonDTO[];
 }

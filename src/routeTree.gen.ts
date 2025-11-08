@@ -19,20 +19,25 @@ import { Route as AppLoginRouteImport } from './routes/_app/login'
 import { Route as AdminUsersRouteRouteImport } from './routes/admin/users/route'
 import { Route as AppTaxaRouteRouteImport } from './routes/_app/taxa/route'
 import { Route as AppKeysRouteRouteImport } from './routes/_app/keys/route'
+import { Route as AppCharactersRouteRouteImport } from './routes/_app/characters/route'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
 import { Route as AppUsersIndexRouteImport } from './routes/_app/users/index'
 import { Route as AppTaxaIndexRouteImport } from './routes/_app/taxa/index'
 import { Route as AppKeysIndexRouteImport } from './routes/_app/keys/index'
+import { Route as AppCharactersIndexRouteImport } from './routes/_app/characters/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppTaxaNewRouteImport } from './routes/_app/taxa/new'
 import { Route as AppTaxaDraftsRouteImport } from './routes/_app/taxa/drafts'
 import { Route as AppKeysCreateRouteImport } from './routes/_app/keys/create'
 import { Route as AppUsersUsernameRouteRouteImport } from './routes/_app/users/$username/route'
+import { Route as AppCharactersOptionsRouteRouteImport } from './routes/_app/characters/options/route'
 import { Route as AppUsersUsernameIndexRouteImport } from './routes/_app/users/$username/index'
 import { Route as AppTaxaIdIndexRouteImport } from './routes/_app/taxa/$id/index'
+import { Route as AppCharactersOptionsIndexRouteImport } from './routes/_app/characters/options/index'
 import { Route as AppUsersUsernameEditRouteImport } from './routes/_app/users/$username/edit'
 import { Route as AppTaxaIdEditRouteRouteImport } from './routes/_app/taxa/$id/edit/route'
 import { Route as AppTaxaIdEditIndexRouteImport } from './routes/_app/taxa/$id/edit/index'
+import { Route as AppCharactersOptionsSetIdIndexRouteImport } from './routes/_app/characters/options/$setId/index'
 
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
@@ -83,6 +88,11 @@ const AppKeysRouteRoute = AppKeysRouteRouteImport.update({
   path: '/keys',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppCharactersRouteRoute = AppCharactersRouteRouteImport.update({
+  id: '/characters',
+  path: '/characters',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -102,6 +112,11 @@ const AppKeysIndexRoute = AppKeysIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppKeysRouteRoute,
+} as any)
+const AppCharactersIndexRoute = AppCharactersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppCharactersRouteRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
@@ -128,6 +143,12 @@ const AppUsersUsernameRouteRoute = AppUsersUsernameRouteRouteImport.update({
   path: '/users/$username',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppCharactersOptionsRouteRoute =
+  AppCharactersOptionsRouteRouteImport.update({
+    id: '/options',
+    path: '/options',
+    getParentRoute: () => AppCharactersRouteRoute,
+  } as any)
 const AppUsersUsernameIndexRoute = AppUsersUsernameIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -138,6 +159,12 @@ const AppTaxaIdIndexRoute = AppTaxaIdIndexRouteImport.update({
   path: '/$id/',
   getParentRoute: () => AppTaxaRouteRoute,
 } as any)
+const AppCharactersOptionsIndexRoute =
+  AppCharactersOptionsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppCharactersOptionsRouteRoute,
+  } as any)
 const AppUsersUsernameEditRoute = AppUsersUsernameEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -153,9 +180,16 @@ const AppTaxaIdEditIndexRoute = AppTaxaIdEditIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppTaxaIdEditRouteRoute,
 } as any)
+const AppCharactersOptionsSetIdIndexRoute =
+  AppCharactersOptionsSetIdIndexRouteImport.update({
+    id: '/$setId/',
+    path: '/$setId/',
+    getParentRoute: () => AppCharactersOptionsRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteRouteWithChildren
+  '/characters': typeof AppCharactersRouteRouteWithChildren
   '/keys': typeof AppKeysRouteRouteWithChildren
   '/taxa': typeof AppTaxaRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
@@ -164,19 +198,23 @@ export interface FileRoutesByFullPath {
   '/signup': typeof AppSignupRoute
   '/': typeof AppIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/characters/options': typeof AppCharactersOptionsRouteRouteWithChildren
   '/users/$username': typeof AppUsersUsernameRouteRouteWithChildren
   '/keys/create': typeof AppKeysCreateRoute
   '/taxa/drafts': typeof AppTaxaDraftsRoute
   '/taxa/new': typeof AppTaxaNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/characters/': typeof AppCharactersIndexRoute
   '/keys/': typeof AppKeysIndexRoute
   '/taxa/': typeof AppTaxaIndexRoute
   '/users': typeof AppUsersIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/taxa/$id/edit': typeof AppTaxaIdEditRouteRouteWithChildren
   '/users/$username/edit': typeof AppUsersUsernameEditRoute
+  '/characters/options/': typeof AppCharactersOptionsIndexRoute
   '/taxa/$id': typeof AppTaxaIdIndexRoute
   '/users/$username/': typeof AppUsersUsernameIndexRoute
+  '/characters/options/$setId': typeof AppCharactersOptionsSetIdIndexRoute
   '/taxa/$id/edit/': typeof AppTaxaIdEditIndexRoute
 }
 export interface FileRoutesByTo {
@@ -189,19 +227,23 @@ export interface FileRoutesByTo {
   '/taxa/drafts': typeof AppTaxaDraftsRoute
   '/taxa/new': typeof AppTaxaNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/characters': typeof AppCharactersIndexRoute
   '/keys': typeof AppKeysIndexRoute
   '/taxa': typeof AppTaxaIndexRoute
   '/users': typeof AppUsersIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
   '/users/$username/edit': typeof AppUsersUsernameEditRoute
+  '/characters/options': typeof AppCharactersOptionsIndexRoute
   '/taxa/$id': typeof AppTaxaIdIndexRoute
   '/users/$username': typeof AppUsersUsernameIndexRoute
+  '/characters/options/$setId': typeof AppCharactersOptionsSetIdIndexRoute
   '/taxa/$id/edit': typeof AppTaxaIdEditIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteRouteWithChildren
   '/admin': typeof AdminRouteRouteWithChildren
+  '/_app/characters': typeof AppCharactersRouteRouteWithChildren
   '/_app/keys': typeof AppKeysRouteRouteWithChildren
   '/_app/taxa': typeof AppTaxaRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
@@ -210,25 +252,30 @@ export interface FileRoutesById {
   '/_app/signup': typeof AppSignupRoute
   '/_app/': typeof AppIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/_app/characters/options': typeof AppCharactersOptionsRouteRouteWithChildren
   '/_app/users/$username': typeof AppUsersUsernameRouteRouteWithChildren
   '/_app/keys/create': typeof AppKeysCreateRoute
   '/_app/taxa/drafts': typeof AppTaxaDraftsRoute
   '/_app/taxa/new': typeof AppTaxaNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/_app/characters/': typeof AppCharactersIndexRoute
   '/_app/keys/': typeof AppKeysIndexRoute
   '/_app/taxa/': typeof AppTaxaIndexRoute
   '/_app/users/': typeof AppUsersIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/_app/taxa/$id/edit': typeof AppTaxaIdEditRouteRouteWithChildren
   '/_app/users/$username/edit': typeof AppUsersUsernameEditRoute
+  '/_app/characters/options/': typeof AppCharactersOptionsIndexRoute
   '/_app/taxa/$id/': typeof AppTaxaIdIndexRoute
   '/_app/users/$username/': typeof AppUsersUsernameIndexRoute
+  '/_app/characters/options/$setId/': typeof AppCharactersOptionsSetIdIndexRoute
   '/_app/taxa/$id/edit/': typeof AppTaxaIdEditIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/admin'
+    | '/characters'
     | '/keys'
     | '/taxa'
     | '/admin/users'
@@ -237,19 +284,23 @@ export interface FileRouteTypes {
     | '/signup'
     | '/'
     | '/admin/'
+    | '/characters/options'
     | '/users/$username'
     | '/keys/create'
     | '/taxa/drafts'
     | '/taxa/new'
     | '/api/auth/$'
+    | '/characters/'
     | '/keys/'
     | '/taxa/'
     | '/users'
     | '/admin/users/'
     | '/taxa/$id/edit'
     | '/users/$username/edit'
+    | '/characters/options/'
     | '/taxa/$id'
     | '/users/$username/'
+    | '/characters/options/$setId'
     | '/taxa/$id/edit/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -262,18 +313,22 @@ export interface FileRouteTypes {
     | '/taxa/drafts'
     | '/taxa/new'
     | '/api/auth/$'
+    | '/characters'
     | '/keys'
     | '/taxa'
     | '/users'
     | '/admin/users'
     | '/users/$username/edit'
+    | '/characters/options'
     | '/taxa/$id'
     | '/users/$username'
+    | '/characters/options/$setId'
     | '/taxa/$id/edit'
   id:
     | '__root__'
     | '/_app'
     | '/admin'
+    | '/_app/characters'
     | '/_app/keys'
     | '/_app/taxa'
     | '/admin/users'
@@ -282,19 +337,23 @@ export interface FileRouteTypes {
     | '/_app/signup'
     | '/_app/'
     | '/admin/'
+    | '/_app/characters/options'
     | '/_app/users/$username'
     | '/_app/keys/create'
     | '/_app/taxa/drafts'
     | '/_app/taxa/new'
     | '/api/auth/$'
+    | '/_app/characters/'
     | '/_app/keys/'
     | '/_app/taxa/'
     | '/_app/users/'
     | '/admin/users/'
     | '/_app/taxa/$id/edit'
     | '/_app/users/$username/edit'
+    | '/_app/characters/options/'
     | '/_app/taxa/$id/'
     | '/_app/users/$username/'
+    | '/_app/characters/options/$setId/'
     | '/_app/taxa/$id/edit/'
   fileRoutesById: FileRoutesById
 }
@@ -376,6 +435,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppKeysRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/characters': {
+      id: '/_app/characters'
+      path: '/characters'
+      fullPath: '/characters'
+      preLoaderRoute: typeof AppCharactersRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/admin/users/': {
       id: '/admin/users/'
       path: '/'
@@ -403,6 +469,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/keys/'
       preLoaderRoute: typeof AppKeysIndexRouteImport
       parentRoute: typeof AppKeysRouteRoute
+    }
+    '/_app/characters/': {
+      id: '/_app/characters/'
+      path: '/'
+      fullPath: '/characters/'
+      preLoaderRoute: typeof AppCharactersIndexRouteImport
+      parentRoute: typeof AppCharactersRouteRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -439,6 +512,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersUsernameRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/characters/options': {
+      id: '/_app/characters/options'
+      path: '/options'
+      fullPath: '/characters/options'
+      preLoaderRoute: typeof AppCharactersOptionsRouteRouteImport
+      parentRoute: typeof AppCharactersRouteRoute
+    }
     '/_app/users/$username/': {
       id: '/_app/users/$username/'
       path: '/'
@@ -452,6 +532,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/taxa/$id'
       preLoaderRoute: typeof AppTaxaIdIndexRouteImport
       parentRoute: typeof AppTaxaRouteRoute
+    }
+    '/_app/characters/options/': {
+      id: '/_app/characters/options/'
+      path: '/'
+      fullPath: '/characters/options/'
+      preLoaderRoute: typeof AppCharactersOptionsIndexRouteImport
+      parentRoute: typeof AppCharactersOptionsRouteRoute
     }
     '/_app/users/$username/edit': {
       id: '/_app/users/$username/edit'
@@ -474,8 +561,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTaxaIdEditIndexRouteImport
       parentRoute: typeof AppTaxaIdEditRouteRoute
     }
+    '/_app/characters/options/$setId/': {
+      id: '/_app/characters/options/$setId/'
+      path: '/$setId'
+      fullPath: '/characters/options/$setId'
+      preLoaderRoute: typeof AppCharactersOptionsSetIdIndexRouteImport
+      parentRoute: typeof AppCharactersOptionsRouteRoute
+    }
   }
 }
+
+interface AppCharactersOptionsRouteRouteChildren {
+  AppCharactersOptionsIndexRoute: typeof AppCharactersOptionsIndexRoute
+  AppCharactersOptionsSetIdIndexRoute: typeof AppCharactersOptionsSetIdIndexRoute
+}
+
+const AppCharactersOptionsRouteRouteChildren: AppCharactersOptionsRouteRouteChildren =
+  {
+    AppCharactersOptionsIndexRoute: AppCharactersOptionsIndexRoute,
+    AppCharactersOptionsSetIdIndexRoute: AppCharactersOptionsSetIdIndexRoute,
+  }
+
+const AppCharactersOptionsRouteRouteWithChildren =
+  AppCharactersOptionsRouteRoute._addFileChildren(
+    AppCharactersOptionsRouteRouteChildren,
+  )
+
+interface AppCharactersRouteRouteChildren {
+  AppCharactersOptionsRouteRoute: typeof AppCharactersOptionsRouteRouteWithChildren
+  AppCharactersIndexRoute: typeof AppCharactersIndexRoute
+}
+
+const AppCharactersRouteRouteChildren: AppCharactersRouteRouteChildren = {
+  AppCharactersOptionsRouteRoute: AppCharactersOptionsRouteRouteWithChildren,
+  AppCharactersIndexRoute: AppCharactersIndexRoute,
+}
+
+const AppCharactersRouteRouteWithChildren =
+  AppCharactersRouteRoute._addFileChildren(AppCharactersRouteRouteChildren)
 
 interface AppKeysRouteRouteChildren {
   AppKeysCreateRoute: typeof AppKeysCreateRoute
@@ -538,6 +661,7 @@ const AppUsersUsernameRouteRouteWithChildren =
   )
 
 interface AppRouteRouteChildren {
+  AppCharactersRouteRoute: typeof AppCharactersRouteRouteWithChildren
   AppKeysRouteRoute: typeof AppKeysRouteRouteWithChildren
   AppTaxaRouteRoute: typeof AppTaxaRouteRouteWithChildren
   AppLoginRoute: typeof AppLoginRoute
@@ -549,6 +673,7 @@ interface AppRouteRouteChildren {
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppCharactersRouteRoute: AppCharactersRouteRouteWithChildren,
   AppKeysRouteRoute: AppKeysRouteRouteWithChildren,
   AppTaxaRouteRoute: AppTaxaRouteRouteWithChildren,
   AppLoginRoute: AppLoginRoute,

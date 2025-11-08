@@ -1,17 +1,21 @@
 import { Button, Callout, Flex, Heading } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import z from "zod";
 import placeholderImage from "../../../../assets/LogoDotted.svg";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 
 const IMG_SIZE = 128;
+const ParamsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
 
 export const Route = createFileRoute("/_app/taxa/$id/")({
   loader: async ({ context, params }) => {
-    const numericId = Number(params.id);
-    await context.queryClient.ensureQueryData(taxonQueryOptions(numericId));
+    const { id } = ParamsSchema.parse(params);
+    await context.queryClient.ensureQueryData(taxonQueryOptions(id));
 
-    return { id: numericId };
+    return { id };
   },
   component: TaxonPage,
 });
