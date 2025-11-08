@@ -21,6 +21,7 @@ import {
 } from "../../../db/schema/taxa/taxa";
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
 import { assertHierarchyInvariant } from "../../utils/assertHierarchyInvariant";
+import { PaginationSchema } from "../../validation/pagination";
 import { TaxonDTO, TaxonPaginatedResult } from "./types";
 import {
   assertExactlyOneAcceptedScientificName,
@@ -54,12 +55,10 @@ const selectTaxonDTO = {
 
 export const listTaxa = createServerFn({ method: "GET" })
   .inputValidator(
-    z.object({
+    PaginationSchema.extend({
       q: z.string().optional(),
       status: z.enum(["active", "draft", "deprecated"]).optional(),
       ids: z.array(z.number()).optional(),
-      page: z.number().int().min(1).default(1),
-      pageSize: z.number().int().min(1).max(100).default(20),
     })
   )
   .handler(async ({ data }): Promise<TaxonPaginatedResult> => {

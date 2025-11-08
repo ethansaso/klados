@@ -5,7 +5,7 @@ import { z } from "zod";
 import { db } from "../../db/client";
 import { user as userTbl } from "../../db/schema/auth";
 import { userSessionMiddleware } from "../auth/serverFnMiddleware";
-import { PaginatedResult } from "./returnTypes";
+import { PaginatedResult, PaginationSchema } from "../validation/pagination";
 
 type UserRow = typeof userTbl.$inferSelect;
 export type UserDTO = Pick<
@@ -26,10 +26,8 @@ export interface UsersPageResult extends PaginatedResult {
 
 export const listUsers = createServerFn({ method: "GET" })
   .inputValidator(
-    z.object({
+    PaginationSchema.extend({
       ids: z.array(z.string()).optional(),
-      page: z.number().int().min(1).default(1),
-      pageSize: z.number().int().min(1).max(100).default(20),
     })
   )
   .handler(async ({ data }): Promise<UsersPageResult> => {

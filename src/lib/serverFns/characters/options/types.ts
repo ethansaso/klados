@@ -2,7 +2,7 @@ import {
   categoricalOptionSets,
   categoricalOptionValues,
 } from "../../../../db/schema/schema";
-import { PaginatedResult } from "../../returnTypes";
+import { PaginatedResult } from "../../../validation/pagination";
 
 export type OptionSetRow = typeof categoricalOptionSets.$inferSelect;
 export type OptionValueRow = typeof categoricalOptionValues.$inferSelect;
@@ -11,13 +11,9 @@ export type OptionSetDTO = Pick<
   OptionSetRow,
   "id" | "key" | "label" | "description"
 > & {
-  activeValueCount: number;
-};
-export type OptionSetDetailDTO = Pick<
-  OptionSetRow,
-  "id" | "key" | "label" | "description"
-> & {
   valueCount: number;
+};
+export type OptionSetDetailDTO = OptionSetDTO & {
   /** Characters referencing this set */
   usedByCharacters: number;
 };

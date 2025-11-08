@@ -1,13 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import z from "zod";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
+import { SearchSchema } from "../../../lib/validation/search";
 import { TaxonGrid } from "./-TaxonGrid";
-
-const SearchSchema = z.object({
-  page: z.coerce.number().int().min(1).max(9999).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20),
-});
 
 export const Route = createFileRoute("/_app/taxa/drafts")({
   validateSearch: (s) => SearchSchema.parse(s),

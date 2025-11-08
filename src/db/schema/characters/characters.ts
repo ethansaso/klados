@@ -41,6 +41,6 @@ export const characterCategoricalMeta = pgTable(
     optionSetId: integer("option_set_id")
       .notNull()
       .references(() => categoricalOptionSets.id, { onDelete: "restrict" }),
-    isMultiSelect: boolean("is_multi_select").notNull().default(false),
+    isMultiSelect: boolean("is_multi_select").notNull().default(true),
   })
 );

@@ -21,6 +21,7 @@ import {
   categoricalOptionValues as valsTbl,
 } from "../../../../db/schema/schema";
 import { requireCuratorMiddleware } from "../../../auth/serverFnMiddleware";
+import { PaginationSchema } from "../../../validation/pagination";
 import {
   OptionSetDetailDTO,
   OptionSetDTO,
@@ -30,11 +31,9 @@ import {
 
 export const listOptionSets = createServerFn({ method: "GET" })
   .inputValidator(
-    z.object({
+    PaginationSchema.extend({
       q: z.string().optional(),
       ids: z.array(z.number()).optional(),
-      page: z.number().int().min(1).default(1),
-      pageSize: z.number().int().min(1).max(100).default(20),
     })
   )
   .handler(async ({ data }): Promise<OptionSetPaginatedResult> => {
@@ -67,7 +66,7 @@ export const listOptionSets = createServerFn({ method: "GET" })
         key: setsTbl.key,
         label: setsTbl.label,
         description: setsTbl.description,
-        activeValueCount: sql<number>`COUNT(${valsTbl.id}) FILTER (WHERE ${valsTbl.isCanonical})`,
+        valueCount: sql<number>`COUNT(${valsTbl.id}) FILTER (WHERE ${valsTbl.isCanonical})`,
       })
       .from(setsTbl)
       .leftJoin(valsTbl, eq(valsTbl.setId, setsTbl.id))
@@ -112,7 +111,7 @@ export const createOptionSet = createServerFn({ method: "POST" })
         });
 
       if (!optionSet) throw notFound();
-      return { ...optionSet, activeValueCount: 0 };
+      return { ...optionSet, valueCount: 0 };
     });
   });
 

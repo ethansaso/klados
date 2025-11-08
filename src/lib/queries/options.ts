@@ -21,6 +21,7 @@ export const optionSetsQueryOptions = (
       listOptionSets({
         data: { page, pageSize, q: opts?.q },
       }) as Promise<OptionSetPaginatedResult>,
+    placeholderData: (prev) => prev,
     staleTime: 60_000,
   });
 
@@ -38,6 +39,4 @@ export const optionSetValuesQueryOptions = (setId: number) =>
     queryFn: () =>
       listOptionSetValues({ data: { setId } }) as Promise<OptionValueDTO[]>,
     staleTime: 30_000,
-    // keepPreviousData helps if you later paginate/swap sets quickly
-    placeholderData: (prev) => prev,
   });

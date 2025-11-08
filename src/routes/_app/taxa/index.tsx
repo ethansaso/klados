@@ -3,18 +3,12 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PiMagnifyingGlass } from "react-icons/pi";
-import z from "zod";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
+import { SearchWithQuerySchema } from "../../../lib/validation/search";
 import { TaxonGrid } from "./-TaxonGrid";
 
-const SearchSchema = z.object({
-  q: z.string().trim().catch("").default(""),
-  page: z.coerce.number().int().min(1).catch(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).catch(20).default(20),
-});
-
 export const Route = createFileRoute("/_app/taxa/")({
-  validateSearch: (s) => SearchSchema.parse(s),
+  validateSearch: (s) => SearchWithQuerySchema.parse(s),
   loaderDeps: ({ search: { page, pageSize, q } }) => ({ page, pageSize, q }),
   loader: async ({ context, deps: { page, pageSize, q } }) => {
     await context.queryClient.ensureQueryData(

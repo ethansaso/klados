@@ -32,14 +32,18 @@ export function UserMenu({
       style={style}
     >
       <DropdownMenu.Root open={open} onOpenChange={setOpen} modal={false}>
-        <DropdownMenu.Trigger>
+        <DropdownMenu.Trigger
+          onClick={() =>
+            navigate({ to: "/users/$username", params: { username } })
+          }
+        >
           <button
             type="button"
             aria-label="Account menu"
             style={{
               background: "transparent",
               border: "none",
-              padding: 0,
+              padding: "0 var(--space-2)",
               cursor: "pointer",
             }}
           >

@@ -19,7 +19,7 @@ export const Route = createRootRouteWithContext<{
     const { meta, links } = seo({
       title: "TaxoKeys",
       description: "Twenty-first century identification.",
-      image: "/static/media/taxo-keys-logo.png",
+      image: "/logos/LogoBrand.png",
       canonicalPath: "/",
     });
 

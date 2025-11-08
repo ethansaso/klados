@@ -15,7 +15,6 @@ import { createOptionSet } from "../../../../lib/serverFns/characters/options/fn
 import { snakeCase } from "../../../../lib/utils/casing";
 import { toast } from "../../../../lib/utils/toast";
 
-// nicemodal
 export const AddOptionSetModal = NiceModal.create(() => {
   const { visible, hide } = useModal();
   const qc = useQueryClient();

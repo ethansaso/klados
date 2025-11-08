@@ -1,8 +1,8 @@
-import { Table } from '@radix-ui/themes'
-import { createFileRoute, useSearch } from '@tanstack/react-router'
-import { usersQueryOptions } from '../../../lib/queries/user'
+import { Table } from "@radix-ui/themes";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { z } from "zod";
-import { useQuery } from '@tanstack/react-query';
+import { usersQueryOptions } from "../../../lib/queries/users";
 
 export const Route = createFileRoute("/admin/users/")({
   // Coerce query-string values to numbers, set sane defaults (1-based page)
@@ -33,7 +33,7 @@ function RouteComponent() {
   if (isLoading) return <p>Loading…</p>;
   if (isError) return <p>Failed to load users: {(error as Error).message}</p>;
   if (!data) return <p>No data.</p>;
-  
+
   const { items, total } = data;
   return (
     <Table.Root>
@@ -50,11 +50,13 @@ function RouteComponent() {
           <Table.Row key={user.id}>
             <Table.Cell>{user.id}</Table.Cell>
             <Table.Cell>{user.username}</Table.Cell>
-            <Table.Cell>{new Date(user.createdAt).toLocaleDateString()}</Table.Cell>
-            <Table.Cell>{user.banned ? 'Yes' : 'No'}</Table.Cell>
+            <Table.Cell>
+              {new Date(user.createdAt).toLocaleDateString()}
+            </Table.Cell>
+            <Table.Cell>{user.banned ? "Yes" : "No"}</Table.Cell>
           </Table.Row>
         ))}
       </Table.Body>
     </Table.Root>
-  )
+  );
 }

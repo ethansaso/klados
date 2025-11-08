@@ -1,7 +1,7 @@
 import { Avatar, Badge, Button, Flex, Heading, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { meQuery, userQueryOptions } from "../../../../lib/queries/user";
+import { meQuery, userQueryOptions } from "../../../../lib/queries/users";
 import { UserDTO } from "../../../../lib/serverFns/user";
 import { capitalizeWord } from "../../../../lib/utils/casing";
 import { getInitials } from "../../../../lib/utils/getInitials";

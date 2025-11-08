@@ -1,25 +1,18 @@
 import NiceModal from "@ebay/nice-modal-react";
-import { Box, Flex, IconButton, TextField } from "@radix-ui/themes";
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { PiMagnifyingGlass, PiPlusCircle, PiTrash } from "react-icons/pi";
-import z from "zod";
+import { Box, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Outlet, useMatchRoute } from "@tanstack/react-router";
+import { PiMagnifyingGlass, PiPlusCircle } from "react-icons/pi";
+import { CharacterSectionSidebarList } from "../-chrome/CharacterSectionSidebarList";
+import { Pager } from "../-chrome/CharacterSectionSidebarPager";
+import { useSectionSearch } from "../-chrome/useSectionSearch";
+import { DebouncedTextField } from "../../../../components/DebouncedTextField";
 import { optionSetsQueryOptions } from "../../../../lib/queries/options";
-import { deleteOptionSet } from "../../../../lib/serverFns/characters/options/fns";
-import { OptionSetDTO } from "../../../../lib/serverFns/characters/options/types";
-import { toast } from "../../../../lib/utils/toast";
+import { SearchWithQuerySchema } from "../../../../lib/validation/search";
 import { AddOptionSetModal } from "./-AddOptionSetModal";
-import { ConfirmOptionSetDeleteModal } from "./-ConfirmOptionSetDeleteModal";
-
-const SearchSchema = z.object({
-  q: z.string().trim().catch("").default(""),
-  page: z.coerce.number().int().min(1).catch(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).catch(20).default(20),
-});
 
 export const Route = createFileRoute("/_app/characters/options")({
-  validateSearch: (s) => SearchSchema.parse(s),
+  validateSearch: (s) => SearchWithQuerySchema.parse(s),
   loaderDeps: ({ search: { page, pageSize, q } }) => ({ page, pageSize, q }),
   loader: async ({ context, deps: { page, pageSize, q } }) => {
     await context.queryClient.ensureQueryData(
@@ -30,72 +23,67 @@ export const Route = createFileRoute("/_app/characters/options")({
 });
 
 function RouteComponent() {
-  const search = Route.useSearch();
-  const qc = useQueryClient();
-  const navigate = Route.useNavigate();
-  const serverDelete = useServerFn(deleteOptionSet);
-  const { data: paginatedResult } = useSuspenseQuery(
+  const { search, setQ, next, prev } = useSectionSearch(Route);
+  const {
+    data: paginatedResult,
+    isLoading,
+    error,
+  } = useQuery(
     optionSetsQueryOptions(search.page, search.pageSize, {
       q: search.q,
     })
   );
 
-  const handleOptionSetDeleteClick = (optionSet: OptionSetDTO) => {
-    NiceModal.show(ConfirmOptionSetDeleteModal, {
-      label: optionSet.label,
-      onConfirm: async () => {
-        try {
-          await serverDelete({ data: { id: optionSet.id } });
-          qc.invalidateQueries({ queryKey: ["optionSets"] });
-          toast({
-            variant: "success",
-            description: `Option set "${optionSet.label}" deleted successfully.`,
-          });
-        } catch (error) {
-          toast({
-            variant: "error",
-            description: `Failed to delete option set "${optionSet.label}".`,
-          });
-        }
-      },
-    });
-  };
+  const matchRoute = useMatchRoute();
+  const match = matchRoute({ to: "/characters/options/$setId", fuzzy: true });
+  const selectedId = match ? (match.setId as string | undefined) : undefined;
 
   return (
-    <Flex>
-      <Box>
-        <TextField.Root>
+    <Flex gap="4">
+      <Box maxWidth="300px">
+        <DebouncedTextField value={search.q} onDebouncedChange={setQ} mb="2">
           <TextField.Slot>
             <PiMagnifyingGlass size="16" />
           </TextField.Slot>
-        </TextField.Root>
-        <IconButton onClick={() => NiceModal.show(AddOptionSetModal)}>
-          <PiPlusCircle />
-        </IconButton>
-        {paginatedResult.items.map((item) => (
-          <Link
-            to="/characters/options/$setId"
-            params={{ setId: String(item.id) }}
-            search={search}
-            key={item.id}
-          >
-            <Flex gap="3">
-              {item.label}
-              <IconButton
-                size="1"
-                color="tomato"
-                onClick={() => handleOptionSetDeleteClick(item)}
-              >
-                <PiTrash />
-              </IconButton>
-            </Flex>
-          </Link>
-        ))}
-        <Flex>
-          <button>foo</button>
-          {paginatedResult.page}
-          <button>bar</button>
-        </Flex>
+          <TextField.Slot>
+            <IconButton
+              onClick={() => NiceModal.show(AddOptionSetModal)}
+              size="1"
+            >
+              <PiPlusCircle />
+            </IconButton>
+          </TextField.Slot>
+        </DebouncedTextField>
+
+        {error ? (
+          <Text color="red">Error loading option sets.</Text>
+        ) : isLoading || !paginatedResult ? (
+          <Text>Loading option sets...</Text>
+        ) : paginatedResult.items.length > 0 ? (
+          <>
+            <CharacterSectionSidebarList.Root selectedId={selectedId}>
+              {paginatedResult.items.map((item) => (
+                <CharacterSectionSidebarList.Item
+                  key={item.id}
+                  id={item.id}
+                  keyStr={item.key}
+                  label={item.label}
+                  to="/characters/options/$setId"
+                  params={{ setId: String(item.id) }}
+                />
+              ))}
+            </CharacterSectionSidebarList.Root>{" "}
+            <Pager
+              page={paginatedResult.page}
+              pageSize={paginatedResult.pageSize}
+              total={paginatedResult.total}
+              onPrev={() => prev()}
+              onNext={() => next(paginatedResult.total)}
+            />
+          </>
+        ) : (
+          <Text color="gray">No option sets found.</Text>
+        )}
       </Box>
       <Outlet />
     </Flex>

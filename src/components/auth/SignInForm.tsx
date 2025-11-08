@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { authClient } from "../../lib/auth/authClient";
-import { meQuery } from "../../lib/queries/user";
+import { meQuery } from "../../lib/queries/users";
 
 function isEmail(s: string) {
   // simple heuristic; server remains the source of truth

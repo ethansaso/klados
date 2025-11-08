@@ -2,7 +2,6 @@ import { Button, Callout, Flex, Heading } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import z from "zod";
-import placeholderImage from "../../../../assets/LogoDotted.svg";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 
 const IMG_SIZE = 128;
@@ -46,7 +45,7 @@ function TaxonPage() {
       <Flex>
         {/** TODO: image size accessibility */}
         <img
-          src={primaryMedia?.url ?? placeholderImage}
+          src={primaryMedia?.url ?? "/logos/LogoDotted.svg"}
           style={{
             width: IMG_SIZE,
             aspectRatio: "1/1",
