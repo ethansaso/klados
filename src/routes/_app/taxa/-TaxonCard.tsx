@@ -1,18 +1,24 @@
 import { Card, Flex, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import { PiTreeStructure } from "react-icons/pi";
+import placeholderImage from "../../../assets/LogoDotted.svg";
 import { TaxonDTO } from "../../../lib/serverFns/taxa/types";
 import { capitalizeWord } from "../../../lib/utils/casing";
 
 export const TaxonCard = ({ taxon }: { taxon: TaxonDTO }) => {
+  const primaryMedia = taxon.media[0];
   return (
     <Card className="taxon-card" asChild>
       <Link to="/taxa/$id" params={{ id: String(taxon.id) }}>
-        <img src={taxon.media[0].url} alt={taxon.acceptedName} loading="lazy" />
+        <img
+          src={primaryMedia?.url ?? placeholderImage}
+          alt={taxon.acceptedName}
+          loading="lazy"
+        />
         <Text as="div" size="1" weight="bold" color="gray">
           {capitalizeWord(taxon.rank)}
         </Text>
-        <Text as="div" weight="bold" mb="1">
+        <Text as="div" weight="bold" mb="1" truncate>
           {taxon.acceptedName}
         </Text>
         <Flex align="center" gap="1" className="summary" asChild>

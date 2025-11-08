@@ -24,7 +24,6 @@ function TaxonPage() {
   const { id } = Route.useLoaderData();
   const navigate = useNavigate();
   const { data: taxon } = useSuspenseQuery(taxonQueryOptions(id));
-  console.log(taxon);
   const primaryMedia = taxon.media[0];
 
   return (
