@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  foreignKey,
   index,
   integer,
   pgTable,
@@ -38,12 +39,16 @@ export const categoricalOptionValues = pgTable(
     key: text("key").notNull(),
     label: text("label").notNull(),
     isCanonical: boolean("is_canonical").notNull().default(true),
-    canonicalValueId: integer("canonical_value_id").references(
-      () => categoricalOptionValues.id,
-      { onDelete: "restrict" }
-    ),
+    canonicalValueId: integer("canonical_value_id"),
   }),
   (t) => [
+    // ? FKs here avoids circular reference causing TS problems
+    foreignKey({
+      name: "canonical_value_id_fk",
+      columns: [t.canonicalValueId],
+      foreignColumns: [t.id],
+    }).onDelete("restrict"),
+
     // Index to ensure unique keys WITHIN each option set
     // I.e. "green" can exist both in "cap color" and "spore color", but not twice in "cap color"
     uniqueIndex("option_values_set_key_uq").on(t.setId, t.key),

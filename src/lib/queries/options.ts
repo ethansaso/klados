@@ -24,11 +24,11 @@ export const optionSetsQueryOptions = (
     staleTime: 60_000,
   });
 
-export const optionSetQueryOptions = (key: string) =>
+export const optionSetQueryOptions = (id: number) =>
   queryOptions({
-    queryKey: ["optionSetByKey", key] as const,
+    queryKey: ["optionSetByKey", id] as const,
     queryFn: () =>
-      getOptionSet({ data: { key } }) as Promise<OptionSetDetailDTO>,
+      getOptionSet({ data: { id } }) as Promise<OptionSetDetailDTO>,
     staleTime: 60_000,
   });
 

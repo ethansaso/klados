@@ -23,7 +23,7 @@ export type OptionSetDetailDTO = Pick<
 };
 export type OptionValueDTO = Pick<
   OptionValueRow,
-  "id" | "setId" | "key" | "label" | "isCanonical" | "canonicalValueId"
+  "id" | "setId" | "key" | "label" | "isCanonical"
 > & {
   /** Present when this value is an alias (isCanonical = false). */
   aliasTarget: { id: number; label: string } | null;

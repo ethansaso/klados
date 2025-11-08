@@ -135,18 +135,11 @@ export const deleteOptionSet = createServerFn({ method: "POST" })
 
 export const getOptionSet = createServerFn({ method: "GET" })
   .inputValidator(
-    z
-      .object({
-        id: z.number().int().positive().optional(),
-        key: z.string().optional(),
-      })
-      .refine((v) => !!v.id || !!v.key, { message: "id or key required" })
+    z.object({
+      id: z.number().int().positive(),
+    })
   )
   .handler(async ({ data }): Promise<OptionSetDetailDTO> => {
-    const where = data.id
-      ? eq(setsTbl.id, data.id)
-      : eq(setsTbl.key, data.key!);
-
     const rows = await db
       .select({
         id: setsTbl.id,
@@ -159,7 +152,7 @@ export const getOptionSet = createServerFn({ method: "GET" })
       .from(setsTbl)
       .leftJoin(valsTbl, eq(valsTbl.setId, setsTbl.id))
       .leftJoin(catMetaTbl, eq(catMetaTbl.optionSetId, setsTbl.id))
-      .where(where)
+      .where(eq(setsTbl.id, data.id))
       .groupBy(setsTbl.id, setsTbl.key, setsTbl.label, setsTbl.description);
 
     const row = rows[0];
@@ -171,7 +164,7 @@ export const listOptionSetValues = createServerFn({ method: "GET" })
   .inputValidator(z.object({ setId: z.number().int().positive() }))
   .handler(async ({ data }): Promise<OptionValueDTO[]> => {
     const v = valsTbl;
-    const canon = alias(valsTbl, "canon") as typeof valsTbl;
+    const canon = alias(valsTbl, "canon");
 
     const rows = await db
       .select({
@@ -180,7 +173,6 @@ export const listOptionSetValues = createServerFn({ method: "GET" })
         key: v.key,
         label: v.label,
         isCanonical: v.isCanonical,
-        canonicalValueId: v.canonicalValueId,
         canonId: canon.id,
         canonLabel: canon.label,
       })
@@ -196,11 +188,107 @@ export const listOptionSetValues = createServerFn({ method: "GET" })
       key: r.key,
       label: r.label,
       isCanonical: r.isCanonical,
-      canonicalValueId: r.canonicalValueId,
       aliasTarget: r.isCanonical
         ? null
         : r.canonId
           ? { id: r.canonId, label: r.canonLabel! }
           : null,
     }));
+  });
+
+export const createOptionValue = createServerFn({ method: "POST" })
+  .middleware([requireCuratorMiddleware])
+  .inputValidator(
+    z.object({
+      setId: z.coerce.number().int().positive(),
+      key: z.string().min(1).max(100),
+      label: z.string().min(1).max(200),
+      canonicalValueId: z.coerce.number().int().positive().optional(),
+    })
+  )
+  .handler(async ({ data }): Promise<OptionValueDTO> => {
+    const setId = data.setId;
+    const key = data.key.trim();
+    const label = data.label.trim();
+    const canonicalValueId = data.canonicalValueId ?? null;
+
+    return await db.transaction(async (tx) => {
+      // If alias, verify the target exists, is in the same set, and is canonical.
+      if (canonicalValueId) {
+        const [target] = await tx
+          .select({
+            id: valsTbl.id,
+            setId: valsTbl.setId,
+            isCanonical: valsTbl.isCanonical,
+            label: valsTbl.label,
+          })
+          .from(valsTbl)
+          .where(eq(valsTbl.id, canonicalValueId!))
+          .limit(1);
+
+        if (!target) throw new Error("Alias target not found.");
+        if (target.setId !== setId)
+          throw new Error("Alias target must be in the same option set.");
+        if (!target.isCanonical)
+          throw new Error("Alias target must be canonical.");
+      }
+
+      // Insert the new value
+      const [inserted] = await tx
+        .insert(valsTbl)
+        .values({
+          setId,
+          key,
+          label,
+          isCanonical: !canonicalValueId,
+          canonicalValueId,
+        })
+        .returning({
+          id: valsTbl.id,
+          setId: valsTbl.setId,
+          key: valsTbl.key,
+          label: valsTbl.label,
+          isCanonical: valsTbl.isCanonical,
+          canonicalValueId: valsTbl.canonicalValueId,
+        });
+
+      if (!inserted) throw new Error("Insert failed.");
+
+      // Build DTO with aliasTarget (single self-join)
+      const v = valsTbl;
+      const canon = alias(valsTbl, "canon");
+
+      const [row] = await tx
+        .select({
+          id: v.id,
+          setId: v.setId,
+          key: v.key,
+          label: v.label,
+          isCanonical: v.isCanonical,
+          canonicalValueId: v.canonicalValueId,
+          canonId: canon.id,
+          canonLabel: canon.label,
+        })
+        .from(v)
+        .leftJoin(canon, eq(v.canonicalValueId, canon.id))
+        .where(eq(v.id, inserted.id))
+        .orderBy(asc(v.id)); // stabilize
+
+      if (!row) throw new Error("Inserted row not found.");
+
+      const dto: OptionValueDTO = {
+        id: row.id,
+        setId: row.setId,
+        key: row.key,
+        label: row.label,
+        isCanonical: row.isCanonical,
+        aliasTarget: row.isCanonical
+          ? null
+          : row.canonId
+            ? { id: row.canonId, label: row.canonLabel! }
+            : null,
+      };
+
+      return dto;
+    });
   });

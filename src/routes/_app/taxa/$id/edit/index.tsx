@@ -382,7 +382,6 @@ function RouteComponent() {
               type="button"
               disabled={pending}
               loading={pending}
-              color="green"
               onClick={handlePublish}
             >
               Publish
