@@ -1,0 +1,1 @@
+ALTER TABLE "categorical_character_meta" ALTER COLUMN "is_multi_select" DROP DEFAULT;
