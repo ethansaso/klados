@@ -1,4 +1,4 @@
-import { TabNav } from "@radix-ui/themes";
+import { Heading, TabNav } from "@radix-ui/themes";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ContentContainer } from "../../../components/ContentContainer";
 import { useIsActive } from "../../../lib/hooks/useIsActive";
@@ -10,12 +10,13 @@ export const Route = createFileRoute("/_app/characters")({
 // TODO: fix needing search on nav (here it should probably remain to reset, though)
 function RouteComponent() {
   const definitionsActive = useIsActive("/characters/definitions", true);
-  const optionsActive = useIsActive("/characters/options", true);
+  const traitsActive = useIsActive("/characters/traits", true);
   const groupsActive = useIsActive("/characters/groups", true);
 
   return (
     <ContentContainer align="stretch">
-      <TabNav.Root>
+      <Heading mb="2">Character glossary</Heading>
+      <TabNav.Root mb="3">
         <TabNav.Link asChild active={definitionsActive}>
           <Link
             to="/characters/definitions"
@@ -34,13 +35,13 @@ function RouteComponent() {
             Groups
           </Link>
         </TabNav.Link>
-        <TabNav.Link asChild active={optionsActive}>
+        <TabNav.Link asChild active={traitsActive}>
           <Link
-            to="/characters/options"
+            to="/characters/traits"
             preload="intent"
             search={{ q: "", page: 1, pageSize: 20 }}
           >
-            Option Sets
+            Trait Sets
           </Link>
         </TabNav.Link>
       </TabNav.Root>

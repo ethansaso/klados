@@ -16,27 +16,27 @@ import { alias } from "drizzle-orm/pg-core";
 import z from "zod";
 import { db } from "../../../../db/client";
 import {
-  characterCategoricalMeta as catMetaTbl,
-  categoricalOptionSets as setsTbl,
-  categoricalOptionValues as valsTbl,
+  categoricalCharacterMeta as catMetaTbl,
+  categoricalTraitSets as setsTbl,
+  categoricalTraitValues as valsTbl,
 } from "../../../../db/schema/schema";
 import { requireCuratorMiddleware } from "../../../auth/serverFnMiddleware";
 import { PaginationSchema } from "../../../validation/pagination";
 import {
-  OptionSetDetailDTO,
-  OptionSetDTO,
-  OptionSetPaginatedResult,
-  OptionValueDTO,
+  TraitSetDetailDTO,
+  TraitSetDTO,
+  TraitSetPaginatedResult,
+  TraitValueDTO,
 } from "./types";
 
-export const listOptionSets = createServerFn({ method: "GET" })
+export const listTraitSets = createServerFn({ method: "GET" })
   .inputValidator(
     PaginationSchema.extend({
       q: z.string().optional(),
       ids: z.array(z.number()).optional(),
     })
   )
-  .handler(async ({ data }): Promise<OptionSetPaginatedResult> => {
+  .handler(async ({ data }): Promise<TraitSetPaginatedResult> => {
     const { q, ids, page, pageSize } = data;
     const offset = (page - 1) * pageSize;
 
@@ -67,9 +67,11 @@ export const listOptionSets = createServerFn({ method: "GET" })
         label: setsTbl.label,
         description: setsTbl.description,
         valueCount: sql<number>`COUNT(${valsTbl.id}) FILTER (WHERE ${valsTbl.isCanonical})`,
+        usedByCharacters: countDistinct(catMetaTbl.characterId),
       })
       .from(setsTbl)
       .leftJoin(valsTbl, eq(valsTbl.setId, setsTbl.id))
+      .leftJoin(catMetaTbl, eq(catMetaTbl.traitSetId, setsTbl.id))
       .where(where)
       .groupBy(setsTbl.id, setsTbl.key, setsTbl.label, setsTbl.description)
       .orderBy(asc(setsTbl.key), asc(setsTbl.id))
@@ -85,7 +87,7 @@ export const listOptionSets = createServerFn({ method: "GET" })
     return { items, page, pageSize, total };
   });
 
-export const createOptionSet = createServerFn({ method: "POST" })
+export const createTraitSet = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
   .inputValidator(
     z.object({
@@ -94,13 +96,13 @@ export const createOptionSet = createServerFn({ method: "POST" })
       description: z.string().max(1000).optional(),
     })
   )
-  .handler(async ({ data }): Promise<OptionSetDTO> => {
+  .handler(async ({ data }): Promise<TraitSetDTO> => {
     const key = data.key.trim();
     const label = data.label.trim();
     const description = data.description?.trim() || null;
 
     return await db.transaction(async (tx) => {
-      const [optionSet] = await tx
+      const [traitSet] = await tx
         .insert(setsTbl)
         .values({ key, label, description })
         .returning({
@@ -110,12 +112,12 @@ export const createOptionSet = createServerFn({ method: "POST" })
           description: setsTbl.description,
         });
 
-      if (!optionSet) throw notFound();
-      return { ...optionSet, valueCount: 0 };
+      if (!traitSet) throw notFound();
+      return { ...traitSet, valueCount: 0, usedByCharacters: 0 };
     });
   });
 
-export const deleteOptionSet = createServerFn({ method: "POST" })
+export const deleteTraitSet = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
   .inputValidator(z.object({ id: z.number().int().positive() }))
   .handler(async ({ data }): Promise<{ id: number }> => {
@@ -132,13 +134,13 @@ export const deleteOptionSet = createServerFn({ method: "POST" })
     });
   });
 
-export const getOptionSet = createServerFn({ method: "GET" })
+export const getTraitSet = createServerFn({ method: "GET" })
   .inputValidator(
     z.object({
       id: z.number().int().positive(),
     })
   )
-  .handler(async ({ data }): Promise<OptionSetDetailDTO> => {
+  .handler(async ({ data }): Promise<TraitSetDetailDTO> => {
     const rows = await db
       .select({
         id: setsTbl.id,
@@ -150,7 +152,7 @@ export const getOptionSet = createServerFn({ method: "GET" })
       })
       .from(setsTbl)
       .leftJoin(valsTbl, eq(valsTbl.setId, setsTbl.id))
-      .leftJoin(catMetaTbl, eq(catMetaTbl.optionSetId, setsTbl.id))
+      .leftJoin(catMetaTbl, eq(catMetaTbl.traitSetId, setsTbl.id))
       .where(eq(setsTbl.id, data.id))
       .groupBy(setsTbl.id, setsTbl.key, setsTbl.label, setsTbl.description);
 
@@ -159,9 +161,9 @@ export const getOptionSet = createServerFn({ method: "GET" })
     return row;
   });
 
-export const listOptionSetValues = createServerFn({ method: "GET" })
+export const listTraitSetValues = createServerFn({ method: "GET" })
   .inputValidator(z.object({ setId: z.number().int().positive() }))
-  .handler(async ({ data }): Promise<OptionValueDTO[]> => {
+  .handler(async ({ data }): Promise<TraitValueDTO[]> => {
     const v = valsTbl;
     const canon = alias(valsTbl, "canon");
 
@@ -195,7 +197,7 @@ export const listOptionSetValues = createServerFn({ method: "GET" })
     }));
   });
 
-export const createOptionValue = createServerFn({ method: "POST" })
+export const createTraitValue = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
   .inputValidator(
     z.object({
@@ -205,7 +207,7 @@ export const createOptionValue = createServerFn({ method: "POST" })
       canonicalValueId: z.coerce.number().int().positive().optional(),
     })
   )
-  .handler(async ({ data }): Promise<OptionValueDTO> => {
+  .handler(async ({ data }): Promise<TraitValueDTO> => {
     const setId = data.setId;
     const key = data.key.trim();
     const label = data.label.trim();
@@ -227,7 +229,7 @@ export const createOptionValue = createServerFn({ method: "POST" })
 
         if (!target) throw new Error("Alias target not found.");
         if (target.setId !== setId)
-          throw new Error("Alias target must be in the same option set.");
+          throw new Error("Alias target must be in the same trait set.");
         if (!target.isCanonical)
           throw new Error("Alias target must be canonical.");
       }
@@ -275,7 +277,7 @@ export const createOptionValue = createServerFn({ method: "POST" })
 
       if (!row) throw new Error("Inserted row not found.");
 
-      const dto: OptionValueDTO = {
+      const dto: TraitValueDTO = {
         id: row.id,
         setId: row.setId,
         key: row.key,

@@ -6,15 +6,15 @@ type Props = {
   onConfirm: () => void;
 };
 
-export const ConfirmOptionSetDeleteModal = NiceModal.create<Props>(
+export const ConfirmTraitSetDeleteModal = NiceModal.create<Props>(
   ({ label, onConfirm }) => {
     const { visible, hide } = useModal();
     return (
       <AlertDialog.Root open={visible} onOpenChange={(open) => !open && hide()}>
         <AlertDialog.Content maxWidth="400px" aria-describedby={undefined}>
-          <AlertDialog.Title>Delete option set</AlertDialog.Title>
+          <AlertDialog.Title>Delete trait set</AlertDialog.Title>
           <AlertDialog.Description size="2" mb="4">
-            Are you sure you want to delete the option set{" "}
+            Are you sure you want to delete the trait set{" "}
             <Strong>{label}</Strong>? This action cannot be undone.
           </AlertDialog.Description>
 

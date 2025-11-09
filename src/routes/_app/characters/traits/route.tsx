@@ -2,21 +2,21 @@ import NiceModal from "@ebay/nice-modal-react";
 import { Box, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet, useMatchRoute } from "@tanstack/react-router";
-import { PiGlobe, PiMagnifyingGlass, PiPlusCircle } from "react-icons/pi";
+import { PiLink, PiMagnifyingGlass, PiPlusCircle, PiTag } from "react-icons/pi";
 import { CharacterSectionSidebarList } from "../-chrome/CharacterSectionSidebarList";
 import { Pager } from "../-chrome/CharacterSectionSidebarPager";
 import { useSectionSearch } from "../-chrome/useSectionSearch";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
-import { charactersQueryOptions } from "../../../../lib/queries/characters";
+import { traitSetsQueryOptions } from "../../../../lib/queries/traits";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
-import { AddCharacterModal } from "./-AddCharacterModal";
+import { AddTraitSetModal } from "./-AddTraitSetModal";
 
-export const Route = createFileRoute("/_app/characters/definitions")({
+export const Route = createFileRoute("/_app/characters/traits")({
   validateSearch: (s) => SearchWithQuerySchema.parse(s),
   loaderDeps: ({ search: { page, pageSize, q } }) => ({ page, pageSize, q }),
   loader: async ({ context, deps: { page, pageSize, q } }) => {
     await context.queryClient.ensureQueryData(
-      charactersQueryOptions(page, pageSize, { q })
+      traitSetsQueryOptions(page, pageSize, { q })
     );
   },
   component: RouteComponent,
@@ -25,19 +25,14 @@ export const Route = createFileRoute("/_app/characters/definitions")({
 function RouteComponent() {
   const { search, setQ, next, prev } = useSectionSearch(Route);
   const { data: paginatedResult } = useSuspenseQuery(
-    charactersQueryOptions(search.page, search.pageSize, {
+    traitSetsQueryOptions(search.page, search.pageSize, {
       q: search.q,
     })
   );
 
   const matchRoute = useMatchRoute();
-  const match = matchRoute({
-    to: "/characters/definitions/$characterId",
-    fuzzy: true,
-  });
-  const selectedId = match
-    ? (match.characterId as string | undefined)
-    : undefined;
+  const match = matchRoute({ to: "/characters/traits/$setId", fuzzy: true });
+  const selectedId = match ? (match.setId as string | undefined) : undefined;
 
   return (
     <Flex gap="4">
@@ -52,8 +47,8 @@ function RouteComponent() {
           </TextField.Slot>
           <TextField.Slot>
             <IconButton
+              onClick={() => NiceModal.show(AddTraitSetModal)}
               size="1"
-              onClick={() => NiceModal.show(AddCharacterModal)}
             >
               <PiPlusCircle />
             </IconButton>
@@ -66,12 +61,17 @@ function RouteComponent() {
               id={item.id}
               keyStr={item.key}
               label={item.label}
-              to="/characters/definitions/$characterId"
-              params={{ characterId: String(item.id) }}
+              to="/characters/traits/$setId"
+              params={{ setId: String(item.id) }}
             >
               <Flex align="center" gap="1" asChild>
                 <Text as="div" size="1">
-                  {item.type === "categorical" ? <PiGlobe /> : "ERROR"}
+                  {item.valueCount} <PiTag />
+                </Text>
+              </Flex>
+              <Flex align="center" gap="1" asChild>
+                <Text as="div" size="1">
+                  {item.usedByCharacters} <PiLink />
                 </Text>
               </Flex>
             </CharacterSectionSidebarList.Item>

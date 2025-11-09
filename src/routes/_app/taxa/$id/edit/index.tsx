@@ -33,7 +33,10 @@ import {
   updateTaxon,
 } from "../../../../../lib/serverFns/taxa/fns";
 import { TaxonDTO } from "../../../../../lib/serverFns/taxa/types";
-import { MediaItem, TaxonPatch } from "../../../../../lib/serverFns/taxa/zod";
+import {
+  MediaItem,
+  TaxonPatch,
+} from "../../../../../lib/serverFns/taxa/validation";
 import { toast } from "../../../../../lib/utils/toast";
 import { MediaEditingForm } from "./-MediaEditingForm";
 import { pickInatTaxon } from "./-dialogs/InatConfirmModal";

@@ -1,5 +1,5 @@
 export * from "./auth";
-export * from "./characters/categoricalOptions";
+export * from "./characters/categoricalTraits";
 export * from "./characters/characterGroups";
 export * from "./characters/characters";
 export * from "./characters/characterValues";

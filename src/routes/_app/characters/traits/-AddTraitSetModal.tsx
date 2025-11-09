@@ -11,14 +11,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Form } from "radix-ui";
 import { useEffect, useState } from "react";
-import { createOptionSet } from "../../../../lib/serverFns/characters/options/fns";
+import { createTraitSet } from "../../../../lib/serverFns/characters/traits/fns";
 import { snakeCase } from "../../../../lib/utils/casing";
 import { toast } from "../../../../lib/utils/toast";
 
-export const AddOptionSetModal = NiceModal.create(() => {
+export const AddTraitSetModal = NiceModal.create(() => {
   const { visible, hide } = useModal();
   const qc = useQueryClient();
-  const serverCreate = useServerFn(createOptionSet);
+  const serverCreate = useServerFn(createTraitSet);
 
   const [loading, setLoading] = useState(false);
   const [label, setLabel] = useState("");
@@ -43,10 +43,10 @@ export const AddOptionSetModal = NiceModal.create(() => {
         },
       });
 
-      qc.invalidateQueries({ queryKey: ["optionSets"] });
+      qc.invalidateQueries({ queryKey: ["traitSets"] });
       toast({
         variant: "success",
-        description: `Option set "${label}" created successfully.`,
+        description: `Trait set "${label}" created successfully.`,
       });
       hide();
     } catch (error) {
@@ -82,9 +82,9 @@ export const AddOptionSetModal = NiceModal.create(() => {
       }}
     >
       <Dialog.Content maxWidth="450px">
-        <Dialog.Title>Add option set</Dialog.Title>
+        <Dialog.Title>Add trait set</Dialog.Title>
         <Dialog.Description size="2" mb="4">
-          Specify the details for the new option set.
+          Specify the details for the new trait set.
         </Dialog.Description>
         <Form.Root onSubmit={handleSubmit}>
           <Flex direction="column" gap="3" mb="4">
@@ -106,6 +106,7 @@ export const AddOptionSetModal = NiceModal.create(() => {
                 asChild
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
+                placeholder="e.g. color, texture, odor"
               >
                 <TextField.Root type="text" />
               </Form.Control>
@@ -191,7 +192,7 @@ export const AddOptionSetModal = NiceModal.create(() => {
             </Dialog.Close>
             <Form.Submit asChild>
               <Button type="submit" disabled={loading} loading={loading}>
-                Add option set
+                Add trait set
               </Button>
             </Form.Submit>
           </Flex>

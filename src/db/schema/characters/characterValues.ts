@@ -7,7 +7,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
 import { taxa } from "../taxa/taxa";
-import { categoricalOptionValues } from "./categoricalOptions";
+import { categoricalTraitValues } from "./categoricalTraits";
 import { characters } from "./characters";
 
 /**
@@ -23,18 +23,18 @@ export const characterValueCategorical = pgTable(
     characterId: integer("character_id")
       .notNull()
       .references(() => characters.id, { onDelete: "restrict" }),
-    optionValueId: integer("option_value_id")
+    traitValueId: integer("trait_value_id")
       .notNull()
-      .references(() => categoricalOptionValues.id, { onDelete: "restrict" }),
+      .references(() => categoricalTraitValues.id, { onDelete: "restrict" }),
   }),
   (t) => [
-    // Prevent duplicate selections for the same taxon+character+option
-    uniqueIndex("tcv_cat_unique").on(t.taxonId, t.characterId, t.optionValueId),
+    // Prevent duplicate selections for the same taxon+character+trait
+    uniqueIndex("tcv_cat_unique").on(t.taxonId, t.characterId, t.traitValueId),
     // Index on 'Amanita muscaria'
     index("tcv_cat_taxon_idx").on(t.taxonId),
     // Index on 'cap color'
     index("tcv_cat_character_idx").on(t.characterId),
     // Index on 'red'
-    index("tcv_cat_option_idx").on(t.optionValueId),
+    index("tcv_cat_trait_idx").on(t.traitValueId),
   ]
 );

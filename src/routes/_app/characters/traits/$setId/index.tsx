@@ -15,24 +15,24 @@ import { useState } from "react";
 import { PiPlusCircle, PiTrash } from "react-icons/pi";
 import z from "zod";
 import {
-  optionSetQueryOptions,
-  optionSetValuesQueryOptions,
-} from "../../../../../lib/queries/options";
+  traitSetQueryOptions,
+  traitSetValuesQueryOptions,
+} from "../../../../../lib/queries/traits";
 import {
-  createOptionValue,
-  deleteOptionSet,
-} from "../../../../../lib/serverFns/characters/options/fns";
-import { OptionSetDTO } from "../../../../../lib/serverFns/characters/options/types";
+  createTraitValue,
+  deleteTraitSet,
+} from "../../../../../lib/serverFns/characters/traits/fns";
+import { TraitSetDTO } from "../../../../../lib/serverFns/characters/traits/types";
 import { snakeCase } from "../../../../../lib/utils/casing";
 import { toast } from "../../../../../lib/utils/toast";
-import { Route as OptionsLayoutRoute } from "../route";
-import { ConfirmOptionSetDeleteModal } from "./-ConfirmOptionSetDeleteModal";
+import { Route as TraitsLayoutRoute } from "../route";
+import { ConfirmTraitSetDeleteModal } from "./-ConfirmTraitSetDeleteModal";
 
 const ParamsSchema = z.object({
   setId: z.coerce.number().int().positive(),
 });
 
-export const Route = createFileRoute("/_app/characters/options/$setId/")({
+export const Route = createFileRoute("/_app/characters/traits/$setId/")({
   loader: async ({ context, params }) => {
     const { setId } = ParamsSchema.parse(params);
     return { setId };
@@ -43,28 +43,28 @@ export const Route = createFileRoute("/_app/characters/options/$setId/")({
 // TODO: alias, keys, editing, deleting values
 // TODO: handle 404s
 function RouteComponent() {
-  const search = OptionsLayoutRoute.useSearch();
+  const search = TraitsLayoutRoute.useSearch();
   const { setId } = Route.useLoaderData();
-  const serverCreate = useServerFn(createOptionValue);
+  const serverCreate = useServerFn(createTraitValue);
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const serverDelete = useServerFn(deleteOptionSet);
+  const serverDelete = useServerFn(deleteTraitSet);
 
   const {
-    data: optionSet,
+    data: traitSet,
     error: osErr,
     isLoading: osLoad,
   } = useQuery({
-    ...optionSetQueryOptions(setId),
+    ...traitSetQueryOptions(setId),
     retry: false,
   });
 
   const {
-    data: optionSetValues,
+    data: traitSetValues,
     isLoading: osvLoad,
     error: osvError,
   } = useQuery({
-    ...optionSetValuesQueryOptions(setId),
+    ...traitSetValuesQueryOptions(setId),
     enabled: !osErr, // ! don’t bother if 404
     retry: false,
   });
@@ -84,61 +84,61 @@ function RouteComponent() {
         },
       });
 
-      toast({ description: "Option value created.", variant: "success" });
+      toast({ description: "Trait value created.", variant: "success" });
       qc.invalidateQueries({
-        queryKey: optionSetValuesQueryOptions(setId).queryKey,
+        queryKey: traitSetValuesQueryOptions(setId).queryKey,
       });
       setNewValue("");
     } catch (error) {
-      console.error("Error creating option value:", error);
+      console.error("Error creating trait value:", error);
     }
   };
 
-  const handleOptionSetDeleteClick = (optionSet: OptionSetDTO) => {
-    NiceModal.show(ConfirmOptionSetDeleteModal, {
-      label: optionSet.label,
+  const handleTraitSetDeleteClick = (traitSet: TraitSetDTO) => {
+    NiceModal.show(ConfirmTraitSetDeleteModal, {
+      label: traitSet.label,
       onConfirm: async () => {
         try {
-          await serverDelete({ data: { id: optionSet.id } });
-          qc.invalidateQueries({ queryKey: ["optionSets"] });
+          await serverDelete({ data: { id: traitSet.id } });
+          qc.invalidateQueries({ queryKey: ["traitSets"] });
           qc.invalidateQueries({
-            queryKey: optionSetQueryOptions(optionSet.id).queryKey,
+            queryKey: traitSetQueryOptions(traitSet.id).queryKey,
           });
           qc.invalidateQueries({
-            queryKey: optionSetValuesQueryOptions(optionSet.id).queryKey,
+            queryKey: traitSetValuesQueryOptions(traitSet.id).queryKey,
           });
           navigate({
-            to: "/characters/options",
+            to: "/characters/traits",
             search,
           });
           toast({
             variant: "success",
-            description: `Option set "${optionSet.label}" deleted successfully.`,
+            description: `Trait set "${traitSet.label}" deleted successfully.`,
           });
         } catch (error) {
           toast({
             variant: "error",
-            description: `Failed to delete option set "${optionSet.label}".`,
+            description: `Failed to delete trait set "${traitSet.label}".`,
           });
         }
       },
     });
   };
 
-  // Data is available here as `optionSet` and `optionSetValues`
+  // Data is available here as `traitSet` and `traitSetValues`
   if (osLoad || osvLoad) return <div>Loading...</div>;
-  if (osErr || !optionSet) return <div>Option set not found.</div>;
+  if (osErr || !traitSet) return <div>Trait set not found.</div>;
   return (
     <Box>
-      <Heading size="6">Option Set: {optionSet.label}</Heading>
+      <Heading size="6">Trait Set: {traitSet.label}</Heading>
       <IconButton
         size="1"
         color="tomato"
-        onClick={() => handleOptionSetDeleteClick(optionSet)}
+        onClick={() => handleTraitSetDeleteClick(traitSet)}
       >
         <PiTrash />
       </IconButton>
-      <Text>{optionSet.description}</Text>
+      <Text>{traitSet.description}</Text>
       <Separator mt="2" mb="2" />
       <Heading size="6">Values:</Heading>
       <Flex mb="2">
@@ -154,10 +154,10 @@ function RouteComponent() {
           <PiPlusCircle />
         </IconButton>
       </Flex>
-      {!optionSetValues?.length || osvError ? (
+      {!traitSetValues?.length || osvError ? (
         <div>No values found.</div>
       ) : (
-        optionSetValues.map((val) => (
+        traitSetValues.map((val) => (
           <Box key={val.id}>
             <Text>
               {val.label}{" "}

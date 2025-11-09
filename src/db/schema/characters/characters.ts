@@ -8,7 +8,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
-import { categoricalOptionSets } from "./categoricalOptions";
+import { categoricalTraitSets } from "./categoricalTraits";
 import { characterGroups } from "./characterGroups";
 
 export const characters = pgTable(
@@ -32,15 +32,15 @@ export const characters = pgTable(
  * Categorical-specific metadata for a character.
  * One-to-one with characters where kind='categorical'.
  */
-export const characterCategoricalMeta = pgTable(
-  "character_categorical_meta",
+export const categoricalCharacterMeta = pgTable(
+  "categorical_character_meta",
   withTimestamps({
     characterId: integer("character_id")
       .primaryKey()
       .references(() => characters.id, { onDelete: "cascade" }),
-    optionSetId: integer("option_set_id")
+    traitSetId: integer("trait_set_id")
       .notNull()
-      .references(() => categoricalOptionSets.id, { onDelete: "restrict" }),
-    isMultiSelect: boolean("is_multi_select").notNull().default(true),
+      .references(() => categoricalTraitSets.id, { onDelete: "restrict" }),
+    isMultiSelect: boolean("is_multi_select").notNull(),
   })
 );

@@ -1,4 +1,4 @@
-import { Box, Flex, RadioCards, Text } from "@radix-ui/themes";
+import { Box, Flex, RadioCards, Strong, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import { PropsWithChildren } from "react";
 
@@ -6,7 +6,6 @@ interface RootProps {
   selectedId: string | undefined;
 }
 
-// TODO: fix not resetting on nav to parent path, e.g. clicking on "option sets" when viewing an option set
 function Root({ children, selectedId }: PropsWithChildren<RootProps>) {
   return (
     <RadioCards.Root
@@ -14,7 +13,7 @@ function Root({ children, selectedId }: PropsWithChildren<RootProps>) {
       gap="1"
       size="1"
       columns="1"
-      value={selectedId}
+      value={selectedId ?? "__unset__"}
     >
       {children}
     </RadioCards.Root>
@@ -29,23 +28,35 @@ interface ItemProps {
   params?: Record<string, string | number>;
 }
 
-function Item({ id, keyStr, label, to, params }: ItemProps) {
+function Item({
+  id,
+  keyStr,
+  label,
+  to,
+  params,
+  children,
+}: PropsWithChildren<ItemProps>) {
   return (
     <Link
       to={to}
       params={params}
       search={true}
+      preload="intent"
       style={{ textDecoration: "none", color: "inherit" }}
     >
       <RadioCards.Item value={String(id)} style={{ width: "100%" }}>
-        <Flex width="100%" gap="2" justify="between" align="start">
+        <Flex width="100%" gap="5" justify="between">
           <Box flexShrink="1" style={{ minWidth: 0 }}>
-            <Text as="p">{label}</Text>
-            <Text as="p" size="1" color="gray">
+            <Text as="p" truncate>
+              <Strong>{label}</Strong>
+            </Text>
+            <Text as="p" size="1" color="gray" truncate>
               {keyStr}
             </Text>
           </Box>
-          <Box>asdf</Box>
+          <Flex direction="column" align="end" justify="start">
+            {children}
+          </Flex>
         </Flex>
       </RadioCards.Item>
     </Link>

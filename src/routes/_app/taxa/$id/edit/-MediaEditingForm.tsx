@@ -10,7 +10,7 @@ import {
 } from "@radix-ui/themes";
 import { PiArrowDown, PiArrowUp, PiPlus, PiTrash } from "react-icons/pi";
 import { MEDIA_LICENSES } from "../../../../../db/utils/mediaLicense";
-import { MediaItem } from "../../../../../lib/serverFns/taxa/zod";
+import { MediaItem } from "../../../../../lib/serverFns/taxa/validation";
 
 type MediaEditorProps = {
   value: MediaItem[];

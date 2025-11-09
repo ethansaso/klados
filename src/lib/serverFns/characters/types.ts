@@ -1,12 +1,12 @@
 import {
-  characterCategoricalMeta,
+  categoricalCharacterMeta,
   characters,
 } from "../../../db/schema/schema";
 import { PaginatedResult } from "../../validation/pagination";
 import { CharacterGroupRow } from "./groups/types";
 
 export type CharacterRow = typeof characters.$inferSelect;
-export type CategoricalMetaRow = typeof characterCategoricalMeta.$inferSelect;
+export type CategoricalMetaRow = typeof categoricalCharacterMeta.$inferSelect;
 
 type BaseCharacterDTO = Pick<
   CharacterRow,
@@ -18,7 +18,7 @@ type BaseCharacterDTO = Pick<
 
 export type CategoricalCharacterDTO = BaseCharacterDTO & {
   type: "categorical";
-} & Pick<CategoricalMetaRow, "characterId" | "optionSetId">;
+} & Pick<CategoricalMetaRow, "characterId" | "traitSetId">;
 
 export type CharacterDTO = CategoricalCharacterDTO | never; // TODO: other types
 

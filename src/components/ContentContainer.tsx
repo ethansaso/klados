@@ -15,7 +15,7 @@ export const ContentContainer = ({
       py="6"
       style={{ maxWidth: "100%" }}
     >
-      <Flex direction="column" align={align} gap="4">
+      <Flex direction="column" align={align}>
         {children}
         <Outlet />
       </Flex>

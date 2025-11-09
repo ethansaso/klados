@@ -12,6 +12,7 @@ export function useSectionSearch<
     q: raw.q ?? "",
   };
 
+  // TODO: fix search navigating back to index on blur/commit
   const setSearch = useCallback(
     (patch: Partial<typeof search>, replace = false) =>
       navigate({

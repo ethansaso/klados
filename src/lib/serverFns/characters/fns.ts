@@ -4,7 +4,7 @@ import { and, asc, count, eq, ilike, inArray, or, SQL, sql } from "drizzle-orm";
 import z from "zod";
 import { db } from "../../../db/client";
 import {
-  characterCategoricalMeta as catMetaTbl,
+  categoricalCharacterMeta as catMetaTbl,
   characters as charsTbl,
   characterGroups as groupsTbl,
   characterValueCategorical as valCatTbl,
@@ -65,7 +65,7 @@ export const listCharacters = createServerFn({ method: "GET" })
         // categorical meta
         type: sql<"categorical">`'categorical'`,
         characterId: charsTbl.id,
-        optionSetId: catMetaTbl.optionSetId,
+        traitSetId: catMetaTbl.traitSetId,
       })
       .from(charsTbl)
       .innerJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
@@ -80,7 +80,7 @@ export const listCharacters = createServerFn({ method: "GET" })
         charsTbl.groupId,
         groupsTbl.id,
         groupsTbl.label,
-        catMetaTbl.optionSetId
+        catMetaTbl.traitSetId
       )
       .orderBy(asc(groupsTbl.label), asc(charsTbl.label), asc(charsTbl.id))
       .limit(pageSize)
@@ -110,15 +110,15 @@ export const createCharacter = createServerFn({ method: "POST" })
       label: z.string().min(1).max(200),
       description: z.string().max(1000).optional(),
       groupId: z.coerce.number().int().positive(),
-      optionSetId: z.coerce.number().int().positive(),
-      isMultiSelect: z.boolean().optional().default(true),
+      traitSetId: z.coerce.number().int().positive(),
+      isMultiSelect: z.boolean(),
     })
   )
   .handler(async ({ data }): Promise<CharacterDTO> => {
     const key = snakeCase(data.key.trim());
     const label = data.label.trim();
     const description = data.description?.trim() || null;
-    const { groupId, optionSetId, isMultiSelect } = data;
+    const { groupId, traitSetId, isMultiSelect } = data;
 
     return await db.transaction(async (tx) => {
       // Insert character
@@ -138,7 +138,7 @@ export const createCharacter = createServerFn({ method: "POST" })
       // Insert categorical meta
       await tx.insert(catMetaTbl).values({
         characterId: charRow.id,
-        optionSetId,
+        traitSetId,
         isMultiSelect,
       });
 
@@ -161,7 +161,7 @@ export const createCharacter = createServerFn({ method: "POST" })
         usageCount: 0,
         type: "categorical",
         characterId: charRow.id,
-        optionSetId,
+        traitSetId,
       };
 
       return dto;

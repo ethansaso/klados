@@ -28,7 +28,7 @@ import {
   getChildCount,
   getCurrentTaxonMinimal,
 } from "./utils";
-import { taxonPatchSchema } from "./zod";
+import { taxonPatchSchema } from "./validation";
 
 const sci = alias(namesTbl, "sci");
 const sciJoinPred = and(
