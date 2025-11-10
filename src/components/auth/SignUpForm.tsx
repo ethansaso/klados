@@ -1,12 +1,23 @@
-import { Button, Flex, Text, TextField } from "@radix-ui/themes";
+import { Button, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
 import { useState } from "react";
-import { PiAt, PiUser } from "react-icons/pi";
+import {
+  PiAt,
+  PiEye,
+  PiEyeSlash,
+  PiEyesLight,
+  PiLock,
+  PiUser,
+} from "react-icons/pi";
 import { authClient } from "../../lib/auth/authClient";
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { meQuery } from "../../lib/queries/users";
 
 export function SignUpForm() {
-  const [err, setErr] = useState<string | null>(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [err, setErr] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -28,13 +39,21 @@ export function SignUpForm() {
       setErr(error.message ?? "Sign up failed. Please try again later.");
       return;
     }
+
+    await queryClient.invalidateQueries({ queryKey: meQuery().queryKey });
+    await queryClient.refetchQueries({ queryKey: meQuery().queryKey });
     navigate({ to: "/" });
   }
 
   return (
     <form onSubmit={onSubmit}>
       <Flex direction="column" gap="3">
-        <TextField.Root name="username" placeholder="Username" required>
+        <TextField.Root
+          name="username"
+          type="text"
+          placeholder="Username"
+          required
+        >
           <TextField.Slot>
             <PiUser />
           </TextField.Slot>
@@ -46,10 +65,24 @@ export function SignUpForm() {
         </TextField.Root>
         <TextField.Root
           name="password"
-          type="password"
+          type={showPassword ? "text" : "password"}
           placeholder="Password"
           required
-        />
+        >
+          <TextField.Slot>
+            <PiLock />
+          </TextField.Slot>
+          <TextField.Slot side="right">
+            <IconButton
+              variant="ghost"
+              type="button"
+              size="1"
+              onClick={() => setShowPassword((p) => !p)}
+            >
+              {showPassword ? <PiEyeSlash /> : <PiEye />}
+            </IconButton>
+          </TextField.Slot>
+        </TextField.Root>
         {err ? (
           <Text color="red" size="2">
             {err}
