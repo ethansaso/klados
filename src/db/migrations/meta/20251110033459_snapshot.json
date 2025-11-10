@@ -1,6 +1,6 @@
 {
-  "id": "143258a7-6267-4a27-be13-734e97552088",
-  "prevId": "a51de03e-cb70-48dc-b8a4-17b678729f38",
+  "id": "8a1d06c9-1f0f-4e3f-ae61-e193813925b9",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -363,8 +363,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.character_groups": {
-      "name": "character_groups",
+    "public.categorical_trait_set": {
+      "name": "categorical_trait_set",
       "schema": "",
       "columns": {
         "id": {
@@ -391,12 +391,410 @@
           "primaryKey": false,
           "notNull": false
         },
-        "is_active": {
-          "name": "is_active",
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "trait_sets_key_uq": {
+          "name": "trait_sets_key_uq",
+          "columns": [
+            {
+              "expression": "key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.categorical_trait_value": {
+      "name": "categorical_trait_value",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "set_id": {
+          "name": "set_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_canonical": {
+          "name": "is_canonical",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
           "default": true
+        },
+        "canonical_value_id": {
+          "name": "canonical_value_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "trait_values_set_key_uq": {
+          "name": "trait_values_set_key_uq",
+          "columns": [
+            {
+              "expression": "set_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "trait_values_set_idx": {
+          "name": "trait_values_set_idx",
+          "columns": [
+            {
+              "expression": "set_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "trait_values_canonical_target_idx": {
+          "name": "trait_values_canonical_target_idx",
+          "columns": [
+            {
+              "expression": "canonical_value_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"categorical_trait_value\".\"canonical_value_id\" IS NOT NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "categorical_trait_value_set_id_categorical_trait_set_id_fk": {
+          "name": "categorical_trait_value_set_id_categorical_trait_set_id_fk",
+          "tableFrom": "categorical_trait_value",
+          "tableTo": "categorical_trait_set",
+          "columnsFrom": [
+            "set_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "canonical_value_same_set_fk": {
+          "name": "canonical_value_same_set_fk",
+          "tableFrom": "categorical_trait_value",
+          "tableTo": "categorical_trait_value",
+          "columnsFrom": [
+            "set_id",
+            "canonical_value_id"
+          ],
+          "columnsTo": [
+            "set_id",
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "trait_values_set_id_id_uq": {
+          "name": "trait_values_set_id_id_uq",
+          "nullsNotDistinct": false,
+          "columns": [
+            "set_id",
+            "id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "trait_values_role_consistency_ck": {
+          "name": "trait_values_role_consistency_ck",
+          "value": "CASE WHEN \"categorical_trait_value\".\"is_canonical\" THEN \"categorical_trait_value\".\"canonical_value_id\" IS NULL\n        ELSE \"categorical_trait_value\".\"canonical_value_id\" IS NOT NULL END"
+        },
+        "trait_values_no_self_alias_ck": {
+          "name": "trait_values_no_self_alias_ck",
+          "value": "\"categorical_trait_value\".\"canonical_value_id\" IS NULL OR \"categorical_trait_value\".\"canonical_value_id\" <> \"categorical_trait_value\".\"id\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.categorical_character_meta": {
+      "name": "categorical_character_meta",
+      "schema": "",
+      "columns": {
+        "character_id": {
+          "name": "character_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "trait_set_id": {
+          "name": "trait_set_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_multi_select": {
+          "name": "is_multi_select",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "categorical_character_meta_character_id_character_id_fk": {
+          "name": "categorical_character_meta_character_id_character_id_fk",
+          "tableFrom": "categorical_character_meta",
+          "tableTo": "character",
+          "columnsFrom": [
+            "character_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "categorical_character_meta_trait_set_id_categorical_trait_set_id_fk": {
+          "name": "categorical_character_meta_trait_set_id_categorical_trait_set_id_fk",
+          "tableFrom": "categorical_character_meta",
+          "tableTo": "categorical_trait_set",
+          "columnsFrom": [
+            "trait_set_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.character": {
+      "name": "character",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "group_id": {
+          "name": "group_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "characters_key_uq": {
+          "name": "characters_key_uq",
+          "columns": [
+            {
+              "expression": "key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "characters_group_idx": {
+          "name": "characters_group_idx",
+          "columns": [
+            {
+              "expression": "group_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "character_group_id_character_group_id_fk": {
+          "name": "character_group_id_character_group_id_fk",
+          "tableFrom": "character",
+          "tableTo": "character_group",
+          "columnsFrom": [
+            "group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.character_group": {
+      "name": "character_group",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -437,8 +835,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.character_states": {
-      "name": "character_states",
+    "public.taxon_character_state_categorical": {
+      "name": "taxon_character_state_categorical",
       "schema": "",
       "columns": {
         "id": {
@@ -447,24 +845,23 @@
           "primaryKey": true,
           "notNull": true
         },
+        "taxon_id": {
+          "name": "taxon_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
         "character_id": {
           "name": "character_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "value": {
-          "name": "value",
-          "type": "text",
+        "trait_value_id": {
+          "name": "trait_value_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
-        },
-        "is_active": {
-          "name": "is_active",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
         },
         "created_at": {
           "name": "created_at",
@@ -482,9 +879,15 @@
         }
       },
       "indexes": {
-        "character_states_character_value_uq": {
-          "name": "character_states_character_value_uq",
+        "tcs_cat_unique": {
+          "name": "tcs_cat_unique",
           "columns": [
+            {
+              "expression": "taxon_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
             {
               "expression": "character_id",
               "isExpression": false,
@@ -492,7 +895,7 @@
               "nulls": "last"
             },
             {
-              "expression": "value",
+              "expression": "trait_value_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -503,8 +906,23 @@
           "method": "btree",
           "with": {}
         },
-        "character_states_character_idx": {
-          "name": "character_states_character_idx",
+        "tcs_cat_taxon_idx": {
+          "name": "tcs_cat_taxon_idx",
+          "columns": [
+            {
+              "expression": "taxon_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "tcs_cat_character_idx": {
+          "name": "tcs_cat_character_idx",
           "columns": [
             {
               "expression": "character_id",
@@ -517,133 +935,77 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        }
-      },
-      "foreignKeys": {
-        "character_states_character_id_characters_id_fk": {
-          "name": "character_states_character_id_characters_id_fk",
-          "tableFrom": "character_states",
-          "tableTo": "characters",
-          "columnsFrom": [
-            "character_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "character_states_value_canonical": {
-          "name": "character_states_value_canonical",
-          "value": "\"character_states\".\"value\" = lower(btrim(regexp_replace(\"character_states\".\"value\", '[[:space:]]+', ' ', 'g')))"
-        }
-      },
-      "isRLSEnabled": false
-    },
-    "public.characters": {
-      "name": "characters",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
         },
-        "key": {
-          "name": "key",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "label": {
-          "name": "label",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "value_type": {
-          "name": "value_type",
-          "type": "character_value_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "unit": {
-          "name": "unit",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "max_states": {
-          "name": "max_states",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "is_active": {
-          "name": "is_active",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "group_id": {
-          "name": "group_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "characters_key_uq": {
-          "name": "characters_key_uq",
+        "tcs_cat_trait_idx": {
+          "name": "tcs_cat_trait_idx",
           "columns": [
             {
-              "expression": "key",
+              "expression": "trait_value_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
             }
           ],
-          "isUnique": true,
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "tcs_cat_character_trait_idx": {
+          "name": "tcs_cat_character_trait_idx",
+          "columns": [
+            {
+              "expression": "character_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "trait_value_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
           "concurrently": false,
           "method": "btree",
           "with": {}
         }
       },
       "foreignKeys": {
-        "characters_group_id_character_groups_id_fk": {
-          "name": "characters_group_id_character_groups_id_fk",
-          "tableFrom": "characters",
-          "tableTo": "character_groups",
+        "taxon_character_state_categorical_taxon_id_taxon_id_fk": {
+          "name": "taxon_character_state_categorical_taxon_id_taxon_id_fk",
+          "tableFrom": "taxon_character_state_categorical",
+          "tableTo": "taxon",
           "columnsFrom": [
-            "group_id"
+            "taxon_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "taxon_character_state_categorical_character_id_character_id_fk": {
+          "name": "taxon_character_state_categorical_character_id_character_id_fk",
+          "tableFrom": "taxon_character_state_categorical",
+          "tableTo": "character",
+          "columnsFrom": [
+            "character_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "taxon_character_state_categorical_trait_value_id_categorical_trait_value_id_fk": {
+          "name": "taxon_character_state_categorical_trait_value_id_categorical_trait_value_id_fk",
+          "tableFrom": "taxon_character_state_categorical",
+          "tableTo": "categorical_trait_value",
+          "columnsFrom": [
+            "trait_value_id"
           ],
           "columnsTo": [
             "id"
@@ -655,24 +1017,11 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {
-        "characters_unit_numeric_only": {
-          "name": "characters_unit_numeric_only",
-          "value": "\n        (\"characters\".\"value_type\" IN ('number','number_range'))\n        OR (\"characters\".\"unit\" IS NULL)\n      "
-        },
-        "characters_max_states_categorical_only": {
-          "name": "characters_max_states_categorical_only",
-          "value": "\n        (\"characters\".\"value_type\" = 'categorical')\n        OR (\"characters\".\"max_states\" IS NULL)\n      "
-        },
-        "characters_max_states_min_one": {
-          "name": "characters_max_states_min_one",
-          "value": "\"characters\".\"max_states\" IS NULL OR \"characters\".\"max_states\" >= 1"
-        }
-      },
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.names": {
-      "name": "names",
+    "public.taxon_name": {
+      "name": "taxon_name",
       "schema": "",
       "columns": {
         "id": {
@@ -793,11 +1142,27 @@
           "method": "btree",
           "with": {}
         },
-        "names_value_trgm_idx": {
-          "name": "names_value_trgm_idx",
+        "names_sci_accepted_idx": {
+          "name": "names_sci_accepted_idx",
           "columns": [
             {
-              "expression": "\"value\" gin_trgm_ops",
+              "expression": "taxon_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"taxon_name\".\"kind\" = 'scientific' AND \"taxon_name\".\"synonym_kind\" IS NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "names_value_trgm_lower_idx": {
+          "name": "names_value_trgm_lower_idx",
+          "columns": [
+            {
+              "expression": "lower(\"value\") gin_trgm_ops",
               "asc": true,
               "isExpression": true,
               "nulls": "last"
@@ -819,7 +1184,7 @@
             }
           ],
           "isUnique": true,
-          "where": "\"names\".\"kind\" = 'scientific' AND \"names\".\"synonym_kind\" IS NULL",
+          "where": "\"taxon_name\".\"kind\" = 'scientific' AND \"taxon_name\".\"synonym_kind\" IS NULL",
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -841,7 +1206,7 @@
             }
           ],
           "isUnique": true,
-          "where": "\"names\".\"kind\" = 'common' AND \"names\".\"is_preferred\" = true",
+          "where": "\"taxon_name\".\"kind\" = 'common' AND \"taxon_name\".\"is_preferred\" = true",
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -881,10 +1246,10 @@
         }
       },
       "foreignKeys": {
-        "names_taxon_id_taxa_id_fk": {
-          "name": "names_taxon_id_taxa_id_fk",
-          "tableFrom": "names",
-          "tableTo": "taxa",
+        "taxon_name_taxon_id_taxon_id_fk": {
+          "name": "taxon_name_taxon_id_taxon_id_fk",
+          "tableFrom": "taxon_name",
+          "tableTo": "taxon",
           "columnsFrom": [
             "taxon_id"
           ],
@@ -901,13 +1266,13 @@
       "checkConstraints": {
         "names_kind_field_rules": {
           "name": "names_kind_field_rules",
-          "value": "\n        (\"names\".\"kind\" = 'common' AND \"names\".\"locale\" IS NOT NULL AND \"names\".\"synonym_kind\" IS NULL)\n        OR\n        (\"names\".\"kind\" = 'scientific' AND \"names\".\"locale\" IS NULL AND \"names\".\"is_preferred\" = false)\n      "
+          "value": "\n        (\"taxon_name\".\"kind\" = 'common' AND \"taxon_name\".\"locale\" IS NOT NULL AND \"taxon_name\".\"synonym_kind\" IS NULL)\n        OR\n        (\"taxon_name\".\"kind\" = 'scientific' AND \"taxon_name\".\"locale\" IS NULL AND \"taxon_name\".\"is_preferred\" = false)\n      "
         }
       },
       "isRLSEnabled": false
     },
-    "public.taxa": {
-      "name": "taxa",
+    "public.taxon": {
+      "name": "taxon",
       "schema": "",
       "columns": {
         "id": {
@@ -922,12 +1287,26 @@
           "primaryKey": false,
           "notNull": false
         },
+        "replaced_by_id": {
+          "name": "replaced_by_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "rank": {
           "name": "rank",
           "type": "taxon_rank",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "taxon_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'draft'"
         },
         "source_gbif_id": {
           "name": "source_gbif_id",
@@ -945,7 +1324,8 @@
           "name": "media",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "'[]'::jsonb"
         },
         "notes": {
           "name": "notes",
@@ -1010,7 +1390,7 @@
             }
           ],
           "isUnique": true,
-          "where": "\"taxa\".\"source_gbif_id\" IS NOT NULL",
+          "where": "\"taxon\".\"source_gbif_id\" IS NOT NULL",
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -1026,7 +1406,7 @@
             }
           ],
           "isUnique": true,
-          "where": "\"taxa\".\"source_inat_id\" IS NOT NULL",
+          "where": "\"taxon\".\"source_inat_id\" IS NOT NULL",
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -1035,8 +1415,8 @@
       "foreignKeys": {
         "taxa_parent_fk": {
           "name": "taxa_parent_fk",
-          "tableFrom": "taxa",
-          "tableTo": "taxa",
+          "tableFrom": "taxon",
+          "tableTo": "taxon",
           "columnsFrom": [
             "parent_id"
           ],
@@ -1044,6 +1424,19 @@
             "id"
           ],
           "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "taxa_replaced_by_fk": {
+          "name": "taxa_replaced_by_fk",
+          "tableFrom": "taxon",
+          "tableTo": "taxon",
+          "columnsFrom": [
+            "replaced_by_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -1053,7 +1446,7 @@
       "checkConstraints": {
         "taxa_parent_not_self": {
           "name": "taxa_parent_not_self",
-          "value": "\"taxa\".\"parent_id\" IS NULL OR \"taxa\".\"parent_id\" <> \"taxa\".\"id\""
+          "value": "\"taxon\".\"parent_id\" IS NULL OR \"taxon\".\"parent_id\" <> \"taxon\".\"id\""
         }
       },
       "isRLSEnabled": false
@@ -1067,15 +1460,6 @@
         "user",
         "curator",
         "admin"
-      ]
-    },
-    "public.character_value_type": {
-      "name": "character_value_type",
-      "schema": "public",
-      "values": [
-        "categorical",
-        "number",
-        "number_range"
       ]
     },
     "public.name_kind": {
@@ -1113,6 +1497,15 @@
         "species",
         "subspecies",
         "variety"
+      ]
+    },
+    "public.taxon_status": {
+      "name": "taxon_status",
+      "schema": "public",
+      "values": [
+        "draft",
+        "active",
+        "deprecated"
       ]
     }
   },

@@ -1,1 +1,0 @@
-CREATE INDEX "names_value_trgm_idx" ON "names" USING gin ("value" gin_trgm_ops);

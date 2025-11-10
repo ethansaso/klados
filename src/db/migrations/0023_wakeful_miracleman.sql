@@ -1,2 +1,0 @@
-ALTER TABLE "taxa" ADD COLUMN "replaced_by_id" integer;--> statement-breakpoint
-ALTER TABLE "taxa" ADD CONSTRAINT "taxa_replaced_by_id_taxa_id_fk" FOREIGN KEY ("replaced_by_id") REFERENCES "public"."taxa"("id") ON DELETE no action ON UPDATE no action;

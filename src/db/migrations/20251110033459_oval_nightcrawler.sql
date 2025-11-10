@@ -1,3 +1,4 @@
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE TYPE "public"."role" AS ENUM('user', 'curator', 'admin');--> statement-breakpoint
 CREATE TYPE "public"."name_kind" AS ENUM('common', 'scientific');--> statement-breakpoint
 CREATE TYPE "public"."scientific_synonym_kind" AS ENUM('homotypic', 'heterotypic', 'misapplied');--> statement-breakpoint
@@ -77,6 +78,7 @@ CREATE TABLE "categorical_trait_value" (
 	"canonical_value_id" integer,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "trait_values_set_id_id_uq" UNIQUE("set_id","id"),
 	CONSTRAINT "trait_values_role_consistency_ck" CHECK (CASE WHEN "categorical_trait_value"."is_canonical" THEN "categorical_trait_value"."canonical_value_id" IS NULL
         ELSE "categorical_trait_value"."canonical_value_id" IS NOT NULL END),
 	CONSTRAINT "trait_values_no_self_alias_ck" CHECK ("categorical_trait_value"."canonical_value_id" IS NULL OR "categorical_trait_value"."canonical_value_id" <> "categorical_trait_value"."id")
@@ -164,7 +166,6 @@ ALTER TABLE "taxon_name" ADD CONSTRAINT "taxon_name_taxon_id_taxon_id_fk" FOREIG
 ALTER TABLE "taxon" ADD CONSTRAINT "taxa_parent_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."taxon"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "taxon" ADD CONSTRAINT "taxa_replaced_by_fk" FOREIGN KEY ("replaced_by_id") REFERENCES "public"."taxon"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "trait_sets_key_uq" ON "categorical_trait_set" USING btree ("key");--> statement-breakpoint
-CREATE UNIQUE INDEX "trait_values_set_id_id_uq" ON "categorical_trait_value" USING btree ("set_id","id");--> statement-breakpoint
 CREATE UNIQUE INDEX "trait_values_set_key_uq" ON "categorical_trait_value" USING btree ("set_id","key");--> statement-breakpoint
 CREATE INDEX "trait_values_set_idx" ON "categorical_trait_value" USING btree ("set_id");--> statement-breakpoint
 CREATE INDEX "trait_values_canonical_target_idx" ON "categorical_trait_value" USING btree ("canonical_value_id") WHERE "categorical_trait_value"."canonical_value_id" IS NOT NULL;--> statement-breakpoint

@@ -12,10 +12,30 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Form } from "radix-ui";
 import { useEffect, useState } from "react";
-import { SearchableSelectField } from "../../../../components/inputs/SearchableSelectField";
+import {
+  Combobox,
+  ComboboxOption,
+} from "../../../../components/inputs/Combobox";
 import { createCharacter } from "../../../../lib/serverFns/characters/fns";
 import { snakeCase } from "../../../../lib/utils/casing";
 import { toast } from "../../../../lib/utils/toast";
+
+const groupOptions: ComboboxOption[] = [
+  { id: 1, label: "Fungi", hint: "All mushroom characters" },
+  { id: 2, label: "Lichens" },
+  { id: 3, label: "Yeasts" },
+];
+const traitSetOptions: ComboboxOption[] = [
+  { id: 10, label: "Morphology", hint: "Shape, surface, color" },
+  { id: 11, label: "Microscopic", hint: "Spores, basidia" },
+  { id: 12, label: "Ecology" },
+  { id: 13, label: "Morphology", hint: "Shape, surface, color" },
+  { id: 14, label: "Microscopic" },
+  { id: 15, label: "Ecology" },
+  { id: 16, label: "Morphology", hint: "Shape, surface, color" },
+  { id: 17, label: "Microscopic", hint: "Spores, basidia" },
+  { id: 18, label: "Ecology", hint: "Habitat, substrate" },
+];
 
 export const AddCharacterModal = NiceModal.create(() => {
   const { visible, hide } = NiceModal.useModal();
@@ -26,6 +46,9 @@ export const AddCharacterModal = NiceModal.create(() => {
   const [label, setLabel] = useState("");
   const [key, setKey] = useState("");
   const [autoKey, setAutoKey] = useState(true);
+
+  const [group, setGroup] = useState<ComboboxOption | null>(null);
+  const [traitSet, setTraitSet] = useState<ComboboxOption | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -170,22 +193,42 @@ export const AddCharacterModal = NiceModal.create(() => {
               </Form.Control>
             </Form.Field>
             <Flex gap="4">
-              <SearchableSelectField
-                name="traits"
-                label="Traits"
-                value={null}
-                onChange={() => {}}
-                options={[]}
-                style={{ flex: 1 }}
-              />
-              <SearchableSelectField
+              {/* Trait Set (required) */}
+              <Combobox.Root
+                name="traitSetId"
+                label="Trait Set"
+                value={traitSet}
+                onValueChange={setTraitSet}
+                options={traitSetOptions}
+                onQueryChange={() => {}}
+                style={{ width: "50%" }}
+              >
+                <Combobox.Trigger placeholder="Select a trait set" />
+                <Combobox.Content>
+                  <Combobox.Input placeholder="Search trait sets..." />
+                  <Text size="1" color="gray" style={{ padding: "0 10px 6px" }}>
+                    Showing top results
+                  </Text>
+                  <Combobox.List>
+                    {traitSetOptions.map((opt, i) => (
+                      <Combobox.Item key={opt.id} option={opt} index={i} />
+                    ))}
+                  </Combobox.List>
+                </Combobox.Content>
+              </Combobox.Root>
+
+              {/* Group (required) */}
+              <Combobox.Root
                 name="groupId"
-                label="Group"
-                value={null}
-                onChange={() => {}}
-                options={[]}
-                style={{ flex: 1 }}
-              />
+                label="Select a group"
+                value={group}
+                onValueChange={setGroup}
+                options={groupOptions}
+                style={{ width: "50%" }}
+              >
+                <Combobox.Trigger placeholder="Select a group" />
+                <Combobox.Content />
+              </Combobox.Root>
             </Flex>
             <Form.Field name="description">
               <Flex justify="between" align="baseline">

@@ -8,6 +8,7 @@ import {
   pgTable,
   serial,
   text,
+  unique,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
@@ -43,7 +44,7 @@ export const categoricalTraitValue = pgTable(
   }),
   (t) => [
     // Make (set_id, id) uniquely addressable so it can be FK-targeted...
-    uniqueIndex("trait_values_set_id_id_uq").on(t.setId, t.id),
+    unique("trait_values_set_id_id_uq").on(t.setId, t.id),
     // ...then create composite FK to enforce that canonicalValueId refers to a value in the same set
     foreignKey({
       name: "canonical_value_same_set_fk",

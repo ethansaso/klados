@@ -86,12 +86,12 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <head>
         <HeadContent />
       </head>
-      <body>
-        <Theme accentColor="amber" panelBackground="solid">
+      <Theme accentColor="amber" panelBackground="solid" asChild>
+        <body>
           {children}
-        </Theme>
-        <Scripts />
-      </body>
+          <Scripts />
+        </body>
+      </Theme>
     </html>
   );
 }

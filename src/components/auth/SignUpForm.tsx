@@ -1,16 +1,9 @@
 import { Button, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
-import { useState } from "react";
-import {
-  PiAt,
-  PiEye,
-  PiEyeSlash,
-  PiEyesLight,
-  PiLock,
-  PiUser,
-} from "react-icons/pi";
-import { authClient } from "../../lib/auth/authClient";
-import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { PiAt, PiEye, PiEyeSlash, PiLock, PiUser } from "react-icons/pi";
+import { authClient } from "../../lib/auth/authClient";
 import { meQuery } from "../../lib/queries/users";
 
 export function SignUpForm() {
@@ -68,6 +61,7 @@ export function SignUpForm() {
           type={showPassword ? "text" : "password"}
           placeholder="Password"
           required
+          autoComplete="false"
         >
           <TextField.Slot>
             <PiLock />

@@ -2,6 +2,7 @@ import { Button, Flex, Text, TextField } from "@radix-ui/themes";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { PiAt, PiLock } from "react-icons/pi";
 import { authClient } from "../../lib/auth/authClient";
 import { meQuery } from "../../lib/queries/users";
 
@@ -62,14 +63,22 @@ export function SignInForm() {
           placeholder="Email or username"
           autoComplete="username"
           required
-        />
+        >
+          <TextField.Slot>
+            <PiAt />
+          </TextField.Slot>
+        </TextField.Root>
         <TextField.Root
           name="password"
           type="password"
           placeholder="Password"
           autoComplete="current-password"
           required
-        />
+        >
+          <TextField.Slot>
+            <PiLock />
+          </TextField.Slot>
+        </TextField.Root>
         {err ? <Text color="red">{err}</Text> : null}
         <Button type="submit">Sign in</Button>
       </Flex>
