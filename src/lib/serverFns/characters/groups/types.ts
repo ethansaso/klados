@@ -1,7 +1,7 @@
-import { characterGroups } from "../../../../db/schema/schema";
+import { characterGroup } from "../../../../db/schema/schema";
 import { PaginatedResult } from "../../../validation/pagination";
 
-export type CharacterGroupRow = typeof characterGroups.$inferSelect;
+export type CharacterGroupRow = typeof characterGroup.$inferSelect;
 
 export type CharacterGroupDTO = Pick<
   CharacterGroupRow,

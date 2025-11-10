@@ -14,11 +14,11 @@ import {
 import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { db } from "../../../db/client";
-import { names as namesTbl } from "../../../db/schema/taxa/names";
+import { taxonName as namesTbl } from "../../../db/schema/taxa/name";
 import {
-  taxa as taxaTbl,
+  taxon as taxaTbl,
   TAXON_RANKS_DESCENDING,
-} from "../../../db/schema/taxa/taxa";
+} from "../../../db/schema/taxa/taxon";
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
 import { assertHierarchyInvariant } from "../../utils/assertHierarchyInvariant";
 import { PaginationSchema } from "../../validation/pagination";

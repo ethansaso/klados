@@ -1,7 +1,7 @@
-import { taxa } from "../../../db/schema/schema";
+import { taxon } from "../../../db/schema/schema";
 import { PaginatedResult } from "../../validation/pagination";
 
-export type TaxonRow = typeof taxa.$inferSelect;
+export type TaxonRow = typeof taxon.$inferSelect;
 export type TaxonDTO = Pick<
   TaxonRow,
   | "id"

@@ -1,7 +1,7 @@
 import { notFound } from "@tanstack/react-router";
 import { and, count, eq, sql } from "drizzle-orm";
-import { names as namesTbl } from "../../../db/schema/schema";
-import { taxa as taxaTbl } from "../../../db/schema/taxa/taxa";
+import { taxonName as namesTbl } from "../../../db/schema/schema";
+import { taxon as taxaTbl } from "../../../db/schema/taxa/taxon";
 import { Transaction } from "../../utils/transactionType";
 import { TaxonRow } from "./types";
 

@@ -3,8 +3,8 @@ import { and, asc, count, eq, ilike, inArray, or, SQL } from "drizzle-orm";
 import z from "zod";
 import { db } from "../../../../db/client";
 import {
-  characters as charsTbl,
-  characterGroups as groupsTbl,
+  character as charsTbl,
+  characterGroup as groupsTbl,
 } from "../../../../db/schema/schema";
 import { requireCuratorMiddleware } from "../../../auth/serverFnMiddleware";
 import { PaginationSchema } from "../../../validation/pagination";

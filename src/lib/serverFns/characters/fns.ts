@@ -5,9 +5,9 @@ import z from "zod";
 import { db } from "../../../db/client";
 import {
   categoricalCharacterMeta as catMetaTbl,
-  characters as charsTbl,
-  characterGroups as groupsTbl,
-  characterValueCategorical as valCatTbl,
+  character as charsTbl,
+  characterGroup as groupsTbl,
+  taxonCharacterStateCategorical as valCatTbl,
 } from "../../../db/schema/schema";
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
 import { snakeCase } from "../../utils/casing";

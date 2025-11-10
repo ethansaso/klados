@@ -35,8 +35,8 @@ export const taxonRank = pgEnum("taxon_rank", TAXON_RANKS_DESCENDING);
 export const TAXON_STATUSES = ["draft", "active", "deprecated"] as const;
 export const taxonStatus = pgEnum("taxon_status", TAXON_STATUSES);
 
-export const taxa = pgTable(
-  "taxa",
+export const taxon = pgTable(
+  "taxon",
   withTimestamps({
     id: serial("id").primaryKey(),
 

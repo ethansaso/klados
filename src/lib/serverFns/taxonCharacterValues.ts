@@ -2,9 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import z from "zod";
 import { db } from "../../db/client";
-import { characterValueCategorical } from "../../db/schema/schema";
+import { taxonCharacterStateCategorical } from "../../db/schema/schema";
 
-type CategoricalRow = typeof characterValueCategorical.$inferSelect;
+type CategoricalRow = typeof taxonCharacterStateCategorical.$inferSelect;
 
 type CategoricalDTO = { kind: "categorical" } & Pick<CategoricalRow, "id">;
 
@@ -18,9 +18,9 @@ export const getTaxonCharacterValues = createServerFn({ method: "GET" })
     const taxonId = data.taxonId;
 
     const values = await db
-      .select({ id: characterValueCategorical.id })
-      .from(characterValueCategorical)
-      .where(eq(characterValueCategorical.taxonId, taxonId));
+      .select({ id: taxonCharacterStateCategorical.id })
+      .from(taxonCharacterStateCategorical)
+      .where(eq(taxonCharacterStateCategorical.taxonId, taxonId));
 
     return values.map(({ id }) => ({ id, kind: "categorical" as const }));
   });

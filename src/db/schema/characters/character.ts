@@ -8,11 +8,11 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
-import { categoricalTraitSets } from "./categoricalTraits";
-import { characterGroups } from "./characterGroups";
+import { categoricalTraitSet } from "./categoricalTrait";
+import { characterGroup } from "./characterGroup";
 
-export const characters = pgTable(
-  "characters",
+export const character = pgTable(
+  "character",
   withTimestamps({
     id: serial("id").primaryKey(),
     key: text("key").notNull(),
@@ -20,7 +20,7 @@ export const characters = pgTable(
     description: text("description"),
     groupId: integer("group_id")
       .notNull()
-      .references(() => characterGroups.id, { onDelete: "restrict" }),
+      .references(() => characterGroup.id, { onDelete: "restrict" }),
   }),
   (t) => [
     uniqueIndex("characters_key_uq").on(t.key),
@@ -37,10 +37,10 @@ export const categoricalCharacterMeta = pgTable(
   withTimestamps({
     characterId: integer("character_id")
       .primaryKey()
-      .references(() => characters.id, { onDelete: "cascade" }),
+      .references(() => character.id, { onDelete: "cascade" }),
     traitSetId: integer("trait_set_id")
       .notNull()
-      .references(() => categoricalTraitSets.id, { onDelete: "restrict" }),
+      .references(() => categoricalTraitSet.id, { onDelete: "restrict" }),
     isMultiSelect: boolean("is_multi_select").notNull(),
   })
 );

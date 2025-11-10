@@ -16,7 +16,7 @@ export const taxaQueryOptions = (
 ) =>
   queryOptions({
     queryKey: [
-      "taxa",
+      "taxon",
       { page, pageSize, q: opts?.q ?? null, status: opts?.status ?? "active" },
     ] as const,
     queryFn: () =>

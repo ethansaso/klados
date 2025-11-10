@@ -4,8 +4,8 @@ import { withTimestamps } from "../../utils/timestamps";
 /**
  * Character groups (e.g., "cap", "gills").
  */
-export const characterGroups = pgTable(
-  "character_groups",
+export const characterGroup = pgTable(
+  "character_group",
   withTimestamps({
     id: serial("id").primaryKey(),
     key: text("key").notNull(), // machine-stable, e.g., "cap"

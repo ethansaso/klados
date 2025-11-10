@@ -9,8 +9,8 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
-import { taxa } from "../taxa/taxa";
-import { characters, characterStates } from "./characters";
+import { taxon } from "../taxa/taxon";
+import { character, characterStates } from "./character";
 
 /**
  * Categorical selections (one row per selected state).
@@ -21,7 +21,7 @@ export const taxonCharacterState = pgTable(
     id: serial("id").primaryKey(),
     taxonId: integer("taxon_id")
       .notNull()
-      .references(() => taxa.id, { onDelete: "cascade" }),
+      .references(() => taxon.id, { onDelete: "cascade" }),
     stateId: integer("state_id")
       .notNull()
       .references(() => characterStates.id, { onDelete: "restrict" }),
@@ -42,10 +42,10 @@ export const taxonCharacterNumber = pgTable(
     id: serial("id").primaryKey(),
     taxonId: integer("taxon_id")
       .notNull()
-      .references(() => taxa.id, { onDelete: "cascade" }),
+      .references(() => taxon.id, { onDelete: "cascade" }),
     characterId: integer("character_id")
       .notNull()
-      .references(() => characters.id, { onDelete: "cascade" }),
+      .references(() => character.id, { onDelete: "cascade" }),
     valueNum: doublePrecision("value_num").notNull(),
   }),
   (t) => [
@@ -68,10 +68,10 @@ export const taxonCharacterNumberRange = pgTable(
     id: serial("id").primaryKey(),
     taxonId: integer("taxon_id")
       .notNull()
-      .references(() => taxa.id, { onDelete: "cascade" }),
+      .references(() => taxon.id, { onDelete: "cascade" }),
     characterId: integer("character_id")
       .notNull()
-      .references(() => characters.id, { onDelete: "cascade" }),
+      .references(() => character.id, { onDelete: "cascade" }),
     valueMin: doublePrecision("value_min").notNull(),
     valueMax: doublePrecision("value_max").notNull(),
   }),

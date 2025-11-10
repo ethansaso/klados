@@ -6,7 +6,7 @@ import {
 import { PgTransaction } from "drizzle-orm/pg-core";
 import * as schema from "../../db/schema/schema";
 import {
-  taxa as taxaTbl,
+  taxon as taxaTbl,
   TAXON_RANKS_DESCENDING,
 } from "../../db/schema/schema";
 

@@ -197,6 +197,20 @@
       "when": 1762652105421,
       "tag": "0027_needy_bedlam",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1762740511111,
+      "tag": "0028_green_ulik",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1762743983740,
+      "tag": "0029_uneven_warpath",
+      "breakpoints": true
     }
   ]
 }

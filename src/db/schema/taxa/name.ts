@@ -12,7 +12,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
-import { taxa } from "./taxa";
+import { taxon } from "./taxon";
 
 export const nameKind = pgEnum("name_kind", ["common", "scientific"]);
 
@@ -22,13 +22,13 @@ export const scientificSynonymKind = pgEnum("scientific_synonym_kind", [
   "misapplied",
 ]);
 
-export const names = pgTable(
-  "names",
+export const taxonName = pgTable(
+  "taxon_name",
   withTimestamps({
     id: serial("id").primaryKey(),
     taxonId: integer("taxon_id")
       .notNull()
-      .references(() => taxa.id, { onDelete: "cascade" }),
+      .references(() => taxon.id, { onDelete: "cascade" }),
     kind: nameKind("kind").notNull(),
     value: text("value").notNull(),
 

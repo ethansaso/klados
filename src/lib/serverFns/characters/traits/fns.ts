@@ -17,8 +17,8 @@ import z from "zod";
 import { db } from "../../../../db/client";
 import {
   categoricalCharacterMeta as catMetaTbl,
-  categoricalTraitSets as setsTbl,
-  categoricalTraitValues as valsTbl,
+  categoricalTraitSet as setsTbl,
+  categoricalTraitValue as valsTbl,
 } from "../../../../db/schema/schema";
 import { requireCuratorMiddleware } from "../../../auth/serverFnMiddleware";
 import { PaginationSchema } from "../../../validation/pagination";

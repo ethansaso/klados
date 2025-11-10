@@ -4,10 +4,21 @@ export function capitalizeWord(word: string) {
 }
 
 export function snakeCase(str: string) {
-  return str
-    .replace(/\s+/g, "_")
-    .replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
-    .replace(/__+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .toLowerCase();
+  return (
+    str
+      // normalize and remove diacritics
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      // remove disallowed characters
+      .replace(/[^a-zA-Z0-9\s_-]/g, "")
+      // convert camelCase → snake_case
+      .replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)
+      // spaces/hyphens → underscores
+      .replace(/[\s-]+/g, "_")
+      // collapse multiple underscores
+      .replace(/_+/g, "_")
+      // trim underscores and lowercase
+      .replace(/^_+|_+$/g, "")
+      .toLowerCase()
+  );
 }
