@@ -102,6 +102,57 @@ export const listCharacters = createServerFn({ method: "GET" })
   });
 
 /** TODO: Extend beyond categorical */
+export const getCharacter = createServerFn({ method: "GET" })
+  .inputValidator(
+    z.object({
+      id: z.coerce.number().int().positive(),
+    })
+  )
+  .handler(async ({ data }): Promise<CharacterDTO> => {
+    const { id } = data;
+
+    // For now, only categorical characters are supported.
+    const charRow = await db
+      .select({
+        id: charsTbl.id,
+        key: charsTbl.key,
+        label: charsTbl.label,
+        description: charsTbl.description,
+        groupId: charsTbl.groupId,
+        group: {
+          id: groupsTbl.id,
+          label: groupsTbl.label,
+        },
+        usageCount: sql<number>`COUNT(${valCatTbl.id})`,
+        // categorical meta
+        type: sql<"categorical">`'categorical'`,
+        characterId: charsTbl.id,
+        traitSetId: catMetaTbl.traitSetId,
+      })
+      .from(charsTbl)
+      .innerJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
+      .innerJoin(groupsTbl, eq(groupsTbl.id, charsTbl.groupId))
+      .leftJoin(valCatTbl, eq(valCatTbl.characterId, charsTbl.id))
+      .where(eq(charsTbl.id, id))
+      .groupBy(
+        charsTbl.id,
+        charsTbl.key,
+        charsTbl.label,
+        charsTbl.description,
+        charsTbl.groupId,
+        groupsTbl.id,
+        groupsTbl.label,
+        catMetaTbl.traitSetId
+      )
+      .limit(1)
+      .then((rows) => rows[0]);
+
+    if (!charRow) throw notFound();
+
+    return charRow;
+  });
+
+/** TODO: Extend beyond categorical */
 export const createCharacter = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
   .inputValidator(

@@ -8,7 +8,7 @@ import {
   TextArea,
   TextField,
 } from "@radix-ui/themes";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Form } from "radix-ui";
 import { useEffect, useState } from "react";
@@ -16,26 +16,11 @@ import {
   Combobox,
   ComboboxOption,
 } from "../../../../components/inputs/Combobox";
+import { characterGroupsQueryOptions } from "../../../../lib/queries/characterGroups";
+import { traitSetsQueryOptions } from "../../../../lib/queries/traits";
 import { createCharacter } from "../../../../lib/serverFns/characters/fns";
 import { snakeCase } from "../../../../lib/utils/casing";
 import { toast } from "../../../../lib/utils/toast";
-
-const groupOptions: ComboboxOption[] = [
-  { id: 1, label: "Fungi", hint: "All mushroom characters" },
-  { id: 2, label: "Lichens" },
-  { id: 3, label: "Yeasts" },
-];
-const traitSetOptions: ComboboxOption[] = [
-  { id: 10, label: "Morphology", hint: "Shape, surface, color" },
-  { id: 11, label: "Microscopic", hint: "Spores, basidia" },
-  { id: 12, label: "Ecology" },
-  { id: 13, label: "Morphology", hint: "Shape, surface, color" },
-  { id: 14, label: "Microscopic" },
-  { id: 15, label: "Ecology" },
-  { id: 16, label: "Morphology", hint: "Shape, surface, color" },
-  { id: 17, label: "Microscopic", hint: "Spores, basidia" },
-  { id: 18, label: "Ecology", hint: "Habitat, substrate" },
-];
 
 export const AddCharacterModal = NiceModal.create(() => {
   const { visible, hide } = NiceModal.useModal();
@@ -47,8 +32,29 @@ export const AddCharacterModal = NiceModal.create(() => {
   const [key, setKey] = useState("");
   const [autoKey, setAutoKey] = useState(true);
 
-  const [group, setGroup] = useState<ComboboxOption | null>(null);
   const [traitSet, setTraitSet] = useState<ComboboxOption | null>(null);
+  const [traitSetQuery, setTraitSetQuery] = useState("");
+  const [characterGroup, setCharacterGroup] = useState<ComboboxOption | null>(
+    null
+  );
+  const [characterGroupQuery, setCharacterGroupQuery] = useState("");
+
+  const { data: traitSetOptions } = useQuery(
+    traitSetsQueryOptions(1, 10, { q: traitSetQuery })
+  );
+  const { data: characterGroupOptions } = useQuery(
+    characterGroupsQueryOptions(1, 10, { q: characterGroupQuery })
+  );
+
+  const resetForm = () => {
+    setLabel("");
+    setKey("");
+    setAutoKey(true);
+    setTraitSet(null);
+    setTraitSetQuery("");
+    setCharacterGroup(null);
+    setCharacterGroupQuery("");
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -75,10 +81,13 @@ export const AddCharacterModal = NiceModal.create(() => {
       });
 
       qc.invalidateQueries({ queryKey: ["characters"] });
+      qc.invalidateQueries({ queryKey: ["groups"] });
+      qc.invalidateQueries({ queryKey: ["traitSets"] });
       toast({
         variant: "success",
         description: `Character "${label}" created successfully.`,
       });
+      resetForm();
       hide();
     } catch (error) {
       toast({
@@ -105,9 +114,7 @@ export const AddCharacterModal = NiceModal.create(() => {
       open={visible}
       onOpenChange={(open) => {
         if (!open) {
-          setLabel("");
-          setKey("");
-          setAutoKey(true);
+          resetForm();
           hide();
         }
       }}
@@ -199,18 +206,15 @@ export const AddCharacterModal = NiceModal.create(() => {
                 label="Trait Set"
                 value={traitSet}
                 onValueChange={setTraitSet}
-                options={traitSetOptions}
-                onQueryChange={() => {}}
+                onQueryChange={setTraitSetQuery}
+                options={traitSetOptions?.items ?? []}
                 style={{ width: "50%" }}
               >
                 <Combobox.Trigger placeholder="Select a trait set" />
                 <Combobox.Content>
                   <Combobox.Input placeholder="Search trait sets..." />
-                  <Text size="1" color="gray" style={{ padding: "0 10px 6px" }}>
-                    Showing top results
-                  </Text>
                   <Combobox.List>
-                    {traitSetOptions.map((opt, i) => (
+                    {traitSetOptions?.items.map((opt, i) => (
                       <Combobox.Item key={opt.id} option={opt} index={i} />
                     ))}
                   </Combobox.List>
@@ -221,13 +225,21 @@ export const AddCharacterModal = NiceModal.create(() => {
               <Combobox.Root
                 name="groupId"
                 label="Select a group"
-                value={group}
-                onValueChange={setGroup}
-                options={groupOptions}
+                value={characterGroup}
+                onValueChange={setCharacterGroup}
+                onQueryChange={setCharacterGroupQuery}
+                options={characterGroupOptions?.items ?? []}
                 style={{ width: "50%" }}
               >
                 <Combobox.Trigger placeholder="Select a group" />
-                <Combobox.Content />
+                <Combobox.Content>
+                  <Combobox.Input placeholder="Search groups..." />
+                  <Combobox.List>
+                    {characterGroupOptions?.items.map((opt, i) => (
+                      <Combobox.Item key={opt.id} option={opt} index={i} />
+                    ))}
+                  </Combobox.List>
+                </Combobox.Content>
               </Combobox.Root>
             </Flex>
             <Form.Field name="description">
@@ -243,7 +255,7 @@ export const AddCharacterModal = NiceModal.create(() => {
             <Form.Field name="isMultiSelect">
               <Flex gap="2" align="center">
                 <Form.Control asChild>
-                  <Checkbox name="isMultiSelect" />
+                  <Checkbox name="isMultiSelect" defaultChecked />
                 </Form.Control>
                 <Text as="div" weight="bold" size="2" asChild>
                   <Form.Label>Allow multiple selections</Form.Label>

@@ -1,8 +1,8 @@
-import { Box, Flex, TextField } from "@radix-ui/themes";
+import { Button, Flex, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { PiMagnifyingGlass } from "react-icons/pi";
+import { PiMagnifyingGlass, PiPlusCircle } from "react-icons/pi";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
 import { SearchWithQuerySchema } from "../../../lib/validation/search";
 import { TaxonGrid } from "./-TaxonGrid";
@@ -45,7 +45,7 @@ function TaxaListPage() {
 
   return (
     <Flex direction="column">
-      <Box mb="4">
+      <Flex mb="4" gap="2">
         <TextField.Root
           placeholder="Search taxa..."
           id="taxa-search"
@@ -56,7 +56,13 @@ function TaxaListPage() {
             <PiMagnifyingGlass size="16" />
           </TextField.Slot>
         </TextField.Root>
-      </Box>
+        <Button type="button" asChild>
+          <Link to="/taxa/new">
+            <PiPlusCircle size="16" />
+            Add Taxon
+          </Link>
+        </Button>
+      </Flex>
       <TaxonGrid results={paginatedResult} />
     </Flex>
   );

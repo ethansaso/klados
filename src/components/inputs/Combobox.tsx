@@ -10,7 +10,8 @@ import {
   TextField,
 } from "@radix-ui/themes";
 import * as React from "react";
-import { PiCaretUpDownFill, PiX } from "react-icons/pi";
+import { PiCaretUpDownFill, PiMagnifyingGlass, PiX } from "react-icons/pi";
+import { DebouncedTextField } from "./DebouncedTextField";
 
 /** Public option shape required by the combobox. */
 export type ComboboxOption = {
@@ -241,15 +242,10 @@ function Content({
     <Popover.Content
       side="bottom"
       align="start"
-      className={className}
+      size="1"
       style={{ minWidth: 280, ...style }}
     >
-      {children ?? (
-        <>
-          <Input />
-          <List />
-        </>
-      )}
+      {children}
     </Popover.Content>
   );
 }
@@ -299,12 +295,12 @@ function Input(props: React.ComponentProps<typeof TextField.Root>) {
   }
 
   return (
-    <TextField.Root
+    <DebouncedTextField
       mb="2"
       id={`cb-${uid}-input`}
       variant="surface"
-      value={query}
-      onChange={(e) => setQuery(e.currentTarget.value)}
+      initialValue={query}
+      onDebouncedChange={(str) => setQuery(str)}
       onKeyDown={onKeyDown}
       role="combobox"
       aria-autocomplete="list"
@@ -312,7 +308,11 @@ function Input(props: React.ComponentProps<typeof TextField.Root>) {
       aria-controls={`cb-${uid}-listbox`}
       aria-activedescendant={activeId}
       {...props}
-    />
+    >
+      <TextField.Slot>
+        <PiMagnifyingGlass size="16" />
+      </TextField.Slot>
+    </DebouncedTextField>
   );
 }
 

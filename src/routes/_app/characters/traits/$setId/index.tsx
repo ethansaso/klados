@@ -54,10 +54,7 @@ function RouteComponent() {
     data: traitSet,
     error: osErr,
     isLoading: osLoad,
-  } = useQuery({
-    ...traitSetQueryOptions(setId),
-    retry: false,
-  });
+  } = useQuery(traitSetQueryOptions(setId));
 
   const {
     data: traitSetValues,
@@ -125,7 +122,6 @@ function RouteComponent() {
     });
   };
 
-  // Data is available here as `traitSet` and `traitSetValues`
   if (osLoad || osvLoad) return <div>Loading...</div>;
   if (osErr || !traitSet) return <div>Trait set not found.</div>;
   return (
