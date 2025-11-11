@@ -10,7 +10,7 @@ export const characterGroup = pgTable(
     id: serial("id").primaryKey(),
     key: text("key").notNull(), // machine-stable, e.g., "cap"
     label: text("label").notNull(), // "Cap"
-    description: text("description"),
+    description: text("description").notNull().default(""),
   }),
   (t) => [uniqueIndex("character_groups_key_uq").on(t.key)]
 );

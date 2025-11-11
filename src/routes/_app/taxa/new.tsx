@@ -15,19 +15,17 @@ import { Combobox, ComboboxOption } from "../../../components/inputs/Combobox";
 import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
 import { roleHasCuratorRights } from "../../../lib/auth/utils";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
-import { createTaxon } from "../../../lib/serverFns/taxa/fns";
+import { createTaxonDraft } from "../../../lib/serverFns/taxa/fns";
 import { getMe } from "../../../lib/serverFns/user";
 import { capitalizeWord } from "../../../lib/utils/casing";
+import { toast } from "../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/taxa/new")({
-  beforeLoad: async ({ context, location }) => {
+  beforeLoad: async ({}) => {
     const user = await getMe();
     if (!roleHasCuratorRights(user?.role)) {
       throw redirect({ to: "/login" });
     }
-    return {
-      user,
-    };
   },
   component: RouteComponent,
 });
@@ -40,7 +38,7 @@ function RouteComponent() {
   const [rank, setRank] = useState<(typeof TAXON_RANKS_DESCENDING)[number]>(
     TAXON_RANKS_DESCENDING[0]
   );
-  const serverCreate = useServerFn(createTaxon);
+  const serverCreate = useServerFn(createTaxonDraft);
   const navigate = useNavigate();
   const {
     data: parentPaginatedResults,
@@ -68,8 +66,14 @@ function RouteComponent() {
         parent_id: parent?.id ?? null,
       },
     })
-      .then((res) => navigate({ to: `/taxa/${res.id}` }))
-      .catch((e) => console.error(e));
+      .then((res) => {
+        navigate({ to: `/taxa/${res.id}` });
+        toast({
+          description: `Successfully created draft for taxon ${res.acceptedName}`,
+          variant: "success",
+        });
+      })
+      .catch((e) => toast({ description: e.message, variant: "error" }));
   };
 
   const comboboxOptions: ComboboxOption[] = useMemo(

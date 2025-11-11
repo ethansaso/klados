@@ -16,6 +16,10 @@ export type TaxonDTO = Pick<
   acceptedName: string;
   activeChildCount: number;
 };
+export type TaxonDetailDTO = Omit<TaxonDTO, "parentId"> & {
+  /* Full lineage of ancestors in descending order. */
+  ancestors: TaxonDTO[];
+};
 
 export interface TaxonPaginatedResult extends PaginatedResult {
   items: TaxonDTO[];

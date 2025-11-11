@@ -1,5 +1,7 @@
 import NiceModal, { useModal } from "@ebay/nice-modal-react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  Box,
   Button,
   Dialog,
   Flex,
@@ -9,10 +11,15 @@ import {
 } from "@radix-ui/themes";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Form } from "radix-ui";
-import { useEffect, useState } from "react";
-import { createTraitSet } from "../../../../lib/serverFns/characters/traits/fns";
-import { snakeCase } from "../../../../lib/utils/casing";
+import { Form, Label } from "radix-ui";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { useAutoKey } from "../-chrome/-useAutoKey";
+import { ConditionalAlert } from "../../../../components/inputs/ConditionalAlert";
+import { createTraitSet } from "../../../../lib/serverFns/traits/fns";
+import {
+  CreateTraitSetInput,
+  createTraitSetSchema,
+} from "../../../../lib/serverFns/traits/validation";
 import { toast } from "../../../../lib/utils/toast";
 
 export const AddTraitSetModal = NiceModal.create(() => {
@@ -20,34 +27,45 @@ export const AddTraitSetModal = NiceModal.create(() => {
   const qc = useQueryClient();
   const serverCreate = useServerFn(createTraitSet);
 
-  const [loading, setLoading] = useState(false);
-  const [label, setLabel] = useState("");
-  const [key, setKey] = useState("");
-  const [autoKey, setAutoKey] = useState(true);
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    reset,
+    formState: { errors, isSubmitting, touchedFields, isSubmitted },
+  } = useForm<CreateTraitSetInput>({
+    resolver: zodResolver(createTraitSetSchema),
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+    defaultValues: {
+      key: undefined,
+      label: "",
+      description: "",
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const { autoKey, setAutoKey, handleKeyBlur } = useAutoKey(
+    control,
+    setValue,
+    "label",
+    "key"
+  );
 
-    const formData = new FormData(e.currentTarget);
-    const key = formData.get("key") as string;
-    const label = formData.get("label") as string;
-    const description = formData.get("description") as string;
-
+  const onSubmit: SubmitHandler<CreateTraitSetInput> = async ({
+    key,
+    label,
+    description,
+  }) => {
     try {
-      setLoading(true);
-      await serverCreate({
-        data: {
-          key,
-          label,
-          description,
-        },
-      });
-
+      await serverCreate({ data: { key, label, description } });
       qc.invalidateQueries({ queryKey: ["traitSets"] });
       toast({
         variant: "success",
         description: `Trait set "${label}" created successfully.`,
       });
+      reset();
+      setAutoKey(true);
       hide();
     } catch (error) {
       toast({
@@ -55,27 +73,15 @@ export const AddTraitSetModal = NiceModal.create(() => {
         description:
           error instanceof Error ? error.message : "An unknown error occurred.",
       });
-    } finally {
-      setLoading(false);
     }
   };
-
-  const handleKeyBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    setKey(snakeCase(e.target.value));
-  };
-
-  // Auto-generate key from label
-  useEffect(() => {
-    if (autoKey) setKey(snakeCase(label));
-  }, [label, autoKey]);
 
   return (
     <Dialog.Root
       open={visible}
       onOpenChange={(open) => {
         if (!open) {
-          setLabel("");
-          setKey("");
+          reset();
           setAutoKey(true);
           hide();
         }
@@ -86,104 +92,91 @@ export const AddTraitSetModal = NiceModal.create(() => {
         <Dialog.Description size="2" mb="4">
           Specify the details for the new trait set.
         </Dialog.Description>
-        <Form.Root onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <Flex direction="column" gap="3" mb="4">
-            <Form.Field name="label">
-              <Flex justify="between" align="baseline">
-                <Form.Label>
-                  <Text as="div" weight="bold" size="2" mb="1">
-                    Label
-                  </Text>
-                </Form.Label>
-                <Form.Message match="valueMissing" asChild>
-                  <Text color="red" size="1">
-                    Label is required
-                  </Text>
-                </Form.Message>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="trait-set-label">Label</Label.Root>
+                <ConditionalAlert
+                  id="trait-set-label-error"
+                  message={
+                    touchedFields.label || isSubmitted
+                      ? errors.label?.message
+                      : undefined
+                  }
+                />
               </Flex>
-              <Form.Control
-                required
-                asChild
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
+              <TextField.Root
+                id="trait-set-label"
                 placeholder="e.g. color, texture, odor"
-              >
-                <TextField.Root type="text" />
-              </Form.Control>
-            </Form.Field>
-            <Form.Field name="key">
-              <Flex justify="between" align="baseline">
-                <Form.Label>
-                  <Text as="div" weight="bold" size="2" mb="1">
-                    Key
+                {...register("label")}
+                aria-invalid={!!errors.label}
+                aria-describedby="trait-set-label-error"
+              />
+            </Box>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="trait-set-key">Key</Label.Root>
+                <Flex align="center" gap="2">
+                  <ConditionalAlert
+                    id="trait-set-key-error"
+                    message={
+                      touchedFields.key || isSubmitted
+                        ? errors.key?.message
+                        : undefined
+                    }
+                  />
+                  <Text size="1" color="gray">
+                    {autoKey ? "Auto" : "Manual"}
                   </Text>
-                </Form.Label>
-                <Flex align="baseline" gap="2">
-                  <Form.Message match="valueMissing" asChild>
-                    <Text color="red" size="1">
-                      Key is required
-                    </Text>
-                  </Form.Message>
-                  <Flex align="center" gap="2" mb="1">
-                    {autoKey ? (
-                      <>
-                        <Text size="1" color="gray">
-                          Auto
-                        </Text>
-                        <Button
-                          size="1"
-                          variant="soft"
-                          onClick={() => setAutoKey(false)}
-                          type="button"
-                        >
-                          Edit
-                        </Button>
-                      </>
-                    ) : (
-                      <Button
-                        size="1"
-                        variant="soft"
-                        onClick={() => setAutoKey(true)}
-                        type="button"
-                      >
-                        Use auto
-                      </Button>
-                    )}
-                  </Flex>
+                  <Button
+                    size="1"
+                    variant="soft"
+                    type="button"
+                    onClick={() => setAutoKey((v) => !v)}
+                  >
+                    {autoKey ? "Edit" : "Use auto"}
+                  </Button>
                 </Flex>
               </Flex>
-              <Form.Control
-                required
-                asChild
+              <TextField.Root
+                id="trait-set-key"
+                type="text"
                 readOnly={autoKey}
-                onBlur={handleKeyBlur}
-                value={key}
-                onChange={(e) => {
-                  if (!autoKey) setKey(e.target.value);
-                }}
-              >
-                <TextField.Root type="text" />
-              </Form.Control>
-            </Form.Field>
-            <Form.Field name="description">
-              <Flex justify="between" align="baseline">
-                <Form.Label>
-                  <Text as="div" weight="bold" size="2" mb="1">
-                    Description
-                  </Text>
-                </Form.Label>
+                {...register("key", { onBlur: handleKeyBlur })}
+                aria-invalid={!!errors.key}
+                aria-describedby="trait-set-key-error"
+              />
+            </Box>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="trait-set-description">
+                  Description
+                </Label.Root>
+                <ConditionalAlert
+                  id="trait-set-description-error"
+                  message={
+                    touchedFields.description || isSubmitted
+                      ? errors.description?.message
+                      : undefined
+                  }
+                />
               </Flex>
-              <Form.Control asChild>
-                <TextArea />
-              </Form.Control>
-            </Form.Field>
+              <TextArea
+                id="trait-set-description"
+                placeholder="Optional description for this trait set"
+                {...register("description")}
+                aria-invalid={!!errors.description}
+                aria-describedby="trait-set-description-error"
+              />
+            </Box>
           </Flex>
           <Flex justify="end" gap="3">
             <Dialog.Close>
               <Button
                 type="button"
-                disabled={loading}
-                loading={loading}
+                disabled={isSubmitting}
+                loading={isSubmitting}
                 variant="soft"
                 color="gray"
               >
@@ -191,12 +184,16 @@ export const AddTraitSetModal = NiceModal.create(() => {
               </Button>
             </Dialog.Close>
             <Form.Submit asChild>
-              <Button type="submit" disabled={loading} loading={loading}>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                loading={isSubmitting}
+              >
                 Add trait set
               </Button>
             </Form.Submit>
           </Flex>
-        </Form.Root>
+        </form>
       </Dialog.Content>
     </Dialog.Root>
   );

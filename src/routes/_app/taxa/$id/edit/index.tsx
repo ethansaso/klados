@@ -23,7 +23,9 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { Form } from "radix-ui";
 import { MouseEventHandler, useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { FaDove, FaLeaf } from "react-icons/fa";
+import { ComboboxOption } from "../../../../../components/inputs/Combobox";
 import { TAXON_RANKS_DESCENDING } from "../../../../../db/schema/schema";
 import { taxonQueryOptions } from "../../../../../lib/queries/taxa";
 import { taxonCharacterValuesQueryOptions } from "../../../../../lib/queries/taxonCharacterValues";
@@ -32,7 +34,7 @@ import {
   publishTaxon,
   updateTaxon,
 } from "../../../../../lib/serverFns/taxa/fns";
-import { TaxonDTO } from "../../../../../lib/serverFns/taxa/types";
+import { TaxonDetailDTO } from "../../../../../lib/serverFns/taxa/types";
 import {
   MediaItem,
   TaxonPatch,
@@ -42,7 +44,7 @@ import { MediaEditingForm } from "./-MediaEditingForm";
 import { pickInatTaxon } from "./-dialogs/InatConfirmModal";
 import { pickGBIFTaxon } from "./-dialogs/gbifConfirmModal";
 
-type EditState = Omit<TaxonPatch, "media" | "rank"> & {
+type FormFields = Omit<TaxonPatch, "media" | "rank"> & {
   media: MediaItem[];
   rank: (typeof TAXON_RANKS_DESCENDING)[number];
 };
@@ -79,8 +81,8 @@ export const Route = createFileRoute("/_app/taxa/$id/edit/")({
   component: RouteComponent,
 });
 
-const seedEditState = (taxon: TaxonDTO): EditState => ({
-  parent_id: taxon.parentId ?? null,
+const seedEditState = (taxon: TaxonDetailDTO): FormFields => ({
+  parent_id: taxon.ancestors[0]?.id ?? null,
   rank: taxon.rank,
   source_gbif_id: taxon.sourceGbifId ?? null,
   source_inat_id: taxon.sourceInatId ?? null,
@@ -90,15 +92,16 @@ const seedEditState = (taxon: TaxonDTO): EditState => ({
 
 function RouteComponent() {
   const { id, initialTaxon, initialCharacterValues } = Route.useLoaderData();
-  console.log(initialTaxon.sourceGbifId);
+  const [parentQ, setParentQ] = useState("");
+  const [parent, setParent] = useState<ComboboxOption | null>(null);
   const qc = useQueryClient();
   const navigate = useNavigate();
+
+  const { register, setValue, handleSubmit } = useForm<FormFields>();
 
   const serverUpdate = useServerFn(updateTaxon);
   const serverPublish = useServerFn(publishTaxon);
   const serverDelete = useServerFn(deleteTaxon);
-
-  const [form, setForm] = useState<EditState>(seedEditState(initialTaxon));
 
   const [dirty, setDirty] = useState(false);
   const [pending, setPending] = useState(false);
@@ -125,10 +128,7 @@ function RouteComponent() {
     ]);
   }
 
-  const setField = <K extends keyof EditState>(key: K, value: EditState[K]) => {
-    setDirty(true);
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
+  return null; // TODO
 
   const handleDiscard = () => {
     if (!dirty) return;
@@ -137,13 +137,11 @@ function RouteComponent() {
     setDirty(false);
   };
 
-  const handleSave: React.FormEventHandler<HTMLFormElement> = async (e) => {
-    e.preventDefault();
-
+  const onSave: SubmitHandler<FormFields> = async (data) => {
     if (!dirty) return;
     setPending(true);
     try {
-      await serverUpdate({ data: { id, ...form } });
+      await serverUpdate({ data: { id, ...data } });
       setDirty(false);
       await invalidateTaxon(id);
       toast({
@@ -224,22 +222,28 @@ function RouteComponent() {
         <Text size="2">ID: {id}</Text>
       </Flex>
 
-      <Form.Root onSubmit={handleSave}>
-        <Box mb="4">
+      <Form.Root onSubmit={handleSubmit(onSave)}>
+        <Flex direction="column" gap="3" mb="4">
           {/* Accepted Name (TODO) */}
-          <Form.Field name="accepted-name" asChild>
-            <Box mb="2">
-              <Form.Label>Accepted Name</Form.Label>
-              <Form.Control asChild>
-                <TextField.Root value={"TODO"} onChange={() => {}} />
-              </Form.Control>
-            </Box>
+          <Form.Field name="accepted-name">
+            <Form.Label>
+              <Text as="div" weight="bold" size="2" mb="1">
+                Accepted Name
+              </Text>
+            </Form.Label>
+            <Form.Control asChild>
+              <TextField.Root value={"TODO"} onChange={() => {}} />
+            </Form.Control>
           </Form.Field>
 
-          {/* Rank */}
-          <Form.Field name="rank" asChild>
-            <Box mb="2">
-              <Form.Label>Rank</Form.Label>
+          <Flex>
+            {/* Rank */}
+            <Form.Field name="rank">
+              <Form.Label>
+                <Text as="div" weight="bold" size="2" mb="1">
+                  Rank
+                </Text>
+              </Form.Label>
               <Form.Control asChild>
                 <Select.Root
                   value={form.rank}
@@ -257,19 +261,44 @@ function RouteComponent() {
                   </Select.Content>
                 </Select.Root>
               </Form.Control>
-            </Box>
-          </Form.Field>
-          {/* Parent ID (TODO) */}
-          {/* Source GBIF ID */}
-          <Form.Field name="source-gbif-id" asChild>
-            <Box mb="2">
-              <Form.Label>Source GBIF ID</Form.Label>
+            </Form.Field>
+            {/* Parent ID (TODO) */}
+            {/* <Combobox.Root
+              label="Parent taxon"
+              value={parent}
+              onValueChange={setParent}
+              options={comboboxOptions}
+              onQueryChange={setParentQ}
+            >
+              <Combobox.Trigger placeholder="Select parent taxon" />
+              <Combobox.Content>
+                <Combobox.Input />
+                <Combobox.List>
+                  {comboboxOptions.map((option, index) => (
+                    <Combobox.Item
+                      key={option.id}
+                      index={index}
+                      option={option}
+                    />
+                  ))}
+                </Combobox.List>
+              </Combobox.Content>
+            </Combobox.Root> */}
+          </Flex>
+          <Flex gap="4">
+            {/* Source GBIF ID */}
+            <Form.Field name="source-gbif-id">
+              <Form.Label>
+                <Text as="div" weight="bold" size="2" mb="1">
+                  Source GBIF ID
+                </Text>
+              </Form.Label>
               <Form.Control asChild>
                 <TextField.Root
                   type="number"
-                  value={form.source_gbif_id ?? ""}
+                  {...register("source_gbif_id")}
                   onChange={(e) =>
-                    setField(
+                    setValue(
                       "source_gbif_id",
                       e.currentTarget.value === ""
                         ? null
@@ -284,8 +313,7 @@ function RouteComponent() {
                         variant="ghost"
                         onClick={async () => {
                           const picked = await pickGBIFTaxon(
-                            initialTaxon.acceptedName,
-                            form.rank
+                            initialTaxon.acceptedName
                           );
                           if (picked) {
                             setField("source_gbif_id", picked.id);
@@ -298,12 +326,14 @@ function RouteComponent() {
                   </TextField.Slot>
                 </TextField.Root>
               </Form.Control>
-            </Box>
-          </Form.Field>
-          {/* Source iNat ID */}
-          <Form.Field name="source-inat-id" asChild>
-            <Box mb="2">
-              <Form.Label>Source iNaturalist ID</Form.Label>
+            </Form.Field>
+            {/* Source iNat ID */}
+            <Form.Field name="source-inat-id">
+              <Form.Label>
+                <Text as="div" weight="bold" size="2" mb="1">
+                  Source iNaturalist ID
+                </Text>
+              </Form.Label>
               <Form.Control asChild>
                 <TextField.Root
                   type="number"
@@ -338,26 +368,21 @@ function RouteComponent() {
                   </TextField.Slot>
                 </TextField.Root>
               </Form.Control>
-            </Box>
-          </Form.Field>
+            </Form.Field>
+          </Flex>
 
           {/* Notes (nullable string) */}
           <Form.Field name="notes">
-            <Form.Label>Notes</Form.Label>
+            <Form.Label>
+              <Text as="div" weight="bold" size="2" mb="1">
+                Notes
+              </Text>
+            </Form.Label>
             <Form.Control asChild>
-              <TextArea
-                value={form.notes ?? ""}
-                onChange={(e) =>
-                  setField(
-                    "notes",
-                    e.currentTarget.value === "" ? null : e.currentTarget.value
-                  )
-                }
-                rows={5}
-              />
+              <TextArea rows={5} {...register("notes")} />
             </Form.Control>
           </Form.Field>
-        </Box>
+        </Flex>
 
         {/* Media */}
         <MediaEditingForm
@@ -376,7 +401,11 @@ function RouteComponent() {
             Discard Changes
           </Button>
           <Form.Submit asChild>
-            <Button loading={pending} disabled={!dirty || pending}>
+            <Button
+              variant={isDraft ? "soft" : "solid"}
+              loading={pending}
+              disabled={!dirty || pending}
+            >
               Save
             </Button>
           </Form.Submit>
@@ -395,7 +424,7 @@ function RouteComponent() {
               type="button"
               disabled={pending}
               loading={pending}
-              color="red"
+              color="tomato"
               onClick={handleDelete}
             >
               Delete Draft

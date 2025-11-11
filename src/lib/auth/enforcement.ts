@@ -1,6 +1,6 @@
 import { APIError, createAuthMiddleware } from "better-auth/api";
+import { BAD_PW_MESSAGE, passwordSchema } from "./validation";
 
-const STRONG_PW = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,128}$/;
 const RESERVED = new Set(["admin", "settings", "edit", "me"]);
 
 function isReserved(u: unknown) {
@@ -63,10 +63,9 @@ async function enforceStrongPassword(ctx: any) {
   const pwd: string | undefined =
     (ctx.body as any)?.password ?? (ctx.body as any)?.newPassword;
 
-  if (!pwd || !STRONG_PW.test(pwd)) {
+  if (!pwd || !passwordSchema.parse(pwd)) {
     throw new APIError("BAD_REQUEST", {
-      message:
-        "Password must be 8-128 chars and include at least 1 uppercase, 1 lowercase, 1 number, and 1 symbol.",
+      message: BAD_PW_MESSAGE,
     });
   }
 }

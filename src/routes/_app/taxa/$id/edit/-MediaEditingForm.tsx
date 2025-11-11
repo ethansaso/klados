@@ -26,7 +26,7 @@ const isUrl = (s: string) => {
   }
 };
 
-const LEGIBLE_LICENSES: Record<(typeof MEDIA_LICENSES)[number], string> = {
+const ELIGIBLE: Record<(typeof MEDIA_LICENSES)[number], string> = {
   cc0: "CC0",
   "cc-by": "CC BY",
   "cc-by-sa": "CC BY-SA",
@@ -72,11 +72,11 @@ export const MediaEditingForm = ({ value, onChange }: MediaEditorProps) => {
   return (
     <Box mb="4">
       <Flex mb="2">
-        <Text mr="2">
+        <Text size="3" mr="2">
           <Strong>Media</Strong>
         </Text>
         <IconButton type="button" radius="full" size="1" onClick={addRow}>
-          <PiPlus />
+          <PiPlus size="16" />
         </IconButton>
       </Flex>
       <Table.Root variant="surface">
@@ -148,13 +148,13 @@ export const MediaEditingForm = ({ value, onChange }: MediaEditorProps) => {
                       }
                     >
                       <Select.Trigger>
-                        {m.license ? LEGIBLE_LICENSES[m.license] : "—"}
+                        {m.license ? ELIGIBLE[m.license] : "—"}
                       </Select.Trigger>
                       <Select.Content>
                         <Select.Item value="__none__">—</Select.Item>
                         {MEDIA_LICENSES.map((lic) => (
                           <Select.Item key={lic} value={lic}>
-                            {LEGIBLE_LICENSES[lic]}
+                            {ELIGIBLE[lic]}
                           </Select.Item>
                         ))}
                       </Select.Content>

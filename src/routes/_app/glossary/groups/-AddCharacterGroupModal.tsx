@@ -11,7 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Form } from "radix-ui";
 import { useEffect, useState } from "react";
-import { createCharacterGroup } from "../../../../lib/serverFns/characters/groups/fns";
+import { createCharacterGroup } from "../../../../lib/serverFns/characterGroups/fns";
 import { snakeCase } from "../../../../lib/utils/casing";
 import { toast } from "../../../../lib/utils/toast";
 

@@ -21,8 +21,8 @@ import {
 import {
   createTraitValue,
   deleteTraitSet,
-} from "../../../../../lib/serverFns/characters/traits/fns";
-import { TraitSetDTO } from "../../../../../lib/serverFns/characters/traits/types";
+} from "../../../../../lib/serverFns/traits/fns";
+import { TraitSetDTO } from "../../../../../lib/serverFns/traits/types";
 import { snakeCase } from "../../../../../lib/utils/casing";
 import { toast } from "../../../../../lib/utils/toast";
 import { Route as TraitsLayoutRoute } from "../route";

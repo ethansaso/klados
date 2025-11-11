@@ -1,8 +1,8 @@
 import {
   categoricalTraitSet,
   categoricalTraitValue,
-} from "../../../../db/schema/schema";
-import { PaginatedResult } from "../../../validation/pagination";
+} from "../../../db/schema/schema";
+import { PaginatedResult } from "../../validation/pagination";
 
 export type TraitSetRow = typeof categoricalTraitSet.$inferSelect;
 export type TraitValueRow = typeof categoricalTraitValue.$inferSelect;

@@ -61,7 +61,7 @@ export const taxon = pgTable(
       .notNull()
       .default([]),
 
-    notes: text("notes"),
+    notes: text("notes").notNull().default(""),
   }),
   (t) => [
     // ? FKs here avoids circular reference causing TS problems

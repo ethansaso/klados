@@ -14,20 +14,21 @@ import {
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import z from "zod";
-import { db } from "../../../../db/client";
+import { db } from "../../../db/client";
 import {
   categoricalCharacterMeta as catMetaTbl,
   categoricalTraitSet as setsTbl,
   categoricalTraitValue as valsTbl,
-} from "../../../../db/schema/schema";
-import { requireCuratorMiddleware } from "../../../auth/serverFnMiddleware";
-import { PaginationSchema } from "../../../validation/pagination";
+} from "../../../db/schema/schema";
+import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
+import { PaginationSchema } from "../../validation/pagination";
 import {
   TraitSetDetailDTO,
   TraitSetDTO,
   TraitSetPaginatedResult,
   TraitValueDTO,
 } from "./types";
+import { createTraitSetSchema } from "./validation";
 
 export const listTraitSets = createServerFn({ method: "GET" })
   .inputValidator(
@@ -114,17 +115,11 @@ export const listTraitSets = createServerFn({ method: "GET" })
 
 export const createTraitSet = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(
-    z.object({
-      key: z.string().min(1).max(100),
-      label: z.string().min(1).max(200),
-      description: z.string().max(1000).optional(),
-    })
-  )
+  .inputValidator(createTraitSetSchema)
   .handler(async ({ data }): Promise<TraitSetDTO> => {
     const key = data.key.trim();
     const label = data.label.trim();
-    const description = data.description?.trim() || null;
+    const description = data.description?.trim() || "";
 
     return await db.transaction(async (tx) => {
       const [traitSet] = await tx

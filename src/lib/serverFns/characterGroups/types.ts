@@ -1,5 +1,5 @@
-import { characterGroup } from "../../../../db/schema/schema";
-import { PaginatedResult } from "../../../validation/pagination";
+import { characterGroup } from "../../../db/schema/schema";
+import { PaginatedResult } from "../../validation/pagination";
 
 export type CharacterGroupRow = typeof characterGroup.$inferSelect;
 

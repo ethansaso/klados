@@ -17,7 +17,7 @@ export const character = pgTable(
     id: serial("id").primaryKey(),
     key: text("key").notNull(),
     label: text("label").notNull(),
-    description: text("description"),
+    description: text("description").notNull().default(""),
     groupId: integer("group_id")
       .notNull()
       .references(() => characterGroup.id, { onDelete: "restrict" }),

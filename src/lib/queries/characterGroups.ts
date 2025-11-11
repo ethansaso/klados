@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
-import { listCharacterGroups } from "../serverFns/characters/groups/fns";
-import { CharacterGroupPaginatedResult } from "../serverFns/characters/groups/types";
+import { listCharacterGroups } from "../serverFns/characterGroups/fns";
+import { CharacterGroupPaginatedResult } from "../serverFns/characterGroups/types";
 
 export const characterGroupsQueryOptions = (
   page: number,

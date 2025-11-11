@@ -23,10 +23,10 @@ export type ComboboxOption = {
 /* =============================== Context =============================== */
 
 type RootProps = {
+  /** If provided, the combobox take this id for label interaction/a11y. */
+  id?: string;
   /** If provided, a hidden input will be rendered for form posts (value = selected id). */
   name?: string;
-  /** Visible label above the field. */
-  label: string;
   /** Controlled selected option. */
   value: ComboboxOption | null;
   /** Selection change handler. */
@@ -47,11 +47,10 @@ type RootProps = {
 };
 
 type Ctx = {
-  uid: string;
+  id?: string;
   open: boolean;
   setOpen: (o: boolean) => void;
 
-  label: string;
   disabled?: boolean;
 
   value: ComboboxOption | null;
@@ -80,8 +79,8 @@ function useCb() {
 /* ================================= Root ================================ */
 
 function Root({
+  id,
   name,
-  label,
   value,
   onValueChange,
   options,
@@ -95,8 +94,6 @@ function Root({
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [activeIndex, setActiveIndex] = React.useState(-1);
-
-  const uid = React.useId();
 
   React.useEffect(() => {
     if (options.length === 0) {
@@ -129,10 +126,9 @@ function Root({
   };
 
   const ctx: Ctx = {
-    uid,
+    id,
     open,
     setOpen: (o) => (o ? openPopover() : closePopover()),
-    label,
     disabled,
     value,
     onValueChange,
@@ -154,19 +150,7 @@ function Root({
 
   return (
     <div className={className} style={style}>
-      <Text
-        as="label"
-        size="2"
-        weight="bold"
-        mb="1"
-        htmlFor={`cb-${uid}-input`}
-        style={{ display: "block" }}
-      >
-        {label}
-      </Text>
-
       {name && <input type="hidden" name={name} value={selectedId} />}
-
       <Ctx.Provider value={ctx}>
         <Popover.Root open={open} onOpenChange={ctx.setOpen}>
           {children}
@@ -179,18 +163,19 @@ function Root({
 /* ================================ Trigger ============================== */
 
 function Trigger({ placeholder }: { placeholder?: React.ReactNode }) {
-  const { open, disabled, value, uid, setOpen, clear } = useCb();
+  const { open, disabled, value, id, setOpen, clear } = useCb();
   const triggerLabel = value ? value.label : (placeholder ?? "Select...");
 
   return (
     <Flex align="center" gap="2" position="relative" style={{ width: "100%" }}>
       <Popover.Trigger>
         <Button
+          id={id}
           variant="surface"
           disabled={disabled}
           aria-haspopup="listbox"
           aria-expanded={open}
-          aria-controls={`cb-${uid}-listbox`}
+          aria-controls={id ? `${id}-listbox` : undefined}
           onClick={() => setOpen(!open)}
           onKeyDown={(e) => {
             if (e.key === "ArrowDown" || e.key === "ArrowUp") {
@@ -243,6 +228,7 @@ function Content({
       side="bottom"
       align="start"
       size="1"
+      className={className}
       style={{ minWidth: 280, ...style }}
     >
       {children}
@@ -254,19 +240,15 @@ function Content({
 
 function Input(props: React.ComponentProps<typeof TextField.Root>) {
   const {
-    uid,
+    id,
     open,
     options,
     query,
     setQuery,
-    activeIndex,
     setActiveIndex,
     selectActive,
     setOpen,
   } = useCb();
-
-  const activeId =
-    activeIndex >= 0 ? `cb-${uid}-opt-${activeIndex}` : undefined;
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (!open) return;
@@ -297,16 +279,16 @@ function Input(props: React.ComponentProps<typeof TextField.Root>) {
   return (
     <DebouncedTextField
       mb="2"
-      id={`cb-${uid}-input`}
+      id={`${id}-input`}
       variant="surface"
       initialValue={query}
       onDebouncedChange={(str) => setQuery(str)}
       onKeyDown={onKeyDown}
       role="combobox"
       aria-autocomplete="list"
+      aria-labelledby={id}
       aria-expanded={open}
-      aria-controls={`cb-${uid}-listbox`}
-      aria-activedescendant={activeId}
+      aria-controls={`${id}-listbox`}
       {...props}
     >
       <TextField.Slot>
@@ -327,7 +309,7 @@ function List({
   className?: string;
   style?: React.CSSProperties;
 }>) {
-  const { uid, label, loading, options } = useCb();
+  const { id, loading, options } = useCb();
 
   const hasChildren = React.Children.count(children) > 0;
 
@@ -339,9 +321,8 @@ function List({
       style={{ maxHeight: 260, ...style }}
     >
       <ul
-        id={`cb-${uid}-listbox`}
+        id={id ? `${id}-listbox` : undefined}
         role="listbox"
-        aria-label={`${label} options`}
         aria-busy={!!loading}
         style={{
           padding: 0,
@@ -415,7 +396,7 @@ function Item({
   index: number;
   style?: React.CSSProperties;
 }) {
-  const { uid, activeIndex, setActiveIndex, value, onValueChange, setOpen } =
+  const { id, activeIndex, setActiveIndex, value, onValueChange, setOpen } =
     useCb();
   const active = index === activeIndex;
   const selected = value ? value.id === option.id : false;
@@ -423,7 +404,7 @@ function Item({
   return (
     <Flex direction="column" gap="0" asChild>
       <li
-        id={`cb-${uid}-opt-${index}`}
+        id={`${id}-opt-${index}`}
         role="option"
         aria-selected={selected}
         data-active={active || undefined}

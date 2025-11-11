@@ -22,7 +22,7 @@ import {
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
 import { assertHierarchyInvariant } from "../../utils/assertHierarchyInvariant";
 import { PaginationSchema } from "../../validation/pagination";
-import { TaxonDTO, TaxonPaginatedResult } from "./types";
+import { TaxonDetailDTO, TaxonDTO, TaxonPaginatedResult } from "./types";
 import {
   assertExactlyOneAcceptedScientificName,
   getChildCount,
@@ -142,25 +142,84 @@ export const listTaxa = createServerFn({ method: "GET" })
   });
 
 export const getTaxon = createServerFn({ method: "GET" })
-  .inputValidator(
-    z.object({
-      id: z.number(),
-    })
-  )
-  .handler(async ({ data }): Promise<TaxonDTO> => {
-    const rows = await db
+  .inputValidator(z.object({ id: z.number() }))
+  .handler(async ({ data }): Promise<TaxonDetailDTO> => {
+    const { id } = data;
+
+    const baseRows = await db
       .select(selectTaxonDTO)
       .from(taxaTbl)
       .innerJoin(sci, sciJoinPred)
-      .where(eq(taxaTbl.id, data.id))
+      .where(eq(taxaTbl.id, id))
       .limit(1);
 
-    const u = rows[0];
-    if (!u) throw notFound();
-    return u;
+    const base = baseRows[0];
+    if (!base) throw notFound();
+
+    // Ancestors via one recursive CTE (root → ... → immediate parent)
+    type AncRow = TaxonDTO & { depth: number };
+
+    const ancRows = await db.execute<AncRow>(sql`
+      WITH RECURSIVE chain AS (
+        SELECT t.id, t.parent_id, 0 AS depth
+        FROM ${taxaTbl} t
+        WHERE t.id = ${id}
+        UNION ALL
+        SELECT p.id, p.parent_id, chain.depth + 1
+        FROM ${taxaTbl} p
+        JOIN chain ON p.id = chain.parent_id
+        WHERE chain.depth < 256
+      )
+      SELECT 
+        a.id,
+        a.parent_id AS "parentId",
+        a.rank,
+        a.source_gbif_id AS "sourceGbifId",
+        a.source_inat_id AS "sourceInatId",
+        a.status,
+        a.media,
+        a.notes,
+        s.value AS "acceptedName",
+        (
+          SELECT COUNT(*)::int
+          FROM ${taxaTbl} c
+          WHERE c.parent_id = a.id AND c.status = 'active'
+        ) AS "activeChildCount",
+        chain.depth
+      FROM chain
+      JOIN ${taxaTbl} a ON a.id = chain.id
+      JOIN ${namesTbl} s 
+        ON s.taxon_id = a.id 
+       AND s.kind = 'scientific' 
+       AND s.synonym_kind IS NULL
+      WHERE chain.depth >= 1
+      ORDER BY chain.depth DESC  -- root (largest depth) → … → immediate parent (depth=1)
+    `);
+
+    const ancestors: TaxonDTO[] = ancRows.rows.map((r) => ({
+      id: r.id,
+      parentId: r.parentId,
+      rank: r.rank,
+      sourceGbifId: r.sourceGbifId,
+      sourceInatId: r.sourceInatId,
+      status: r.status,
+      media: r.media,
+      notes: r.notes,
+      acceptedName: r.acceptedName,
+      activeChildCount: r.activeChildCount,
+    }));
+
+    // 3) Assemble TaxonDetailDTO (omit parentId from the base per your type)
+    const { parentId: _omit, ...baseWithoutParent } = base;
+    const detail: TaxonDetailDTO = {
+      ...baseWithoutParent,
+      ancestors,
+    };
+
+    return detail;
   });
 
-export const createTaxon = createServerFn({ method: "POST" })
+export const createTaxonDraft = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
   .inputValidator(
     z.object({

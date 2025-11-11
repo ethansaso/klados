@@ -58,7 +58,6 @@ function RouteComponent() {
           {paginatedResult.items.map((item) => (
             <GlossarySidebarList.Item
               key={item.id}
-              active={String(item.id) === selectedId}
               keyStr={item.key}
               label={item.label}
               to="/glossary/traits/$setId"

@@ -14,7 +14,6 @@ function Root({ children }: PropsWithChildren<{}>) {
 }
 
 interface ItemProps {
-  active: boolean;
   keyStr: string;
   label: string;
   to: string;
@@ -22,7 +21,6 @@ interface ItemProps {
 }
 
 function Item({
-  active,
   keyStr,
   label,
   to,
@@ -31,20 +29,11 @@ function Item({
 }: PropsWithChildren<ItemProps>) {
   return (
     <NavigationMenu.Item asChild>
-      <Card
-        asChild
-        className={active ? "active" : ""}
-        style={{ width: "100%" }}
-      >
+      <Card asChild style={{ width: "100%" }}>
         <Link to={to} params={params} search preload="intent">
           <Flex width="100%" gap="5" justify="between">
             <Box flexShrink="1" style={{ minWidth: 0 }}>
-              <Text
-                as="p"
-                size="2"
-                truncate
-                weight={active ? "bold" : "medium"}
-              >
+              <Text as="p" size="2" truncate className="glossary-label">
                 {label}
               </Text>
               <Text as="p" size="1" color="gray" truncate>

@@ -17,6 +17,7 @@ import type {
   CharacterDTO,
   CharacterPaginatedResult,
 } from "./types";
+import { createCharacterSchema } from "./validation";
 
 /**
  * TODO: List characters (categorical only for now), with pagination and optional q/ids.
@@ -155,20 +156,11 @@ export const getCharacter = createServerFn({ method: "GET" })
 /** TODO: Extend beyond categorical */
 export const createCharacter = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(
-    z.object({
-      key: z.string().min(1).max(100),
-      label: z.string().min(1).max(200),
-      description: z.string().max(1000).optional(),
-      groupId: z.coerce.number().int().positive(),
-      traitSetId: z.coerce.number().int().positive(),
-      isMultiSelect: z.boolean(),
-    })
-  )
+  .inputValidator(createCharacterSchema)
   .handler(async ({ data }): Promise<CharacterDTO> => {
     const key = snakeCase(data.key.trim());
     const label = data.label.trim();
-    const description = data.description?.trim() || null;
+    const description = data.description?.trim() || "";
     const { groupId, traitSetId, isMultiSelect } = data;
 
     return await db.transaction(async (tx) => {

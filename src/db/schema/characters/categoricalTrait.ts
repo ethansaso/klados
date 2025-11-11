@@ -22,7 +22,7 @@ export const categoricalTraitSet = pgTable(
     id: serial("id").primaryKey(),
     key: text("key").notNull(),
     label: text("label").notNull(),
-    description: text("description"),
+    description: text("description").notNull().default(""),
   }),
   (t) => [uniqueIndex("trait_sets_key_uq").on(t.key)]
 );

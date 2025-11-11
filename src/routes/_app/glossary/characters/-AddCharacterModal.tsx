@@ -1,5 +1,7 @@
 import NiceModal from "@ebay/nice-modal-react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  Box,
   Button,
   Checkbox,
   Dialog,
@@ -10,16 +12,25 @@ import {
 } from "@radix-ui/themes";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Form } from "radix-ui";
-import { useEffect, useState } from "react";
+import { Form, Label } from "radix-ui";
+import { useMemo, useState } from "react";
+import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
+import { useAutoKey } from "../-chrome/-useAutoKey";
 import {
   Combobox,
   ComboboxOption,
 } from "../../../../components/inputs/Combobox";
+import {
+  a11yProps,
+  ConditionalAlert,
+} from "../../../../components/inputs/ConditionalAlert";
 import { characterGroupsQueryOptions } from "../../../../lib/queries/characterGroups";
 import { traitSetsQueryOptions } from "../../../../lib/queries/traits";
 import { createCharacter } from "../../../../lib/serverFns/characters/fns";
-import { snakeCase } from "../../../../lib/utils/casing";
+import {
+  CreateCharacterInput,
+  createCharacterSchema,
+} from "../../../../lib/serverFns/characters/validation";
 import { toast } from "../../../../lib/utils/toast";
 
 export const AddCharacterModal = NiceModal.create(() => {
@@ -27,48 +38,70 @@ export const AddCharacterModal = NiceModal.create(() => {
   const qc = useQueryClient();
   const serverCreate = useServerFn(createCharacter);
 
-  const [loading, setLoading] = useState(false);
-  const [label, setLabel] = useState("");
-  const [key, setKey] = useState("");
-  const [autoKey, setAutoKey] = useState(true);
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateCharacterInput>({
+    resolver: zodResolver(createCharacterSchema),
+    defaultValues: {
+      key: "",
+      label: "",
+      groupId: undefined,
+      traitSetId: undefined,
+      description: undefined,
+      isMultiSelect: true,
+    },
+  });
 
-  const [traitSet, setTraitSet] = useState<ComboboxOption | null>(null);
-  const [traitSetQuery, setTraitSetQuery] = useState("");
-  const [characterGroup, setCharacterGroup] = useState<ComboboxOption | null>(
-    null
+  // Autokey state
+  const { autoKey, setAutoKey, handleKeyBlur } = useAutoKey(
+    control,
+    setValue,
+    "label",
+    "key"
   );
-  const [characterGroupQuery, setCharacterGroupQuery] = useState("");
-
-  const { data: traitSetOptions } = useQuery(
+  // Combobox queries
+  const [traitSetQuery, setTraitSetQuery] = useState("");
+  const [groupQuery, setGroupQuery] = useState("");
+  const { data: traitSetResp } = useQuery(
     traitSetsQueryOptions(1, 10, { q: traitSetQuery })
   );
-  const { data: characterGroupOptions } = useQuery(
-    characterGroupsQueryOptions(1, 10, { q: characterGroupQuery })
+  const { data: groupResp } = useQuery(
+    characterGroupsQueryOptions(1, 10, { q: groupQuery })
   );
+  const traitSetOptions = (traitSetResp?.items ?? []) as ComboboxOption[];
+  const groupOptions = (groupResp?.items ?? []) as ComboboxOption[];
+  const traitSetIdVal = useWatch({ control, name: "traitSetId" });
+  const groupIdVal = useWatch({ control, name: "groupId" });
+  const traitSetSelected = useMemo<ComboboxOption | null>(() => {
+    if (!traitSetIdVal) return null;
+    return traitSetOptions.find((o) => o.id === Number(traitSetIdVal)) ?? null;
+  }, [traitSetIdVal, traitSetOptions]);
+  const groupSelected = useMemo<ComboboxOption | null>(() => {
+    if (!groupIdVal) return null;
+    return groupOptions.find((o) => o.id === Number(groupIdVal)) ?? null;
+  }, [groupIdVal, groupOptions]);
 
-  const resetForm = () => {
-    setLabel("");
-    setKey("");
-    setAutoKey(true);
-    setTraitSet(null);
+  const fullReset = () => {
+    reset();
     setTraitSetQuery("");
-    setCharacterGroup(null);
-    setCharacterGroupQuery("");
+    setGroupQuery("");
+    setAutoKey(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const formData = new FormData(e.currentTarget);
-    const key = formData.get("key") as string;
-    const label = formData.get("label") as string;
-    const description = formData.get("description") as string;
-    const groupId = Number(formData.get("groupId"));
-    const traitSetId = Number(formData.get("traitSetId"));
-    const isMultiSelect = formData.get("isMultiSelect") !== null;
-
+  const onSubmit: SubmitHandler<CreateCharacterInput> = async ({
+    key,
+    label,
+    groupId,
+    traitSetId,
+    description,
+    isMultiSelect,
+  }) => {
     try {
-      setLoading(true);
       await serverCreate({
         data: {
           key,
@@ -87,7 +120,7 @@ export const AddCharacterModal = NiceModal.create(() => {
         variant: "success",
         description: `Character "${label}" created successfully.`,
       });
-      resetForm();
+      fullReset();
       hide();
     } catch (error) {
       toast({
@@ -95,26 +128,15 @@ export const AddCharacterModal = NiceModal.create(() => {
         description:
           error instanceof Error ? error.message : "An unknown error occurred.",
       });
-    } finally {
-      setLoading(false);
     }
   };
-
-  const handleKeyBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    setKey(snakeCase(e.target.value));
-  };
-
-  // Auto-generate key from label
-  useEffect(() => {
-    if (autoKey) setKey(snakeCase(label));
-  }, [label, autoKey]);
 
   return (
     <Dialog.Root
       open={visible}
       onOpenChange={(open) => {
         if (!open) {
-          resetForm();
+          fullReset();
           hide();
         }
       }}
@@ -124,151 +146,178 @@ export const AddCharacterModal = NiceModal.create(() => {
         <Dialog.Description size="2" mb="4">
           Specify the details for the new character.
         </Dialog.Description>
-        <Form.Root onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <Flex direction="column" gap="3" mb="4">
-            <Form.Field name="label">
-              <Flex justify="between" align="baseline">
-                <Text as="div" weight="bold" size="2" mb="1" asChild>
-                  <Form.Label>Label</Form.Label>
-                </Text>
-                <Form.Message match="valueMissing" asChild>
-                  <Text color="red" size="1">
-                    Label is required
-                  </Text>
-                </Form.Message>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="label">Label</Label.Root>
+                <ConditionalAlert
+                  id="label-error"
+                  message={errors.label?.message}
+                />
               </Flex>
-              <Form.Control
-                required
-                asChild
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
+              <TextField.Root
+                id="label"
+                type="text"
                 placeholder="e.g. cap color, spore diameter"
-              >
-                <TextField.Root type="text" />
-              </Form.Control>
-            </Form.Field>
-            <Form.Field name="key">
-              <Flex justify="between" align="baseline">
-                <Text as="div" weight="bold" size="2" mb="1" asChild>
-                  <Form.Label>Key</Form.Label>
-                </Text>
-                <Flex align="baseline" gap="2">
-                  <Form.Message match="valueMissing" asChild>
-                    <Text color="red" size="1">
-                      Key is required
-                    </Text>
-                  </Form.Message>
-                  <Flex align="center" gap="2" mb="1">
-                    {autoKey ? (
-                      <>
-                        <Text size="1" color="gray">
-                          Auto
-                        </Text>
-                        <Button
-                          size="1"
-                          variant="soft"
-                          onClick={() => setAutoKey(false)}
-                          type="button"
-                        >
-                          Edit
-                        </Button>
-                      </>
-                    ) : (
-                      <Button
-                        size="1"
-                        variant="soft"
-                        onClick={() => setAutoKey(true)}
-                        type="button"
-                      >
-                        Use auto
-                      </Button>
-                    )}
-                  </Flex>
+                {...register("label")}
+                {...a11yProps("label-error", !!errors.label)}
+              />
+            </Box>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="key">Key</Label.Root>
+                <Flex align="center" gap="2">
+                  <ConditionalAlert
+                    id="key-error"
+                    message={errors.key?.message}
+                  />
+                  <Text size="1" color="gray">
+                    {autoKey ? "Auto" : "Manual"}
+                  </Text>
+                  <Button
+                    size="1"
+                    variant="soft"
+                    type="button"
+                    onClick={() => setAutoKey((v) => !v)}
+                  >
+                    {autoKey ? "Edit" : "Use auto"}
+                  </Button>
                 </Flex>
               </Flex>
-              <Form.Control
-                required
-                asChild
+              <TextField.Root
+                id="key"
+                type="text"
                 readOnly={autoKey}
-                onBlur={handleKeyBlur}
-                value={key}
-                onChange={(e) => {
-                  if (!autoKey) setKey(e.target.value);
-                }}
-              >
-                <TextField.Root type="text" />
-              </Form.Control>
-            </Form.Field>
+                {...register("key", {
+                  onBlur: handleKeyBlur,
+                })}
+                {...a11yProps("key-error", !!errors.key)}
+              />
+            </Box>
+
+            {/* Row: Trait Set + Group */}
             <Flex gap="4">
               {/* Trait Set (required) */}
-              <Combobox.Root
-                name="traitSetId"
-                label="Trait Set"
-                value={traitSet}
-                onValueChange={setTraitSet}
-                onQueryChange={setTraitSetQuery}
-                options={traitSetOptions?.items ?? []}
-                style={{ width: "50%" }}
-              >
-                <Combobox.Trigger placeholder="Select a trait set" />
-                <Combobox.Content>
-                  <Combobox.Input placeholder="Search trait sets..." />
-                  <Combobox.List>
-                    {traitSetOptions?.items.map((opt, i) => (
-                      <Combobox.Item key={opt.id} option={opt} index={i} />
-                    ))}
-                  </Combobox.List>
-                </Combobox.Content>
-              </Combobox.Root>
+              <Box flexBasis={"50%"} minWidth="180px">
+                <Flex justify="between" align="baseline" mb="1">
+                  <Label.Root htmlFor="trait-set-id">Trait Set</Label.Root>
+                  <ConditionalAlert
+                    id="trait-set-error"
+                    message={errors.traitSetId?.message && "Select a trait set"}
+                  />
+                </Flex>
+                <Controller
+                  name="traitSetId"
+                  control={control}
+                  render={({ field }) => (
+                    <Combobox.Root
+                      id="trait-set-id"
+                      value={traitSetSelected}
+                      onValueChange={(opt) =>
+                        field.onChange(opt ? Number(opt.id) : undefined)
+                      }
+                      onQueryChange={setTraitSetQuery}
+                      options={traitSetOptions}
+                    >
+                      <Combobox.Trigger placeholder="Select a trait set" />
+                      <Combobox.Content>
+                        <Combobox.Input placeholder="Search trait sets..." />
+                        <Combobox.List>
+                          {traitSetOptions.map((opt, i) => (
+                            <Combobox.Item
+                              key={opt.id}
+                              option={opt}
+                              index={i}
+                            />
+                          ))}
+                        </Combobox.List>
+                      </Combobox.Content>
+                    </Combobox.Root>
+                  )}
+                />
+              </Box>
 
               {/* Group (required) */}
-              <Combobox.Root
-                name="groupId"
-                label="Select a group"
-                value={characterGroup}
-                onValueChange={setCharacterGroup}
-                onQueryChange={setCharacterGroupQuery}
-                options={characterGroupOptions?.items ?? []}
-                style={{ width: "50%" }}
-              >
-                <Combobox.Trigger placeholder="Select a group" />
-                <Combobox.Content>
-                  <Combobox.Input placeholder="Search groups..." />
-                  <Combobox.List>
-                    {characterGroupOptions?.items.map((opt, i) => (
-                      <Combobox.Item key={opt.id} option={opt} index={i} />
-                    ))}
-                  </Combobox.List>
-                </Combobox.Content>
-              </Combobox.Root>
+              <Box flexBasis={"50%"} minWidth="180px">
+                <Flex justify="between" align="baseline" mb="1">
+                  <Label.Root htmlFor="group-id">Group</Label.Root>
+                  <ConditionalAlert
+                    id="group-error"
+                    message={errors.groupId?.message && "Select a group"}
+                  />
+                </Flex>
+                <Controller
+                  name="groupId"
+                  control={control}
+                  render={({ field }) => (
+                    <Combobox.Root
+                      id="group-id"
+                      value={groupSelected}
+                      onValueChange={(opt) =>
+                        field.onChange(opt ? Number(opt.id) : undefined)
+                      }
+                      onQueryChange={setGroupQuery}
+                      options={groupOptions}
+                    >
+                      <Combobox.Trigger placeholder="Select a group" />
+                      <Combobox.Content>
+                        <Combobox.Input placeholder="Search groups..." />
+                        <Combobox.List>
+                          {groupOptions.map((opt, i) => (
+                            <Combobox.Item
+                              key={opt.id}
+                              option={opt}
+                              index={i}
+                            />
+                          ))}
+                        </Combobox.List>
+                      </Combobox.Content>
+                    </Combobox.Root>
+                  )}
+                />
+              </Box>
             </Flex>
-            <Form.Field name="description">
-              <Flex justify="between" align="baseline">
-                <Text as="div" weight="bold" size="2" mb="1" asChild>
-                  <Form.Label>Description</Form.Label>
-                </Text>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="description">Description</Label.Root>
+                <ConditionalAlert
+                  id="description-error"
+                  message={errors.description?.message}
+                />
               </Flex>
-              <Form.Control asChild>
-                <TextArea />
-              </Form.Control>
-            </Form.Field>
-            <Form.Field name="isMultiSelect">
+              <TextArea
+                id="description"
+                placeholder="Optional description for the character"
+                {...register("description")}
+                {...a11yProps("description-error", !!errors.description)}
+              />
+            </Box>
+            <Box>
               <Flex gap="2" align="center">
-                <Form.Control asChild>
-                  <Checkbox name="isMultiSelect" defaultChecked />
-                </Form.Control>
-                <Text as="div" weight="bold" size="2" asChild>
-                  <Form.Label>Allow multiple selections</Form.Label>
-                </Text>
+                <Controller
+                  name="isMultiSelect"
+                  control={control}
+                  render={({ field }) => (
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      id="is-multi-select"
+                    />
+                  )}
+                />
+                <Label.Root htmlFor="is-multi-select">
+                  Allow multiple selections
+                </Label.Root>
               </Flex>
-            </Form.Field>
+            </Box>
           </Flex>
           <Flex justify="end" gap="3">
             <Dialog.Close>
               <Button
                 type="button"
-                disabled={loading}
-                loading={loading}
+                disabled={isSubmitting}
+                loading={isSubmitting}
                 variant="soft"
                 color="gray"
               >
@@ -276,12 +325,16 @@ export const AddCharacterModal = NiceModal.create(() => {
               </Button>
             </Dialog.Close>
             <Form.Submit asChild>
-              <Button type="submit" disabled={loading} loading={loading}>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                loading={isSubmitting}
+              >
                 Add character
               </Button>
             </Form.Submit>
           </Flex>
-        </Form.Root>
+        </form>
       </Dialog.Content>
     </Dialog.Root>
   );

@@ -1,0 +1,7 @@
+.glossary-label {
+  font-weight: 500;
+}
+
+.rt-Card[data-status="active"] .glossary-label {
+  font-weight: 700;
+}

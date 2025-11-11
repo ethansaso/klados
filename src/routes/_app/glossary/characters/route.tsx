@@ -2,10 +2,11 @@ import NiceModal from "@ebay/nice-modal-react";
 import { Box, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet, useMatchRoute } from "@tanstack/react-router";
-import { PiMagnifyingGlass, PiPlusCircle, PiTree } from "react-icons/pi";
+import { PiMagnifyingGlass, PiPlusCircle } from "react-icons/pi";
 import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
 import { GlossarySidebarPager } from "../-chrome/GlossarySidebarPager";
 import { useSectionSearch } from "../-chrome/useSectionSearch";
+import { TiOutline } from "../../../../components/icons/TiOutline";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { charactersQueryOptions } from "../../../../lib/queries/characters";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
@@ -63,7 +64,6 @@ function RouteComponent() {
           {paginatedResult.items.map((item) => (
             <GlossarySidebarList.Item
               key={item.id}
-              active={String(item.id) === selectedId}
               keyStr={item.key}
               label={item.label}
               to="/glossary/characters/$characterId"
@@ -72,7 +72,7 @@ function RouteComponent() {
               <Flex align="center" gap="1" asChild>
                 <Text as="div" size="1">
                   {item.usageCount}
-                  <PiTree />
+                  <TiOutline />
                 </Text>
               </Flex>
             </GlossarySidebarList.Item>

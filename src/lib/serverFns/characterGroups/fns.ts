@@ -1,14 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, asc, count, eq, ilike, inArray, or, SQL } from "drizzle-orm";
 import z from "zod";
-import { db } from "../../../../db/client";
+import { db } from "../../../db/client";
 import {
   character as charsTbl,
   characterGroup as groupsTbl,
-} from "../../../../db/schema/schema";
-import { requireCuratorMiddleware } from "../../../auth/serverFnMiddleware";
-import { PaginationSchema } from "../../../validation/pagination";
+} from "../../../db/schema/schema";
+import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
+import { PaginationSchema } from "../../validation/pagination";
 import type { CharacterGroupDTO, CharacterGroupPaginatedResult } from "./types";
+import { createCharacterGroupSchema } from "./validation";
 
 export const listCharacterGroups = createServerFn({ method: "GET" })
   .inputValidator(
@@ -69,17 +70,11 @@ export const listCharacterGroups = createServerFn({ method: "GET" })
 
 export const createCharacterGroup = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(
-    z.object({
-      key: z.string().min(1).max(100),
-      label: z.string().min(1).max(200),
-      description: z.string().max(1000).optional(),
-    })
-  )
+  .inputValidator(createCharacterGroupSchema)
   .handler(async ({ data }): Promise<CharacterGroupDTO> => {
     const key = data.key.trim();
     const label = data.label.trim();
-    const description = data.description?.trim() || null;
+    const description = data.description?.trim() || "";
 
     const [group] = await db
       .insert(groupsTbl)
