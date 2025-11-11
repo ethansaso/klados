@@ -15,7 +15,7 @@ import { DebouncedTextField } from "./DebouncedTextField";
 
 /** Public option shape required by the combobox. */
 export type ComboboxOption = {
-  id: string | number;
+  id: number;
   label: string;
   hint?: string;
 };

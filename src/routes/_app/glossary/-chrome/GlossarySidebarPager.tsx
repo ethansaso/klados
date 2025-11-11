@@ -1,7 +1,7 @@
 import { Button, Flex, Text } from "@radix-ui/themes";
 import { PiArrowLeft, PiArrowRight } from "react-icons/pi";
 
-export function Pager({
+export function GlossarySidebarPager({
   page,
   pageSize,
   total,

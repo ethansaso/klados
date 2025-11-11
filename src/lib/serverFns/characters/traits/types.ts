@@ -12,6 +12,7 @@ export type TraitSetDTO = Pick<
   "id" | "key" | "label" | "description"
 > & {
   valueCount: number;
+  canonicalCount: number;
   usedByCharacters: number;
 };
 export type TraitSetDetailDTO = TraitSetDTO & {};

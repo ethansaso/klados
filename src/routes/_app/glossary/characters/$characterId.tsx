@@ -10,7 +10,7 @@ const ParamsSchema = z.object({
 });
 
 export const Route = createFileRoute(
-  "/_app/characters/definitions/$characterId"
+  "/_app/glossary/characters/$characterId"
 )({
   loader: async ({ context, params }) => {
     const { characterId } = ParamsSchema.parse(params);

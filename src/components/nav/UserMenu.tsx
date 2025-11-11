@@ -23,8 +23,6 @@ export function UserMenu({
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  console.log(imageUrl);
-
   // Hover opens/closes instantly; click toggles
   return (
     <Flex

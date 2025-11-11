@@ -1,8 +1,12 @@
 import { Button, Flex, Link as RtLink, TabNav, Text } from "@radix-ui/themes";
 import { Link as RouterLink } from "@tanstack/react-router";
+import { useMemo } from "react";
+import { PiCaretDown } from "react-icons/pi";
+import { roleHasCuratorRights } from "../../lib/auth/utils";
 import { useIsActive } from "../../lib/hooks/useIsActive";
 import { getMe } from "../../lib/serverFns/user";
 import { Logo } from "./Logo";
+import { NavDropdown } from "./NavDropdown";
 import { UserMenu } from "./UserMenu";
 
 interface NavBarProps {
@@ -27,9 +31,50 @@ function NavBarBrand() {
 export function NavBar({ user }: NavBarProps) {
   const homeActive = useIsActive("/");
   const taxaActive = useIsActive("/taxa", true);
-  const charactersActive = useIsActive("/characters", true);
+  const glossaryActive = useIsActive("/glossary", true);
   const usersActive = useIsActive("/users", true);
   const keysActive = useIsActive("/keys", true);
+
+  const TaxaItem = useMemo(() => {
+    if (roleHasCuratorRights(user?.role)) {
+      return (
+        <NavDropdown.Root>
+          <NavDropdown.Trigger
+            to="/taxa"
+            search={{ q: "", page: 1, pageSize: 20 }}
+            active={taxaActive}
+            style={{ gap: "var(--space-1)" }}
+          >
+            Taxa
+            <PiCaretDown size="10" />
+          </NavDropdown.Trigger>
+          <NavDropdown.Content>
+            <NavDropdown.Link to="/taxa" search={{ page: 1, pageSize: 20 }}>
+              Active taxa
+            </NavDropdown.Link>
+            <NavDropdown.Link
+              to="/taxa/drafts"
+              search={{ page: 1, pageSize: 20 }}
+            >
+              Drafts
+            </NavDropdown.Link>
+          </NavDropdown.Content>
+        </NavDropdown.Root>
+      );
+    } else {
+      return (
+        <TabNav.Link asChild active={taxaActive}>
+          <RouterLink
+            to="/taxa"
+            preload="intent"
+            search={{ q: "", page: 1, pageSize: 20 }}
+          >
+            Taxa
+          </RouterLink>
+        </TabNav.Link>
+      );
+    }
+  }, [user, taxaActive]);
 
   return (
     <TabNav.Root className="navbar">
@@ -40,19 +85,11 @@ export function NavBar({ user }: NavBarProps) {
         </RouterLink>
       </TabNav.Link>
 
-      <TabNav.Link asChild active={taxaActive}>
-        <RouterLink
-          to="/taxa"
-          preload="intent"
-          search={{ q: "", page: 1, pageSize: 20 }}
-        >
-          Taxa
-        </RouterLink>
-      </TabNav.Link>
+      {TaxaItem}
 
-      <TabNav.Link asChild active={charactersActive}>
-        <RouterLink to="/characters" preload="intent">
-          Characters
+      <TabNav.Link asChild active={glossaryActive}>
+        <RouterLink to="/glossary" preload="intent">
+          Glossary
         </RouterLink>
       </TabNav.Link>
 

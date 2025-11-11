@@ -3,23 +3,23 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ContentContainer } from "../../../components/ContentContainer";
 import { useIsActive } from "../../../lib/hooks/useIsActive";
 
-export const Route = createFileRoute("/_app/characters")({
+export const Route = createFileRoute("/_app/glossary")({
   component: RouteComponent,
 });
 
 // TODO: fix needing search on nav (here it should probably remain to reset, though)
 function RouteComponent() {
-  const definitionsActive = useIsActive("/characters/definitions", true);
-  const traitsActive = useIsActive("/characters/traits", true);
-  const groupsActive = useIsActive("/characters/groups", true);
+  const definitionsActive = useIsActive("/glossary/characters", true);
+  const traitsActive = useIsActive("/glossary/traits", true);
+  const groupsActive = useIsActive("/glossary/groups", true);
 
   return (
     <ContentContainer align="stretch">
-      <Heading mb="2">Character glossary</Heading>
+      <Heading mb="2">Glossary</Heading>
       <TabNav.Root mb="3">
         <TabNav.Link asChild active={definitionsActive}>
           <Link
-            to="/characters/definitions"
+            to="/glossary/characters"
             preload="intent"
             search={{ q: "", page: 1, pageSize: 20 }}
           >
@@ -28,7 +28,7 @@ function RouteComponent() {
         </TabNav.Link>
         <TabNav.Link asChild active={groupsActive}>
           <Link
-            to="/characters/groups"
+            to="/glossary/groups"
             preload="intent"
             search={{ q: "", page: 1, pageSize: 20 }}
           >
@@ -37,7 +37,7 @@ function RouteComponent() {
         </TabNav.Link>
         <TabNav.Link asChild active={traitsActive}>
           <Link
-            to="/characters/traits"
+            to="/glossary/traits"
             preload="intent"
             search={{ q: "", page: 1, pageSize: 20 }}
           >

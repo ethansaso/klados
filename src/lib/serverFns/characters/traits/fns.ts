@@ -59,26 +59,51 @@ export const listTraitSets = createServerFn({ method: "GET" })
     ];
     const where = and(...(filters.filter(Boolean) as SQL[]));
 
-    // Items with canonical value count (LEFT JOIN so empty sets still appear)
+    // Aggregate values per set (isolated from character-meta)
+    const valAgg = db
+      .select({
+        setId: valsTbl.setId,
+        valueCount: count(valsTbl.id).as("value_count"),
+        canonicalCount:
+          sql<number>`COUNT(*) FILTER (WHERE ${valsTbl.isCanonical})`.as(
+            "canonical_count"
+          ),
+      })
+      .from(valsTbl)
+      .groupBy(valsTbl.setId)
+      .as("val_agg");
+
+    // Aggregate character usage per set (isolated from values)
+    const usageAgg = db
+      .select({
+        setId: catMetaTbl.traitSetId,
+        usedByCharacters: countDistinct(catMetaTbl.characterId).as(
+          "used_by_characters"
+        ),
+      })
+      .from(catMetaTbl)
+      .groupBy(catMetaTbl.traitSetId)
+      .as("usage_agg");
+
+    // Final select with pre-aggregated tables
     const items = await db
       .select({
         id: setsTbl.id,
         key: setsTbl.key,
         label: setsTbl.label,
         description: setsTbl.description,
-        valueCount: sql<number>`COUNT(${valsTbl.id}) FILTER (WHERE ${valsTbl.isCanonical})`,
-        usedByCharacters: countDistinct(catMetaTbl.characterId),
+        valueCount: sql<number>`COALESCE(${valAgg.valueCount}, 0)`,
+        canonicalCount: sql<number>`COALESCE(${valAgg.canonicalCount}, 0)`,
+        usedByCharacters: sql<number>`COALESCE(${usageAgg.usedByCharacters}, 0)`,
       })
       .from(setsTbl)
-      .leftJoin(valsTbl, eq(valsTbl.setId, setsTbl.id))
-      .leftJoin(catMetaTbl, eq(catMetaTbl.traitSetId, setsTbl.id))
+      .leftJoin(valAgg, eq(valAgg.setId, setsTbl.id))
+      .leftJoin(usageAgg, eq(usageAgg.setId, setsTbl.id))
       .where(where)
-      .groupBy(setsTbl.id, setsTbl.key, setsTbl.label, setsTbl.description)
       .orderBy(asc(setsTbl.key), asc(setsTbl.id))
       .limit(pageSize)
       .offset(offset);
 
-    // Total count with the same base predicate (no join needed)
     const [{ total }] = await db
       .select({ total: count() })
       .from(setsTbl)
@@ -113,7 +138,12 @@ export const createTraitSet = createServerFn({ method: "POST" })
         });
 
       if (!traitSet) throw notFound();
-      return { ...traitSet, valueCount: 0, usedByCharacters: 0 };
+      return {
+        ...traitSet,
+        valueCount: 0,
+        canonicalCount: 0,
+        usedByCharacters: 0,
+      };
     });
   });
 
@@ -135,26 +165,47 @@ export const deleteTraitSet = createServerFn({ method: "POST" })
   });
 
 export const getTraitSet = createServerFn({ method: "GET" })
-  .inputValidator(
-    z.object({
-      id: z.number().int().positive(),
-    })
-  )
+  .inputValidator(z.object({ id: z.number().int().positive() }))
   .handler(async ({ data }): Promise<TraitSetDetailDTO> => {
+    const valAgg = db
+      .select({
+        setId: valsTbl.setId,
+        valueCount: count(valsTbl.id).as("value_count"),
+        canonicalCount:
+          sql<number>`COUNT(*) FILTER (WHERE ${valsTbl.isCanonical})`.as(
+            "canonical_count"
+          ),
+      })
+      .from(valsTbl)
+      .groupBy(valsTbl.setId)
+      .as("val_agg");
+
+    const usageAgg = db
+      .select({
+        setId: catMetaTbl.traitSetId,
+        usedByCharacters: countDistinct(catMetaTbl.characterId).as(
+          "used_by_characters"
+        ),
+      })
+      .from(catMetaTbl)
+      .groupBy(catMetaTbl.traitSetId)
+      .as("usage_agg");
+
     const rows = await db
       .select({
         id: setsTbl.id,
         key: setsTbl.key,
         label: setsTbl.label,
         description: setsTbl.description,
-        valueCount: count(valsTbl.id),
-        usedByCharacters: countDistinct(catMetaTbl.characterId),
+        valueCount: sql<number>`COALESCE(${valAgg.valueCount}, 0)`,
+        canonicalCount: sql<number>`COALESCE(${valAgg.canonicalCount}, 0)`,
+        usedByCharacters: sql<number>`COALESCE(${usageAgg.usedByCharacters}, 0)`,
       })
       .from(setsTbl)
-      .leftJoin(valsTbl, eq(valsTbl.setId, setsTbl.id))
-      .leftJoin(catMetaTbl, eq(catMetaTbl.traitSetId, setsTbl.id))
+      .leftJoin(valAgg, eq(valAgg.setId, setsTbl.id))
+      .leftJoin(usageAgg, eq(usageAgg.setId, setsTbl.id))
       .where(eq(setsTbl.id, data.id))
-      .groupBy(setsTbl.id, setsTbl.key, setsTbl.label, setsTbl.description);
+      .limit(1);
 
     const row = rows[0];
     if (!row) throw notFound();

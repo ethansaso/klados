@@ -6,11 +6,12 @@ import {
   Heading,
   TextField,
 } from "@radix-ui/themes";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Form, Label } from "radix-ui";
-import { FormEventHandler, useState } from "react";
+import { FormEventHandler, useMemo, useState } from "react";
+import { Combobox, ComboboxOption } from "../../../components/inputs/Combobox";
 import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
 import { roleHasCuratorRights } from "../../../lib/auth/utils";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
@@ -34,19 +35,18 @@ export const Route = createFileRoute("/_app/taxa/new")({
 // TODO: validation
 function RouteComponent() {
   const [parentQ, setParentQ] = useState("");
+  const [parent, setParent] = useState<ComboboxOption | null>(null);
   const [acceptedName, setAcceptedName] = useState("");
-  const [parentId, setParentId] = useState<number | null>(null);
   const [rank, setRank] = useState<(typeof TAXON_RANKS_DESCENDING)[number]>(
     TAXON_RANKS_DESCENDING[0]
   );
   const serverCreate = useServerFn(createTaxon);
   const navigate = useNavigate();
-  // TODO: why doesn't useQuery work here?
   const {
     data: parentPaginatedResults,
     error,
     isError,
-  } = useSuspenseQuery(
+  } = useQuery(
     taxaQueryOptions(1, 10, {
       q: parentQ,
       status: "active",
@@ -65,43 +65,53 @@ function RouteComponent() {
       data: {
         accepted_name: acceptedName,
         rank: rank,
-        parent_id: parentId,
+        parent_id: parent?.id ?? null,
       },
     })
       .then((res) => navigate({ to: `/taxa/${res.id}` }))
       .catch((e) => console.error(e));
   };
 
+  const comboboxOptions: ComboboxOption[] = useMemo(
+    () =>
+      parentPaginatedResults?.items.map((taxon) => ({
+        id: taxon.id,
+        label: taxon.acceptedName,
+      })) ?? [],
+    [parentPaginatedResults]
+  );
+
   return (
     <Box>
       <Heading>Add New Taxon</Heading>
       <Form.Form onSubmit={onSubmit}>
         <Flex>
-          <Box>
-            <Label.Root>
-              <Label.Label>Taxon name</Label.Label>
-            </Label.Root>
+          <Form.Field name="acceptedName">
+            <Form.Label>Accepted name</Form.Label>
             <TextField.Root onChange={(e) => setAcceptedName(e.target.value)} />
-          </Box>
+          </Form.Field>
           <Box>
-            <Label.Root>
-              <Label.Label>Parent</Label.Label>
-            </Label.Root>
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger>
-                <Button>{parentId}</Button>
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content>
-                {parentPaginatedResults.items.map((p) => (
-                  <DropdownMenu.Item
-                    key={p.id}
-                    onSelect={() => setParentId(p.id)}
-                  >
-                    {p.acceptedName}
-                  </DropdownMenu.Item>
-                ))}
-              </DropdownMenu.Content>
-            </DropdownMenu.Root>
+            <Combobox.Root
+              label="Parent taxon"
+              value={parent}
+              onValueChange={setParent}
+              options={comboboxOptions}
+              onQueryChange={setParentQ}
+            >
+              <Combobox.Trigger placeholder="Select parent taxon" />
+              <Combobox.Content>
+                <Combobox.Input />
+                <Combobox.List>
+                  {comboboxOptions.map((option, index) => (
+                    <Combobox.Item
+                      key={option.id}
+                      index={index}
+                      option={option}
+                    />
+                  ))}
+                </Combobox.List>
+              </Combobox.Content>
+            </Combobox.Root>
           </Box>
 
           <Box>

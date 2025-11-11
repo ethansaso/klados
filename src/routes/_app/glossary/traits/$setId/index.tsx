@@ -32,7 +32,7 @@ const ParamsSchema = z.object({
   setId: z.coerce.number().int().positive(),
 });
 
-export const Route = createFileRoute("/_app/characters/traits/$setId/")({
+export const Route = createFileRoute("/_app/glossary/traits/$setId/")({
   loader: async ({ context, params }) => {
     const { setId } = ParamsSchema.parse(params);
     return { setId };
@@ -105,7 +105,7 @@ function RouteComponent() {
             queryKey: traitSetValuesQueryOptions(traitSet.id).queryKey,
           });
           navigate({
-            to: "/characters/traits",
+            to: "/glossary/traits",
             search,
           });
           toast({

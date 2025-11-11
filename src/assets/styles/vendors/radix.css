@@ -1,0 +1,8 @@
+.radix-themes {
+  --cursor-button: pointer;
+
+
+  .rt-Card.active::after {
+    outline: 2px solid var(--accent-indicator);
+  }
+}
