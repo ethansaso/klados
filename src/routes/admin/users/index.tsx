@@ -1,18 +1,18 @@
 import { Table } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useSearch } from "@tanstack/react-router";
-import { z } from "zod";
 import { usersQueryOptions } from "../../../lib/queries/users";
+import { SearchSchema } from "../../../lib/validation/search";
 
 export const Route = createFileRoute("/admin/users/")({
   // Coerce query-string values to numbers, set sane defaults (1-based page)
-  validateSearch: z.object({
-    page: z.coerce.number().int().min(1).default(1),
-    pageSize: z.coerce.number().int().min(1).max(100).default(20),
-  }),
+  validateSearch: SearchSchema,
 
   // Re-run loader when these change
-  loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
+  loaderDeps: ({ search: { page, page_size: pageSize } }) => ({
+    page,
+    pageSize,
+  }),
 
   // SSR prefetch for hydration
   loader: async ({ context, deps }) => {
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/admin/users/")({
 });
 
 function RouteComponent() {
-  const { page, pageSize } = useSearch({ from: "/admin/users/" });
+  const { page, page_size: pageSize } = useSearch({ from: "/admin/users/" });
   const { data, isLoading, isError, error } = useQuery(
     usersQueryOptions(page, pageSize)
   );

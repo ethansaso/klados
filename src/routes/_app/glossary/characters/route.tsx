@@ -13,8 +13,12 @@ import { SearchWithQuerySchema } from "../../../../lib/validation/search";
 import { AddCharacterModal } from "./-AddCharacterModal";
 
 export const Route = createFileRoute("/_app/glossary/characters")({
-  validateSearch: (s) => SearchWithQuerySchema.parse(s),
-  loaderDeps: ({ search: { page, pageSize, q } }) => ({ page, pageSize, q }),
+  validateSearch: SearchWithQuerySchema,
+  loaderDeps: ({ search: { page, page_size: pageSize, q } }) => ({
+    page,
+    pageSize,
+    q,
+  }),
   loader: async ({ context, deps: { page, pageSize, q } }) => {
     await context.queryClient.ensureQueryData(
       charactersQueryOptions(page, pageSize, { q })

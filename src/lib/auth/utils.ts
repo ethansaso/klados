@@ -1,6 +1,7 @@
 import { redirect } from "@tanstack/react-router";
 
 const LOGIN_PATH = "/login";
+
 export function roleIsAdmin(role: string | null | undefined) {
   return role === "admin";
 }

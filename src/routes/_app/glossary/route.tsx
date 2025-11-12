@@ -18,29 +18,17 @@ function RouteComponent() {
       <Heading mb="2">Glossary</Heading>
       <TabNav.Root mb="3">
         <TabNav.Link asChild active={definitionsActive}>
-          <Link
-            to="/glossary/characters"
-            preload="intent"
-            search={{ q: "", page: 1, pageSize: 20 }}
-          >
+          <Link to="/glossary/characters" preload="intent">
             Definitions
           </Link>
         </TabNav.Link>
         <TabNav.Link asChild active={groupsActive}>
-          <Link
-            to="/glossary/groups"
-            preload="intent"
-            search={{ q: "", page: 1, pageSize: 20 }}
-          >
+          <Link to="/glossary/groups" preload="intent">
             Groups
           </Link>
         </TabNav.Link>
         <TabNav.Link asChild active={traitsActive}>
-          <Link
-            to="/glossary/traits"
-            preload="intent"
-            search={{ q: "", page: 1, pageSize: 20 }}
-          >
+          <Link to="/glossary/traits" preload="intent">
             Trait Sets
           </Link>
         </TabNav.Link>

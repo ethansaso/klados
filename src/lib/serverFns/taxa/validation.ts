@@ -15,7 +15,7 @@ export const taxonPatchSchema = z.object({
   source_gbif_id: z.number().nullable().optional(),
   source_inat_id: z.number().nullable().optional(),
   media: z.array(mediaItemSchema).optional(),
-  notes: z.string().nullable().optional(),
+  notes: z.string().optional(),
 });
 
 export type MediaItem = z.infer<typeof mediaItemSchema>;

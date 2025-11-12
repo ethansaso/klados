@@ -1,0 +1,19 @@
+.combobox__list > .rt-ScrollAreaViewport > div {
+  width: 100%;
+}
+
+.combobox__item {
+  width: 100%;
+}
+
+.combobox__item-text__label {
+  flex: 0 0 fit-content;
+}
+
+.combobox__item-text__hint {
+  flex: 0 1 auto;
+}
+
+.combobox__item svg {
+  flex: 0 0 auto;
+}

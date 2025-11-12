@@ -4,9 +4,9 @@
 
 import NiceModal, { useModal } from "@ebay/nice-modal-react";
 import { Button, Dialog, Flex, Spinner, Strong, Text } from "@radix-ui/themes";
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
-import { ExternalResultSummary } from "./-ExternalResultSummary";
+import { ExternalResultSummary } from "./ExternalResultSummary";
 
 type GbifTaxon = {
   id: number;
@@ -41,14 +41,14 @@ const INTERNAL_RANK_TO_GBIF_MAPPING: Record<
   variety: "VARIETY",
 };
 
-export const GbifConfirmModal = NiceModal.create<Props>(
+const GbifConfirmModal = NiceModal.create<Props>(
   ({ taxonName, rank, onConfirm }) => {
     const modal = useModal();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [taxon, setTaxon] = useState<GbifTaxon | null>(null);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
       const controller = new AbortController();
       const run = async () => {
         try {
@@ -127,7 +127,7 @@ export const GbifConfirmModal = NiceModal.create<Props>(
         open={modal.visible}
         onOpenChange={(open) => !open && modal.hide()}
       >
-        <Dialog.Content maxWidth="400px" aria-describedby={undefined}>
+        <Dialog.Content maxWidth="400px">
           <Dialog.Title align="center" mb="5">
             GBIF Taxon Lookup
           </Dialog.Title>

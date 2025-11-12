@@ -75,7 +75,7 @@ function RouteComponent() {
     try {
       await serverCreate({
         data: {
-          setId,
+          set_id: setId,
           key: snakeCase(trimmedValue),
           label: trimmedValue,
         },

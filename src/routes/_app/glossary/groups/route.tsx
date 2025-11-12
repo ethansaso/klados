@@ -12,8 +12,12 @@ import { SearchWithQuerySchema } from "../../../../lib/validation/search";
 import { AddCharacterGroupModal } from "./-AddCharacterGroupModal";
 
 export const Route = createFileRoute("/_app/glossary/groups")({
-  validateSearch: (s) => SearchWithQuerySchema.parse(s),
-  loaderDeps: ({ search: { page, pageSize, q } }) => ({ page, pageSize, q }),
+  validateSearch: SearchWithQuerySchema,
+  loaderDeps: ({ search: { page, page_size: pageSize, q } }) => ({
+    page,
+    pageSize,
+    q,
+  }),
   loader: async ({ context, deps: { page, pageSize, q } }) => {
     await context.queryClient.ensureQueryData(
       characterGroupsQueryOptions(page, pageSize, { q })

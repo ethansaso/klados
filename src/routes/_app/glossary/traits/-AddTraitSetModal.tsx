@@ -14,7 +14,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { Form, Label } from "radix-ui";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useAutoKey } from "../-chrome/-useAutoKey";
-import { ConditionalAlert } from "../../../../components/inputs/ConditionalAlert";
+import {
+  a11yProps,
+  ConditionalAlert,
+} from "../../../../components/inputs/ConditionalAlert";
 import { createTraitSet } from "../../../../lib/serverFns/traits/fns";
 import {
   CreateTraitSetInput,
@@ -59,6 +62,7 @@ export const AddTraitSetModal = NiceModal.create(() => {
   }) => {
     try {
       await serverCreate({ data: { key, label, description } });
+
       qc.invalidateQueries({ queryKey: ["traitSets"] });
       toast({
         variant: "success",
@@ -110,8 +114,7 @@ export const AddTraitSetModal = NiceModal.create(() => {
                 id="trait-set-label"
                 placeholder="e.g. color, texture, odor"
                 {...register("label")}
-                aria-invalid={!!errors.label}
-                aria-describedby="trait-set-label-error"
+                {...a11yProps("trait-set-label-error", !!errors.label)}
               />
             </Box>
             <Box>
@@ -144,8 +147,7 @@ export const AddTraitSetModal = NiceModal.create(() => {
                 type="text"
                 readOnly={autoKey}
                 {...register("key", { onBlur: handleKeyBlur })}
-                aria-invalid={!!errors.key}
-                aria-describedby="trait-set-key-error"
+                {...a11yProps("trait-set-key-error", !!errors.key)}
               />
             </Box>
             <Box>
@@ -166,8 +168,10 @@ export const AddTraitSetModal = NiceModal.create(() => {
                 id="trait-set-description"
                 placeholder="Optional description for this trait set"
                 {...register("description")}
-                aria-invalid={!!errors.description}
-                aria-describedby="trait-set-description-error"
+                {...a11yProps(
+                  "trait-set-description-error",
+                  !!errors.description
+                )}
               />
             </Box>
           </Flex>

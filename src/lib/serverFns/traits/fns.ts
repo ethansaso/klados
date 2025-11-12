@@ -38,7 +38,7 @@ export const listTraitSets = createServerFn({ method: "GET" })
     })
   )
   .handler(async ({ data }): Promise<TraitSetPaginatedResult> => {
-    const { q, ids, page, pageSize } = data;
+    const { q, ids, page, pageSize: pageSize } = data;
     const offset = (page - 1) * pageSize;
 
     // Escape %, _ and \ in the search string (no user wildcards)
@@ -208,7 +208,7 @@ export const getTraitSet = createServerFn({ method: "GET" })
   });
 
 export const listTraitSetValues = createServerFn({ method: "GET" })
-  .inputValidator(z.object({ setId: z.number().int().positive() }))
+  .inputValidator(z.object({ set_id: z.number().int().positive() }))
   .handler(async ({ data }): Promise<TraitValueDTO[]> => {
     const v = valsTbl;
     const canon = alias(valsTbl, "canon");
@@ -225,7 +225,7 @@ export const listTraitSetValues = createServerFn({ method: "GET" })
       })
       .from(v)
       .leftJoin(canon, eq(v.canonicalValueId, canon.id))
-      .where(eq(v.setId, data.setId))
+      .where(eq(v.setId, data.set_id))
       // Alphabetically, then by ID to stabilize order
       .orderBy(asc(v.label), asc(v.id));
 
@@ -247,17 +247,17 @@ export const createTraitValue = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
   .inputValidator(
     z.object({
-      setId: z.coerce.number().int().positive(),
+      set_id: z.coerce.number().int().positive(),
       key: z.string().min(1).max(100),
       label: z.string().min(1).max(200),
-      canonicalValueId: z.coerce.number().int().positive().optional(),
+      canonical_value_id: z.coerce.number().int().positive().optional(),
     })
   )
   .handler(async ({ data }): Promise<TraitValueDTO> => {
-    const setId = data.setId;
+    const setId = data.set_id;
     const key = data.key.trim();
     const label = data.label.trim();
-    const canonicalValueId = data.canonicalValueId ?? null;
+    const canonicalValueId = data.canonical_value_id ?? null;
 
     return await db.transaction(async (tx) => {
       // If alias, verify the target exists, is in the same set, and is canonical.

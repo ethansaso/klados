@@ -19,7 +19,7 @@ export const listCharacterGroups = createServerFn({ method: "GET" })
     })
   )
   .handler(async ({ data }): Promise<CharacterGroupPaginatedResult> => {
-    const { q, ids, page, pageSize } = data;
+    const { q, ids, page, pageSize: pageSize } = data;
     const offset = (page - 1) * pageSize;
 
     const rawQ = q?.trim();

@@ -21,6 +21,6 @@ export const taxaQueryOptions = (
     ] as const,
     queryFn: () =>
       listTaxa({
-        data: { page, pageSize, q: opts?.q, status: opts?.status },
+        data: { page, pageSize: pageSize, q: opts?.q, status: opts?.status },
       }) as Promise<TaxonPaginatedResult>,
   });

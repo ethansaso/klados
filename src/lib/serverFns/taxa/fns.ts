@@ -62,7 +62,7 @@ export const listTaxa = createServerFn({ method: "GET" })
     })
   )
   .handler(async ({ data }): Promise<TaxonPaginatedResult> => {
-    const { q, ids, page, pageSize, status } = data;
+    const { q, ids, page, pageSize: pageSize, status } = data;
     const offset = (page - 1) * pageSize;
 
     // Escape %, _ and \ in the search string (no user wildcards)

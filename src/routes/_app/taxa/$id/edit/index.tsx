@@ -12,7 +12,7 @@ import {
   TextField,
   Tooltip,
 } from "@radix-ui/themes";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createFileRoute,
   notFound,
@@ -21,13 +21,23 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Form } from "radix-ui";
-import { MouseEventHandler, useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { Form, Label } from "radix-ui";
+import { MouseEventHandler, useMemo, useState } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { FaDove, FaLeaf } from "react-icons/fa";
-import { ComboboxOption } from "../../../../../components/inputs/Combobox";
+import {
+  Combobox,
+  ComboboxOption,
+} from "../../../../../components/inputs/Combobox";
+import {
+  a11yProps,
+  ConditionalAlert,
+} from "../../../../../components/inputs/ConditionalAlert";
 import { TAXON_RANKS_DESCENDING } from "../../../../../db/schema/schema";
-import { taxonQueryOptions } from "../../../../../lib/queries/taxa";
+import {
+  taxaQueryOptions,
+  taxonQueryOptions,
+} from "../../../../../lib/queries/taxa";
 import { taxonCharacterValuesQueryOptions } from "../../../../../lib/queries/taxonCharacterValues";
 import {
   deleteTaxon,
@@ -41,10 +51,15 @@ import {
 } from "../../../../../lib/serverFns/taxa/validation";
 import { toast } from "../../../../../lib/utils/toast";
 import { MediaEditingForm } from "./-MediaEditingForm";
+import { pickGBIFTaxon } from "./-dialogs/GbifConfirmModal";
 import { pickInatTaxon } from "./-dialogs/InatConfirmModal";
-import { pickGBIFTaxon } from "./-dialogs/gbifConfirmModal";
 
-type FormFields = Omit<TaxonPatch, "media" | "rank"> & {
+type FormFields = Omit<
+  TaxonPatch,
+  "source_inat_id" | "source_gbif_id" | "media" | "rank"
+> & {
+  source_inat_id: number | null;
+  source_gbif_id: number | null;
   media: MediaItem[];
   rank: (typeof TAXON_RANKS_DESCENDING)[number];
 };
@@ -84,32 +99,58 @@ export const Route = createFileRoute("/_app/taxa/$id/edit/")({
 const seedEditState = (taxon: TaxonDetailDTO): FormFields => ({
   parent_id: taxon.ancestors[0]?.id ?? null,
   rank: taxon.rank,
-  source_gbif_id: taxon.sourceGbifId ?? null,
-  source_inat_id: taxon.sourceInatId ?? null,
-  media: taxon.media ?? [],
-  notes: taxon.notes ?? null,
+  source_gbif_id: taxon.sourceGbifId,
+  source_inat_id: taxon.sourceInatId,
+  media: taxon.media,
+  notes: taxon.notes,
 });
 
 function RouteComponent() {
   const { id, initialTaxon, initialCharacterValues } = Route.useLoaderData();
-  const [parentQ, setParentQ] = useState("");
-  const [parent, setParent] = useState<ComboboxOption | null>(null);
   const qc = useQueryClient();
   const navigate = useNavigate();
-
-  const { register, setValue, handleSubmit } = useForm<FormFields>();
-
   const serverUpdate = useServerFn(updateTaxon);
   const serverPublish = useServerFn(publishTaxon);
   const serverDelete = useServerFn(deleteTaxon);
 
-  const [dirty, setDirty] = useState(false);
-  const [pending, setPending] = useState(false);
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    getValues,
+    formState: { errors, isDirty, isSubmitting },
+  } = useForm<FormFields>({
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+    defaultValues: seedEditState(initialTaxon),
+  });
+
+  const [isDeleting, setIsDeleting] = useState(false);
+  // Parent combobox setup
+  const [parentQ, setParentQ] = useState("");
+  const { data: parentResp } = useQuery(
+    taxaQueryOptions(1, 10, { q: parentQ, status: "active" })
+  );
+  const parentOptions = (parentResp?.items.map((i) => ({
+    id: i.id,
+    label: i.acceptedName,
+    hint: i.rank,
+  })) ?? []) as ComboboxOption[];
+  const parentIdVal = useWatch({ control, name: "parent_id" });
+  const parentSelected = useMemo<ComboboxOption | null>(() => {
+    if (!parentIdVal) return null;
+    return parentOptions.find((o) => o.id === Number(parentIdVal)) ?? null;
+  }, [parentIdVal, parentOptions]);
+  // For media fetching
+  const inatId = useWatch({ control, name: "source_inat_id" });
 
   useBlocker({
     shouldBlockFn: () =>
-      dirty && !pending ? !confirm("Leave without saving?") : false,
-    enableBeforeUnload: dirty,
+      isDirty && !(isSubmitting || isDeleting)
+        ? !confirm("Leave without saving?")
+        : false,
+    enableBeforeUnload: isDirty,
   });
 
   const isDraft = initialTaxon.status === "draft";
@@ -128,83 +169,65 @@ function RouteComponent() {
     ]);
   }
 
-  return null; // TODO
-
   const handleDiscard = () => {
-    if (!dirty) return;
+    if (!isDirty) return;
     if (!confirm("Discard unsaved changes?")) return;
-    setForm(seedEditState(initialTaxon));
-    setDirty(false);
+    reset(seedEditState(initialTaxon), { keepDirty: false });
   };
 
-  const onSave: SubmitHandler<FormFields> = async (data) => {
-    if (!dirty) return;
-    setPending(true);
+  const onSave = handleSubmit(async (data) => {
+    if (!isDirty) return;
     try {
       await serverUpdate({ data: { id, ...data } });
-      setDirty(false);
+      reset(data, { keepDirty: false }); // keep RHF dirty tracking in sync
       await invalidateTaxon(id);
-      toast({
-        description: "Taxon saved.",
-        variant: "success",
-      });
+      toast({ description: "Taxon saved.", variant: "success" });
     } catch (err: any) {
       toast({
         description: err?.message ?? "Failed to save changes.",
         variant: "error",
       });
-    } finally {
-      setPending(false);
     }
-  };
+  });
 
-  const handlePublish: MouseEventHandler<HTMLButtonElement> = async (e) => {
-    e.preventDefault();
+  const onPublish = handleSubmit(async (data) => {
     if (!isDraft) return;
-
-    setPending(true);
     try {
-      if (dirty) {
-        await serverUpdate({ data: { id, ...form } });
-        setDirty(false);
-      }
+      await serverUpdate({ data: { id, ...data } });
+      reset(data, { keepDirty: false }); // clear dirty after persisting
       await serverPublish({ data: { id } });
       await invalidateTaxon(id);
-      toast({
-        description: "Taxon published.",
-        variant: "success",
-      });
+      toast({ description: "Taxon published.", variant: "success" });
       navigate({ to: ".." });
     } catch (err: any) {
       toast({
         description: err?.message ?? "Failed to publish taxon.",
         variant: "error",
       });
-    } finally {
-      setPending(false);
     }
-  };
+  });
 
   const handleDelete: MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault();
-    if (!isDraft) return;
+    if (!isDraft || isDeleting || isSubmitting) return;
+
     const ok = window.confirm(
       "Delete this taxon draft? This cannot be undone."
     );
     if (!ok) return;
 
-    setPending(true);
+    setIsDeleting(true);
     try {
       await serverDelete({ data: { id } });
       await invalidateTaxon(id);
-      navigate({ to: "/taxa/drafts", search: { page: 0, pageSize: 20 } });
+      navigate({ to: "/taxa/drafts" });
     } catch (err: any) {
       toast({
         description: err?.message ?? "Failed to delete taxon.",
         variant: "error",
       });
     } finally {
-      setPending(false);
+      setIsDeleting(false);
     }
   };
 
@@ -222,214 +245,267 @@ function RouteComponent() {
         <Text size="2">ID: {id}</Text>
       </Flex>
 
-      <Form.Root onSubmit={handleSubmit(onSave)}>
+      <Form.Root onSubmit={onSave}>
         <Flex direction="column" gap="3" mb="4">
           {/* Accepted Name (TODO) */}
-          <Form.Field name="accepted-name">
-            <Form.Label>
-              <Text as="div" weight="bold" size="2" mb="1">
-                Accepted Name
-              </Text>
-            </Form.Label>
-            <Form.Control asChild>
-              <TextField.Root value={"TODO"} onChange={() => {}} />
-            </Form.Control>
-          </Form.Field>
-
-          <Flex>
+          <Box>
+            <Flex justify="between" align="baseline" mb="1">
+              <Label.Root>Accepted Name</Label.Root>
+            </Flex>
+            <TextField.Root value={"TODO"}></TextField.Root>
+          </Box>
+          <Flex gap="4">
             {/* Rank */}
-            <Form.Field name="rank">
-              <Form.Label>
-                <Text as="div" weight="bold" size="2" mb="1">
-                  Rank
-                </Text>
-              </Form.Label>
-              <Form.Control asChild>
-                <Select.Root
-                  value={form.rank}
-                  onValueChange={(v) => setField("rank", v as typeof form.rank)}
-                >
-                  <Select.Trigger style={{ display: "flex" }}>
-                    {form.rank}
-                  </Select.Trigger>
-                  <Select.Content>
-                    {TAXON_RANKS_DESCENDING.map((rank) => (
-                      <Select.Item key={rank} value={rank}>
-                        {rank}
-                      </Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select.Root>
-              </Form.Control>
-            </Form.Field>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="rank">Rank</Label.Root>
+                <ConditionalAlert
+                  id="rank-error"
+                  message={errors.rank?.message}
+                />
+              </Flex>
+              <Controller
+                name="rank"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <Select.Root
+                    value={value}
+                    onValueChange={(v) => onChange(v as typeof value)}
+                  >
+                    <Select.Trigger style={{ display: "flex" }}>
+                      {value}
+                    </Select.Trigger>
+                    <Select.Content>
+                      {TAXON_RANKS_DESCENDING.map((rank) => (
+                        <Select.Item key={rank} value={rank}>
+                          {rank}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              ></Controller>
+            </Box>
             {/* Parent ID (TODO) */}
-            {/* <Combobox.Root
-              label="Parent taxon"
-              value={parent}
-              onValueChange={setParent}
-              options={comboboxOptions}
-              onQueryChange={setParentQ}
-            >
-              <Combobox.Trigger placeholder="Select parent taxon" />
-              <Combobox.Content>
-                <Combobox.Input />
-                <Combobox.List>
-                  {comboboxOptions.map((option, index) => (
-                    <Combobox.Item
-                      key={option.id}
-                      index={index}
-                      option={option}
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="parent-id">Parent taxon</Label.Root>
+                <ConditionalAlert
+                  id="parent-id-error"
+                  message={errors.parent_id?.message}
+                />
+              </Flex>
+
+              <Controller
+                control={control}
+                name="parent_id"
+                render={({ field }) => (
+                  <Combobox.Root
+                    id="parent-id"
+                    value={parentSelected}
+                    onValueChange={(opt) => {
+                      field.onChange(opt ? Number(opt.id) : null);
+                    }}
+                    options={parentOptions}
+                    onQueryChange={setParentQ}
+                  >
+                    <Combobox.Trigger
+                      placeholder="Select parent taxon"
+                      {...a11yProps("parent-id-error", !!errors.parent_id)}
                     />
-                  ))}
-                </Combobox.List>
-              </Combobox.Content>
-            </Combobox.Root> */}
+                    <Combobox.Content>
+                      <Combobox.Input />
+                      <Combobox.List>
+                        {parentOptions.map((option, index) => (
+                          <Combobox.Item
+                            key={option.id}
+                            index={index}
+                            option={option}
+                          />
+                        ))}
+                      </Combobox.List>
+                    </Combobox.Content>
+                  </Combobox.Root>
+                )}
+              />
+            </Box>
           </Flex>
           <Flex gap="4">
             {/* Source GBIF ID */}
-            <Form.Field name="source-gbif-id">
-              <Form.Label>
-                <Text as="div" weight="bold" size="2" mb="1">
-                  Source GBIF ID
-                </Text>
-              </Form.Label>
-              <Form.Control asChild>
-                <TextField.Root
-                  type="number"
-                  {...register("source_gbif_id")}
-                  onChange={(e) =>
-                    setValue(
-                      "source_gbif_id",
-                      e.currentTarget.value === ""
-                        ? null
-                        : Number(e.currentTarget.value)
-                    )
-                  }
-                >
-                  <TextField.Slot side="right" pr="3">
-                    <Tooltip content="Fetch from GBIF">
-                      <IconButton
-                        type="button"
-                        variant="ghost"
-                        onClick={async () => {
-                          const picked = await pickGBIFTaxon(
-                            initialTaxon.acceptedName
-                          );
-                          if (picked) {
-                            setField("source_gbif_id", picked.id);
-                          }
-                        }}
-                      >
-                        <FaLeaf />
-                      </IconButton>
-                    </Tooltip>
-                  </TextField.Slot>
-                </TextField.Root>
-              </Form.Control>
-            </Form.Field>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="source-gbif-id">Source GBIF ID</Label.Root>
+                <ConditionalAlert
+                  id="source-gbif-id-error"
+                  message={errors.source_gbif_id?.message}
+                />
+              </Flex>
+              <Controller
+                control={control}
+                name="source_gbif_id"
+                render={({ field }) => (
+                  <TextField.Root
+                    id="source-gbif-id"
+                    type="number"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.currentTarget.value === ""
+                          ? null
+                          : Number(e.currentTarget.value)
+                      )
+                    }
+                    onBlur={field.onBlur}
+                    {...a11yProps(
+                      "source-gbif-id-error",
+                      !!errors.source_gbif_id
+                    )}
+                  >
+                    <TextField.Slot side="right" pr="3">
+                      <Tooltip content="Fetch from GBIF">
+                        <IconButton
+                          type="button"
+                          variant="ghost"
+                          onClick={async () => {
+                            const picked = await pickGBIFTaxon(
+                              initialTaxon.acceptedName
+                            );
+                            if (picked) field.onChange(picked.id);
+                          }}
+                        >
+                          <FaLeaf />
+                        </IconButton>
+                      </Tooltip>
+                    </TextField.Slot>
+                  </TextField.Root>
+                )}
+              />
+            </Box>
             {/* Source iNat ID */}
-            <Form.Field name="source-inat-id">
-              <Form.Label>
-                <Text as="div" weight="bold" size="2" mb="1">
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="source-inat-id">
                   Source iNaturalist ID
-                </Text>
-              </Form.Label>
-              <Form.Control asChild>
-                <TextField.Root
-                  type="number"
-                  value={form.source_inat_id ?? ""}
-                  onChange={(e) =>
-                    setField(
-                      "source_inat_id",
-                      e.currentTarget.value === ""
-                        ? null
-                        : Number(e.currentTarget.value)
-                    )
-                  }
-                >
-                  <TextField.Slot side="right" pr="3">
-                    <Tooltip content="Fetch from iNaturalist">
-                      <IconButton
-                        type="button"
-                        variant="ghost"
-                        onClick={async () => {
-                          const picked = await pickInatTaxon(
-                            initialTaxon.acceptedName,
-                            form.rank
-                          );
-                          if (picked) {
-                            setField("source_inat_id", picked.id);
-                          }
-                        }}
-                      >
-                        <FaDove />
-                      </IconButton>
-                    </Tooltip>
-                  </TextField.Slot>
-                </TextField.Root>
-              </Form.Control>
-            </Form.Field>
+                </Label.Root>
+                <ConditionalAlert
+                  id="source-inat-id-error"
+                  message={errors.source_inat_id?.message}
+                />
+              </Flex>
+              <Controller
+                control={control}
+                name="source_inat_id"
+                render={({ field }) => (
+                  <TextField.Root
+                    id="source-inat-id"
+                    type="number"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.currentTarget.value === ""
+                          ? null
+                          : Number(e.currentTarget.value)
+                      )
+                    }
+                    onBlur={field.onBlur}
+                    {...a11yProps(
+                      "source-inat-id-error",
+                      !!errors.source_inat_id
+                    )}
+                  >
+                    <TextField.Slot side="right" pr="3">
+                      <Tooltip content="Fetch from iNaturalist">
+                        <IconButton
+                          type="button"
+                          variant="ghost"
+                          onClick={async () => {
+                            const picked = await pickInatTaxon(
+                              initialTaxon.acceptedName,
+                              getValues("rank")
+                            );
+                            if (picked) field.onChange(picked.id);
+                          }}
+                        >
+                          <FaDove />
+                        </IconButton>
+                      </Tooltip>
+                    </TextField.Slot>
+                  </TextField.Root>
+                )}
+              />
+            </Box>
           </Flex>
 
-          {/* Notes (nullable string) */}
-          <Form.Field name="notes">
-            <Form.Label>
-              <Text as="div" weight="bold" size="2" mb="1">
-                Notes
-              </Text>
-            </Form.Label>
-            <Form.Control asChild>
-              <TextArea rows={5} {...register("notes")} />
-            </Form.Control>
-          </Form.Field>
+          {/* Notes */}
+          <Box>
+            <Flex justify="between" align="baseline" mb="1">
+              <Label.Root htmlFor="notes">Notes</Label.Root>
+              <ConditionalAlert
+                id="notes-error"
+                message={errors.notes?.message}
+              />
+            </Flex>
+            <TextArea
+              id="notes"
+              placeholder="Optional notes about this taxon"
+              {...register("notes")}
+              {...a11yProps("notes-error", !!errors.notes)}
+            />
+          </Box>
         </Flex>
 
         {/* Media */}
-        <MediaEditingForm
-          value={form.media}
-          onChange={(media) => setField("media", media)}
+        <Controller
+          control={control}
+          name="media"
+          render={({ field: { value, onChange } }) => (
+            <MediaEditingForm
+              value={value}
+              inatId={inatId}
+              onChange={onChange}
+            />
+          )}
         />
 
         <Flex gap="2" justify="end">
           <Button
             type="button"
-            disabled={!dirty || pending}
-            loading={pending}
+            disabled={isSubmitting || isDeleting || !isDirty}
+            loading={isSubmitting || isDeleting}
             onClick={handleDiscard}
             variant="soft"
           >
             Discard Changes
           </Button>
-          <Form.Submit asChild>
-            <Button
-              variant={isDraft ? "soft" : "solid"}
-              loading={pending}
-              disabled={!dirty || pending}
-            >
-              Save
-            </Button>
-          </Form.Submit>
-          {isDraft ? (
-            <Button
-              type="button"
-              disabled={pending}
-              loading={pending}
-              onClick={handlePublish}
-            >
-              Publish
-            </Button>
-          ) : null}
-          {isDraft ? (
-            <Button
-              type="button"
-              disabled={pending}
-              loading={pending}
-              color="tomato"
-              onClick={handleDelete}
-            >
-              Delete Draft
-            </Button>
-          ) : null}
+          <Button
+            type="submit"
+            variant={isDraft ? "soft" : "solid"}
+            loading={isSubmitting || isDeleting}
+            disabled={!isDirty || isSubmitting || isDeleting}
+          >
+            Save
+          </Button>
+          {isDraft && (
+            <>
+              <Button
+                type="button"
+                disabled={isSubmitting || isDeleting}
+                loading={isSubmitting || isDeleting}
+                onClick={onPublish}
+              >
+                Publish
+              </Button>
+              <Button
+                type="button"
+                disabled={isDeleting || isSubmitting}
+                loading={isDeleting || isSubmitting}
+                color="tomato"
+                onClick={handleDelete}
+              >
+                Delete Draft
+              </Button>
+            </>
+          )}
         </Flex>
       </Form.Root>
     </Box>

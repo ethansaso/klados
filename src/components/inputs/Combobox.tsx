@@ -5,12 +5,17 @@ import {
   IconButton,
   Popover,
   ScrollArea,
-  Strong,
   Text,
   TextField,
 } from "@radix-ui/themes";
+import classNames from "classnames";
 import * as React from "react";
-import { PiCaretUpDownFill, PiMagnifyingGlass, PiX } from "react-icons/pi";
+import {
+  PiCaretUpDownFill,
+  PiCheck,
+  PiMagnifyingGlass,
+  PiX,
+} from "react-icons/pi";
 import { DebouncedTextField } from "./DebouncedTextField";
 
 /** Public option shape required by the combobox. */
@@ -189,7 +194,11 @@ function Trigger({ placeholder }: { placeholder?: React.ReactNode }) {
             <Text as="div" truncate>
               {triggerLabel}
             </Text>
-            <PiCaretUpDownFill size="14" aria-hidden />
+            <PiCaretUpDownFill
+              size="14"
+              aria-hidden
+              style={{ flexShrink: 0 }}
+            />
           </Flex>
         </Button>
       </Popover.Trigger>
@@ -216,20 +225,19 @@ function Trigger({ placeholder }: { placeholder?: React.ReactNode }) {
 /* ================================ Content ============================== */
 
 function Content({
-  style,
-  className,
   children,
-}: React.PropsWithChildren<{
-  style?: React.CSSProperties;
-  className?: string;
-}>) {
+  minWidth = "280px",
+  maxWidth = "400px",
+  ...props
+}: React.PropsWithChildren<React.ComponentProps<typeof Popover.Content>>) {
   return (
     <Popover.Content
       side="bottom"
       align="start"
       size="1"
-      className={className}
-      style={{ minWidth: 280, ...style }}
+      minWidth={minWidth}
+      maxWidth={maxWidth}
+      {...props}
     >
       {children}
     </Popover.Content>
@@ -317,7 +325,7 @@ function List({
     <ScrollArea
       type="auto"
       scrollbars="vertical"
-      className={className}
+      className={classNames("combobox__list", className)}
       style={{ maxHeight: 260, ...style }}
     >
       <ul
@@ -329,7 +337,6 @@ function List({
           margin: 0,
           listStyle: "none",
           position: "relative",
-          paddingRight: "var(--space-4)",
         }}
       >
         {/* Hidden live region for screen readers */}
@@ -405,9 +412,9 @@ function Item({
     <Flex direction="column" gap="0" asChild>
       <li
         id={`${id}-opt-${index}`}
+        className="combobox__item"
         role="option"
         aria-selected={selected}
-        data-active={active || undefined}
         data-selected={selected || undefined}
         onMouseEnter={() => setActiveIndex(index)}
         onClick={() => {
@@ -415,22 +422,43 @@ function Item({
           setOpen(false);
         }}
         style={{
-          padding: "8px 10px",
+          padding: "6px var(--space-2)",
           borderRadius: 6,
           cursor: "pointer",
-          background: active ? "var(--accent-3)" : "transparent",
-          outline: active ? "2px solid transparent" : "none",
+          background: active || selected ? "var(--accent-3)" : "transparent",
           ...style,
         }}
       >
-        <Text as="p" size="2" truncate>
-          <Strong>{option.label}</Strong>
-        </Text>
-        {option.hint && (
-          <Text as="p" size="1" color="gray" truncate>
-            {option.hint}
-          </Text>
-        )}
+        <Flex
+          justify="between"
+          align="center"
+          gap="2"
+          className="combobox__item-content"
+        >
+          <Flex align="baseline" gap="2" flexShrink="1" overflow="hidden">
+            <Text
+              as="p"
+              size="2"
+              truncate
+              weight="medium"
+              className="combobox__item-text__label"
+            >
+              {option.label}
+            </Text>
+            {option.hint && (
+              <Text
+                as="p"
+                size="1"
+                color="gray"
+                truncate
+                className="combobox__item-text__hint"
+              >
+                {option.hint}
+              </Text>
+            )}
+          </Flex>
+          <PiCheck size="14" visibility={selected ? "visible" : "hidden"} />
+        </Flex>
       </li>
     </Flex>
   );

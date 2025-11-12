@@ -31,7 +31,7 @@ export const listUsers = createServerFn({ method: "GET" })
     })
   )
   .handler(async ({ data }): Promise<UsersPageResult> => {
-    const { ids, page, pageSize } = data;
+    const { ids, page, pageSize: pageSize } = data;
     const offset = (page - 1) * pageSize;
 
     const predicate: SQL | undefined =

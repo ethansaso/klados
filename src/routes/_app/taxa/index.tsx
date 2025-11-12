@@ -8,8 +8,12 @@ import { SearchWithQuerySchema } from "../../../lib/validation/search";
 import { TaxonGrid } from "./-TaxonGrid";
 
 export const Route = createFileRoute("/_app/taxa/")({
-  validateSearch: (s) => SearchWithQuerySchema.parse(s),
-  loaderDeps: ({ search: { page, pageSize, q } }) => ({ page, pageSize, q }),
+  validateSearch: SearchWithQuerySchema,
+  loaderDeps: ({ search: { page, page_size: pageSize, q } }) => ({
+    page,
+    pageSize,
+    q,
+  }),
   loader: async ({ context, deps: { page, pageSize, q } }) => {
     await context.queryClient.ensureQueryData(
       taxaQueryOptions(page, pageSize, { q, status: "active" })
@@ -22,7 +26,7 @@ function TaxaListPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const { data: paginatedResult } = useSuspenseQuery(
-    taxaQueryOptions(search.page, search.pageSize, {
+    taxaQueryOptions(search.page, search.page_size, {
       q: search.q,
       status: "active",
     })

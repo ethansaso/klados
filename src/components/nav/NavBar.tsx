@@ -41,7 +41,6 @@ export function NavBar({ user }: NavBarProps) {
         <NavDropdown.Root>
           <NavDropdown.Trigger
             to="/taxa"
-            search={{ q: "", page: 1, pageSize: 20 }}
             active={taxaActive}
             style={{ gap: "var(--space-1)" }}
           >
@@ -49,15 +48,8 @@ export function NavBar({ user }: NavBarProps) {
             <PiCaretDown size="10" />
           </NavDropdown.Trigger>
           <NavDropdown.Content>
-            <NavDropdown.Link to="/taxa" search={{ page: 1, pageSize: 20 }}>
-              Active taxa
-            </NavDropdown.Link>
-            <NavDropdown.Link
-              to="/taxa/drafts"
-              search={{ page: 1, pageSize: 20 }}
-            >
-              Drafts
-            </NavDropdown.Link>
+            <NavDropdown.Link to="/taxa">Active taxa</NavDropdown.Link>
+            <NavDropdown.Link to="/taxa/drafts">Drafts</NavDropdown.Link>
           </NavDropdown.Content>
         </NavDropdown.Root>
       );
@@ -67,7 +59,7 @@ export function NavBar({ user }: NavBarProps) {
           <RouterLink
             to="/taxa"
             preload="intent"
-            search={{ q: "", page: 1, pageSize: 20 }}
+            search={{ q: "", page: 1, page_size: 20 }}
           >
             Taxa
           </RouterLink>

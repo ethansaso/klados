@@ -1,5 +1,7 @@
 import NiceModal, { useModal } from "@ebay/nice-modal-react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  Box,
   Button,
   Dialog,
   Flex,
@@ -9,10 +11,18 @@ import {
 } from "@radix-ui/themes";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Form } from "radix-ui";
-import { useEffect, useState } from "react";
+import { Form, Label } from "radix-ui";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { useAutoKey } from "../-chrome/-useAutoKey";
+import {
+  a11yProps,
+  ConditionalAlert,
+} from "../../../../components/inputs/ConditionalAlert";
 import { createCharacterGroup } from "../../../../lib/serverFns/characterGroups/fns";
-import { snakeCase } from "../../../../lib/utils/casing";
+import {
+  CreateTraitSetInput,
+  createTraitSetSchema,
+} from "../../../../lib/serverFns/traits/validation";
 import { toast } from "../../../../lib/utils/toast";
 
 export const AddCharacterGroupModal = NiceModal.create(() => {
@@ -20,21 +30,37 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
   const qc = useQueryClient();
   const serverCreate = useServerFn(createCharacterGroup);
 
-  const [loading, setLoading] = useState(false);
-  const [label, setLabel] = useState("");
-  const [key, setKey] = useState("");
-  const [autoKey, setAutoKey] = useState(true);
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    reset,
+    formState: { errors, isSubmitting, touchedFields, isSubmitted },
+  } = useForm<CreateTraitSetInput>({
+    resolver: zodResolver(createTraitSetSchema),
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+    defaultValues: {
+      key: undefined,
+      label: "",
+      description: "",
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const { autoKey, setAutoKey, handleKeyBlur } = useAutoKey(
+    control,
+    setValue,
+    "label",
+    "key"
+  );
 
-    const formData = new FormData(e.currentTarget);
-    const key = formData.get("key") as string;
-    const label = formData.get("label") as string;
-    const description = formData.get("description") as string;
-
+  const onSubmit: SubmitHandler<CreateTraitSetInput> = async ({
+    key,
+    label,
+    description,
+  }) => {
     try {
-      setLoading(true);
       await serverCreate({
         data: {
           key,
@@ -48,6 +74,8 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
         variant: "success",
         description: `Character group "${label}" created successfully.`,
       });
+      reset();
+      setAutoKey(true);
       hide();
     } catch (error) {
       toast({
@@ -55,27 +83,15 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
         description:
           error instanceof Error ? error.message : "An unknown error occurred.",
       });
-    } finally {
-      setLoading(false);
     }
   };
-
-  const handleKeyBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    setKey(snakeCase(e.target.value));
-  };
-
-  // Auto-generate key from label
-  useEffect(() => {
-    if (autoKey) setKey(snakeCase(label));
-  }, [label, autoKey]);
 
   return (
     <Dialog.Root
       open={visible}
       onOpenChange={(open) => {
         if (!open) {
-          setLabel("");
-          setKey("");
+          reset();
           setAutoKey(true);
           hide();
         }
@@ -86,104 +102,91 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
         <Dialog.Description size="2" mb="4">
           Specify the details for the new character group.
         </Dialog.Description>
-        <Form.Root onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <Flex direction="column" gap="3" mb="4">
-            <Form.Field name="label">
-              <Flex justify="between" align="baseline">
-                <Form.Label>
-                  <Text as="div" weight="bold" size="2" mb="1">
-                    Label
-                  </Text>
-                </Form.Label>
-                <Form.Message match="valueMissing" asChild>
-                  <Text color="red" size="1">
-                    Label is required
-                  </Text>
-                </Form.Message>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="character-group-label">Label</Label.Root>
+                <ConditionalAlert
+                  id="character-group-label-error"
+                  message={
+                    touchedFields.label || isSubmitted
+                      ? errors.label?.message
+                      : undefined
+                  }
+                />
               </Flex>
-              <Form.Control
-                required
-                asChild
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-                placeholder="e.g. cap, spores, leaves"
-              >
-                <TextField.Root type="text" />
-              </Form.Control>
-            </Form.Field>
-            <Form.Field name="key">
-              <Flex justify="between" align="baseline">
-                <Form.Label>
-                  <Text as="div" weight="bold" size="2" mb="1">
-                    Key
+              <TextField.Root
+                id="character-group-label"
+                placeholder="e.g. cap, stem, leaf"
+                {...register("label")}
+                {...a11yProps("character-group-label-error", !!errors.label)}
+              />
+            </Box>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="character-group-key">Key</Label.Root>
+                <Flex align="center" gap="2">
+                  <ConditionalAlert
+                    id="character-group-key-error"
+                    message={
+                      touchedFields.key || isSubmitted
+                        ? errors.key?.message
+                        : undefined
+                    }
+                  />
+                  <Text size="1" color="gray">
+                    {autoKey ? "Auto" : "Manual"}
                   </Text>
-                </Form.Label>
-                <Flex align="baseline" gap="2">
-                  <Form.Message match="valueMissing" asChild>
-                    <Text color="red" size="1">
-                      Key is required
-                    </Text>
-                  </Form.Message>
-                  <Flex align="center" gap="2" mb="1">
-                    {autoKey ? (
-                      <>
-                        <Text size="1" color="gray">
-                          Auto
-                        </Text>
-                        <Button
-                          size="1"
-                          variant="soft"
-                          onClick={() => setAutoKey(false)}
-                          type="button"
-                        >
-                          Edit
-                        </Button>
-                      </>
-                    ) : (
-                      <Button
-                        size="1"
-                        variant="soft"
-                        onClick={() => setAutoKey(true)}
-                        type="button"
-                      >
-                        Use auto
-                      </Button>
-                    )}
-                  </Flex>
+                  <Button
+                    size="1"
+                    variant="soft"
+                    type="button"
+                    onClick={() => setAutoKey((v) => !v)}
+                  >
+                    {autoKey ? "Edit" : "Use auto"}
+                  </Button>
                 </Flex>
               </Flex>
-              <Form.Control
-                required
-                asChild
+              <TextField.Root
+                id="character-group-key"
+                type="text"
                 readOnly={autoKey}
-                onBlur={handleKeyBlur}
-                value={key}
-                onChange={(e) => {
-                  if (!autoKey) setKey(e.target.value);
-                }}
-              >
-                <TextField.Root type="text" />
-              </Form.Control>
-            </Form.Field>
-            <Form.Field name="description">
-              <Flex justify="between" align="baseline">
-                <Form.Label>
-                  <Text as="div" weight="bold" size="2" mb="1">
-                    Description
-                  </Text>
-                </Form.Label>
+                {...register("key", { onBlur: handleKeyBlur })}
+                {...a11yProps("character-group-key-error", !!errors.key)}
+              />
+            </Box>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="character-group-description">
+                  Description
+                </Label.Root>
+                <ConditionalAlert
+                  id="character-group-description-error"
+                  message={
+                    touchedFields.description || isSubmitted
+                      ? errors.description?.message
+                      : undefined
+                  }
+                />
               </Flex>
-              <Form.Control asChild>
-                <TextArea />
-              </Form.Control>
-            </Form.Field>
+              <TextArea
+                id="character-group-description"
+                placeholder="Optional description for this character group"
+                {...register("description")}
+                {...a11yProps(
+                  "character-group-description-error",
+                  !!errors.description
+                )}
+              />
+            </Box>
           </Flex>
           <Flex justify="end" gap="3">
             <Dialog.Close>
               <Button
                 type="button"
-                disabled={loading}
-                loading={loading}
+                disabled={isSubmitting}
+                loading={isSubmitting}
                 variant="soft"
                 color="gray"
               >
@@ -191,12 +194,16 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
               </Button>
             </Dialog.Close>
             <Form.Submit asChild>
-              <Button type="submit" disabled={loading} loading={loading}>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                loading={isSubmitting}
+              >
                 Add character group
               </Button>
             </Form.Submit>
           </Flex>
-        </Form.Root>
+        </form>
       </Dialog.Content>
     </Dialog.Root>
   );

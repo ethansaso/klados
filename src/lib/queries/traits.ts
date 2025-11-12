@@ -19,7 +19,7 @@ export const traitSetsQueryOptions = (
     queryKey: ["traitSets", { page, pageSize, q: opts?.q ?? null }] as const,
     queryFn: () =>
       listTraitSets({
-        data: { page, pageSize, q: opts?.q },
+        data: { page, pageSize: pageSize, q: opts?.q },
       }) as Promise<TraitSetPaginatedResult>,
     staleTime: 60_000,
   });
@@ -35,6 +35,8 @@ export const traitSetValuesQueryOptions = (setId: number) =>
   queryOptions({
     queryKey: ["traitSetValues", setId] as const,
     queryFn: () =>
-      listTraitSetValues({ data: { setId } }) as Promise<TraitValueDTO[]>,
+      listTraitSetValues({ data: { set_id: setId } }) as Promise<
+        TraitValueDTO[]
+      >,
     staleTime: 30_000,
   });

@@ -50,10 +50,10 @@ export const AddCharacterModal = NiceModal.create(() => {
     defaultValues: {
       key: "",
       label: "",
-      groupId: undefined,
-      traitSetId: undefined,
+      group_id: undefined,
+      trait_set_id: undefined,
       description: undefined,
-      isMultiSelect: true,
+      is_multi_select: true,
     },
   });
 
@@ -73,10 +73,14 @@ export const AddCharacterModal = NiceModal.create(() => {
   const { data: groupResp } = useQuery(
     characterGroupsQueryOptions(1, 10, { q: groupQuery })
   );
-  const traitSetOptions = (traitSetResp?.items ?? []) as ComboboxOption[];
+  const traitSetOptions = (traitSetResp?.items.map((i) => ({
+    id: i.id,
+    label: i.label,
+    hint: i.description,
+  })) ?? []) as ComboboxOption[];
   const groupOptions = (groupResp?.items ?? []) as ComboboxOption[];
-  const traitSetIdVal = useWatch({ control, name: "traitSetId" });
-  const groupIdVal = useWatch({ control, name: "groupId" });
+  const traitSetIdVal = useWatch({ control, name: "trait_set_id" });
+  const groupIdVal = useWatch({ control, name: "group_id" });
   const traitSetSelected = useMemo<ComboboxOption | null>(() => {
     if (!traitSetIdVal) return null;
     return traitSetOptions.find((o) => o.id === Number(traitSetIdVal)) ?? null;
@@ -96,10 +100,10 @@ export const AddCharacterModal = NiceModal.create(() => {
   const onSubmit: SubmitHandler<CreateCharacterInput> = async ({
     key,
     label,
-    groupId,
-    traitSetId,
+    group_id: groupId,
+    trait_set_id: traitSetId,
     description,
-    isMultiSelect,
+    is_multi_select: isMultiSelect,
   }) => {
     try {
       await serverCreate({
@@ -107,9 +111,9 @@ export const AddCharacterModal = NiceModal.create(() => {
           key,
           label,
           description,
-          groupId,
-          traitSetId,
-          isMultiSelect,
+          group_id: groupId,
+          trait_set_id: traitSetId,
+          is_multi_select: isMultiSelect,
         },
       });
 
@@ -204,11 +208,13 @@ export const AddCharacterModal = NiceModal.create(() => {
                   <Label.Root htmlFor="trait-set-id">Trait Set</Label.Root>
                   <ConditionalAlert
                     id="trait-set-error"
-                    message={errors.traitSetId?.message && "Select a trait set"}
+                    message={
+                      errors.trait_set_id?.message && "Select a trait set"
+                    }
                   />
                 </Flex>
                 <Controller
-                  name="traitSetId"
+                  name="trait_set_id"
                   control={control}
                   render={({ field }) => (
                     <Combobox.Root
@@ -221,7 +227,7 @@ export const AddCharacterModal = NiceModal.create(() => {
                       options={traitSetOptions}
                     >
                       <Combobox.Trigger placeholder="Select a trait set" />
-                      <Combobox.Content>
+                      <Combobox.Content maxWidth="300px">
                         <Combobox.Input placeholder="Search trait sets..." />
                         <Combobox.List>
                           {traitSetOptions.map((opt, i) => (
@@ -244,11 +250,11 @@ export const AddCharacterModal = NiceModal.create(() => {
                   <Label.Root htmlFor="group-id">Group</Label.Root>
                   <ConditionalAlert
                     id="group-error"
-                    message={errors.groupId?.message && "Select a group"}
+                    message={errors.group_id?.message && "Select a group"}
                   />
                 </Flex>
                 <Controller
-                  name="groupId"
+                  name="group_id"
                   control={control}
                   render={({ field }) => (
                     <Combobox.Root
@@ -288,7 +294,7 @@ export const AddCharacterModal = NiceModal.create(() => {
               </Flex>
               <TextArea
                 id="description"
-                placeholder="Optional description for the character"
+                placeholder="Optional description for this character"
                 {...register("description")}
                 {...a11yProps("description-error", !!errors.description)}
               />
@@ -296,7 +302,7 @@ export const AddCharacterModal = NiceModal.create(() => {
             <Box>
               <Flex gap="2" align="center">
                 <Controller
-                  name="isMultiSelect"
+                  name="is_multi_select"
                   control={control}
                   render={({ field }) => (
                     <Checkbox

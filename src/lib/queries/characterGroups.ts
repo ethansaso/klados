@@ -9,6 +9,7 @@ export const characterGroupsQueryOptions = (
 ) =>
   queryOptions<CharacterGroupPaginatedResult>({
     queryKey: ["characterGroups", { page, pageSize, q: opts?.q ?? null }],
-    queryFn: () => listCharacterGroups({ data: { page, pageSize, ...opts } }),
+    queryFn: () =>
+      listCharacterGroups({ data: { page, pageSize: pageSize, ...opts } }),
     staleTime: 60_000,
   });

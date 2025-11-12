@@ -30,7 +30,7 @@ export const listCharacters = createServerFn({ method: "GET" })
     })
   )
   .handler(async ({ data }): Promise<CharacterPaginatedResult> => {
-    const { q, ids, page, pageSize } = data;
+    const { q, ids, page, pageSize: pageSize } = data;
     const offset = (page - 1) * pageSize;
 
     const rawQ = q?.trim();
@@ -161,7 +161,11 @@ export const createCharacter = createServerFn({ method: "POST" })
     const key = snakeCase(data.key.trim());
     const label = data.label.trim();
     const description = data.description?.trim() || "";
-    const { groupId, traitSetId, isMultiSelect } = data;
+    const {
+      group_id: groupId,
+      trait_set_id: traitSetId,
+      is_multi_select: isMultiSelect,
+    } = data;
 
     return await db.transaction(async (tx) => {
       // Insert character

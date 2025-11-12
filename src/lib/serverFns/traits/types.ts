@@ -5,8 +5,6 @@ import {
 import { PaginatedResult } from "../../validation/pagination";
 
 export type TraitSetRow = typeof categoricalTraitSet.$inferSelect;
-export type TraitValueRow = typeof categoricalTraitValue.$inferSelect;
-
 export type TraitSetDTO = Pick<
   TraitSetRow,
   "id" | "key" | "label" | "description"
@@ -16,6 +14,8 @@ export type TraitSetDTO = Pick<
   usedByCharacters: number;
 };
 export type TraitSetDetailDTO = TraitSetDTO & {};
+
+export type TraitValueRow = typeof categoricalTraitValue.$inferSelect;
 export type TraitValueDTO = Pick<
   TraitValueRow,
   "id" | "setId" | "key" | "label" | "isCanonical"

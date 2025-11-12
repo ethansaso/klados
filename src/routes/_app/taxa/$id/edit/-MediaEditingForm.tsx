@@ -8,12 +8,16 @@ import {
   Text,
   TextField,
 } from "@radix-ui/themes";
+import { FaDove } from "react-icons/fa";
 import { PiArrowDown, PiArrowUp, PiPlus, PiTrash } from "react-icons/pi";
 import { MEDIA_LICENSES } from "../../../../../db/utils/mediaLicense";
 import { MediaItem } from "../../../../../lib/serverFns/taxa/validation";
+import { toast } from "../../../../../lib/utils/toast";
+import { selectInatPhotos } from "./-dialogs/InatPhotoSelectModal";
 
 type MediaEditorProps = {
   value: MediaItem[];
+  inatId: number | null;
   onChange: (next: MediaItem[]) => void;
 };
 
@@ -37,7 +41,11 @@ const ELIGIBLE: Record<(typeof MEDIA_LICENSES)[number], string> = {
   "all-rights-reserved": "All Rights Reserved",
 };
 
-export const MediaEditingForm = ({ value, onChange }: MediaEditorProps) => {
+export const MediaEditingForm = ({
+  value,
+  inatId,
+  onChange,
+}: MediaEditorProps) => {
   const addRow = () => onChange([...value, { url: "" }]);
   const removeRow = (i: number) =>
     onChange(value.filter((_, idx) => idx !== i));
@@ -69,6 +77,20 @@ export const MediaEditingForm = ({ value, onChange }: MediaEditorProps) => {
     }
   };
 
+  const addFromInat = async () => {
+    if (!inatId) {
+      toast({
+        variant: "error",
+        description: "Please set the iNaturalist ID first.",
+      });
+      return;
+    }
+    const picked = await selectInatPhotos(inatId);
+    if (picked && picked.length) {
+      onChange([...value, ...picked]);
+    }
+  };
+
   return (
     <Box mb="4">
       <Flex mb="2">
@@ -77,6 +99,15 @@ export const MediaEditingForm = ({ value, onChange }: MediaEditorProps) => {
         </Text>
         <IconButton type="button" radius="full" size="1" onClick={addRow}>
           <PiPlus size="16" />
+        </IconButton>
+        <IconButton
+          type="button"
+          radius="full"
+          size="1"
+          color="lime"
+          onClick={addFromInat}
+        >
+          <FaDove size="16" />
         </IconButton>
       </Flex>
       <Table.Root variant="surface">

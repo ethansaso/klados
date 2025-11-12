@@ -9,7 +9,7 @@ import { getMe, getUser, listUsers } from "../serverFns/user";
 export const usersQueryOptions = (page: number, pageSize: number) =>
   queryOptions<UsersPageResult>({
     queryKey: ["users", { page, pageSize }],
-    queryFn: () => listUsers({ data: { page, pageSize } }),
+    queryFn: () => listUsers({ data: { page, pageSize: pageSize } }),
     staleTime: 60_000,
   });
 
