@@ -5,4 +5,8 @@
     outline: 2px solid var(--focus-8);
     outline-offset: -1px;
   }
+
+  .rt-TableColumnHeaderCell {
+    font-weight: 500;
+  }
 }

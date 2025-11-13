@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Badge,
   Box,
@@ -25,6 +26,7 @@ import { Form, Label } from "radix-ui";
 import { MouseEventHandler, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FaDove, FaLeaf } from "react-icons/fa";
+import z from "zod";
 import {
   Combobox,
   ComboboxOption,
@@ -46,25 +48,22 @@ import {
 } from "../../../../../lib/serverFns/taxa/fns";
 import { TaxonDetailDTO } from "../../../../../lib/serverFns/taxa/types";
 import {
-  MediaItem,
-  TaxonPatch,
+  mediaItemSchema,
+  taxonPatchSchema,
 } from "../../../../../lib/serverFns/taxa/validation";
 import { toast } from "../../../../../lib/utils/toast";
 import { MediaEditingForm } from "./-MediaEditingForm";
 import { pickGBIFTaxon } from "./-dialogs/GbifConfirmModal";
 import { pickInatTaxon } from "./-dialogs/InatConfirmModal";
 
-type FormFields = Omit<
-  TaxonPatch,
-  "source_inat_id" | "source_gbif_id" | "media" | "rank"
-> & {
-  source_inat_id: number | null;
-  source_gbif_id: number | null;
-  media: MediaItem[];
-  rank: (typeof TAXON_RANKS_DESCENDING)[number];
-};
+const taxonFormSchema = taxonPatchSchema.extend({
+  source_inat_id: z.number().nullable(),
+  source_gbif_id: z.number().nullable(),
+  media: z.array(mediaItemSchema),
+  rank: z.enum(TAXON_RANKS_DESCENDING),
+});
+type FormFields = z.infer<typeof taxonFormSchema>;
 
-// TODO: validation
 // TODO: suspense
 export const Route = createFileRoute("/_app/taxa/$id/edit/")({
   beforeLoad: async ({ context, params }) => {
@@ -121,6 +120,7 @@ function RouteComponent() {
     getValues,
     formState: { errors, isDirty, isSubmitting },
   } = useForm<FormFields>({
+    resolver: zodResolver(taxonFormSchema),
     mode: "onSubmit",
     reValidateMode: "onChange",
     defaultValues: seedEditState(initialTaxon),
@@ -132,11 +132,18 @@ function RouteComponent() {
   const { data: parentResp } = useQuery(
     taxaQueryOptions(1, 10, { q: parentQ, status: "active" })
   );
-  const parentOptions = (parentResp?.items.map((i) => ({
-    id: i.id,
-    label: i.acceptedName,
-    hint: i.rank,
-  })) ?? []) as ComboboxOption[];
+  const parentOptions = useMemo<ComboboxOption[]>(() => {
+    const items = parentResp?.items ?? [];
+    return items.reduce<ComboboxOption[]>((acc, i) => {
+      if (i.id === id) return acc; // skip self
+      acc.push({
+        id: i.id,
+        label: i.acceptedName,
+        hint: i.rank,
+      });
+      return acc;
+    }, []);
+  }, [parentResp, id]);
   const parentIdVal = useWatch({ control, name: "parent_id" });
   const parentSelected = useMemo<ComboboxOption | null>(() => {
     if (!parentIdVal) return null;

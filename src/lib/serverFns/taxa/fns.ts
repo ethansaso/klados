@@ -389,14 +389,22 @@ export const updateTaxon = createServerFn({ method: "POST" })
       })
       .and(taxonPatchSchema)
       .superRefine((data, ctx) => {
-        // enforce
-        const { id, ...rest } = data as Record<string, unknown>;
+        const { id, parent_id, ...rest } = data as Record<string, unknown>;
+        // 1) At least one field to update
         const hasAny = Object.values(rest).some((v) => v !== undefined);
         if (!hasAny) {
           ctx.addIssue({
             code: "custom",
             message: "At least one field must be provided to update.",
             path: [],
+          });
+        }
+        // 2) parent_id cannot be the same as id
+        if (parent_id != null && parent_id === id) {
+          ctx.addIssue({
+            code: "custom",
+            message: "A taxon's parent cannot be itself.",
+            path: ["parent_id"],
           });
         }
       })

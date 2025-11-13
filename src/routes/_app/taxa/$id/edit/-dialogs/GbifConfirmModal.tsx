@@ -127,7 +127,7 @@ const GbifConfirmModal = NiceModal.create<Props>(
         open={modal.visible}
         onOpenChange={(open) => !open && modal.hide()}
       >
-        <Dialog.Content maxWidth="400px">
+        <Dialog.Content maxWidth="360px" aria-describedby={undefined}>
           <Dialog.Title align="center" mb="5">
             GBIF Taxon Lookup
           </Dialog.Title>

@@ -425,7 +425,7 @@ function Item({
           padding: "6px var(--space-2)",
           borderRadius: 6,
           cursor: "pointer",
-          background: active || selected ? "var(--accent-3)" : "transparent",
+          background: active ? "var(--accent-3)" : "transparent",
           ...style,
         }}
       >

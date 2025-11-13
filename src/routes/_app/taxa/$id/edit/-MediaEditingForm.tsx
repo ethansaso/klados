@@ -87,14 +87,18 @@ export const MediaEditingForm = ({
     }
     const picked = await selectInatPhotos(inatId);
     if (picked && picked.length) {
-      onChange([...value, ...picked]);
+      const existingUrls = new Set(value.map((item) => item.url));
+      const newItems = picked.filter((item) => !existingUrls.has(item.url));
+      if (newItems.length > 0) {
+        onChange([...value, ...newItems]);
+      }
     }
   };
 
   return (
     <Box mb="4">
-      <Flex mb="2">
-        <Text size="3" mr="2">
+      <Flex mb="2" gap="1">
+        <Text size="3" mr="1">
           <Strong>Media</Strong>
         </Text>
         <IconButton type="button" radius="full" size="1" onClick={addRow}>
@@ -104,7 +108,7 @@ export const MediaEditingForm = ({
           type="button"
           radius="full"
           size="1"
-          color="lime"
+          color="grass"
           onClick={addFromInat}
         >
           <FaDove size="16" />

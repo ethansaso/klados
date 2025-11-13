@@ -1,0 +1,22 @@
+.select-image-grid {
+  label.rt-CheckboxCardsItem {
+    aspect-ratio: 1/1;
+    padding: 0;
+    --checkbox-cards-item-padding-left: 8px;
+
+    img {
+      height: 100%;
+      width: 100%;
+      object-fit: cover;
+    }
+
+    button {
+      top: 6px;
+    }
+
+    &:has(.rt-CheckboxCardCheckbox[aria-checked="true"])::after {
+      inset: 0;
+      background: var(--accent-a3);
+    }
+  }
+}

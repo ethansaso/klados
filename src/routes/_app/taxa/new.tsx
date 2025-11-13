@@ -96,7 +96,6 @@ function RouteComponent() {
           </Form.Field>
           <Box>
             <Combobox.Root
-              label="Parent taxon"
               value={parent}
               onValueChange={setParent}
               options={comboboxOptions}

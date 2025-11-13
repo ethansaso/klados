@@ -10,12 +10,18 @@ export const mediaItemSchema = z.object({
 });
 
 export const taxonPatchSchema = z.object({
-  parent_id: z.number().nullable().optional(),
+  parent_id: z.number("parent_id must be a number").nullable().optional(),
   rank: z.enum(TAXON_RANKS_DESCENDING).optional(),
-  source_gbif_id: z.number().nullable().optional(),
-  source_inat_id: z.number().nullable().optional(),
+  source_gbif_id: z
+    .number("If provided, source_gbif_id must be a number")
+    .nullable()
+    .optional(),
+  source_inat_id: z
+    .number("If provided, source_inat_id must be a number")
+    .nullable()
+    .optional(),
   media: z.array(mediaItemSchema).optional(),
-  notes: z.string().optional(),
+  notes: z.string("notes must be a string").optional(),
 });
 
 export type MediaItem = z.infer<typeof mediaItemSchema>;

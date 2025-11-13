@@ -4,7 +4,6 @@ import {
   CheckboxCards,
   Dialog,
   Flex,
-  Inset,
   Spinner,
   Text,
 } from "@radix-ui/themes";
@@ -44,14 +43,18 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
             setError("No matching taxon found.");
           } else {
             // first 9 photos
-            const taxonPhotos: any[] = first.taxon_photos?.slice(0, 9) ?? [];
+            const taxonPhotos: any[] =
+              first.taxon_photos
+                ?.filter((tp) => tp.photo.license_code) // filter out all rights reserved
+                .slice(0, 9) ?? [];
             setAllMedia(
               taxonPhotos.map(
                 (tp) =>
                   ({
                     url: tp.photo.medium_url,
-                    license: tp.photo.license_code ?? "all-rights-reserved",
+                    license: tp.photo.license_code,
                     owner: tp.photo.attribution_name,
+                    source: "iNaturalist",
                   }) as MediaItem
               )
             );
@@ -79,8 +82,8 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
 
     return (
       <Dialog.Root open={visible} onOpenChange={(open) => !open && hide()}>
-        <Dialog.Content maxWidth="400px">
-          <Dialog.Title>Select iNaturalist Photos</Dialog.Title>
+        <Dialog.Content maxWidth="400px" aria-describedby={undefined}>
+          <Dialog.Title>Import iNaturalist Photos</Dialog.Title>
           <Flex justify="center">
             {loading ? (
               <Flex align="center" gap="2">
@@ -90,22 +93,24 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
             ) : error ? (
               <Text color="red">{error}</Text>
             ) : allMedia ? (
-              <CheckboxCards.Root columns="3" gap="1">
-                {allMedia.map((m, i) => (
-                  <CheckboxCards.Item value={String(i)}>
-                    <Inset>
-                      <img
-                        src={m.url}
-                        style={{
-                          aspectRatio: "1 / 1",
-                          height: "100%",
-                          width: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    </Inset>
-                  </CheckboxCards.Item>
-                ))}
+              <CheckboxCards.Root
+                columns="3"
+                gap="1"
+                className="select-image-grid"
+                value={Array.from(selectedIds).map(String)}
+                onValueChange={(values) =>
+                  setSelectedIds(new Set(values.map(Number)))
+                }
+              >
+                {allMedia.length !== 0 ? (
+                  allMedia.map((m, i) => (
+                    <CheckboxCards.Item value={String(i)} key={i}>
+                      <img src={m.url} />
+                    </CheckboxCards.Item>
+                  ))
+                ) : (
+                  <Text>No photos with usable licenses found.</Text>
+                )}
               </CheckboxCards.Root>
             ) : null}
           </Flex>
