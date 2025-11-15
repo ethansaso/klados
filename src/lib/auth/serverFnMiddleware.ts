@@ -1,7 +1,11 @@
 import { createMiddleware } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { auth } from "./auth";
-import { forceLoginRedirect, roleHasCuratorRights, roleIsAdmin } from "./utils";
+import {
+  forceLoginRedirectFromRequest,
+  roleHasCuratorRights,
+  roleIsAdmin,
+} from "./utils";
 
 export const userSessionMiddleware = createMiddleware({
   type: "request",
@@ -22,7 +26,7 @@ export const requireAuthenticationMiddleware = createMiddleware({
     const session = context.user;
 
     if (!session) {
-      forceLoginRedirect(request);
+      forceLoginRedirectFromRequest(request);
     }
 
     return next();
@@ -37,7 +41,7 @@ export const requireCuratorMiddleware = createMiddleware({
     const role = context.user?.role;
 
     if (!context.user || !roleHasCuratorRights(role)) {
-      forceLoginRedirect(request);
+      forceLoginRedirectFromRequest(request);
     }
 
     return next();
@@ -52,7 +56,7 @@ export const requireAdminMiddleware = createMiddleware({
     const role = context.user?.role;
 
     if (!context.user || !roleIsAdmin(role)) {
-      forceLoginRedirect(request);
+      forceLoginRedirectFromRequest(request);
     }
 
     return next();

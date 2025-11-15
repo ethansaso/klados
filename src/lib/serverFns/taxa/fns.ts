@@ -33,7 +33,7 @@ import { taxonPatchSchema } from "./validation";
 const sci = alias(namesTbl, "sci");
 const sciJoinPred = and(
   eq(sci.taxonId, taxaTbl.id),
-  sql`${sci.kind} = 'scientific' AND ${sci.synonymKind} IS NULL`
+  sql`${sci.kind} = 'scientific' AND ${sci.isSynonym} IS NULL`
 );
 
 // Reusable selection shape for a TaxonDTO

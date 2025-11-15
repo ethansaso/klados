@@ -15,7 +15,7 @@ export async function assertExactlyOneAcceptedScientificName(
     .where(
       and(
         eq(namesTbl.taxonId, taxonId),
-        sql`${namesTbl.kind} = 'scientific' AND ${namesTbl.synonymKind} IS NULL`
+        sql`${namesTbl.kind} = 'scientific' AND ${namesTbl.isSynonym} IS NULL`
       )
     );
 

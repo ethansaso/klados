@@ -17,9 +17,9 @@ function NavBarBrand() {
   return (
     <RtLink asChild underline="none" highContrast>
       <RouterLink to="/" preload="intent">
-        <Flex align="center" gap="2" px="3" py="2">
-          <Logo />
-          <Text weight="bold" size="3">
+        <Flex align="center" gap="2" px="2" py="1" mr="4">
+          <Logo size={24} />
+          <Text weight="bold" size="6">
             TaxoKeys
           </Text>
         </Flex>

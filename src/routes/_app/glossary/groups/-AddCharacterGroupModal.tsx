@@ -18,7 +18,7 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
-import { createCharacterGroup } from "../../../../lib/serverFns/characterGroups/fns";
+import { createCharacterGroup } from "../../../../lib/serverFns/character-groups/fns";
 import {
   CreateTraitSetInput,
   createTraitSetSchema,

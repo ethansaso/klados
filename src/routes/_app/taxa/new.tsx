@@ -67,7 +67,7 @@ function RouteComponent() {
       },
     })
       .then((res) => {
-        navigate({ to: `/taxa/${res.id}` });
+        navigate({ to: `/taxa/${res.id}/edit` });
         toast({
           description: `Successfully created draft for taxon ${res.acceptedName}`,
           variant: "success",

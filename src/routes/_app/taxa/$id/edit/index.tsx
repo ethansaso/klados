@@ -53,8 +53,8 @@ import {
 } from "../../../../../lib/serverFns/taxa/validation";
 import { toast } from "../../../../../lib/utils/toast";
 import { MediaEditingForm } from "./-MediaEditingForm";
-import { pickGBIFTaxon } from "./-dialogs/GbifConfirmModal";
-import { pickInatTaxon } from "./-dialogs/InatConfirmModal";
+import { pickGBIFTaxon } from "./-dialogs/GbifIdModal";
+import { pickInatTaxon } from "./-dialogs/InatIdModal";
 
 const taxonFormSchema = taxonPatchSchema.extend({
   source_inat_id: z.number().nullable(),
@@ -159,6 +159,8 @@ function RouteComponent() {
         : false,
     enableBeforeUnload: isDirty,
   });
+  // Watch rank for GBIF/iNat fetching
+  const rank = useWatch({ control, name: "rank" });
 
   const isDraft = initialTaxon.status === "draft";
   const statusBadgeColor =
@@ -375,7 +377,8 @@ function RouteComponent() {
                           variant="ghost"
                           onClick={async () => {
                             const picked = await pickGBIFTaxon(
-                              initialTaxon.acceptedName
+                              initialTaxon.acceptedName,
+                              rank
                             );
                             if (picked) field.onChange(picked.id);
                           }}
@@ -428,7 +431,7 @@ function RouteComponent() {
                           onClick={async () => {
                             const picked = await pickInatTaxon(
                               initialTaxon.acceptedName,
-                              getValues("rank")
+                              rank
                             );
                             if (picked) field.onChange(picked.id);
                           }}
