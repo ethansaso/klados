@@ -3,10 +3,13 @@
 @import "forms.css";
 @import "./vendors/_index.css";
 @import "./components/_index.css";
+@import "./pages/_index.css";
 
 :root,
 .radix-themes {
-  --default-font-family: 'Open Sans', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans';
+  --default-font-family:
+    "Open Sans", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue",
+    Arial, "Noto Sans";
 }
 
 body {

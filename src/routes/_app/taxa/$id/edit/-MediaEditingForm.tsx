@@ -97,7 +97,7 @@ export const MediaEditingForm = ({
 
   return (
     <Box mb="4">
-      <Flex mb="2" gap="1">
+      <Flex mb="3" gap="1">
         <Text size="3" mr="1">
           <Strong>Media</Strong>
         </Text>
@@ -242,7 +242,7 @@ export const MediaEditingForm = ({
                   <Table.Cell>
                     <IconButton
                       type="button"
-                      color="red"
+                      color="tomato"
                       aria-label="Remove"
                       onClick={() => removeRow(i)}
                     >

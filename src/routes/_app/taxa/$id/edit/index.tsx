@@ -189,6 +189,7 @@ function RouteComponent() {
   };
 
   const onSave = handleSubmit(async (data) => {
+    console.log(data);
     if (!isDirty) return;
     try {
       await serverUpdate({ data: { id, ...data } });
@@ -252,10 +253,9 @@ function RouteComponent() {
         </RadixLink>
       </Box>
       <Text size="2">Editing details for:</Text>
-      <Heading mb="2">{initialTaxon.acceptedName}</Heading>
-      <Flex align="center" gap="2" mb="3">
+      <Flex align="baseline" gap="2" mb="2">
+        <Heading>{initialTaxon.acceptedName}</Heading>
         <Badge color={statusBadgeColor}>{initialTaxon.status}</Badge>
-        <Text size="2">ID: {id}</Text>
       </Flex>
 
       <Form.Root onSubmit={onSave}>

@@ -73,15 +73,23 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
       return () => controller.abort();
     }, [inatId]);
 
+    const handleExit = () => {
+      setSelectedIds(new Set());
+      hide();
+    };
+
     const handleFinish = () => {
       if (!allMedia) return;
       const selectedMedia = allMedia.filter((_, idx) => selectedIds.has(idx));
       onConfirm(selectedMedia);
-      hide();
+      handleExit();
     };
 
     return (
-      <Dialog.Root open={visible} onOpenChange={(open) => !open && hide()}>
+      <Dialog.Root
+        open={visible}
+        onOpenChange={(open) => !open && handleExit()}
+      >
         <Dialog.Content maxWidth="400px" aria-describedby={undefined}>
           <Dialog.Title>Import iNaturalist Photos</Dialog.Title>
           <Flex justify="center">

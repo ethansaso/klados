@@ -56,6 +56,8 @@ export const localeDisplayValues: Record<string, string> = {
   ne: "Nepali",
   nl: "Dutch",
   no: "Norwegian",
+  nb: "Norwegian Bokmål",
+  nn: "Norwegian Nynorsk",
   pa: "Punjabi",
   pl: "Polish",
   pt: "Portuguese",

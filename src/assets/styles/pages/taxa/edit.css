@@ -1,0 +1,13 @@
+.taxon-names__radio-group {
+  .taxon-names__item {
+    .taxon-names__item__actions {
+      visibility: hidden;
+    }
+
+    &:hover {
+      .taxon-names__item__actions {
+        visibility: visible;
+      }
+    }
+  }
+}
