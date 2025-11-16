@@ -11,21 +11,21 @@ export function ToastHost() {
     <Toast.Provider swipeDirection="right">
       {toasts.map((t) => {
         let icon: React.ReactNode;
-        let color: "green" | "red" | "blue";
+        let color: "grass" | "tomato" | "blue";
         let bgColor: string;
         let borderColor: string;
         switch (t.variant) {
           case "success":
             icon = <PiCheck />;
-            color = "green";
-            bgColor = "green-3";
-            borderColor = "green-5";
+            color = "grass";
+            bgColor = "grass-3";
+            borderColor = "grass-5";
             break;
           case "error":
             icon = <PiWarning />;
-            color = "red";
-            bgColor = "red-3";
-            borderColor = "red-5";
+            color = "tomato";
+            bgColor = "tomato-3";
+            borderColor = "tomato-5";
             break;
           default:
             icon = <PiInfo />;

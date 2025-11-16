@@ -17,8 +17,8 @@ export function forceLoginRedirectFromRequest(request: Request) {
   });
 }
 
-export function forceLoginRedirectFromLocation(location: ParsedLocation) {
-  throw redirect({
+export function generateLoginRedirectFromLocation(location: ParsedLocation) {
+  return redirect({
     to: LOGIN_PATH,
     search: {
       redirect: location.href,

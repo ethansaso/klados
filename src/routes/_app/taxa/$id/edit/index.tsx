@@ -56,7 +56,7 @@ import { toast } from "../../../../../lib/utils/toast";
 import { pickGBIFTaxon } from "./-dialogs/GbifIdModal";
 import { pickInatTaxon } from "./-dialogs/InatIdModal";
 import { MediaEditingForm } from "./-MediaEditingForm";
-import { NameEditingForm } from "./-NameEditingForm";
+import { NameEditingForm } from "./-names/NameEditingForm";
 
 const taxonFormSchema = taxonPatchSchema.extend({
   source_inat_id: z.number().nullable(),
@@ -169,7 +169,7 @@ function RouteComponent() {
   const isDraft = initialTaxon.status === "draft";
   const statusBadgeColor =
     initialTaxon.status === "active"
-      ? "green"
+      ? "grass"
       : initialTaxon.status === "draft"
         ? "yellow"
         : "gray";
@@ -234,6 +234,10 @@ function RouteComponent() {
     try {
       await serverDelete({ data: { id } });
       await invalidateTaxon(id);
+      toast({
+        description: `Successfully deleted taxon draft`,
+        variant: "success",
+      });
       navigate({ to: "/taxa/drafts" });
     } catch (err: any) {
       toast({
@@ -260,13 +264,6 @@ function RouteComponent() {
 
       <Form.Root onSubmit={onSave}>
         <Flex direction="column" gap="3" mb="4">
-          {/* Accepted Name (TODO) */}
-          <Box>
-            <Flex justify="between" align="baseline" mb="1">
-              <Label.Root>Accepted Name</Label.Root>
-            </Flex>
-            <TextField.Root value={"TODO"}></TextField.Root>
-          </Box>
           <Flex gap="4">
             {/* Rank */}
             <Box>

@@ -5,16 +5,18 @@ import { meQuery, userQueryOptions } from "../../../../lib/queries/users";
 import { UserDTO } from "../../../../lib/serverFns/user";
 import { capitalizeWord } from "../../../../lib/utils/casing";
 import { getInitials } from "../../../../lib/utils/getInitials";
+import { generateLoginRedirectFromLocation } from "../../../../lib/auth/utils";
 
 export const Route = createFileRoute("/_app/users/$username/")({
-  loader: async ({ context, params }) => {
+  loader: async ({ location, context, params }) => {
     let effectiveUsername = params.username;
     let isMe = false;
 
     const me = await context.queryClient.fetchQuery(meQuery());
     if (params.username === "me") {
-      if (!me)
-        throw redirect({ to: "/login", search: { redirect: "/users/me" } });
+      if (!me) {
+        throw generateLoginRedirectFromLocation(location);
+      }
       effectiveUsername = me.username;
     }
 

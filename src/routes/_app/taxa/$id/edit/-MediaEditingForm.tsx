@@ -132,7 +132,7 @@ export const MediaEditingForm = ({
             <Table.Row>
               <Table.Cell colSpan={7}>
                 <Text color="gray">
-                  No media yet. Add one using the plus button above.
+                  No media yet. Add or import some using the buttons above.
                 </Text>
               </Table.Cell>
             </Table.Row>

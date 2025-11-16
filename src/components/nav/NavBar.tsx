@@ -20,7 +20,7 @@ function NavBarBrand() {
         <Flex align="center" gap="2" px="2" py="1" mr="4">
           <Logo size={24} />
           <Text weight="bold" size="6">
-            TaxoKeys
+            Klados
           </Text>
         </Flex>
       </RouterLink>

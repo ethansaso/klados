@@ -26,5 +26,14 @@ export const taxonPatchSchema = z.object({
   names: z.array(nameItemSchema).optional(),
 });
 
+export const createTaxonSchema = z.object({
+  accepted_name: z
+    .string("Accepted name must be a string.")
+    .nonempty("Accepted name is required"),
+  parent_id: z.int("Must be an integer").nullable(),
+  rank: z.enum(TAXON_RANKS_DESCENDING),
+});
+
 export type MediaItem = z.infer<typeof mediaItemSchema>;
 export type TaxonPatch = z.infer<typeof taxonPatchSchema>;
+export type CreateTaxonInput = z.infer<typeof createTaxonSchema>;

@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import z from "zod";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
+import { NamesDataList } from "./-NameDataList";
 
 const IMG_SIZE = 128;
 const ParamsSchema = z.object({
@@ -63,6 +64,7 @@ function TaxonPage() {
       >
         Edit
       </Button>
+      <NamesDataList names={taxon.names} />
     </div>
   );
 }
