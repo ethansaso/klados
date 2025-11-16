@@ -51,16 +51,19 @@ import {
   mediaItemSchema,
   taxonPatchSchema,
 } from "../../../../../lib/serverFns/taxa/validation";
+import { nameItemSchema } from "../../../../../lib/serverFns/taxon-names/validation";
 import { toast } from "../../../../../lib/utils/toast";
-import { MediaEditingForm } from "./-MediaEditingForm";
 import { pickGBIFTaxon } from "./-dialogs/GbifIdModal";
 import { pickInatTaxon } from "./-dialogs/InatIdModal";
+import { MediaEditingForm } from "./-MediaEditingForm";
+import { NameEditingForm } from "./-NameEditingForm";
 
 const taxonFormSchema = taxonPatchSchema.extend({
   source_inat_id: z.number().nullable(),
   source_gbif_id: z.number().nullable(),
   media: z.array(mediaItemSchema),
   rank: z.enum(TAXON_RANKS_DESCENDING),
+  names: z.array(nameItemSchema),
 });
 type FormFields = z.infer<typeof taxonFormSchema>;
 
@@ -102,6 +105,7 @@ const seedEditState = (taxon: TaxonDetailDTO): FormFields => ({
   source_inat_id: taxon.sourceInatId,
   media: taxon.media,
   notes: taxon.notes,
+  names: taxon.names,
 });
 
 function RouteComponent() {
@@ -470,6 +474,19 @@ function RouteComponent() {
           name="media"
           render={({ field: { value, onChange } }) => (
             <MediaEditingForm
+              value={value}
+              inatId={inatId}
+              onChange={onChange}
+            />
+          )}
+        />
+
+        {/* Names */}
+        <Controller
+          control={control}
+          name="names"
+          render={({ field: { value, onChange } }) => (
+            <NameEditingForm
               value={value}
               inatId={inatId}
               onChange={onChange}

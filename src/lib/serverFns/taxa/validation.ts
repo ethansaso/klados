@@ -1,6 +1,7 @@
 import z from "zod";
 import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
 import { MEDIA_LICENSES } from "../../../db/utils/mediaLicense";
+import { nameItemSchema } from "../taxon-names/validation";
 
 export const mediaItemSchema = z.object({
   url: z.url(),
@@ -22,6 +23,7 @@ export const taxonPatchSchema = z.object({
     .optional(),
   media: z.array(mediaItemSchema).optional(),
   notes: z.string("notes must be a string").optional(),
+  names: z.array(nameItemSchema).optional(),
 });
 
 export type MediaItem = z.infer<typeof mediaItemSchema>;

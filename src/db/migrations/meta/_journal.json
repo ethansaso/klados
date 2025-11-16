@@ -22,6 +22,20 @@
       "when": 1762880225411,
       "tag": "20251111165705_abnormal_iron_man",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1763244758827,
+      "tag": "20251115221238_mean_princess_powerful",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1763250419750,
+      "tag": "20251115234659_slimy_metal_master",
+      "breakpoints": true
     }
   ]
 }

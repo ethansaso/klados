@@ -22,6 +22,7 @@ import {
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
 import { assertHierarchyInvariant } from "../../utils/assertHierarchyInvariant";
 import { PaginationSchema } from "../../validation/pagination";
+import { NameItem } from "../taxon-names/validation";
 import { TaxonDetailDTO, TaxonDTO, TaxonPaginatedResult } from "./types";
 import {
   assertExactlyOneAcceptedScientificName,
@@ -31,9 +32,16 @@ import {
 import { taxonPatchSchema } from "./validation";
 
 const sci = alias(namesTbl, "sci");
+const common = alias(namesTbl, "common");
 const sciJoinPred = and(
   eq(sci.taxonId, taxaTbl.id),
-  sql`${sci.kind} = 'scientific' AND ${sci.isSynonym} IS NULL`
+  eq(sci.locale, "sci"),
+  eq(sci.isPreferred, true)
+);
+const commonJoinPred = and(
+  eq(common.taxonId, taxaTbl.id),
+  eq(common.locale, "en"),
+  eq(common.isPreferred, true)
 );
 
 // Reusable selection shape for a TaxonDTO
@@ -47,6 +55,7 @@ const selectTaxonDTO = {
   media: taxaTbl.media,
   notes: taxaTbl.notes,
   acceptedName: sci.value,
+  preferredCommonName: common.value,
   activeChildCount: sql<number>`(
     SELECT COUNT(*) FROM ${taxaTbl} AS c
     WHERE c.parent_id = ${taxaTbl.id} AND c.status = 'active'
@@ -72,7 +81,7 @@ export const listTaxa = createServerFn({ method: "GET" })
         ? `%${rawQ.replace(/([%_\\])/g, "\\$1")}%`
         : undefined;
 
-    // Aliases: one for filtering (any name), one for the accepted scientific name
+    // Aliases for filtering names when searching
     const searchNames = alias(namesTbl, "search_names");
 
     // Common predicates
@@ -94,6 +103,7 @@ export const listTaxa = createServerFn({ method: "GET" })
         .from(taxaTbl)
         .innerJoin(searchNames, eq(searchNames.taxonId, taxaTbl.id))
         .innerJoin(sci, sciJoinPred)
+        .leftJoin(common, commonJoinPred)
         .where(where)
         .groupBy(
           taxaTbl.id,
@@ -101,7 +111,8 @@ export const listTaxa = createServerFn({ method: "GET" })
           taxaTbl.sourceGbifId,
           taxaTbl.sourceInatId,
           taxaTbl.status,
-          sci.value
+          sci.value,
+          common.value
         )
         .orderBy(asc(taxaTbl.rank), asc(taxaTbl.id))
         .limit(pageSize)
@@ -117,7 +128,7 @@ export const listTaxa = createServerFn({ method: "GET" })
       return { items, page, pageSize, total };
     }
 
-    // No q: only list active taxa; still include accepted scientific name
+    // No q: only list active taxa; still include accepted scientific + preferred common
     const baseFilters: (SQL | undefined)[] = [
       statusFilter,
       ids && ids.length ? inArray(taxaTbl.id, ids) : undefined,
@@ -128,6 +139,7 @@ export const listTaxa = createServerFn({ method: "GET" })
       .select(selectTaxonDTO)
       .from(taxaTbl)
       .innerJoin(sci, sciJoinPred)
+      .leftJoin(common, commonJoinPred)
       .where(where)
       .orderBy(asc(taxaTbl.rank), asc(taxaTbl.id))
       .limit(pageSize)
@@ -150,6 +162,7 @@ export const getTaxon = createServerFn({ method: "GET" })
       .select(selectTaxonDTO)
       .from(taxaTbl)
       .innerJoin(sci, sciJoinPred)
+      .leftJoin(common, commonJoinPred)
       .where(eq(taxaTbl.id, id))
       .limit(1);
 
@@ -179,7 +192,8 @@ export const getTaxon = createServerFn({ method: "GET" })
         a.status,
         a.media,
         a.notes,
-        s.value AS "acceptedName",
+        s.value  AS "acceptedName",
+        pc.value AS "preferredCommonName",
         (
           SELECT COUNT(*)::int
           FROM ${taxaTbl} c
@@ -190,10 +204,14 @@ export const getTaxon = createServerFn({ method: "GET" })
       JOIN ${taxaTbl} a ON a.id = chain.id
       JOIN ${namesTbl} s 
         ON s.taxon_id = a.id 
-       AND s.kind = 'scientific' 
-       AND s.synonym_kind IS NULL
+      AND s.locale = 'sci'
+      AND s.is_preferred = true
+      LEFT JOIN ${namesTbl} pc
+        ON pc.taxon_id = a.id
+       AND pc.locale = 'en'
+       AND pc.is_preferred = true
       WHERE chain.depth >= 1
-      ORDER BY chain.depth DESC  -- root (largest depth) → … → immediate parent (depth=1)
+      ORDER BY chain.depth DESC
     `);
 
     const ancestors: TaxonDTO[] = ancRows.rows.map((r) => ({
@@ -206,14 +224,35 @@ export const getTaxon = createServerFn({ method: "GET" })
       media: r.media,
       notes: r.notes,
       acceptedName: r.acceptedName,
+      preferredCommonName: r.preferredCommonName,
       activeChildCount: r.activeChildCount,
     }));
 
-    // 3) Assemble TaxonDetailDTO (omit parentId from the base per your type)
+    // Fetch all associated names
+    const nameRows = await db
+      .select({
+        id: namesTbl.id,
+        value: namesTbl.value,
+        locale: namesTbl.locale,
+        isPreferred: namesTbl.isPreferred,
+      })
+      .from(namesTbl)
+      .where(eq(namesTbl.taxonId, id))
+      .orderBy(asc(namesTbl.locale), asc(namesTbl.value));
+
+    const names: NameItem[] = nameRows.map((n) => ({
+      id: n.id,
+      value: n.value,
+      locale: n.locale,
+      isPreferred: n.isPreferred,
+    }));
+
+    // Assemble TaxonDetailDTO (omit parentId, append ancestors and names)
     const { parentId: _omit, ...baseWithoutParent } = base;
     const detail: TaxonDetailDTO = {
       ...baseWithoutParent,
       ancestors,
+      names,
     };
 
     return detail;
@@ -246,7 +285,8 @@ export const createTaxonDraft = createServerFn({ method: "POST" })
       await tx.insert(namesTbl).values({
         value: accepted_name,
         taxonId: taxon.id,
-        kind: "scientific",
+        locale: "sci",
+        isPreferred: true,
       });
 
       await assertExactlyOneAcceptedScientificName(tx, taxon.id);
@@ -255,6 +295,7 @@ export const createTaxonDraft = createServerFn({ method: "POST" })
         .select(selectTaxonDTO)
         .from(taxaTbl)
         .innerJoin(sci, sciJoinPred)
+        .leftJoin(common, commonJoinPred)
         .where(eq(taxaTbl.id, taxon.id))
         .limit(1);
 
@@ -292,6 +333,7 @@ export const publishTaxon = createServerFn({ method: "POST" })
         .select(selectTaxonDTO)
         .from(taxaTbl)
         .innerJoin(sci, sciJoinPred)
+        .leftJoin(common, commonJoinPred)
         .where(eq(taxaTbl.id, id))
         .limit(1);
 
@@ -345,6 +387,7 @@ export const deprecateTaxon = createServerFn({ method: "POST" })
         .select(selectTaxonDTO)
         .from(taxaTbl)
         .innerJoin(sci, sciJoinPred)
+        .leftJoin(common, commonJoinPred)
         .where(eq(taxaTbl.id, id))
         .limit(1);
 
@@ -437,7 +480,7 @@ export const updateTaxon = createServerFn({ method: "POST" })
         throw new Error("A taxon cannot be its own parent.");
       }
 
-      // Build update payload
+      // Build update payload for the taxon row
       const updatePayload: Record<string, unknown> = {};
       if ("parent_id" in updates) updatePayload.parentId = updates.parent_id;
       if ("rank" in updates) updatePayload.rank = updates.rank;
@@ -448,18 +491,67 @@ export const updateTaxon = createServerFn({ method: "POST" })
       if ("media" in updates) updatePayload.media = updates.media;
       if ("notes" in updates) updatePayload.notes = updates.notes;
 
-      const updated = await tx
-        .update(taxaTbl)
-        .set(updatePayload)
-        .where(eq(taxaTbl.id, id))
-        .returning({ id: taxaTbl.id });
+      // Only issue UPDATE if there are scalar fields to change.
+      if (Object.keys(updatePayload).length > 0) {
+        const updated = await tx
+          .update(taxaTbl)
+          .set(updatePayload)
+          .where(eq(taxaTbl.id, id))
+          .returning({ id: taxaTbl.id });
 
-      if (updated.length === 0) throw notFound();
+        if (updated.length === 0) throw notFound();
+      }
+
+      // Handle names replacement (scientific + commons)
+      if ("names" in updates && updates.names) {
+        const incomingNames = updates.names as NameItem[];
+
+        // Invariant 1: exactly one preferred scientific name (locale = 'sci')
+        const sciPreferredCount = incomingNames.filter(
+          (n) => n.locale === "sci" && n.isPreferred
+        ).length;
+        if (sciPreferredCount !== 1) {
+          throw new Error(
+            "Exactly one preferred scientific name (locale 'sci') is required when updating names."
+          );
+        }
+
+        // Invariant 2: at most one preferred common per non-'sci' locale
+        const preferredPerLocale = new Map<string, number>();
+        for (const n of incomingNames) {
+          if (n.locale === "sci" || !n.isPreferred) continue;
+          const prev = preferredPerLocale.get(n.locale) ?? 0;
+          if (prev >= 1) {
+            throw new Error(
+              `At most one preferred common name is allowed per locale; duplicate for locale "${n.locale}".`
+            );
+          }
+          preferredPerLocale.set(n.locale, prev + 1);
+        }
+
+        // Simple semantics: replace all names for this taxon with the provided set.
+        await tx.delete(namesTbl).where(eq(namesTbl.taxonId, id));
+
+        if (incomingNames.length > 0) {
+          await tx.insert(namesTbl).values(
+            incomingNames.map((n) => ({
+              taxonId: id,
+              value: n.value.trim(),
+              locale: n.locale,
+              isPreferred: n.isPreferred,
+            }))
+          );
+        }
+
+        // Double-check only one accepted scientific name exists now
+        await assertExactlyOneAcceptedScientificName(tx, id);
+      }
 
       const [dto] = await tx
         .select(selectTaxonDTO)
         .from(taxaTbl)
         .innerJoin(sci, sciJoinPred)
+        .leftJoin(common, commonJoinPred)
         .where(eq(taxaTbl.id, id))
         .limit(1);
 

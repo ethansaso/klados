@@ -1,4 +1,4 @@
-import { Card, Flex, Text } from "@radix-ui/themes";
+import { Box, Card, Flex, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import { PiTreeStructure } from "react-icons/pi";
 import { TaxonDTO } from "../../../lib/serverFns/taxa/types";
@@ -19,18 +19,27 @@ export const TaxonCard = ({ taxon }: { taxon: TaxonDTO }) => {
             e.currentTarget.src = "/logos/LogoDotted.svg";
           }}
         />
-        <Text as="div" size="1" weight="bold" color="gray">
-          {capitalizeWord(taxon.rank)}
-        </Text>
-        <Text as="div" weight="bold" mb="1" truncate>
-          {taxon.acceptedName}
-        </Text>
-        <Flex align="center" gap="1" className="summary" asChild>
-          <Text as="div" size="1" color="gray">
-            <PiTreeStructure />
-            {taxon.activeChildCount} child
-            {taxon.activeChildCount == 1 ? "" : "ren"}
-          </Text>
+        <Flex direction="column" flexGrow="1" justify="between">
+          <Box mb="1">
+            <Text as="div" size="1" weight="bold" color="gray">
+              {capitalizeWord(taxon.rank)}
+            </Text>
+            <Text as="div" weight="bold" truncate>
+              {taxon.acceptedName}
+            </Text>
+            {taxon.preferredCommonName && (
+              <Text as="div" size="1" mb="1" color="gray" truncate>
+                {taxon.preferredCommonName}
+              </Text>
+            )}
+          </Box>
+          <Flex align="center" gap="1" className="summary" asChild>
+            <Text as="div" size="1" color="gray">
+              <PiTreeStructure />
+              {taxon.activeChildCount} child
+              {taxon.activeChildCount == 1 ? "" : "ren"}
+            </Text>
+          </Flex>
         </Flex>
       </Link>
     </Card>
