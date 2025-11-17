@@ -29,7 +29,7 @@ function RouteComponent() {
     <div className="admin__container">
       <Flex align="center" justify="between" py="3" px="4" asChild>
         <header className="admin__header">
-          <Heading>TaxoKeys Admin Panel</Heading>
+          <Heading>Klados Admin Panel</Heading>
           <Flex asChild gap="4">
             <nav>
               <Link to="/">Visit Site</Link>

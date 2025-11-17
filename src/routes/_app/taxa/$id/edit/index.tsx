@@ -491,45 +491,50 @@ function RouteComponent() {
           )}
         />
 
-        <Flex gap="2" justify="end">
-          <Button
-            type="button"
-            disabled={isSubmitting || isDeleting || !isDirty}
-            loading={isSubmitting || isDeleting}
-            onClick={handleDiscard}
-            variant="soft"
-          >
-            Discard Changes
-          </Button>
-          <Button
-            type="submit"
-            variant={isDraft ? "soft" : "solid"}
-            loading={isSubmitting || isDeleting}
-            disabled={!isDirty || isSubmitting || isDeleting}
-          >
-            Save
-          </Button>
-          {isDraft && (
-            <>
-              <Button
-                type="button"
-                disabled={isSubmitting || isDeleting}
-                loading={isSubmitting || isDeleting}
-                onClick={onPublish}
-              >
-                Publish
-              </Button>
-              <Button
-                type="button"
-                disabled={isDeleting || isSubmitting}
-                loading={isDeleting || isSubmitting}
-                color="tomato"
-                onClick={handleDelete}
-              >
-                Delete Draft
-              </Button>
-            </>
-          )}
+        {/* TODO: fix spacing, also figure out client discriminated rendering */}
+        <Flex gap="2" justify="between">
+          <Flex gap="2" justify="end">
+            <Button
+              type="button"
+              disabled={isSubmitting || isDeleting || !isDirty}
+              loading={isSubmitting || isDeleting}
+              onClick={handleDiscard}
+              variant="soft"
+            >
+              Discard Changes
+            </Button>
+            <Button
+              type="submit"
+              variant={isDraft ? "soft" : "solid"}
+              loading={isSubmitting || isDeleting}
+              disabled={!isDirty || isSubmitting || isDeleting}
+            >
+              Save
+            </Button>
+          </Flex>
+          <Flex gap="2" justify="end">
+            {isDraft && (
+              <>
+                <Button
+                  type="button"
+                  disabled={isSubmitting || isDeleting}
+                  loading={isSubmitting || isDeleting}
+                  onClick={onPublish}
+                >
+                  Publish
+                </Button>
+                <Button
+                  type="button"
+                  disabled={isDeleting || isSubmitting}
+                  loading={isDeleting || isSubmitting}
+                  color="tomato"
+                  onClick={handleDelete}
+                >
+                  Delete Draft
+                </Button>
+              </>
+            )}
+          </Flex>
         </Flex>
       </Form.Root>
     </Box>

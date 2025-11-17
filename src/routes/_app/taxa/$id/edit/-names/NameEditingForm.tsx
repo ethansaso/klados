@@ -6,17 +6,16 @@ import {
   RadioGroup,
   Strong,
   Text,
-  TextField,
 } from "@radix-ui/themes";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { FaDove } from "react-icons/fa";
-import { PiPencilSimple, PiPlus, PiTrash } from "react-icons/pi";
+import { PiPlus } from "react-icons/pi";
+import { selectInatNames } from "../-dialogs/InatNameModal";
 import { localeDisplayValues } from "../../../../../../lib/consts/locale-display-values";
 import { NameItem } from "../../../../../../lib/serverFns/taxon-names/validation";
 import { toast } from "../../../../../../lib/utils/toast";
-import { selectInatNames } from "../-dialogs/InatNameModal";
-import { LocaleEntry } from "./types";
 import { NameRow } from "./NameRow";
+import { LocaleEntry } from "./types";
 
 type NameEditingFormProps = {
   value: NameItem[];

@@ -34,7 +34,7 @@ function Home() {
 
   return (
     <div>
-      <h1>Welcome to TaxoKeys!</h1>
+      <h1>Welcome to Klados!</h1>
       <hr />
       <button
         type="button"

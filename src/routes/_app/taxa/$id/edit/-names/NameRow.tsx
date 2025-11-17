@@ -1,16 +1,12 @@
 import {
-  Box,
-  DataList,
   Flex,
   IconButton,
   RadioGroup,
-  Strong,
   Text,
   TextField,
 } from "@radix-ui/themes";
-import { memo, useCallback, useMemo, useState } from "react";
-import { FaDove } from "react-icons/fa";
-import { PiPencilSimple, PiPlus, PiTrash } from "react-icons/pi";
+import { memo, useState } from "react";
+import { PiPencil, PiTrash } from "react-icons/pi";
 import { NameItem } from "../../../../../../lib/serverFns/taxon-names/validation";
 
 type NameRowProps = {
@@ -92,7 +88,7 @@ export const NameRow = memo(
             onClick={startEdit}
             aria-label="Edit name"
           >
-            <PiPencilSimple size={12} />
+            <PiPencil size={12} />
           </IconButton>
 
           <IconButton
