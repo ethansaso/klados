@@ -17,7 +17,7 @@ export const Route = createRootRouteWithContext<{
 }>()({
   head: () => {
     const { meta, links } = seo({
-      title: "TaxoKeys",
+      title: "Klados",
       description: "Twenty-first century identification.",
       image: "/logos/LogoBrand.png",
       canonicalPath: "/",
