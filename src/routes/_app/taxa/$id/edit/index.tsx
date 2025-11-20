@@ -40,14 +40,14 @@ import {
   taxaQueryOptions,
   taxonQueryOptions,
 } from "../../../../../lib/queries/taxa";
-import { taxonCharacterValuesQueryOptions } from "../../../../../lib/queries/taxonCharacterValues";
-import {
-  deleteTaxon,
-  publishTaxon,
-  updateTaxon,
-} from "../../../../../lib/serverFns/taxa/fns";
+import { taxonCharacterStatesQueryOptions } from "../../../../../lib/queries/taxonCharacterStates";
+import { TaxonCharacterStateDTO } from "../../../../../lib/serverFns/character-states/types";
+import { deleteTaxon } from "../../../../../lib/serverFns/taxa/fns/delete";
+import { publishTaxon } from "../../../../../lib/serverFns/taxa/fns/publish";
+import { updateTaxon } from "../../../../../lib/serverFns/taxa/fns/update";
 import { TaxonDetailDTO } from "../../../../../lib/serverFns/taxa/types";
 import {
+  characterUpdateSchema,
   mediaItemSchema,
   taxonPatchSchema,
 } from "../../../../../lib/serverFns/taxa/validation";
@@ -64,6 +64,7 @@ const taxonFormSchema = taxonPatchSchema.extend({
   media: z.array(mediaItemSchema),
   rank: z.enum(TAXON_RANKS_DESCENDING),
   names: z.array(nameItemSchema),
+  characters: z.array(characterUpdateSchema),
 });
 type FormFields = z.infer<typeof taxonFormSchema>;
 
@@ -78,11 +79,11 @@ export const Route = createFileRoute("/_app/taxa/$id/edit/")({
     // ! Forcibly refetch data to ensure we have the latest version to seed form
     await context.queryClient.invalidateQueries(taxonQueryOptions(id));
     await context.queryClient.invalidateQueries(
-      taxonCharacterValuesQueryOptions(id)
+      taxonCharacterStatesQueryOptions(id)
     );
     const taxon = await context.queryClient.fetchQuery(taxonQueryOptions(id));
     const values = await context.queryClient.fetchQuery(
-      taxonCharacterValuesQueryOptions(id)
+      taxonCharacterStatesQueryOptions(id)
     );
 
     if (!taxon || !values) {
@@ -98,7 +99,10 @@ export const Route = createFileRoute("/_app/taxa/$id/edit/")({
   component: RouteComponent,
 });
 
-const seedEditState = (taxon: TaxonDetailDTO): FormFields => ({
+const seedEditState = (
+  taxon: TaxonDetailDTO,
+  characterValues: TaxonCharacterStateDTO[]
+): FormFields => ({
   parent_id: taxon.ancestors[0]?.id ?? null,
   rank: taxon.rank,
   source_gbif_id: taxon.sourceGbifId,
@@ -106,6 +110,7 @@ const seedEditState = (taxon: TaxonDetailDTO): FormFields => ({
   media: taxon.media,
   notes: taxon.notes,
   names: taxon.names,
+  characters: characterValues,
 });
 
 function RouteComponent() {
@@ -127,7 +132,7 @@ function RouteComponent() {
     resolver: zodResolver(taxonFormSchema),
     mode: "onSubmit",
     reValidateMode: "onChange",
-    defaultValues: seedEditState(initialTaxon),
+    defaultValues: seedEditState(initialTaxon, initialCharacterValues),
   });
 
   const [isDeleting, setIsDeleting] = useState(false);
@@ -185,7 +190,9 @@ function RouteComponent() {
   const handleDiscard = () => {
     if (!isDirty) return;
     if (!confirm("Discard unsaved changes?")) return;
-    reset(seedEditState(initialTaxon), { keepDirty: false });
+    reset(seedEditState(initialTaxon, initialCharacterValues), {
+      keepDirty: false,
+    });
   };
 
   const onSave = handleSubmit(async (data) => {

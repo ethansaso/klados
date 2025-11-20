@@ -2,10 +2,10 @@ import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { asc, count, inArray, SQL } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "../../db/client";
-import { user as userTbl } from "../../db/schema/auth";
-import { userSessionMiddleware } from "../auth/serverFnMiddleware";
-import { PaginatedResult, PaginationSchema } from "../validation/pagination";
+import { db } from "../../../db/client";
+import { user as userTbl } from "../../../db/schema/auth";
+import { userSessionMiddleware } from "../../auth/serverFnMiddleware";
+import { PaginatedResult, PaginationSchema } from "../../validation/pagination";
 
 type UserRow = typeof userTbl.$inferSelect;
 export type UserDTO = Pick<

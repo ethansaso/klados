@@ -1,11 +1,11 @@
 import { Avatar, Badge, Button, Flex, Heading, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { generateLoginRedirectFromLocation } from "../../../../lib/auth/utils";
 import { meQuery, userQueryOptions } from "../../../../lib/queries/users";
-import { UserDTO } from "../../../../lib/serverFns/user";
+import { UserDTO } from "../../../../lib/serverFns/users/user";
 import { capitalizeWord } from "../../../../lib/utils/casing";
 import { getInitials } from "../../../../lib/utils/getInitials";
-import { generateLoginRedirectFromLocation } from "../../../../lib/auth/utils";
 
 export const Route = createFileRoute("/_app/users/$username/")({
   loader: async ({ location, context, params }) => {

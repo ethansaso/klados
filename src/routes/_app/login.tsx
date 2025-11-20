@@ -19,7 +19,7 @@ import {
 } from "../../components/inputs/ConditionalAlert";
 import { authClient } from "../../lib/auth/authClient";
 import { meQuery } from "../../lib/queries/users";
-import { getMe } from "../../lib/serverFns/user";
+import { getMe } from "../../lib/serverFns/users/user";
 import { toast } from "../../lib/utils/toast";
 
 function isEmail(s: string) {

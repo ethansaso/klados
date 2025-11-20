@@ -1,7 +1,7 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Box,
   Button,
-  DropdownMenu,
   Flex,
   Heading,
   Select,
@@ -12,7 +12,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { Combobox, ComboboxOption } from "../../../components/inputs/Combobox";
 import {
@@ -25,13 +24,12 @@ import {
   roleHasCuratorRights,
 } from "../../../lib/auth/utils";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
-import { createTaxonDraft } from "../../../lib/serverFns/taxa/fns";
+import { createTaxonDraft } from "../../../lib/serverFns/taxa/fns/create";
 import {
-  createTaxonSchema,
   CreateTaxonInput,
+  createTaxonSchema,
 } from "../../../lib/serverFns/taxa/validation";
-import { getMe } from "../../../lib/serverFns/user";
-import { capitalizeWord } from "../../../lib/utils/casing";
+import { getMe } from "../../../lib/serverFns/users/user";
 import { toast } from "../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/taxa/new")({
@@ -202,7 +200,7 @@ function RouteComponent() {
                   </Select.Content>
                 </Select.Root>
               )}
-            ></Controller>
+            />
           </Box>
 
           {/* Actions */}

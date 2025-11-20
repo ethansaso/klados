@@ -28,7 +28,7 @@ import {
   usernameSchema,
 } from "../../lib/auth/validation";
 import { meQuery } from "../../lib/queries/users";
-import { getMe } from "../../lib/serverFns/user";
+import { getMe } from "../../lib/serverFns/users/user";
 import { toast } from "../../lib/utils/toast";
 
 const schema = z.object({

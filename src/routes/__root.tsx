@@ -87,7 +87,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <HeadContent />
       </head>
       <body>
-        <Theme accentColor="amber" panelBackground="solid">
+        <Theme hasBackground accentColor="amber" panelBackground="solid">
           {children}
         </Theme>
         <Scripts />

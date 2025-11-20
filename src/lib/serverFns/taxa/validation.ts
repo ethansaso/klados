@@ -10,6 +10,18 @@ export const mediaItemSchema = z.object({
   source: z.string().optional(),
 });
 
+const categoricalCharacterUpdateSchema = z.object({
+  kind: z.literal("categorical"),
+  characterId: z.number(),
+  traitValueIds: z.array(z.number()).nonempty(),
+});
+
+export const characterUpdateSchema = z.discriminatedUnion("kind", [
+  categoricalCharacterUpdateSchema,
+  // TODO: numericCharacterUpdate,
+  // TODO: rangeCharacterUpdate,
+]);
+
 export const taxonPatchSchema = z.object({
   parent_id: z.number("parent_id must be a number").nullable().optional(),
   rank: z.enum(TAXON_RANKS_DESCENDING).optional(),
@@ -24,6 +36,7 @@ export const taxonPatchSchema = z.object({
   media: z.array(mediaItemSchema).optional(),
   notes: z.string("notes must be a string").optional(),
   names: z.array(nameItemSchema).optional(),
+  characters: z.array(characterUpdateSchema).optional(),
 });
 
 export const createTaxonSchema = z.object({
@@ -37,3 +50,7 @@ export const createTaxonSchema = z.object({
 export type MediaItem = z.infer<typeof mediaItemSchema>;
 export type TaxonPatch = z.infer<typeof taxonPatchSchema>;
 export type CreateTaxonInput = z.infer<typeof createTaxonSchema>;
+export type CharacterUpdate = z.infer<typeof characterUpdateSchema>;
+export type CategoricalCharacterUpdate = z.infer<
+  typeof categoricalCharacterUpdateSchema
+>;

@@ -6,7 +6,7 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import { useIsActive } from "../../lib/hooks/useIsActive";
-import { getMe } from "../../lib/serverFns/user";
+import { getMe } from "../../lib/serverFns/users/user";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async ({ location }) => {

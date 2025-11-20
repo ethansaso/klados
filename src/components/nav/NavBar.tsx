@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { PiCaretDown } from "react-icons/pi";
 import { roleHasCuratorRights } from "../../lib/auth/utils";
 import { useIsActive } from "../../lib/hooks/useIsActive";
-import { getMe } from "../../lib/serverFns/user";
+import { getMe } from "../../lib/serverFns/users/user";
 import { Logo } from "./Logo";
 import { NavDropdown } from "./NavDropdown";
 import { UserMenu } from "./UserMenu";
