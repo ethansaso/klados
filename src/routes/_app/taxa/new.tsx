@@ -13,7 +13,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
-import { Combobox, ComboboxOption } from "../../../components/inputs/Combobox";
+import { SelectCombobox } from "../../../components/inputs/combobox/SelectCombobox";
+import { ComboboxOption } from "../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
@@ -144,7 +145,7 @@ function RouteComponent() {
               name="parent_id"
               control={control}
               render={({ field }) => (
-                <Combobox.Root
+                <SelectCombobox.Root
                   id="parent-id"
                   value={parentSelected}
                   onValueChange={(opt) =>
@@ -153,20 +154,20 @@ function RouteComponent() {
                   options={comboboxOptions}
                   onQueryChange={setParentQ}
                 >
-                  <Combobox.Trigger placeholder="Select parent taxon (optional)" />
-                  <Combobox.Content>
-                    <Combobox.Input placeholder="Search taxa..." />
-                    <Combobox.List>
+                  <SelectCombobox.Trigger placeholder="Select parent taxon (optional)" />
+                  <SelectCombobox.Content>
+                    <SelectCombobox.Input placeholder="Search taxa..." />
+                    <SelectCombobox.List>
                       {comboboxOptions.map((option, index) => (
-                        <Combobox.Item
+                        <SelectCombobox.Item
                           key={option.id}
                           index={index}
                           option={option}
                         />
                       ))}
-                    </Combobox.List>
-                  </Combobox.Content>
-                </Combobox.Root>
+                    </SelectCombobox.List>
+                  </SelectCombobox.Content>
+                </SelectCombobox.Root>
               )}
             />
           </Box>

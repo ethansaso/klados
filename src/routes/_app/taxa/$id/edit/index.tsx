@@ -27,10 +27,8 @@ import { MouseEventHandler, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FaDove, FaLeaf } from "react-icons/fa";
 import z from "zod";
-import {
-  Combobox,
-  ComboboxOption,
-} from "../../../../../components/inputs/Combobox";
+import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
+import { ComboboxOption } from "../../../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
@@ -53,6 +51,7 @@ import {
 } from "../../../../../lib/serverFns/taxa/validation";
 import { nameItemSchema } from "../../../../../lib/serverFns/taxon-names/validation";
 import { toast } from "../../../../../lib/utils/toast";
+import { CharacterEditingForm } from "./-characters/CharactersEditingForm";
 import { pickGBIFTaxon } from "./-dialogs/GbifIdModal";
 import { pickInatTaxon } from "./-dialogs/InatIdModal";
 import { MediaEditingForm } from "./-MediaEditingForm";
@@ -317,7 +316,7 @@ function RouteComponent() {
                 control={control}
                 name="parent_id"
                 render={({ field }) => (
-                  <Combobox.Root
+                  <SelectCombobox.Root
                     id="parent-id"
                     value={parentSelected}
                     onValueChange={(opt) => {
@@ -326,23 +325,23 @@ function RouteComponent() {
                     options={parentOptions}
                     onQueryChange={setParentQ}
                   >
-                    <Combobox.Trigger
+                    <SelectCombobox.Trigger
                       placeholder="Select parent taxon"
                       {...a11yProps("parent-id-error", !!errors.parent_id)}
                     />
-                    <Combobox.Content>
-                      <Combobox.Input />
-                      <Combobox.List>
+                    <SelectCombobox.Content>
+                      <SelectCombobox.Input />
+                      <SelectCombobox.List>
                         {parentOptions.map((option, index) => (
-                          <Combobox.Item
+                          <SelectCombobox.Item
                             key={option.id}
                             index={index}
                             option={option}
                           />
                         ))}
-                      </Combobox.List>
-                    </Combobox.Content>
-                  </Combobox.Root>
+                      </SelectCombobox.List>
+                    </SelectCombobox.Content>
+                  </SelectCombobox.Root>
                 )}
               />
             </Box>
@@ -471,6 +470,17 @@ function RouteComponent() {
             />
           </Box>
         </Flex>
+
+        <Controller
+          name="characters"
+          control={control}
+          render={({ field }) => (
+            <CharacterEditingForm
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
 
         {/* Media */}
         <Controller

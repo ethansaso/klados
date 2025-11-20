@@ -2,6 +2,7 @@ import {
   boolean,
   index,
   integer,
+  pgEnum,
   pgTable,
   serial,
   text,
@@ -42,5 +43,50 @@ export const categoricalCharacterMeta = pgTable(
       .notNull()
       .references(() => categoricalTraitSet.id, { onDelete: "restrict" }),
     isMultiSelect: boolean("is_multi_select").notNull(),
+  })
+);
+
+/**
+ * Numeric character kind: single value vs range.
+ */
+const numericCharacterKind = pgEnum("numeric_character_kind", [
+  "single",
+  "range",
+]);
+
+/**
+ * Canonical storage/display units for numeric characters.
+ * TODO: evaluate a better way to handle units
+ */
+const numericUnit = pgEnum("numeric_unit", [
+  "um",
+  "mm",
+  "cm",
+  "m",
+  "count",
+  "percent",
+]);
+
+/**
+ * Numeric-specific metadata for a character.
+ * One-to-one with characters where the character represents
+ * a numeric measurement (single value or range).
+ *
+ * Values for these characters are stored per-taxon in:
+ * - taxon_character_number (kind='single')
+ * - taxon_character_number_range (kind='range')
+ */
+export const numericCharacterMeta = pgTable(
+  "numeric_character_meta",
+  withTimestamps({
+    characterId: integer("character_id")
+      .primaryKey()
+      .references(() => character.id, { onDelete: "cascade" }),
+
+    // Controls which taxon table is used and which UI control is rendered.
+    kind: numericCharacterKind("kind").notNull(), // 'single' | 'range'
+
+    // Canonical unit for storage & display (e.g. 'mm', 'cm', 'um').
+    unit: numericUnit("unit").notNull(),
   })
 );

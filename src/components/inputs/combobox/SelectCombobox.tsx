@@ -16,14 +16,8 @@ import {
   PiMagnifyingGlass,
   PiX,
 } from "react-icons/pi";
-import { DebouncedTextField } from "./DebouncedTextField";
-
-/** Public option shape required by the combobox. */
-export type ComboboxOption = {
-  id: number;
-  label: string;
-  hint?: string;
-};
+import { DebouncedTextField } from "../DebouncedTextField";
+import { ComboboxOption } from "./types";
 
 /* =============================== Context =============================== */
 
@@ -49,6 +43,10 @@ type RootProps = {
   style?: React.CSSProperties;
   /** Compose with Trigger/Content/Input/List/Item children. */
   children: React.ReactNode;
+};
+
+type ContentProps = React.ComponentProps<typeof Popover.Content> & {
+  behavior?: "select" | "input";
 };
 
 type Ctx = {
@@ -80,8 +78,6 @@ function useCb() {
   if (!ctx) throw new Error("Combobox.* must be used within Combobox.Root");
   return ctx;
 }
-
-/* ================================= Root ================================ */
 
 function Root({
   id,
@@ -165,8 +161,6 @@ function Root({
   );
 }
 
-/* ================================ Trigger ============================== */
-
 function Trigger({ placeholder }: { placeholder?: React.ReactNode }) {
   const { open, disabled, value, id, setOpen, clear } = useCb();
   const triggerLabel = value ? value.label : (placeholder ?? "Select...");
@@ -222,14 +216,13 @@ function Trigger({ placeholder }: { placeholder?: React.ReactNode }) {
   );
 }
 
-/* ================================ Content ============================== */
-
 function Content({
   children,
   minWidth = "280px",
   maxWidth = "400px",
+  behavior = "select",
   ...props
-}: React.PropsWithChildren<React.ComponentProps<typeof Popover.Content>>) {
+}: ContentProps) {
   return (
     <Popover.Content
       side="bottom"
@@ -237,14 +230,17 @@ function Content({
       size="1"
       minWidth={minWidth}
       maxWidth={maxWidth}
+      onOpenAutoFocus={(e) => {
+        if (behavior === "input") {
+          e.preventDefault();
+        }
+      }}
       {...props}
     >
       {children}
     </Popover.Content>
   );
 }
-
-/* ================================= Input =============================== */
 
 function Input(props: React.ComponentProps<typeof TextField.Root>) {
   const {
@@ -306,9 +302,6 @@ function Input(props: React.ComponentProps<typeof TextField.Root>) {
   );
 }
 
-/* ================================= List ================================ */
-/** Structural only: ARIA container + scroll. Caller maps items manually.
-    Shows simple <Text> "Loading" and "No results" when no children provided. */
 function List({
   className,
   style,
@@ -392,8 +385,6 @@ function List({
   );
 }
 
-/* ================================= Item ================================ */
-/** Self-sufficient item: reads active/selected state from context; commits on click. */
 function Item({
   option,
   index,
@@ -464,9 +455,7 @@ function Item({
   );
 }
 
-/* ================================ Export =============================== */
-
-export const Combobox = {
+export const SelectCombobox = {
   Root,
   Trigger,
   Content,

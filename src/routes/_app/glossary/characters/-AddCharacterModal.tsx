@@ -16,10 +16,8 @@ import { Form, Label } from "radix-ui";
 import { useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { useAutoKey } from "../-chrome/-useAutoKey";
-import {
-  Combobox,
-  ComboboxOption,
-} from "../../../../components/inputs/Combobox";
+import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
+import { ComboboxOption } from "../../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
@@ -217,7 +215,7 @@ export const AddCharacterModal = NiceModal.create(() => {
                   name="trait_set_id"
                   control={control}
                   render={({ field }) => (
-                    <Combobox.Root
+                    <SelectCombobox.Root
                       id="trait-set-id"
                       value={traitSetSelected}
                       onValueChange={(opt) =>
@@ -226,20 +224,20 @@ export const AddCharacterModal = NiceModal.create(() => {
                       onQueryChange={setTraitSetQuery}
                       options={traitSetOptions}
                     >
-                      <Combobox.Trigger placeholder="Select a trait set" />
-                      <Combobox.Content maxWidth="300px">
-                        <Combobox.Input placeholder="Search trait sets..." />
-                        <Combobox.List>
+                      <SelectCombobox.Trigger placeholder="Select a trait set" />
+                      <SelectCombobox.Content maxWidth="300px">
+                        <SelectCombobox.Input placeholder="Search trait sets..." />
+                        <SelectCombobox.List>
                           {traitSetOptions.map((opt, i) => (
-                            <Combobox.Item
+                            <SelectCombobox.Item
                               key={opt.id}
                               option={opt}
                               index={i}
                             />
                           ))}
-                        </Combobox.List>
-                      </Combobox.Content>
-                    </Combobox.Root>
+                        </SelectCombobox.List>
+                      </SelectCombobox.Content>
+                    </SelectCombobox.Root>
                   )}
                 />
               </Box>
@@ -257,7 +255,7 @@ export const AddCharacterModal = NiceModal.create(() => {
                   name="group_id"
                   control={control}
                   render={({ field }) => (
-                    <Combobox.Root
+                    <SelectCombobox.Root
                       id="group-id"
                       value={groupSelected}
                       onValueChange={(opt) =>
@@ -266,20 +264,20 @@ export const AddCharacterModal = NiceModal.create(() => {
                       onQueryChange={setGroupQuery}
                       options={groupOptions}
                     >
-                      <Combobox.Trigger placeholder="Select a group" />
-                      <Combobox.Content>
-                        <Combobox.Input placeholder="Search groups..." />
-                        <Combobox.List>
+                      <SelectCombobox.Trigger placeholder="Select a group" />
+                      <SelectCombobox.Content>
+                        <SelectCombobox.Input placeholder="Search groups..." />
+                        <SelectCombobox.List>
                           {groupOptions.map((opt, i) => (
-                            <Combobox.Item
+                            <SelectCombobox.Item
                               key={opt.id}
                               option={opt}
                               index={i}
                             />
                           ))}
-                        </Combobox.List>
-                      </Combobox.Content>
-                    </Combobox.Root>
+                        </SelectCombobox.List>
+                      </SelectCombobox.Content>
+                    </SelectCombobox.Root>
                   )}
                 />
               </Box>

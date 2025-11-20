@@ -20,6 +20,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ariakit/react": "^0.4.19",
     "@ebay/nice-modal-react": "^1.2.13",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/themes": "^3.2.1",
