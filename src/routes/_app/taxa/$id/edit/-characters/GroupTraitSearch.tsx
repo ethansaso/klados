@@ -1,7 +1,7 @@
 import { Box, Flex, Text } from "@radix-ui/themes";
 import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
-import { SelectCombobox } from "../../../../../../components/inputs/combobox/SelectCombobox";
+import { InputCombobox } from "../../../../../../components/inputs/combobox/InputCombobox";
 import { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
 import { searchGroupTraitSuggestions } from "../../../../../../lib/serverFns/character-suggestions/fns";
 import { TraitSuggestion } from "../../../../../../lib/serverFns/character-suggestions/types";
@@ -102,7 +102,7 @@ export function GroupTraitSearch({
           {label}
         </Text>
 
-        <SelectCombobox.Root
+        <InputCombobox.Root
           id={label.toLowerCase().replace(/\s+/g, "-")}
           value={selectedOption}
           onValueChange={handleValueChange}
@@ -110,17 +110,16 @@ export function GroupTraitSearch({
           onQueryChange={handleQueryChange}
           loading={loading}
         >
-          {/* Input lives outside the popover; results appear directly underneath. */}
-          <SelectCombobox.InputTrigger placeholder={placeholder} />
+          <InputCombobox.Input placeholder={placeholder} />
 
-          <SelectCombobox.Content unstyled>
-            <SelectCombobox.List>
-              {options.map((opt, index) => (
-                <SelectCombobox.Item key={opt.id} option={opt} index={index} />
+          <InputCombobox.Popover>
+            <InputCombobox.List>
+              {options.map((opt) => (
+                <InputCombobox.Item key={opt.id} option={opt} />
               ))}
-            </SelectCombobox.List>
-          </SelectCombobox.Content>
-        </SelectCombobox.Root>
+            </InputCombobox.List>
+          </InputCombobox.Popover>
+        </InputCombobox.Root>
       </Flex>
     </Box>
   );

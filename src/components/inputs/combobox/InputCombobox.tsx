@@ -1,5 +1,3 @@
-// InputCombobox.tsx
-
 import {
   Combobox as AriakitCombobox,
   ComboboxItem,
@@ -309,24 +307,18 @@ function Item({ option, className, style }: ItemProps) {
     <ComboboxItem
       value={option.label}
       focusOnHover
+      setValueOnClick={false}
       className={classNames("input-combobox__item", className)}
       onClick={() => {
         // 1) Tell parent what was selected.
         onSelectedChange(option);
-
         // 2) Clear the combobox text / query.
         store?.setValue("");
-
         // 3) Close popover and blur.
         setOpen(false);
         comboboxRef.current?.blur();
       }}
-      style={{
-        padding: "6px var(--space-2)",
-        borderRadius: 6,
-        cursor: "pointer",
-        ...style,
-      }}
+      style={style}
       aria-selected={isSelected}
     >
       <Flex align="baseline" gap="2" overflow="hidden">

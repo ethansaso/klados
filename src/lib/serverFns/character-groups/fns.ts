@@ -3,13 +3,81 @@ import { and, asc, count, eq, ilike, inArray, or, SQL } from "drizzle-orm";
 import z from "zod";
 import { db } from "../../../db/client";
 import {
+  categoricalCharacterMeta as catMetaTbl,
   character as charsTbl,
   characterGroup as groupsTbl,
 } from "../../../db/schema/schema";
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
 import { PaginationSchema } from "../../validation/pagination";
-import type { CharacterGroupDTO, CharacterGroupPaginatedResult } from "./types";
+import type {
+  CharacterGroupDetailDTO,
+  CharacterGroupDTO,
+  CharacterGroupPaginatedResult,
+} from "./types";
 import { createCharacterGroupSchema } from "./validation";
+
+export const getCharacterGroup = createServerFn({ method: "GET" })
+  .inputValidator(
+    z.object({
+      id: z.number().int().nonnegative(),
+    })
+  )
+  .handler(async ({ data }): Promise<CharacterGroupDetailDTO | null> => {
+    const { id } = data;
+
+    // 1) Fetch the group itself
+    const [groupRow] = await db
+      .select({
+        id: groupsTbl.id,
+        key: groupsTbl.key,
+        label: groupsTbl.label,
+        description: groupsTbl.description,
+      })
+      .from(groupsTbl)
+      .where(eq(groupsTbl.id, id))
+      .limit(1);
+
+    if (!groupRow) {
+      return null;
+    }
+
+    // 2) Fetch categorical characters for this group
+    //    (later you'll extend this for numeric/range kinds)
+    const rows = await db
+      .select({
+        id: charsTbl.id,
+        key: charsTbl.key,
+        label: charsTbl.label,
+        description: charsTbl.description,
+        traitSetId: catMetaTbl.traitSetId,
+      })
+      .from(charsTbl)
+      .innerJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
+      .where(eq(charsTbl.groupId, id))
+      .orderBy(asc(charsTbl.key), asc(charsTbl.id));
+
+    const characters = rows.map((row) => ({
+      id: row.id,
+      key: row.key,
+      label: row.label,
+      description: row.description,
+      type: "categorical" as const,
+      traitSetId: row.traitSetId ?? undefined,
+    }));
+
+    const characterCount = characters.length;
+
+    const group: CharacterGroupDetailDTO = {
+      id: groupRow.id,
+      key: groupRow.key,
+      label: groupRow.label,
+      description: groupRow.description,
+      characterCount,
+      characters,
+    };
+
+    return group;
+  });
 
 export const listCharacterGroups = createServerFn({ method: "GET" })
   .inputValidator(

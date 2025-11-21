@@ -3,15 +3,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import z from "zod";
 import { characterQueryOptions } from "../../../../lib/queries/characters";
-import { Route as CharactersLayoutRoute } from "../route";
+import { Route as CharactersLayoutRoute } from "./route";
 
 const ParamsSchema = z.object({
   characterId: z.coerce.number().int().positive(),
 });
 
-export const Route = createFileRoute(
-  "/_app/glossary/characters/$characterId"
-)({
+export const Route = createFileRoute("/_app/glossary/characters/$characterId")({
   loader: async ({ context, params }) => {
     const { characterId } = ParamsSchema.parse(params);
     return { characterId };

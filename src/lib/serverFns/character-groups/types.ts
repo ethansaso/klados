@@ -10,6 +10,21 @@ export type CharacterGroupDTO = Pick<
   characterCount: number;
 };
 
+type CharacterInGroupDTO = {
+  id: number;
+  key: string;
+  label: string;
+  description: string;
+  // TODO: number & range
+  type: "categorical";
+  // TODO: categorical-only; might want to use union
+  traitSetId?: number;
+};
+
+export type CharacterGroupDetailDTO = CharacterGroupDTO & {
+  characters: CharacterInGroupDTO[];
+};
+
 export interface CharacterGroupPaginatedResult extends PaginatedResult {
   items: CharacterGroupDTO[];
 }
