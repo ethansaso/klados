@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, eq, ilike, or } from "drizzle-orm";
+import { and, eq, ilike, or, sql } from "drizzle-orm";
 import z from "zod";
 
 import { db } from "../../../db/client";
@@ -36,16 +36,37 @@ async function searchCategoricalSuggestions(opts: {
   const trimmed = q.trim();
   if (!trimmed) return [];
 
-  const needle = `%${trimmed.toLowerCase()}%`;
+  const qLower = trimmed.toLowerCase();
+
+  // ILIKE needle
+  const likeNeedle = `%${qLower.replace(/([%_\\])/g, "\\$1")}%`;
+
+  // "Normalized": punctuation -> space.  "blue-green" -> "blue green"
+  const normalizedQuery = qLower.replace(/[^a-z0-9]+/g, " ").trim();
+
+  // "Squashed": strip non-alphanumerics.  "blue green" / "blue-green" -> "bluegreen"
+  const squashedQuery = qLower.replace(/[^a-z0-9]+/g, "").trim();
+
+  // Trigram similarity threshold – controls how fuzzy things are
+  const SIM_THRESHOLD = 0.2;
+
+  // Pull back more than limit so JS can rank
+  const sqlLimit = limit * 4;
 
   const rows = await db
     .select({
       characterId: character.id,
       characterLabel: character.label,
+      groupId: character.groupId,
       groupLabel: characterGroup.label,
       traitValueId: categoricalTraitValue.id,
-      valueLabel: categoricalTraitValue.label,
-      valueKey: categoricalTraitValue.key,
+      traitValueLabel: categoricalTraitValue.label,
+      similarityScore: sql<number>`
+        similarity(
+          lower(${categoricalTraitValue.label}),
+          ${qLower}
+        )
+      `,
     })
     .from(categoricalTraitValue)
     .innerJoin(
@@ -65,34 +86,112 @@ async function searchCategoricalSuggestions(opts: {
       and(
         eq(character.groupId, groupId),
         or(
-          ilike(categoricalTraitValue.label, needle),
-          ilike(categoricalTraitValue.key, needle)
-          // optionally: ilike(character.label, needle)
+          // 1) Normalized substring: handles hyphens/spaces
+          sql`
+            regexp_replace(lower(${categoricalTraitValue.label}), '[^a-z0-9]+', ' ', 'g')
+            LIKE ${`%${normalizedQuery}%`}
+          `,
+          // 2) Trigram similarity: handles typos ("bluegren", "yellowy", etc.)
+          sql`
+            similarity(
+              lower(${categoricalTraitValue.label}),
+              ${qLower}
+            ) >= ${SIM_THRESHOLD}
+          `,
+          // 3) Raw substring fallback
+          ilike(categoricalTraitValue.label, likeNeedle),
+          ilike(categoricalTraitValue.key, likeNeedle)
         )
       )
     )
-    .limit(limit);
+    // Just a stable default order; real ranking is in JS:
+    .orderBy(character.label, categoricalTraitValue.label)
+    .limit(sqlLimit);
 
+  // JS-side dedupe + scoring
   const seen = new Set<string>();
-  const suggestions: CategoricalValueSuggestion[] = [];
+  const scored: { row: (typeof rows)[number]; score: number }[] = [];
 
   for (const row of rows) {
     const key = `${row.characterId}:${row.traitValueId}`;
     if (seen.has(key)) continue;
     seen.add(key);
 
+    const labelLower = row.traitValueLabel.toLowerCase();
+    const normalizedLabel = labelLower.replace(/[^a-z0-9]+/g, " ").trim();
+    const squashedLabel = labelLower.replace(/[^a-z0-9]+/g, "").trim();
+    const sim = row.similarityScore ?? 0;
+
+    let score = 0;
+
+    // 1) Huge boost: squashed equality ("bluegreen" == "blue-green")
+    if (squashedQuery && squashedLabel === squashedQuery) {
+      score += 200;
+    }
+
+    // 2) Strong: normalized equality ("blue green" == "blue-green")
+    if (normalizedQuery && normalizedLabel === normalizedQuery) {
+      score += 120;
+    }
+
+    // 3) Prefix normalized match
+    if (normalizedQuery && normalizedLabel.startsWith(normalizedQuery)) {
+      score += 60;
+    }
+
+    // 4) Substring normalized match
+    if (normalizedQuery && normalizedLabel.includes(normalizedQuery)) {
+      score += 40;
+    }
+
+    // 5) Raw prefix / substring on original label
+    if (labelLower.startsWith(qLower)) {
+      score += 30;
+    } else if (labelLower.includes(qLower)) {
+      score += 20;
+    }
+
+    // 6) Trigram similarity as a soft boost
+    //    (helps with "bluegren" etc., but won't beat the equality boosts)
+    score += sim * 25;
+
+    // 7) Small bump if character label matches
+    const charLabelLower = row.characterLabel.toLowerCase();
+    if (charLabelLower.includes(qLower)) {
+      score += 5;
+    }
+
+    scored.push({ row, score });
+  }
+
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+
+    // Stable tie-breakers
+    const aChar = a.row.characterLabel.toLowerCase();
+    const bChar = b.row.characterLabel.toLowerCase();
+    if (aChar !== bChar) return aChar.localeCompare(bChar);
+
+    const aVal = a.row.traitValueLabel.toLowerCase();
+    const bVal = b.row.traitValueLabel.toLowerCase();
+    return aVal.localeCompare(bVal);
+  });
+
+  const suggestions: CategoricalValueSuggestion[] = [];
+
+  for (const { row } of scored.slice(0, limit)) {
     suggestions.push({
       kind: "categorical-value",
       characterId: row.characterId,
       characterLabel: row.characterLabel,
+      groupId: row.groupId,
       groupLabel: row.groupLabel,
       traitValueId: row.traitValueId,
-      valueLabel: row.valueLabel,
-      valueKey: row.valueKey,
+      traitValueLabel: row.traitValueLabel,
     });
   }
 
-  return suggestions.slice(0, limit);
+  return suggestions;
 }
 
 /**
@@ -112,6 +211,7 @@ async function buildNumericSingleSuggestions(opts: {
     .select({
       characterId: character.id,
       characterLabel: character.label,
+      groupId: character.groupId,
       groupLabel: characterGroup.label,
       unit: numericCharacterMeta.unit,
       kind: numericCharacterMeta.kind,
@@ -142,6 +242,7 @@ async function buildNumericSingleSuggestions(opts: {
       kind: "numeric-single",
       characterId: row.characterId,
       characterLabel: row.characterLabel,
+      groupId: row.groupId,
       groupLabel: row.groupLabel,
       value,
       unitLabel,
@@ -169,6 +270,7 @@ async function buildNumericRangeSuggestions(opts: {
     .select({
       characterId: character.id,
       characterLabel: character.label,
+      groupId: character.groupId,
       groupLabel: characterGroup.label,
       unit: numericCharacterMeta.unit,
       kind: numericCharacterMeta.kind,
@@ -199,6 +301,7 @@ async function buildNumericRangeSuggestions(opts: {
       kind: "numeric-range",
       characterId: row.characterId,
       characterLabel: row.characterLabel,
+      groupId: row.groupId,
       groupLabel: row.groupLabel,
       min,
       max,
@@ -227,14 +330,25 @@ export const searchGroupTraitSuggestions = createServerFn({ method: "GET" })
     const limit = data.limit ?? 20;
 
     const parsedNumeric = parseNumericQuery(q);
+    const isNumericQuery =
+      parsedNumeric.kind === "single" || parsedNumeric.kind === "range";
 
-    // Simple merge.
-    // TODO: relevance ordering
     const [categorical, numericSingle, numericRange] = await Promise.all([
       searchCategoricalSuggestions({ groupId, q, limit }),
       buildNumericSingleSuggestions({ groupId, parsedNumeric, limit }),
       buildNumericRangeSuggestions({ groupId, parsedNumeric, limit }),
     ]);
 
-    return [...categorical, ...numericSingle, ...numericRange].slice(0, limit);
+    let merged: TraitSuggestion[];
+
+    if (isNumericQuery) {
+      // Numeric-looking query → numeric suggestions first, but keep
+      // categorical in the exact order returned from searchCategoricalSuggestions
+      merged = [...numericSingle, ...numericRange, ...categorical];
+    } else {
+      // Texty query → categorical first, in their existing order
+      merged = [...categorical, ...numericSingle, ...numericRange];
+    }
+
+    return merged.slice(0, limit);
   });

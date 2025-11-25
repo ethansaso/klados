@@ -3,18 +3,20 @@ import { AlertDialog, Button, Flex, Strong } from "@radix-ui/themes";
 
 type Props = {
   label: string;
+  /** The type of item being deleted, e.g., "trait set" */
+  itemType: string;
   onConfirm: () => void;
 };
 
-export const ConfirmTraitSetDeleteModal = NiceModal.create<Props>(
-  ({ label, onConfirm }) => {
+export const ConfirmDeleteModal = NiceModal.create<Props>(
+  ({ label, itemType, onConfirm }) => {
     const { visible, hide } = useModal();
     return (
       <AlertDialog.Root open={visible} onOpenChange={(open) => !open && hide()}>
         <AlertDialog.Content maxWidth="400px" aria-describedby={undefined}>
-          <AlertDialog.Title>Delete trait set</AlertDialog.Title>
+          <AlertDialog.Title>Delete {itemType}</AlertDialog.Title>
           <AlertDialog.Description size="2" mb="4">
-            Are you sure you want to delete the trait set{" "}
+            Are you sure you want to delete the {itemType}{" "}
             <Strong>{label}</Strong>? This action cannot be undone.
           </AlertDialog.Description>
 

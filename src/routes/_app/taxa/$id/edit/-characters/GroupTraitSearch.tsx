@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from "@radix-ui/themes";
+import { Box, Flex } from "@radix-ui/themes";
 import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
 import { InputCombobox } from "../../../../../../components/inputs/combobox/InputCombobox";
@@ -8,7 +8,6 @@ import { TraitSuggestion } from "../../../../../../lib/serverFns/character-sugge
 
 type GroupTraitSearchProps = {
   groupId: number;
-  label: string;
   /** Called whenever the user selects a suggestion. */
   onSelect: (suggestion: TraitSuggestion) => void;
   /** Optional placeholder text in the search input. */
@@ -17,7 +16,6 @@ type GroupTraitSearchProps = {
 
 export function GroupTraitSearch({
   groupId,
-  label,
   onSelect,
   placeholder = "Type a value or trait…",
 }: GroupTraitSearchProps) {
@@ -29,47 +27,52 @@ export function GroupTraitSearch({
 
   const serverSearch = useServerFn(searchGroupTraitSuggestions);
 
+  // Simple "request id" guard so stale responses don't win.
+  const requestIdRef = React.useRef(0);
+
   const handleQueryChange = React.useCallback(
     async (q: string) => {
       const trimmed = q.trim();
       if (!trimmed) {
         setSuggestions([]);
         setOptions([]);
+        setLoading(false);
         return;
       }
 
+      const requestId = ++requestIdRef.current;
       setLoading(true);
+
       try {
         const result = await serverSearch({
-          data: {
-            groupId,
-            q: trimmed,
-            limit: 20,
-          },
+          data: { groupId, q: trimmed, limit: 20 },
         });
+
+        // Ignore stale responses
+        if (requestId !== requestIdRef.current) return;
 
         setSuggestions(result);
 
-        // Map each suggestion to a ComboboxOption.
-        // We use the array index as the ID, since ComboboxOption.id is numeric.
         const nextOptions: ComboboxOption[] = result.map((s, index) => {
           const primaryLabel =
-            s.kind === "categorical-value" ? s.valueLabel : s.displayValue; // numeric single/range
+            s.kind === "categorical-value" ? s.traitValueLabel : s.displayValue;
 
           return {
-            id: index,
+            id: index, // index into `suggestions`
             label: primaryLabel,
             hint: s.characterLabel,
           };
         });
 
         setOptions(nextOptions);
-      } catch (err) {
-        // You can add toast logging here if needed.
+      } catch {
+        if (requestId !== requestIdRef.current) return;
         setSuggestions([]);
         setOptions([]);
       } finally {
-        setLoading(false);
+        if (requestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     },
     [groupId, serverSearch]
@@ -86,8 +89,8 @@ export function GroupTraitSearch({
         onSelect(suggestion);
       }
 
-      // Clear the selection so the input stays focusable and "reusable".
-      // We let the popover close via Combobox.Item, then reset local state.
+      // Reset selection so the combobox remains reusable.
+      // Let the popover close first, then clear.
       setTimeout(() => {
         setSelectedOption(null);
       }, 0);
@@ -95,23 +98,21 @@ export function GroupTraitSearch({
     [suggestions, onSelect]
   );
 
+  const rootId = React.useId();
+
   return (
     <Box>
       <Flex direction="column" gap="1">
-        <Text as="label" size="2" weight="medium">
-          {label}
-        </Text>
-
         <InputCombobox.Root
-          id={label.toLowerCase().replace(/\s+/g, "-")}
+          id={rootId}
           value={selectedOption}
           onValueChange={handleValueChange}
           options={options}
           onQueryChange={handleQueryChange}
           loading={loading}
+          size="1"
         >
-          <InputCombobox.Input placeholder={placeholder} />
-
+          <InputCombobox.Input id={rootId} placeholder={placeholder} />
           <InputCombobox.Popover>
             <InputCombobox.List>
               {options.map((opt) => (

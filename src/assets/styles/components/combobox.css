@@ -18,6 +18,24 @@
   flex: 0 0 auto;
 }
 
+/* TODO: determine sizes from Radix */
+.input-combobox {
+  &.size-1 {
+    .input-combobox__input {
+      height: var(--space-5);
+      font-size: var(--font-size-1);
+      text-indent: calc(var(--space-1));
+    }
+  }
+  &.size-2 {
+    .input-combobox__input {
+      height: var(--space-6);
+      font-size: var(--font-size-2);
+      text-indent: calc(var(--space-2) - 1px);
+    }
+  }
+}
+
 .input-combobox__input {
   --border-color: var(--gray-a7);
   width: 100%;
@@ -41,14 +59,6 @@
   &::placeholder {
     color: var(--gray-a10);
   }
-
-  /* TODO: determine sizes from Radix */
-
-  &.size-2 {
-    height: var(--space-6);
-    font-size: var(--font-size-2);
-    text-indent: calc(var(--space-2) - 1px);
-  }
 }
 
 .input-combobox__content {
@@ -57,12 +67,25 @@
   box-shadow: var(--shadow-5);
   border-radius: var(--radius-4);
   overflow: hidden;
-  padding: var(--space-3);
   z-index: 1000;
+
+  &.size-1 {
+    padding: var(--space-1);
+    font-size: var(--font-size-1);
+    .input-combobox__item {
+      padding: var(--space-1) var(--space-2);
+    }
+  }
+  &.size-2 {
+    padding: var(--space-3);
+    font-size: var(--font-size-2);
+    .input-combobox__item {
+      padding: var(--space-2) var(--space-2);
+    }
+  }
 }
 
 .input-combobox__item {
-  padding: var(--space-2) var(--space-2);
   border-radius: var(--radius-2);
   cursor: pointer;
 

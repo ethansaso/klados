@@ -1,9 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { getCharacter, listCharacters } from "../serverFns/characters/fns";
-import {
-  CharacterDTO,
-  CharacterPaginatedResult,
-} from "../serverFns/characters/types";
+import { CharacterPaginatedResult } from "../serverFns/characters/types";
 
 export const charactersQueryOptions = (
   page: number,
@@ -20,6 +17,6 @@ export const charactersQueryOptions = (
 export const characterQueryOptions = (id: number) =>
   queryOptions({
     queryKey: ["character", id] as const,
-    queryFn: () => getCharacter({ data: { id } }) as Promise<CharacterDTO>,
+    queryFn: () => getCharacter({ data: { id } }),
     staleTime: 60_000,
   });

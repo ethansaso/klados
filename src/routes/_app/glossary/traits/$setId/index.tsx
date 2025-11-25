@@ -11,9 +11,9 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
 import { PiPlusCircle, PiTrash } from "react-icons/pi";
 import z from "zod";
+import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
 import {
   traitSetQueryOptions,
   traitSetValuesQueryOptions,
@@ -26,7 +26,6 @@ import { TraitSetDTO } from "../../../../../lib/serverFns/traits/types";
 import { snakeCase } from "../../../../../lib/utils/casing";
 import { toast } from "../../../../../lib/utils/toast";
 import { Route as TraitsLayoutRoute } from "../route";
-import { ConfirmTraitSetDeleteModal } from "./-ConfirmTraitSetDeleteModal";
 
 const ParamsSchema = z.object({
   setId: z.coerce.number().int().positive(),
@@ -46,9 +45,9 @@ function RouteComponent() {
   const search = TraitsLayoutRoute.useSearch();
   const { setId } = Route.useLoaderData();
   const serverCreate = useServerFn(createTraitValue);
+  const serverDelete = useServerFn(deleteTraitSet);
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const serverDelete = useServerFn(deleteTraitSet);
 
   const {
     data: traitSet,
@@ -66,10 +65,16 @@ function RouteComponent() {
     retry: false,
   });
 
-  const [newValue, setNewValue] = useState<string>("");
+  const handleAddValue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("trig");
 
-  const handleAddValue = async () => {
-    const trimmedValue = newValue.trim();
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const eValue = formData.get("trait-value");
+    if (typeof eValue !== "string") return;
+
+    const trimmedValue = eValue.trim();
     if (!trimmedValue) return;
 
     try {
@@ -82,18 +87,19 @@ function RouteComponent() {
       });
 
       toast({ description: "Trait value created.", variant: "success" });
+      form.reset();
       qc.invalidateQueries({
         queryKey: traitSetValuesQueryOptions(setId).queryKey,
       });
-      setNewValue("");
     } catch (error) {
       console.error("Error creating trait value:", error);
     }
   };
 
   const handleTraitSetDeleteClick = (traitSet: TraitSetDTO) => {
-    NiceModal.show(ConfirmTraitSetDeleteModal, {
+    NiceModal.show(ConfirmDeleteModal, {
       label: traitSet.label,
+      itemType: "trait set",
       onConfirm: async () => {
         try {
           await serverDelete({ data: { id: traitSet.id } });
@@ -137,18 +143,20 @@ function RouteComponent() {
       <Text>{traitSet.description}</Text>
       <Separator mt="2" mb="2" />
       <Heading size="6">Values:</Heading>
-      <Flex mb="2">
-        <TextField.Root
-          id="new-value"
-          placeholder="Add a new value..."
-          value={newValue}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setNewValue(e.target.value)
-          }
-        />
-        <IconButton type="button" onClick={handleAddValue}>
-          <PiPlusCircle />
-        </IconButton>
+      <Flex mb="2" asChild>
+        <form onSubmit={handleAddValue}>
+          <TextField.Root
+            id="trait-value"
+            name="trait-value"
+            placeholder="Add a new value..."
+          >
+            <TextField.Slot side="right">
+              <IconButton type="submit" size="1">
+                <PiPlusCircle />
+              </IconButton>
+            </TextField.Slot>
+          </TextField.Root>
+        </form>
       </Flex>
       {!traitSetValues?.length || osvError ? (
         <div>No values found.</div>

@@ -2,7 +2,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import z from "zod";
 import { db } from "../../../db/client";
-import { taxonCharacterStateCategorical } from "../../../db/schema/schema";
+import {
+  taxonCharacterStateCategorical as catStateTbl,
+  character as charsTbl,
+  categoricalTraitValue as traitValTbl,
+} from "../../../db/schema/schema";
 import { TaxonCharacterStateDTO } from "./types";
 
 export const getTaxonCharacterStates = createServerFn({ method: "GET" })
@@ -17,37 +21,36 @@ export const getTaxonCharacterStates = createServerFn({ method: "GET" })
     // One row per (taxon, character, traitValue)
     const rows = await db
       .select({
-        characterId: taxonCharacterStateCategorical.characterId,
-        traitValueId: taxonCharacterStateCategorical.traitValueId,
+        characterId: catStateTbl.characterId,
+        groupId: charsTbl.groupId,
+        traitValueId: catStateTbl.traitValueId,
+        traitValueLabel: traitValTbl.label,
       })
-      .from(taxonCharacterStateCategorical)
-      .where(eq(taxonCharacterStateCategorical.taxonId, taxonId));
+      .from(catStateTbl)
+      .innerJoin(charsTbl, eq(charsTbl.id, catStateTbl.characterId))
+      .innerJoin(traitValTbl, eq(traitValTbl.id, catStateTbl.traitValueId))
+      .where(eq(catStateTbl.taxonId, taxonId));
 
-    if (rows.length === 0) {
-      return [];
-    }
+    if (!rows.length) return [];
 
-    // Group by characterId
-    const byCharacter = new Map<number, number[]>();
-
+    const byCharacter = new Map<number, TaxonCharacterStateDTO>();
     for (const row of rows) {
-      let list = byCharacter.get(row.characterId);
-      if (!list) {
-        list = [];
-        byCharacter.set(row.characterId, list);
+      let state = byCharacter.get(row.characterId);
+      if (!state) {
+        state = {
+          kind: "categorical",
+          characterId: row.characterId,
+          groupId: row.groupId,
+          traitValues: [],
+        };
+        byCharacter.set(row.characterId, state);
       }
-      list.push(row.traitValueId);
-    }
 
-    const result: TaxonCharacterStateDTO[] = [];
-
-    for (const [characterId, traitValueIds] of byCharacter.entries()) {
-      result.push({
-        kind: "categorical",
-        characterId,
-        traitValueIds,
+      state.traitValues.push({
+        id: row.traitValueId,
+        label: row.traitValueLabel,
       });
     }
 
-    return result;
+    return Array.from(byCharacter.values());
   });

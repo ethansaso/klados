@@ -12,9 +12,11 @@
     "db:studio": "drizzle-kit studio",
     "db:drop-create": "psql \"postgres://app:app@127.0.0.1:5434/postgres\" -v ON_ERROR_STOP=1 -c \"DROP DATABASE IF EXISTS taxokeys;\" -c \"CREATE DATABASE taxokeys;\"",
     "db:reset": "npm run db:drop-create && npm run db:generate && npm run db:migrate",
+    "db:seed:colors": "tsx scripts/seeding/colors/seedColors.ts",
     "db:seed": "tsx scripts/seed.ts",
     "db:admin": "tsx scripts/forceAdmin.ts",
-    "db:reset-taxa": "tsx scripts/deleteAllTaxa.ts"
+    "db:reset-taxa": "tsx scripts/deleteAllTaxa.ts",
+    "test:colors": "tsx scripts/seeding/colors/testColors.ts"
   },
   "keywords": [],
   "author": "",

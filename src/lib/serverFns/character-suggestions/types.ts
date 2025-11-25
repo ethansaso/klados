@@ -2,14 +2,14 @@
 type BaseCharacterContext = {
   characterId: number;
   characterLabel: string; // "Cap color", "Cap diameter"
+  groupId: number;
   groupLabel: string; // "Cap", "Gills", etc.
 };
 
 export type CategoricalValueSuggestion = BaseCharacterContext & {
   kind: "categorical-value";
   traitValueId: number;
-  valueLabel: string; // "Red"
-  valueKey: string; // "red"
+  traitValueLabel: string; // "Red"
 };
 export type NumericSingleSuggestion = BaseCharacterContext & {
   kind: "numeric-single";

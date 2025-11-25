@@ -1,5 +1,6 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { setResponseStatus } from "@tanstack/react-start/server";
 import { and, asc, count, eq, ilike, inArray, or, SQL, sql } from "drizzle-orm";
 import z from "zod";
 import { db } from "../../../db/client";
@@ -7,6 +8,7 @@ import {
   categoricalCharacterMeta as catMetaTbl,
   character as charsTbl,
   characterGroup as groupsTbl,
+  categoricalTraitSet as traitSetTbl,
   taxonCharacterStateCategorical as valCatTbl,
 } from "../../../db/schema/schema";
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
@@ -14,6 +16,7 @@ import { snakeCase } from "../../utils/casing";
 import { PaginationSchema } from "../../validation/pagination";
 import type {
   CategoricalCharacterDTO,
+  CharacterDetailDTO,
   CharacterDTO,
   CharacterPaginatedResult,
 } from "./types";
@@ -109,7 +112,7 @@ export const getCharacter = createServerFn({ method: "GET" })
       id: z.coerce.number().int().positive(),
     })
   )
-  .handler(async ({ data }): Promise<CharacterDTO> => {
+  .handler(async ({ data }): Promise<CharacterDetailDTO> => {
     const { id } = data;
 
     // For now, only categorical characters are supported.
@@ -119,20 +122,28 @@ export const getCharacter = createServerFn({ method: "GET" })
         key: charsTbl.key,
         label: charsTbl.label,
         description: charsTbl.description,
-        groupId: charsTbl.groupId,
         group: {
           id: groupsTbl.id,
           label: groupsTbl.label,
         },
         usageCount: sql<number>`COUNT(${valCatTbl.id})`,
+
         // categorical meta
         type: sql<"categorical">`'categorical'`,
         characterId: charsTbl.id,
-        traitSetId: catMetaTbl.traitSetId,
+        isMultiSelect: catMetaTbl.isMultiSelect,
+
+        traitSet: {
+          id: traitSetTbl.id,
+          key: traitSetTbl.key,
+          label: traitSetTbl.label,
+          description: traitSetTbl.description,
+        },
       })
       .from(charsTbl)
       .innerJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
       .innerJoin(groupsTbl, eq(groupsTbl.id, charsTbl.groupId))
+      .innerJoin(traitSetTbl, eq(traitSetTbl.id, catMetaTbl.traitSetId))
       .leftJoin(valCatTbl, eq(valCatTbl.characterId, charsTbl.id))
       .where(eq(charsTbl.id, id))
       .groupBy(
@@ -140,10 +151,14 @@ export const getCharacter = createServerFn({ method: "GET" })
         charsTbl.key,
         charsTbl.label,
         charsTbl.description,
-        charsTbl.groupId,
         groupsTbl.id,
         groupsTbl.label,
-        catMetaTbl.traitSetId
+        catMetaTbl.traitSetId,
+        traitSetTbl.id,
+        traitSetTbl.key,
+        traitSetTbl.label,
+        traitSetTbl.description,
+        catMetaTbl.isMultiSelect
       )
       .limit(1)
       .then((rows) => rows[0]);
@@ -203,7 +218,6 @@ export const createCharacter = createServerFn({ method: "POST" })
         key: charRow.key,
         label: charRow.label,
         description: charRow.description,
-        groupId: charRow.groupId,
         group: { id: groupRow.id, label: groupRow.label },
         usageCount: 0,
         type: "categorical",
@@ -212,5 +226,42 @@ export const createCharacter = createServerFn({ method: "POST" })
       };
 
       return dto;
+    });
+  });
+
+export const deleteCharacter = createServerFn({ method: "POST" })
+  .middleware([requireCuratorMiddleware])
+  .inputValidator(z.object({ id: z.number().int().positive() }))
+  .handler(async ({ data }): Promise<{ id: number }> => {
+    const { id } = data;
+
+    return await db.transaction(async (tx) => {
+      // Check whether any taxa are using this character.
+      // TODO: extend for numeric/range kinds when supported.
+      const [{ count: categoricalCount }] = await tx
+        .select({ count: count() })
+        .from(valCatTbl)
+        .where(eq(valCatTbl.characterId, id));
+
+      const usageCount = Number(categoricalCount ?? 0);
+
+      if (usageCount > 0) {
+        setResponseStatus(400);
+        throw new Error(
+          `Cannot delete character; it is in use by ${usageCount} taxa.`
+        );
+      }
+
+      const [deleted] = await tx
+        .delete(charsTbl)
+        .where(eq(charsTbl.id, id))
+        .returning({ id: charsTbl.id });
+
+      if (!deleted) {
+        // Character did not exist.
+        throw notFound();
+      }
+
+      return deleted;
     });
   });

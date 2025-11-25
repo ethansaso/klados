@@ -34,11 +34,15 @@ export const categoricalTraitValue = pgTable(
   "categorical_trait_value",
   withTimestamps({
     id: serial("id").primaryKey(),
+    // Cascade is safe here -- the taxonCharacterStateCategorical table
+    // handles prevention of deleting in-use trait values via its FKs
     setId: integer("set_id")
       .notNull()
-      .references(() => categoricalTraitSet.id, { onDelete: "restrict" }),
+      .references(() => categoricalTraitSet.id, { onDelete: "cascade" }),
     key: text("key").notNull(),
     label: text("label").notNull(),
+    /** Optional hexadecimal color code (e.g., "#ff0000") */
+    hexCode: text("hex_code"),
     isCanonical: boolean("is_canonical").notNull().default(true),
     canonicalValueId: integer("canonical_value_id"),
   }),
@@ -73,6 +77,12 @@ export const categoricalTraitValue = pgTable(
     check(
       "trait_values_no_self_alias_ck",
       sql`${t.canonicalValueId} IS NULL OR ${t.canonicalValueId} <> ${t.id}`
+    ),
+
+    // CHECK #3: hex code format (if present)
+    check(
+      "trait_values_hex_code_format_ck",
+      sql`${t.hexCode} IS NULL OR ${t.hexCode} ~ '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'`
     ),
   ]
 );

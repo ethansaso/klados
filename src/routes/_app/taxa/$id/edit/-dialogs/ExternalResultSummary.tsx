@@ -102,7 +102,7 @@ export const ExternalResultSummary = ({
                 href={taxon.link}
                 target="_blank"
                 weight="bold"
-                size="4"
+                size="3"
                 color="gray"
                 highContrast
                 underline="hover"

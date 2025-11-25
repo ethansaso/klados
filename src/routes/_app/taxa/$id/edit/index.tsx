@@ -45,13 +45,14 @@ import { publishTaxon } from "../../../../../lib/serverFns/taxa/fns/publish";
 import { updateTaxon } from "../../../../../lib/serverFns/taxa/fns/update";
 import { TaxonDetailDTO } from "../../../../../lib/serverFns/taxa/types";
 import {
-  characterUpdateSchema,
+  CharacterUpdate,
   mediaItemSchema,
   taxonPatchSchema,
 } from "../../../../../lib/serverFns/taxa/validation";
 import { nameItemSchema } from "../../../../../lib/serverFns/taxon-names/validation";
 import { toast } from "../../../../../lib/utils/toast";
 import { CharacterEditingForm } from "./-characters/CharactersEditingForm";
+import { characterStateFormSchema } from "./-characters/validation";
 import { pickGBIFTaxon } from "./-dialogs/GbifIdModal";
 import { pickInatTaxon } from "./-dialogs/InatIdModal";
 import { MediaEditingForm } from "./-MediaEditingForm";
@@ -63,7 +64,7 @@ const taxonFormSchema = taxonPatchSchema.extend({
   media: z.array(mediaItemSchema),
   rank: z.enum(TAXON_RANKS_DESCENDING),
   names: z.array(nameItemSchema),
-  characters: z.array(characterUpdateSchema),
+  characters: z.array(characterStateFormSchema),
 });
 type FormFields = z.infer<typeof taxonFormSchema>;
 
@@ -111,6 +112,23 @@ const seedEditState = (
   names: taxon.names,
   characters: characterValues,
 });
+
+const convertToServerCharacterValues = (
+  values: FormFields["characters"]
+): CharacterUpdate[] => {
+  return values.map((v) => {
+    switch (v.kind) {
+      case "categorical":
+        return {
+          kind: "categorical",
+          characterId: v.characterId,
+          traitValueIds: v.traitValues.map((tv) => tv.id),
+        };
+      default:
+        throw new Error(`Unsupported character state kind: ${v.kind}`);
+    }
+  });
+};
 
 function RouteComponent() {
   const { id, initialTaxon, initialCharacterValues } = Route.useLoaderData();
@@ -198,7 +216,13 @@ function RouteComponent() {
     console.log(data);
     if (!isDirty) return;
     try {
-      await serverUpdate({ data: { id, ...data } });
+      await serverUpdate({
+        data: {
+          ...data,
+          id,
+          characters: convertToServerCharacterValues(data.characters),
+        },
+      });
       reset(data, { keepDirty: false }); // keep RHF dirty tracking in sync
       await invalidateTaxon(id);
       toast({ description: "Taxon saved.", variant: "success" });
@@ -213,7 +237,13 @@ function RouteComponent() {
   const onPublish = handleSubmit(async (data) => {
     if (!isDraft) return;
     try {
-      await serverUpdate({ data: { id, ...data } });
+      await serverUpdate({
+        data: {
+          ...data,
+          id,
+          characters: convertToServerCharacterValues(data.characters),
+        },
+      });
       reset(data, { keepDirty: false }); // clear dirty after persisting
       await serverPublish({ data: { id } });
       await invalidateTaxon(id);

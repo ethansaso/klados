@@ -40,10 +40,7 @@ export const GroupSearch = ({ onSelect }: GroupSearchProps) => {
         onQueryChange={setSearchQ}
         loading={isLoading}
       >
-        <Box mb="1">
-          <InputCombobox.Label>Group search</InputCombobox.Label>
-        </Box>
-        <InputCombobox.Input placeholder="Search character groups…" size="2" />
+        <InputCombobox.Input placeholder="Add a new group…" />
         <InputCombobox.Popover>
           <InputCombobox.List>
             {options.map((opt) => (

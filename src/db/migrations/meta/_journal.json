@@ -36,6 +36,20 @@
       "when": 1763250419750,
       "tag": "20251115234659_slimy_metal_master",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1764026619033,
+      "tag": "20251124232339_yummy_sumo",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1764027368017,
+      "tag": "20251124233608_past_vanisher",
+      "breakpoints": true
     }
   ]
 }

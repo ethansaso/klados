@@ -1,9 +1,10 @@
-type CategoricalDTO = {
+type TaxonCategoricalStateDTO = {
   kind: "categorical";
   characterId: number;
-  traitValueIds: number[];
+  groupId: number;
+  traitValues: { id: number; label: string }[];
 };
 
 export type TaxonCharacterStateDTO =
-  | CategoricalDTO
+  | TaxonCategoricalStateDTO
   | /* TODO: Future types here */ never;

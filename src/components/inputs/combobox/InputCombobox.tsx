@@ -6,7 +6,7 @@ import {
   useComboboxContext,
 } from "@ariakit/react";
 import * as RadixPopover from "@radix-ui/react-popover";
-import { Box, Flex, ScrollArea, Text } from "@radix-ui/themes";
+import { Box, Flex, ScrollArea, Text, Theme } from "@radix-ui/themes";
 import classNames from "classnames";
 import {
   Children,
@@ -41,6 +41,8 @@ type RootProps = {
   disabled?: boolean;
   loading?: boolean;
 
+  size?: "1" | "2" | "3";
+
   className?: string;
   style?: CSSProperties;
 
@@ -51,7 +53,6 @@ type InputProps = Omit<
   ComponentProps<typeof AriakitCombobox>,
   "value" | "onChange" | "size"
 > & {
-  size?: "1" | "2" | "3";
   className?: string;
 };
 type PopoverProps = ComponentProps<typeof RadixPopover.Content> & {
@@ -86,6 +87,8 @@ type Ctx = {
 
   comboboxRef: RefObject<HTMLInputElement | null>;
   listboxRef: RefObject<HTMLDivElement | null>;
+
+  size?: "1" | "2" | "3";
 };
 
 const DEBOUNCE_MS = 200;
@@ -131,6 +134,7 @@ function Root({
   onQueryChange,
   disabled,
   loading,
+  size,
   className,
   style,
   children,
@@ -140,10 +144,8 @@ function Root({
   const comboboxRef = useRef<HTMLInputElement | null>(null);
   const listboxRef = useRef<HTMLDivElement | null>(null);
 
-  const clearInput = useCallback(() => {
-    const store = useComboboxContext();
-    // This will be null here (different context), so we do this in Item instead.
-  }, []);
+  // This will be null here (different context), so we do this in Item instead.
+  const clearInput = useCallback(() => {}, []);
 
   const ctx: Ctx = {
     id,
@@ -158,12 +160,16 @@ function Root({
     clearInput,
     comboboxRef,
     listboxRef,
+    size,
   };
 
   const selectedId = value ? String(value.id) : "";
 
   return (
-    <div className={className} style={style}>
+    <div
+      className={classNames(className, `input-combobox size-${size ?? 2}`)}
+      style={style}
+    >
       {name && <input type="hidden" name={name} value={selectedId} />}
 
       <RadixPopover.Root open={open} onOpenChange={setOpen}>
@@ -191,7 +197,7 @@ function Label({ children, ...rest }: LabelProps) {
   );
 }
 
-function Input({ className, size, ...rest }: InputProps) {
+function Input({ className, ...rest }: InputProps) {
   const { id, disabled, open, setOpen, comboboxRef } = useCb();
 
   const labelId = id ? `${id}-label` : undefined;
@@ -210,10 +216,7 @@ function Input({ className, size, ...rest }: InputProps) {
         onFocus={() => {
           if (!disabled) setOpen(true);
         }}
-        className={classNames(
-          `input-combobox__input rt-reset size-${size}`,
-          className
-        )}
+        className={classNames(`input-combobox__input rt-reset`, className)}
         {...rest}
       />
     </RadixPopover.Anchor>
@@ -228,31 +231,39 @@ function Popover({
   className,
   ...props
 }: PopoverProps) {
-  const { comboboxRef, listboxRef } = useCb();
+  const { comboboxRef, listboxRef, size } = useCb();
 
   return (
-    <RadixPopover.Content
-      side={side}
-      align={align}
-      sideOffset={sideOffset}
-      onOpenAutoFocus={(event) => {
-        // Keep focus on the combobox input.
-        event.preventDefault();
-      }}
-      onInteractOutside={(event) => {
-        const target = event.target as Element | null;
-        const isCombobox = target === comboboxRef.current;
-        const inListbox = target && listboxRef.current?.contains(target);
+    <RadixPopover.Portal>
+      <Theme asChild>
+        <RadixPopover.Content
+          side={side}
+          align={align}
+          sideOffset={sideOffset}
+          onOpenAutoFocus={(event) => {
+            // Keep focus on the combobox input.
+            event.preventDefault();
+          }}
+          onInteractOutside={(event) => {
+            const target = event.target as Element | null;
+            const isCombobox = target === comboboxRef.current;
+            const inListbox = target && listboxRef.current?.contains(target);
 
-        if (isCombobox || inListbox) {
-          event.preventDefault();
-        }
-      }}
-      className={classNames("input-combobox__content", className)}
-      {...props}
-    >
-      {children}
-    </RadixPopover.Content>
+            if (isCombobox || inListbox) {
+              event.preventDefault();
+            }
+          }}
+          className={classNames(
+            "input-combobox__content",
+            `size-${size ?? 2}`,
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </RadixPopover.Content>
+      </Theme>
+    </RadixPopover.Portal>
   );
 }
 
@@ -277,17 +288,13 @@ function List({ className, style, children }: ListProps) {
       >
         {!hasChildren && loading && (
           <Box p="2">
-            <Text size="2" color="gray">
-              Loading
-            </Text>
+            <Text color="gray">Loading</Text>
           </Box>
         )}
 
         {!hasChildren && !loading && options.length === 0 && (
           <Box p="2">
-            <Text size="2" color="gray">
-              No results
-            </Text>
+            <Text color="gray">No results</Text>
           </Box>
         )}
 
@@ -324,7 +331,6 @@ function Item({ option, className, style }: ItemProps) {
       <Flex align="baseline" gap="2" overflow="hidden">
         <Text
           as="p"
-          size="2"
           truncate
           weight="medium"
           className="input-combobox__item-label"

@@ -11,3 +11,15 @@
     }
   }
 }
+
+.character-editor__card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.character-editor__tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
