@@ -20,22 +20,22 @@ import {
   ConditionalAlert,
 } from "../../../components/inputs/ConditionalAlert";
 import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
-import { createTaxonDraft } from "../../../lib/api/taxa/fns/create";
-import {
-  CreateTaxonInput,
-  createTaxonSchema,
-} from "../../../lib/api/taxa/validation";
-import { getMe } from "../../../lib/api/users/user";
+import { createTaxonDraftFn } from "../../../lib/api/taxa/createTaxonDraft";
+import { getMeFn } from "../../../lib/api/users/getMe";
 import {
   generateLoginRedirectFromLocation,
   roleHasCuratorRights,
 } from "../../../lib/auth/utils";
+import {
+  CreateTaxonInput,
+  createTaxonSchema,
+} from "../../../lib/domain/taxa/validation";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
 import { toast } from "../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/taxa/new")({
   beforeLoad: async ({ location }) => {
-    const user = await getMe();
+    const user = await getMeFn();
     if (!roleHasCuratorRights(user?.role)) {
       throw generateLoginRedirectFromLocation(location);
     }
@@ -45,7 +45,7 @@ export const Route = createFileRoute("/_app/taxa/new")({
 
 function RouteComponent() {
   const [parentQ, setParentQ] = useState("");
-  const serverCreate = useServerFn(createTaxonDraft);
+  const serverCreate = useServerFn(createTaxonDraftFn);
   const navigate = useNavigate();
 
   const { data: parentPaginatedResults } = useQuery(

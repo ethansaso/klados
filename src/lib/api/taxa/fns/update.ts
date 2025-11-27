@@ -11,25 +11,25 @@ import {
 import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import { requireCuratorMiddleware } from "../../../auth/serverFnMiddleware";
-import { assertHierarchyInvariant } from "../../../utils/assertHierarchyInvariant";
-import { NameItem } from "../../taxon-names/validation";
 import {
   common,
   commonJoinPred,
   sci,
   sciJoinPred,
   selectTaxonDTO,
-} from "../sqlAdapters";
-import { TaxonDTO } from "../types";
+} from "../../../domain/taxa/sqlAdapters";
+import { TaxonDTO } from "../../../domain/taxa/types";
 import {
   assertExactlyOneAcceptedScientificName,
   getCurrentTaxonMinimal,
-} from "../utils";
+} from "../../../domain/taxa/utils";
 import {
   CategoricalCharacterUpdate,
   CharacterUpdate,
   taxonPatchSchema,
-} from "../validation";
+} from "../../../domain/taxa/validation";
+import { assertHierarchyInvariant } from "../../../utils/assertHierarchyInvariant";
+import { NameItem } from "../../taxon-names/validation";
 
 export const updateTaxon = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
@@ -65,6 +65,9 @@ export const updateTaxon = createServerFn({ method: "POST" })
 
     return await db.transaction(async (tx) => {
       const current = await getCurrentTaxonMinimal(tx, id);
+      if (!current) {
+        throw notFound();
+      }
       if (current.status === "deprecated") {
         throw new Error("Deprecated taxa cannot be updated.");
       }

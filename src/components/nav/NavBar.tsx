@@ -2,7 +2,7 @@ import { Button, Flex, Link as RtLink, TabNav, Text } from "@radix-ui/themes";
 import { Link as RouterLink } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { PiCaretDown } from "react-icons/pi";
-import { getMe } from "../../lib/api/users/user";
+import { getMeFn } from "../../lib/api/users/getMe";
 import { roleHasCuratorRights } from "../../lib/auth/utils";
 import { useIsActive } from "../../lib/hooks/useIsActive";
 import { Logo } from "./Logo";
@@ -10,7 +10,7 @@ import { NavDropdown } from "./NavDropdown";
 import { UserMenu } from "./UserMenu";
 
 interface NavBarProps {
-  user: Awaited<ReturnType<typeof getMe>> | undefined;
+  user: Awaited<ReturnType<typeof getMeFn>> | undefined;
 }
 
 function NavBarBrand() {

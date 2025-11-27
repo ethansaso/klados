@@ -1,7 +1,7 @@
 import z from "zod";
 import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
 import { MEDIA_LICENSES } from "../../../db/utils/mediaLicense";
-import { nameItemSchema } from "../taxon-names/validation";
+import { nameItemSchema } from "../../api/taxon-names/validation";
 
 export const mediaItemSchema = z.object({
   url: z.url(),

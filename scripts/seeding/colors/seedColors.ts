@@ -99,7 +99,7 @@ async function getOrCreateColorTraitSet() {
       key: COLOR_TRAIT_SET_KEY,
       label: "Standard Color Palette",
       description:
-        "Standardized color names and swatches for TaxoKeys, derived from a simplified ISCC-like scheme.",
+        "Standardized color names and swatches for Klados, derived from a simplified ISCC-like scheme.",
     })
     .returning();
 

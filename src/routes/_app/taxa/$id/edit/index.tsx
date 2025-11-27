@@ -35,16 +35,16 @@ import {
 } from "../../../../../components/inputs/ConditionalAlert";
 import { TAXON_RANKS_DESCENDING } from "../../../../../db/schema/schema";
 import { TaxonCharacterStateDTO } from "../../../../../lib/api/character-states/types";
-import { deleteTaxon } from "../../../../../lib/api/taxa/fns/delete";
-import { publishTaxon } from "../../../../../lib/api/taxa/fns/publish";
+import { deleteTaxonFn } from "../../../../../lib/api/taxa/deleteTaxon";
 import { updateTaxon } from "../../../../../lib/api/taxa/fns/update";
-import { TaxonDetailDTO } from "../../../../../lib/api/taxa/types";
+import { publishTaxonFn } from "../../../../../lib/api/taxa/publish";
+import { nameItemSchema } from "../../../../../lib/api/taxon-names/validation";
+import { TaxonDetailDTO } from "../../../../../lib/domain/taxa/types";
 import {
   CharacterUpdate,
   mediaItemSchema,
   taxonPatchSchema,
-} from "../../../../../lib/api/taxa/validation";
-import { nameItemSchema } from "../../../../../lib/api/taxon-names/validation";
+} from "../../../../../lib/domain/taxa/validation";
 import {
   taxaQueryOptions,
   taxonQueryOptions,
@@ -135,8 +135,8 @@ function RouteComponent() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const serverUpdate = useServerFn(updateTaxon);
-  const serverPublish = useServerFn(publishTaxon);
-  const serverDelete = useServerFn(deleteTaxon);
+  const serverPublish = useServerFn(publishTaxonFn);
+  const serverDelete = useServerFn(deleteTaxonFn);
 
   const {
     register,

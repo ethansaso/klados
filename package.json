@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "build:keygen": "tsc -p keygen/tsconfig.json",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:studio": "drizzle-kit studio",

@@ -5,12 +5,12 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
-import { getMe } from "../../lib/api/users/user";
+import { getMeFn } from "../../lib/api/users/getMe";
 import { useIsActive } from "../../lib/hooks/useIsActive";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async ({ location }) => {
-    const user = await getMe();
+    const user = await getMeFn();
     if (!user || user.role !== "admin") {
       throw redirect({ to: "/" });
     }

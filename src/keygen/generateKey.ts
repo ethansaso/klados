@@ -1,4 +1,4 @@
-import { TaxonDetailDTO } from "../lib/api/taxa/types";
+import { TaxonDetailDTO } from "../lib/domain/taxa/types";
 
 export const generateKeyForTaxa = async (ids: number[]): Promise<void> => {
   // Instantiate ID -> data map

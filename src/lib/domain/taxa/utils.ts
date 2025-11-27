@@ -1,5 +1,4 @@
-import { notFound } from "@tanstack/react-router";
-import { and, count, eq, sql } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { taxonName as namesTbl } from "../../../db/schema/schema";
 import { taxon as taxaTbl } from "../../../db/schema/taxa/taxon";
 import { Transaction } from "../../utils/transactionType";
@@ -15,7 +14,8 @@ export async function assertExactlyOneAcceptedScientificName(
     .where(
       and(
         eq(namesTbl.taxonId, taxonId),
-        sql`${namesTbl.locale} = 'sci' AND ${namesTbl.isPreferred} = true`
+        eq(namesTbl.locale, "sci"),
+        eq(namesTbl.isPreferred, true)
       )
     );
 
@@ -30,7 +30,7 @@ export async function assertExactlyOneAcceptedScientificName(
 export async function getCurrentTaxonMinimal(
   tx: Transaction,
   id: number
-): Promise<Pick<TaxonRow, "id" | "parentId" | "rank" | "status">> {
+): Promise<Pick<TaxonRow, "id" | "parentId" | "rank" | "status"> | null> {
   const [row] = await tx
     .select({
       id: taxaTbl.id,
@@ -42,8 +42,7 @@ export async function getCurrentTaxonMinimal(
     .where(eq(taxaTbl.id, id))
     .limit(1);
 
-  if (!row) throw notFound();
-  return row;
+  return row ?? null;
 }
 
 /** Quick child-count check. */
@@ -54,6 +53,7 @@ export async function getChildCount(
   const [{ cnt }] = await tx
     .select({ cnt: count() })
     .from(taxaTbl)
-    .where(eq(taxaTbl.parentId, id));
+    .where(eq(taxaTbl.parentId, id))
+    .limit(1);
   return Number(cnt);
 }

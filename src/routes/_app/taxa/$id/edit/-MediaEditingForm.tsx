@@ -11,7 +11,7 @@ import {
 import { FaDove } from "react-icons/fa";
 import { PiArrowDown, PiArrowUp, PiPlus, PiTrash } from "react-icons/pi";
 import { MEDIA_LICENSES } from "../../../../../db/utils/mediaLicense";
-import { MediaItem } from "../../../../../lib/api/taxa/validation";
+import { MediaItem } from "../../../../../lib/domain/taxa/validation";
 import { toast } from "../../../../../lib/utils/toast";
 import { selectInatPhotos } from "./-dialogs/InatPhotoSelectModal";
 

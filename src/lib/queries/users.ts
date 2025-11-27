@@ -1,15 +1,17 @@
 import { queryOptions } from "@tanstack/react-query";
-import type { UserDTO, UsersPageResult } from "../api/users/user";
-import { getMe, getUser, listUsers } from "../api/users/user";
+import { getMeFn } from "../api/users/getMe";
+import { getUserFn } from "../api/users/getUser";
+import { listUsersFn } from "../api/users/listUsers";
+import type { UserDTO, UsersPaginatedResult } from "../domain/users/types";
 
 /**
  * Query options for fetching multiple users.
  * Wraps the getUsers server function with React Query integration.
  */
 export const usersQueryOptions = (page: number, pageSize: number) =>
-  queryOptions<UsersPageResult>({
+  queryOptions<UsersPaginatedResult>({
     queryKey: ["users", { page, pageSize }],
-    queryFn: () => listUsers({ data: { page, pageSize: pageSize } }),
+    queryFn: () => listUsersFn({ data: { page, pageSize: pageSize } }),
     staleTime: 60_000,
   });
 
@@ -19,7 +21,7 @@ export const usersQueryOptions = (page: number, pageSize: number) =>
 export const userQueryOptions = (id: string) =>
   queryOptions<UserDTO>({
     queryKey: ["user", id],
-    queryFn: () => getUser({ data: { id } }),
+    queryFn: () => getUserFn({ data: { id } }),
     staleTime: 60_000,
   });
 
@@ -29,7 +31,7 @@ export const userQueryOptions = (id: string) =>
 export const meQuery = () => {
   return queryOptions({
     queryKey: ["me"],
-    queryFn: getMe,
+    queryFn: () => getMeFn(),
     staleTime: 60_000,
     gcTime: 5 * 60_000,
   });

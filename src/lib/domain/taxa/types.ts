@@ -1,6 +1,6 @@
 import { taxon } from "../../../db/schema/schema";
+import { NameItem } from "../../api/taxon-names/validation";
 import { PaginatedResult } from "../../validation/pagination";
-import { NameItem } from "../taxon-names/validation";
 
 export type TaxonRow = typeof taxon.$inferSelect;
 export type TaxonDTO = Pick<

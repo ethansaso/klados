@@ -8,7 +8,7 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
-import { MediaItem } from "../../../../../../lib/api/taxa/validation";
+import { MediaItem } from "../../../../../../lib/domain/taxa/validation";
 
 type Props = {
   inatId: number;
