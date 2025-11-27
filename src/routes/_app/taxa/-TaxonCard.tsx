@@ -1,7 +1,7 @@
 import { Box, Card, Flex, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import { PiTreeStructure } from "react-icons/pi";
-import { TaxonDTO } from "../../../lib/serverFns/taxa/types";
+import { TaxonDTO } from "../../../lib/api/taxa/types";
 import { capitalizeWord } from "../../../lib/utils/casing";
 
 export const TaxonCard = ({ taxon }: { taxon: TaxonDTO }) => {

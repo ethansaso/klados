@@ -5,8 +5,8 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
+import { getMe } from "../../lib/api/users/user";
 import { useIsActive } from "../../lib/hooks/useIsActive";
-import { getMe } from "../../lib/serverFns/users/user";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async ({ location }) => {

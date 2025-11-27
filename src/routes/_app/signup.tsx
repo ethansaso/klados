@@ -21,6 +21,7 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../components/inputs/ConditionalAlert";
+import { getMe } from "../../lib/api/users/user";
 import { authClient } from "../../lib/auth/authClient";
 import {
   emailSchema,
@@ -28,7 +29,6 @@ import {
   usernameSchema,
 } from "../../lib/auth/validation";
 import { meQuery } from "../../lib/queries/users";
-import { getMe } from "../../lib/serverFns/users/user";
 import { toast } from "../../lib/utils/toast";
 
 const schema = z.object({

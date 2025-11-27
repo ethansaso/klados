@@ -11,8 +11,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { PiCheck, PiTrash, PiX } from "react-icons/pi";
+import { CategoricalValueSuggestion } from "../../../../../../lib/api/character-suggestions/types";
 import { characterGroupQueryOptions } from "../../../../../../lib/queries/characterGroups";
-import { CategoricalValueSuggestion } from "../../../../../../lib/serverFns/character-suggestions/types";
 import { CharacterStateRow } from "./CharacterStateRow";
 import { GroupTraitSearch } from "./GroupTraitSearch";
 import { addCategoricalStateFromSuggestion } from "./stateUtils";

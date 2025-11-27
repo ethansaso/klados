@@ -1,5 +1,5 @@
 import { Grid, Text } from "@radix-ui/themes";
-import { TaxonPaginatedResult } from "../../../lib/serverFns/taxa/types";
+import { TaxonPaginatedResult } from "../../../lib/api/taxa/types";
 import { TaxonCard } from "./-TaxonCard";
 
 export const TaxonGrid = ({ results }: { results: TaxonPaginatedResult }) => {

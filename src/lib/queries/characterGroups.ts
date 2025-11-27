@@ -2,11 +2,11 @@ import { queryOptions } from "@tanstack/react-query";
 import {
   getCharacterGroup,
   listCharacterGroups,
-} from "../serverFns/character-groups/fns";
+} from "../api/character-groups/fns";
 import {
   CharacterGroupDetailDTO,
   CharacterGroupPaginatedResult,
-} from "../serverFns/character-groups/types";
+} from "../api/character-groups/types";
 
 export const characterGroupsQueryOptions = (
   page: number,

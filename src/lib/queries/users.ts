@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
-import type { UserDTO, UsersPageResult } from "../serverFns/users/user";
-import { getMe, getUser, listUsers } from "../serverFns/users/user";
+import type { UserDTO, UsersPageResult } from "../api/users/user";
+import { getMe, getUser, listUsers } from "../api/users/user";
 
 /**
  * Query options for fetching multiple users.

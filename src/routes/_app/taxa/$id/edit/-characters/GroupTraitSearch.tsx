@@ -3,8 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
 import { InputCombobox } from "../../../../../../components/inputs/combobox/InputCombobox";
 import { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
-import { searchGroupTraitSuggestions } from "../../../../../../lib/serverFns/character-suggestions/fns";
-import { TraitSuggestion } from "../../../../../../lib/serverFns/character-suggestions/types";
+import { searchGroupTraitSuggestions } from "../../../../../../lib/api/character-suggestions/fns";
+import { TraitSuggestion } from "../../../../../../lib/api/character-suggestions/types";
 
 type GroupTraitSearchProps = {
   groupId: number;

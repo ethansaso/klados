@@ -1,4 +1,4 @@
-import { CategoricalValueSuggestion } from "../../../../../../lib/serverFns/character-suggestions/types";
+import { CategoricalValueSuggestion } from "../../../../../../lib/api/character-suggestions/types";
 import { CharacterStateFormValue } from "./validation";
 
 export function addCategoricalStateFromSuggestion(

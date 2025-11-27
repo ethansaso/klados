@@ -3,12 +3,12 @@ import {
   getTraitSet,
   listTraitSetValues,
   listTraitSets,
-} from "../serverFns/traits/fns";
+} from "../api/traits/fns";
 import {
   TraitSetDetailDTO,
   TraitSetPaginatedResult,
   TraitValueDTO,
-} from "../serverFns/traits/types";
+} from "../api/traits/types";
 
 export const traitSetsQueryOptions = (
   page: number,

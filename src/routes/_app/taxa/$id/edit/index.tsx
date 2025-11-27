@@ -34,22 +34,22 @@ import {
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
 import { TAXON_RANKS_DESCENDING } from "../../../../../db/schema/schema";
+import { TaxonCharacterStateDTO } from "../../../../../lib/api/character-states/types";
+import { deleteTaxon } from "../../../../../lib/api/taxa/fns/delete";
+import { publishTaxon } from "../../../../../lib/api/taxa/fns/publish";
+import { updateTaxon } from "../../../../../lib/api/taxa/fns/update";
+import { TaxonDetailDTO } from "../../../../../lib/api/taxa/types";
+import {
+  CharacterUpdate,
+  mediaItemSchema,
+  taxonPatchSchema,
+} from "../../../../../lib/api/taxa/validation";
+import { nameItemSchema } from "../../../../../lib/api/taxon-names/validation";
 import {
   taxaQueryOptions,
   taxonQueryOptions,
 } from "../../../../../lib/queries/taxa";
 import { taxonCharacterStatesQueryOptions } from "../../../../../lib/queries/taxonCharacterStates";
-import { TaxonCharacterStateDTO } from "../../../../../lib/serverFns/character-states/types";
-import { deleteTaxon } from "../../../../../lib/serverFns/taxa/fns/delete";
-import { publishTaxon } from "../../../../../lib/serverFns/taxa/fns/publish";
-import { updateTaxon } from "../../../../../lib/serverFns/taxa/fns/update";
-import { TaxonDetailDTO } from "../../../../../lib/serverFns/taxa/types";
-import {
-  CharacterUpdate,
-  mediaItemSchema,
-  taxonPatchSchema,
-} from "../../../../../lib/serverFns/taxa/validation";
-import { nameItemSchema } from "../../../../../lib/serverFns/taxon-names/validation";
 import { toast } from "../../../../../lib/utils/toast";
 import { CharacterEditingForm } from "./-characters/CharactersEditingForm";
 import { characterStateFormSchema } from "./-characters/validation";

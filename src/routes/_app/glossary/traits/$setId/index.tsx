@@ -15,14 +15,14 @@ import { PiPlusCircle, PiTrash } from "react-icons/pi";
 import z from "zod";
 import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
 import {
+  createTraitValue,
+  deleteTraitSet,
+} from "../../../../../lib/api/traits/fns";
+import { TraitSetDTO } from "../../../../../lib/api/traits/types";
+import {
   traitSetQueryOptions,
   traitSetValuesQueryOptions,
 } from "../../../../../lib/queries/traits";
-import {
-  createTraitValue,
-  deleteTraitSet,
-} from "../../../../../lib/serverFns/traits/fns";
-import { TraitSetDTO } from "../../../../../lib/serverFns/traits/types";
 import { snakeCase } from "../../../../../lib/utils/casing";
 import { toast } from "../../../../../lib/utils/toast";
 import { Route as TraitsLayoutRoute } from "../route";

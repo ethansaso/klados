@@ -18,11 +18,11 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
-import { createTraitSet } from "../../../../lib/serverFns/traits/fns";
+import { createTraitSet } from "../../../../lib/api/traits/fns";
 import {
   CreateTraitSetInput,
   createTraitSetSchema,
-} from "../../../../lib/serverFns/traits/validation";
+} from "../../../../lib/api/traits/validation";
 import { toast } from "../../../../lib/utils/toast";
 
 export const AddTraitSetModal = NiceModal.create(() => {

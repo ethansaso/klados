@@ -1,6 +1,6 @@
 import { Box, DataList, Flex, Strong, Text } from "@radix-ui/themes";
 import { useMemo } from "react";
-import { NameItem } from "../../../../lib/serverFns/taxon-names/validation";
+import { NameItem } from "../../../../lib/api/taxon-names/validation";
 import { localeDisplayValues } from "../../../../lib/consts/locale-display-values";
 
 type NamesDataListProps = {

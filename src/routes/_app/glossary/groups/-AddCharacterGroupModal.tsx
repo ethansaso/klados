@@ -18,11 +18,11 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
-import { createCharacterGroup } from "../../../../lib/serverFns/character-groups/fns";
+import { createCharacterGroup } from "../../../../lib/api/character-groups/fns";
 import {
   CreateTraitSetInput,
   createTraitSetSchema,
-} from "../../../../lib/serverFns/traits/validation";
+} from "../../../../lib/api/traits/validation";
 import { toast } from "../../../../lib/utils/toast";
 
 export const AddCharacterGroupModal = NiceModal.create(() => {

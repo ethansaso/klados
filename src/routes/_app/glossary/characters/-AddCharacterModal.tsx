@@ -22,13 +22,13 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
-import { characterGroupsQueryOptions } from "../../../../lib/queries/characterGroups";
-import { traitSetsQueryOptions } from "../../../../lib/queries/traits";
-import { createCharacter } from "../../../../lib/serverFns/characters/fns";
+import { createCharacter } from "../../../../lib/api/characters/fns";
 import {
   CreateCharacterInput,
   createCharacterSchema,
-} from "../../../../lib/serverFns/characters/validation";
+} from "../../../../lib/api/characters/validation";
+import { characterGroupsQueryOptions } from "../../../../lib/queries/characterGroups";
+import { traitSetsQueryOptions } from "../../../../lib/queries/traits";
 import { toast } from "../../../../lib/utils/toast";
 
 export const AddCharacterModal = NiceModal.create(() => {

@@ -20,17 +20,17 @@ import {
   ConditionalAlert,
 } from "../../../components/inputs/ConditionalAlert";
 import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
+import { createTaxonDraft } from "../../../lib/api/taxa/fns/create";
+import {
+  CreateTaxonInput,
+  createTaxonSchema,
+} from "../../../lib/api/taxa/validation";
+import { getMe } from "../../../lib/api/users/user";
 import {
   generateLoginRedirectFromLocation,
   roleHasCuratorRights,
 } from "../../../lib/auth/utils";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
-import { createTaxonDraft } from "../../../lib/serverFns/taxa/fns/create";
-import {
-  CreateTaxonInput,
-  createTaxonSchema,
-} from "../../../lib/serverFns/taxa/validation";
-import { getMe } from "../../../lib/serverFns/users/user";
 import { toast } from "../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/taxa/new")({
