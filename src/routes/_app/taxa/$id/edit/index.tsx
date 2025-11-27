@@ -34,11 +34,11 @@ import {
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
 import { TAXON_RANKS_DESCENDING } from "../../../../../db/schema/schema";
-import { TaxonCharacterStateDTO } from "../../../../../lib/api/character-states/types";
 import { deleteTaxonFn } from "../../../../../lib/api/taxa/deleteTaxon";
 import { updateTaxon } from "../../../../../lib/api/taxa/fns/update";
 import { publishTaxonFn } from "../../../../../lib/api/taxa/publish";
 import { nameItemSchema } from "../../../../../lib/api/taxon-names/validation";
+import { TaxonCharacterStateDTO } from "../../../../../lib/domain/character-states/types";
 import { TaxonDetailDTO } from "../../../../../lib/domain/taxa/types";
 import {
   CharacterUpdate,

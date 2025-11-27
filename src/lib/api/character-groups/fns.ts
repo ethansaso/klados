@@ -8,13 +8,13 @@ import {
   characterGroup as groupsTbl,
 } from "../../../db/schema/schema";
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
-import { PaginationSchema } from "../../validation/pagination";
 import type {
   CharacterGroupDetailDTO,
   CharacterGroupDTO,
   CharacterGroupPaginatedResult,
-} from "./types";
-import { createCharacterGroupSchema } from "./validation";
+} from "../../domain/character-groups/types";
+import { createCharacterGroupSchema } from "../../domain/character-groups/validation";
+import { PaginationSchema } from "../../validation/pagination";
 
 export const getCharacterGroup = createServerFn({ method: "GET" })
   .inputValidator(
@@ -41,8 +41,7 @@ export const getCharacterGroup = createServerFn({ method: "GET" })
       return null;
     }
 
-    // 2) Fetch categorical characters for this group
-    //    (later you'll extend this for numeric/range kinds)
+    // TODO: fetches only categorical characters for now
     const rows = await db
       .select({
         id: charsTbl.id,
