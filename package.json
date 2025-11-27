@@ -17,7 +17,8 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:admin": "tsx scripts/forceAdmin.ts",
     "db:reset-taxa": "tsx scripts/deleteAllTaxa.ts",
-    "test:colors": "tsx scripts/seeding/colors/testColors.ts"
+    "test:colors": "tsx scripts/seeding/colors/testColors.ts",
+    "test:keygen": "tsx scripts/runKeygen.ts"
   },
   "keywords": [],
   "author": "",

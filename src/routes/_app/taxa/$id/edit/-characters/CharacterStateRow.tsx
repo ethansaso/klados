@@ -1,6 +1,6 @@
 // character-rows/CharacterStateRow.tsx
 import { DataList, Flex } from "@radix-ui/themes";
-import { CharacterGroupDetailDTO } from "../../../../../../lib/api/character-groups/types";
+import { CharacterGroupDetailDTO } from "../../../../../../lib/domain/character-groups/types";
 import { removeCategoricalTraitValue } from "./stateUtils";
 import { CategoricalStateTag } from "./tags/CategoricalStateTag";
 import { CharacterStateFormValue } from "./validation";

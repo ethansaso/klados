@@ -6,7 +6,7 @@ import {
 import {
   CharacterGroupDetailDTO,
   CharacterGroupPaginatedResult,
-} from "../api/character-groups/types";
+} from "../domain/character-groups/types";
 
 export const characterGroupsQueryOptions = (
   page: number,

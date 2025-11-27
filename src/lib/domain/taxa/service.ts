@@ -164,7 +164,7 @@ export async function listTaxa(args: {
  * Publish a draft taxon, making it active.
  * Returns the updated TaxonDTO, or null if the taxon does not exist.
  */
-export async function publishTaxonService(args: {
+export async function publishTaxon(args: {
   id: number;
 }): Promise<TaxonDTO | null> {
   const { id } = args;

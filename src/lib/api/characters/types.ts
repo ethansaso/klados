@@ -1,6 +1,6 @@
 import { categoricalCharacterMeta, character } from "../../../db/schema/schema";
+import { CharacterGroupRow } from "../../domain/character-groups/types";
 import { PaginatedResult } from "../../validation/pagination";
-import { CharacterGroupRow } from "../character-groups/types";
 import { TraitSetRow } from "../traits/types";
 
 export type CharacterRow = typeof character.$inferSelect;
