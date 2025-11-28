@@ -1,4 +1,4 @@
-type TaxonCategoricalStateDTO = {
+export type TaxonCategoricalStateDTO = {
   kind: "categorical";
   characterId: number;
   groupId: number;

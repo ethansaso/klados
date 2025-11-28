@@ -1,6 +1,6 @@
 import { KGTaxonNode } from "../hierarchy/types";
 
-type TaxonGroup = KGTaxonNode[];
+export type TaxonGroup = KGTaxonNode[];
 
 export type BranchRationale =
   | {
