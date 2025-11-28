@@ -23,6 +23,7 @@ import {
   selectTaxonDTO,
 } from "./sqlAdapters";
 import type {
+  LeanTaxonDTO,
   TaxonDTO,
   TaxonDetailDTO,
   TaxonPaginatedResult,
@@ -189,7 +190,7 @@ export async function fetchTaxonDetailById(
     activeChildCount: r.activeChildCount,
   }));
 
-  // Fetch all associated names
+  // Fetch all associated names (for the focal taxon)
   const nameRows = await db
     .select({
       id: namesTbl.id,
@@ -208,12 +209,40 @@ export async function fetchTaxonDetailById(
     isPreferred: n.isPreferred,
   }));
 
+  // Fetch direct subtaxa with accepted scientific names
+  const childSci = alias(namesTbl, "child_sci");
+
+  const childRows = await db
+    .select({
+      id: taxaTbl.id,
+      rank: taxaTbl.rank,
+      acceptedName: childSci.value,
+    })
+    .from(taxaTbl)
+    .innerJoin(
+      childSci,
+      and(
+        eq(childSci.taxonId, taxaTbl.id),
+        eq(childSci.locale, "sci"),
+        eq(childSci.isPreferred, true)
+      )
+    )
+    .where(and(eq(taxaTbl.parentId, id), eq(taxaTbl.status, "active")))
+    .orderBy(asc(taxaTbl.rank), asc(taxaTbl.id));
+
+  const subtaxa: LeanTaxonDTO[] = childRows.map((c) => ({
+    id: c.id,
+    rank: c.rank,
+    acceptedName: c.acceptedName,
+  }));
+
   // Assemble final TaxonDetailDTO
   const { parentId: _omit, ...baseWithoutParent } = base;
   const detail: TaxonDetailDTO = {
     ...baseWithoutParent,
     ancestors,
     names,
+    subtaxa,
   };
 
   return detail;

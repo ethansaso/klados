@@ -2,6 +2,12 @@ import { taxon } from "../../../db/schema/schema";
 import { NameItem } from "../../api/taxon-names/validation";
 import { PaginatedResult } from "../../validation/pagination";
 
+export type LeanTaxonDTO = {
+  id: number;
+  rank: TaxonRow["rank"];
+  acceptedName: string;
+};
+
 export type TaxonRow = typeof taxon.$inferSelect;
 export type TaxonDTO = Pick<
   TaxonRow,
@@ -18,10 +24,13 @@ export type TaxonDTO = Pick<
   preferredCommonName: string | null;
   activeChildCount: number;
 };
+
 export type TaxonDetailDTO = Omit<TaxonDTO, "parentId"> & {
   /* Full lineage of ancestors in descending order. */
   ancestors: TaxonDTO[];
   names: NameItem[];
+  /* Direct children (subtaxa) with IDs, ranks, and accepted scientific names. */
+  subtaxa: LeanTaxonDTO[];
 };
 
 export interface TaxonPaginatedResult extends PaginatedResult {

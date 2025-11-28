@@ -2,8 +2,11 @@ import { Box, Button, Flex, TextField } from "@radix-ui/themes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { PiMagnifyingGlass } from "react-icons/pi";
+import { SearchWithQuerySchema } from "../../../../lib/validation/search";
+import { KeyTable } from "./-KeyTable";
 
-export const Route = createFileRoute("/_app/keys/")({
+export const Route = createFileRoute("/_app/keys/_browsing/")({
+  validateSearch: SearchWithQuerySchema,
   component: RouteComponent,
 });
 
@@ -30,7 +33,7 @@ function RouteComponent() {
           </TextField.Slot>
         </TextField.Root>
       </Box>
-      Foo
+      <KeyTable />
     </Flex>
   );
 }

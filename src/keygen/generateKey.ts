@@ -1,14 +1,10 @@
-import { getTaxonCharacterStates } from "../lib/domain/character-states/service";
-import { TaxonCharacterStateDTO } from "../lib/domain/character-states/types";
+import { discoverTaxonHierarchyFromRoot } from "./hierarchy/discoverHierarchy";
+import { DEFAULT_KEYGEN_OPTIONS, KeyGenOptions } from "./options";
 
-export const generateKeyForTaxa = async (ids: number[]): Promise<void> => {
-  // Instantiate ID -> data map
-  const taxonDataMap: Map<number, TaxonCharacterStateDTO[]> = new Map();
-
-  for (const id of ids) {
-    const taxonData = await getTaxonCharacterStates({ taxonId: id });
-    if (taxonData) {
-      taxonDataMap.set(id, taxonData);
-    }
-  }
+export const generateKeyForTaxon = async (
+  id: number,
+  options: KeyGenOptions = DEFAULT_KEYGEN_OPTIONS
+) => {
+  const map = await discoverTaxonHierarchyFromRoot(id, options);
+  return map;
 };

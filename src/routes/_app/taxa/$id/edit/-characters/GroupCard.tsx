@@ -47,6 +47,11 @@ export function GroupCard({
     }
   };
 
+  // TODO: Immediately delete if no characters exist in group
+  const handleTrashClick = () => {
+    setConfirmingDelete(true);
+  };
+
   return (
     <Card mt="3">
       <Flex mb="2" align="center" justify="between">
@@ -83,7 +88,7 @@ export function GroupCard({
             variant="ghost"
             color="tomato"
             mr="1"
-            onClick={() => setConfirmingDelete(true)}
+            onClick={handleTrashClick}
           >
             <PiTrash size={12} />
           </IconButton>

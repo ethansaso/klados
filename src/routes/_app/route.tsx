@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
+import "@xyflow/react/dist/style.css";
 import { NavBar } from "../../components/nav/NavBar";
 import { meQuery } from "../../lib/queries/users";
 

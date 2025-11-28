@@ -1,10 +1,10 @@
-import { Avatar, Badge, Button, Flex, Heading, Text } from "@radix-ui/themes";
+import { Avatar, Button, Flex, Heading, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { UserBadge } from "../../../../components/UserBadge";
 import { generateLoginRedirectFromLocation } from "../../../../lib/auth/utils";
 import { UserDTO } from "../../../../lib/domain/users/types";
 import { meQuery, userQueryOptions } from "../../../../lib/queries/users";
-import { capitalizeWord } from "../../../../lib/utils/casing";
 import { getInitials } from "../../../../lib/utils/getInitials";
 
 export const Route = createFileRoute("/_app/users/$username/")({
@@ -60,15 +60,7 @@ function UserProfilePage() {
               <Text as="div" color="gray">
                 @{user.username}
               </Text>
-              {user.role !== "user" && (
-                <Badge
-                  variant="soft"
-                  color={user.role === "admin" ? "tomato" : undefined}
-                  ml="2"
-                >
-                  {capitalizeWord(user.role)}
-                </Badge>
-              )}
+              <UserBadge role={user.role} ml="2" />
             </Flex>
             <Text as="div" color="gray">
               Joined {joined}
