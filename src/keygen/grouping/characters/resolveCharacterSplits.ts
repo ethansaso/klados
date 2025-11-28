@@ -1,10 +1,14 @@
-import { TaxonCategoricalStateDTO } from "../../lib/domain/character-states/types";
-import { KGTaxonNode } from "../hierarchy/types";
-import { KeyGenOptions } from "../options";
-import { SplitBranch, SplitResult } from "./types";
+import { TaxonCategoricalStateDTO } from "../../../lib/domain/character-states/types";
+import { HierarchyTaxonNode } from "../../hierarchy/types";
+import { KeyGenOptions } from "../../options";
+import {
+  CharacterDefinitionSplitBranch,
+  CharacterDefinitionSplitResult,
+} from "../types";
+import { scoreCharacterSplit } from "./scoreCharacterSplit";
 
 type CharEntry = {
-  taxon: KGTaxonNode;
+  taxon: HierarchyTaxonNode;
   state: TaxonCategoricalStateDTO;
 };
 
@@ -17,7 +21,7 @@ type Trait = {
 
 type SharedTraitGroup = {
   traits: Trait[];
-  taxa: KGTaxonNode[];
+  taxa: HierarchyTaxonNode[];
 };
 
 /** Post-normalization index of trait sets by taxon, with group annotation */
@@ -28,17 +32,14 @@ type NormalizedCharacterTraitSets = {
 
 type GroupsResult = {
   groups: SharedTraitGroup[];
-  notTaxa: Set<KGTaxonNode>;
+  notTaxa: Set<HierarchyTaxonNode>;
   groupId: number;
 };
-
-// Heavily penalize any split that needs an inverted branch.
-const INVERTED_PENALTY_FACTOR = 0.25;
 
 /**
  * Build index: characterId -> (taxonId -> {taxon, states})
  */
-function buildCharacterIndex(taxa: KGTaxonNode[]): ByCharacter {
+function buildCharacterIndex(taxa: HierarchyTaxonNode[]): ByCharacter {
   const byCharacter = new Map<number, Map<number, CharEntry>>();
 
   for (const taxon of taxa) {
@@ -65,7 +66,7 @@ function buildCharacterIndex(taxa: KGTaxonNode[]): ByCharacter {
  * ! This is the "all defined" step.
  */
 function normalizeTraitSetsForCharacter(
-  taxa: KGTaxonNode[],
+  taxa: HierarchyTaxonNode[],
   byTaxon: Map<number, CharEntry>
 ): NormalizedCharacterTraitSets | null {
   const traitSetsByTaxon = new Map<number, Trait[]>();
@@ -111,16 +112,18 @@ function hasIntersection(a: Set<number>, b: Set<number>): boolean {
 }
 
 /**
- * Apply "dead tag" semantics and build:
- *   - disjoint trait-set groups (candidate positive branches)
- *   - notTaxa = ambiguous taxa, destined for inverted branch
+ * Builds disjoint trait-set groups (candidate positive branches).
+ *
+ * When collisions occur (e.g. "yellow" and "yellow, green"),
+ * marks all involved taxa as ambiguous (notTaxa) and their traits as dead,
+ * returning them as the "notTaxa" outgroup.
  *
  * Returns null if this character cannot produce >= 2 clean groups.
  *
  * ! This is the "A∩B = ∅" enforcement step.
  */
 function buildGroupsWithDeadTags(
-  taxa: KGTaxonNode[],
+  taxa: HierarchyTaxonNode[],
   normalized: NormalizedCharacterTraitSets
 ): GroupsResult | null {
   const { traitSetsByTaxon, groupId } = normalized;
@@ -128,7 +131,7 @@ function buildGroupsWithDeadTags(
   const groupMap = new Map<string, SharedTraitGroup>();
   const groupTraitIdsByKey = new Map<string, Set<number>>();
   const deadTraitIds = new Set<number>();
-  const notTaxa = new Set<KGTaxonNode>();
+  const notTaxa = new Set<HierarchyTaxonNode>();
 
   for (const taxon of taxa) {
     const traits = traitSetsByTaxon.get(taxon.id);
@@ -143,7 +146,7 @@ function buildGroupsWithDeadTags(
 
     const traitIds = new Set<number>(traits.map((t) => t.id));
 
-    // 1) If this trait-set uses any dead trait, it is automatically ambiguous.
+    // If this trait-set uses any dead trait, it is automatically ambiguous.
     let usesDead = false;
     for (const trait of traits) {
       if (deadTraitIds.has(trait.id)) {
@@ -176,12 +179,26 @@ function buildGroupsWithDeadTags(
       continue;
     }
 
-    // 2) Check collisions with existing groups (partial overlaps).
+    // Precompute sorted traits + key for this exact trait-set.
+    const sortedTraits = [...traits].sort((a, b) =>
+      a.id === b.id ? 0 : a.id < b.id ? -1 : 1
+    );
+    const key = sortedTraits.map((t) => t.id).join("|");
+
+    // Join to existing group if exact match.
+    const existingExactGroup = groupMap.get(key);
+    if (existingExactGroup) {
+      existingExactGroup.taxa.push(taxon);
+      continue;
+    }
+
+    // Otherwise, this is a new signature; check for collisions (partial overlaps).
     let collided = false;
-    for (const [key, g] of Array.from(groupMap.entries())) {
-      const gTraitIds = groupTraitIdsByKey.get(key)!;
+    for (const [existingKey, g] of Array.from(groupMap.entries())) {
+      const gTraitIds = groupTraitIdsByKey.get(existingKey)!;
       if (!hasIntersection(traitIds, gTraitIds)) continue;
 
+      // Collision (partial overlap) -> send both sides to notTaxa.
       collided = true;
       notTaxa.add(taxon);
       for (const t of g.taxa) {
@@ -193,34 +210,30 @@ function buildGroupsWithDeadTags(
       for (const id of traitIds) {
         deadTraitIds.add(id);
       }
-      groupMap.delete(key);
-      groupTraitIdsByKey.delete(key);
+
+      groupMap.delete(existingKey);
+      groupTraitIdsByKey.delete(existingKey);
     }
 
     if (collided) {
       continue;
     }
 
-    // 3) This trait-set is clean; add or extend a group.
-    const sortedTraits = [...traits].sort((a, b) =>
-      a.id === b.id ? 0 : a.id < b.id ? -1 : 1
-    );
-    const key = sortedTraits.map((t) => t.id).join("|");
-
-    let group = groupMap.get(key);
-    if (!group) {
-      group = { traits: sortedTraits, taxa: [] };
-      groupMap.set(key, group);
-      groupTraitIdsByKey.set(key, new Set<number>(traitIds));
-    }
-    group.taxa.push(taxon);
+    // At this point, this trait-set is clean and new; create a new group.
+    const newTraitIds = new Set<number>(traitIds);
+    const group: SharedTraitGroup = {
+      traits: sortedTraits,
+      taxa: [taxon],
+    };
+    groupMap.set(key, group);
+    groupTraitIdsByKey.set(key, newTraitIds);
   }
 
   const groups = Array.from(groupMap.values());
   const hasNotTaxa = notTaxa.size > 0;
 
   if ((hasNotTaxa && groups.length === 0) || groups.length < 2) {
-    // Either everyone is ambiguous, or no real split.
+    // Either everyone is ambiguous, or there's no real split.
     return null;
   }
 
@@ -237,9 +250,9 @@ function buildGroupsWithDeadTags(
  */
 function enforceBranchLimit(
   groups: SharedTraitGroup[],
-  notTaxa: Set<KGTaxonNode>,
+  notTaxa: Set<HierarchyTaxonNode>,
   maxBranches: number
-): { groups: SharedTraitGroup[]; notTaxa: Set<KGTaxonNode> } {
+): { groups: SharedTraitGroup[]; notTaxa: Set<HierarchyTaxonNode> } {
   const hasNotTaxaInitially = notTaxa.size > 0;
 
   // If we're already within the allowed branch count, do nothing.
@@ -273,20 +286,21 @@ function createBranches(
   characterId: number,
   groupId: number,
   groups: SharedTraitGroup[],
-  notTaxa: Set<KGTaxonNode>
-): { branches: SplitBranch[]; hasInvertedBranch: boolean } {
-  const branches: SplitBranch[] = [];
+  notTaxa: Set<HierarchyTaxonNode>
+): { branches: CharacterDefinitionSplitBranch[]; hasInvertedBranch: boolean } {
+  const branches: CharacterDefinitionSplitBranch[] = [];
 
   for (const g of groups) {
     branches.push({
       taxa: g.taxa,
-      rationale: {
-        kind: "character-values",
-        characterId,
-        groupId,
-        traits: g.traits,
-        inverted: false,
-      },
+      clauses: [
+        {
+          characterId,
+          groupId,
+          traits: g.traits,
+          inverted: false,
+        },
+      ],
     });
   }
 
@@ -308,72 +322,39 @@ function createBranches(
 
     branches.push({
       taxa: Array.from(notTaxa),
-      rationale: {
-        kind: "character-values",
-        characterId,
-        groupId,
-        traits: unionTraits,
-        inverted: true,
-      },
+      clauses: [
+        {
+          characterId,
+          groupId,
+          traits: unionTraits,
+          inverted: true,
+        },
+      ],
     });
   }
-
   return { branches, hasInvertedBranch };
-}
-
-/**
- * Scoring function for a candidate split:
- *   - "lopsided": reward large branches strongly.
- *   - "balanced": reward more branches and penalize imbalance.
- *   - Inverted branch applies a heavy penalty.
- */
-function scoreSplit(
-  branches: SplitBranch[],
-  hasInverted: boolean,
-  options: KeyGenOptions
-): number {
-  const sizes = branches.map((b) => b.taxa.length);
-  const total = sizes.reduce((acc, n) => acc + n, 0);
-  const k = sizes.length;
-  if (k === 0 || total === 0) return 0;
-
-  let baseScore: number;
-
-  if (options.keyShape === "lopsided") {
-    baseScore = sizes.reduce((acc, n) => acc + n * n, 0);
-  } else {
-    const mean = total / k;
-    const imbalance = sizes.reduce((acc, n) => acc + Math.abs(n - mean), 0);
-    baseScore = total * k - imbalance;
-  }
-
-  if (hasInverted) {
-    baseScore *= INVERTED_PENALTY_FACTOR;
-  }
-
-  return baseScore;
 }
 
 /**
  * For a set of sibling taxa, compute all candidate splits by categorical characters.
  * Each result is one possible resolution at this node, with branches and a score.
  */
-export function splitByCharacterDefinitions(
-  taxa: KGTaxonNode[],
+export function resolveCharacterSplits(
+  taxa: HierarchyTaxonNode[],
   options: KeyGenOptions
-): SplitResult[] {
+): CharacterDefinitionSplitResult[] {
   const { maxBranches } = options;
   if (taxa.length < 2 || maxBranches < 2) return [];
 
   const byCharacter = buildCharacterIndex(taxa);
-  const results: SplitResult[] = [];
+  const results: CharacterDefinitionSplitResult[] = [];
 
   for (const [characterId, byTaxon] of byCharacter) {
     // 1) enforce all taxa have this character + normalize
     const normalized = normalizeTraitSetsForCharacter(taxa, byTaxon);
     if (!normalized) continue;
 
-    // 2) dead-tag logic: build disjoint groups + notTaxa
+    // 2) build disjoint groups + notTaxa
     const groupsResult = buildGroupsWithDeadTags(taxa, normalized);
     if (!groupsResult) continue;
 
@@ -387,7 +368,7 @@ export function splitByCharacterDefinitions(
 
     const { groups, notTaxa } = limited;
 
-    // 4) turn groups + notTaxa into branches, track inverted usage
+    // 4) turn groups + notTaxa into branches, note inversion
     const { branches, hasInvertedBranch } = createBranches(
       characterId,
       groupsResult.groupId,
@@ -396,9 +377,13 @@ export function splitByCharacterDefinitions(
     );
 
     // 5) score based on keyShape + inverted penalty
-    const score = scoreSplit(branches, hasInvertedBranch, options);
+    const score = scoreCharacterSplit(branches, options);
     if (score > 0) {
-      results.push({ branches, score });
+      results.push({
+        kind: "character-definition",
+        branches,
+        score,
+      });
     }
   }
 

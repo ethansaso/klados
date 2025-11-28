@@ -1,5 +1,5 @@
-import { KGTaxonNode } from "../hierarchy/types";
-import { SplitResult } from "./types";
+import { HierarchyTaxonNode } from "../hierarchy/types";
+import { GroupPresentAbsentSplitResult } from "./types";
 
 /**
  * Try to split taxa into two groups based on "has any character in groupId G"
@@ -7,7 +7,9 @@ import { SplitResult } from "./types";
  *
  * Returns all possible splits along with their scores.
  */
-export function splitByGroupPresentAbsent(taxa: KGTaxonNode[]): SplitResult[] {
+export function resolveGroupPresentAbsentSplits(
+  taxa: HierarchyTaxonNode[]
+): GroupPresentAbsentSplitResult[] {
   if (taxa.length < 2) return [];
 
   // Precompute: taxon -> set of groupIds
@@ -24,11 +26,11 @@ export function splitByGroupPresentAbsent(taxa: KGTaxonNode[]): SplitResult[] {
     groupsByTaxon.set(taxon.id, set);
   }
 
-  const results: SplitResult[] = [];
+  const results: GroupPresentAbsentSplitResult[] = [];
 
   for (const groupId of allGroupIds) {
-    const present: KGTaxonNode[] = [];
-    const absent: KGTaxonNode[] = [];
+    const present: HierarchyTaxonNode[] = [];
+    const absent: HierarchyTaxonNode[] = [];
 
     for (const taxon of taxa) {
       const groupSet = groupsByTaxon.get(taxon.id)!;
@@ -41,23 +43,17 @@ export function splitByGroupPresentAbsent(taxa: KGTaxonNode[]): SplitResult[] {
     const score = present.length * absent.length;
 
     results.push({
+      kind: "group-present-absent",
+      groupId,
       score,
       branches: [
         {
           taxa: present,
-          rationale: {
-            kind: "group-present-absent",
-            groupId,
-            status: "present",
-          },
+          status: "present",
         },
         {
           taxa: absent,
-          rationale: {
-            kind: "group-present-absent",
-            groupId,
-            status: "absent",
-          },
+          status: "absent",
         },
       ],
     });

@@ -1,30 +1,49 @@
-import { KGTaxonNode } from "../hierarchy/types";
+import { HierarchyTaxonNode } from "../hierarchy/types";
 
-export type TaxonGroup = KGTaxonNode[];
+export type TaxonGroup = HierarchyTaxonNode[];
 
-export type BranchRationale =
-  | {
-      kind: "character-values";
-      characterId: number;
-      groupId: number;
-      traits: {
-        id: number;
-        label: string;
-      }[];
-      inverted: boolean;
-    }
-  | {
-      kind: "group-present-absent";
-      groupId: number;
-      status: "present" | "absent";
-    };
+export type Trait = {
+  id: number;
+  label: string;
+};
 
-export type SplitBranch = {
+/**
+ * One "reason" a branch exists, for a single categorical character.
+ */
+export type CharacterClause = {
+  characterId: number;
+  groupId: number;
+  traits: Trait[];
+  /**
+   * false: taxa in this branch HAVE these traits
+   * true:  taxa in this branch DO NOT have these traits ("not any of …")
+   */
+  inverted: boolean;
+};
+
+export type CharacterDefinitionSplitBranch = {
   taxa: TaxonGroup;
-  rationale: BranchRationale;
+  clauses: CharacterClause[];
 };
 
-export type SplitResult = {
-  branches: SplitBranch[];
+export type CharacterDefinitionSplitResult = {
+  kind: "character-definition";
   score: number;
+  branches: CharacterDefinitionSplitBranch[];
 };
+
+export type GroupPresentAbsentSplitBranch = {
+  taxa: TaxonGroup;
+  status: "present" | "absent";
+};
+
+export type GroupPresentAbsentSplitResult = {
+  kind: "group-present-absent";
+  groupId: number;
+  score: number;
+  branches: GroupPresentAbsentSplitBranch[];
+};
+
+export type SplitResult =
+  | CharacterDefinitionSplitResult
+  | GroupPresentAbsentSplitResult;

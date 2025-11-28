@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
-import { reactStartCookies } from "better-auth/react-start"
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, username } from "better-auth/plugins";
+import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { db } from "../../db/client";
 import { requireAccountPolicyMiddleware } from "./enforcement";
 import {
@@ -32,12 +32,12 @@ export const auth = betterAuth({
       ac,
       roles: { user: userRole, curator: curatorRole, admin: adminRole },
     }),
-    reactStartCookies(),
+    tanstackStartCookies(),
   ],
   user: {
     additionalFields: {
       username: { type: "string", required: true, unique: true },
-    }
+    },
   },
   hooks: {
     before: requireAccountPolicyMiddleware,

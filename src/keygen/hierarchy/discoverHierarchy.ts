@@ -5,7 +5,7 @@ import {
 import { TaxonCharacterStateDTO } from "../../lib/domain/character-states/types";
 import { getTaxon } from "../../lib/domain/taxa/service";
 import { KeyGenOptions } from "../options";
-import { KGTaxonMeta, KGTaxonNode } from "./types";
+import { HierarchyTaxonMeta, HierarchyTaxonNode } from "./types";
 
 /**
  * Fetches a single taxon and its character states to assemble a KGTaxonNode.
@@ -13,7 +13,7 @@ import { KGTaxonMeta, KGTaxonNode } from "./types";
  */
 export const fetchAndAssembleTaxonNode = async (
   taxonId: number
-): Promise<KGTaxonNode | null> => {
+): Promise<HierarchyTaxonNode | null> => {
   const taxon = await getTaxon({ id: taxonId });
   if (!taxon) {
     return null;
@@ -23,7 +23,7 @@ export const fetchAndAssembleTaxonNode = async (
     return null;
   }
 
-  const taxonNode: KGTaxonNode = {
+  const taxonNode: HierarchyTaxonNode = {
     id: taxonId,
     name: taxon.acceptedName,
     rank: taxon.rank,
@@ -45,9 +45,9 @@ export const fetchAndAssembleTaxonNode = async (
 async function discoverTaxonMetaHierarchyBFS(
   rootTaxonId: number,
   options: KeyGenOptions
-): Promise<Map<number, KGTaxonMeta>> {
+): Promise<Map<number, HierarchyTaxonMeta>> {
   const { taxonLimit } = options;
-  const metaById = new Map<number, KGTaxonMeta>();
+  const metaById = new Map<number, HierarchyTaxonMeta>();
 
   let currentLevelIds: number[] = [rootTaxonId];
 
@@ -103,7 +103,7 @@ async function discoverTaxonMetaHierarchyBFS(
  * Bulk-load character states for all taxa in a discovered tree.
  */
 async function loadStatesForHierarchy(
-  metaById: Map<number, KGTaxonMeta>
+  metaById: Map<number, HierarchyTaxonMeta>
 ): Promise<Record<number, TaxonCharacterStateDTO[]>> {
   const allIds = Array.from(metaById.keys());
   if (allIds.length === 0) {
@@ -116,14 +116,14 @@ async function loadStatesForHierarchy(
  * Combine structure metadata + character states into KGTaxonNodes.
  */
 function assembleHierarchyNodes(
-  metaById: Map<number, KGTaxonMeta>,
+  metaById: Map<number, HierarchyTaxonMeta>,
   statesByTaxonId: Record<number, TaxonCharacterStateDTO[]>
-): Map<number, KGTaxonNode> {
-  const tree = new Map<number, KGTaxonNode>();
+): Map<number, HierarchyTaxonNode> {
+  const tree = new Map<number, HierarchyTaxonNode>();
 
   for (const [id, meta] of metaById) {
     const states = statesByTaxonId[id] ?? [];
-    const node: KGTaxonNode = {
+    const node: HierarchyTaxonNode = {
       id: meta.id,
       name: meta.name,
       rank: meta.rank,
@@ -147,7 +147,7 @@ function assembleHierarchyNodes(
 export const discoverTaxonHierarchyFromRoot = async (
   rootTaxonId: number,
   options: KeyGenOptions
-): Promise<Map<number, KGTaxonNode>> => {
+): Promise<Map<number, HierarchyTaxonNode>> => {
   const metaById = await discoverTaxonMetaHierarchyBFS(rootTaxonId, options);
   if (!metaById.size) {
     throw new Error(`No taxa discovered under root ID ${rootTaxonId}.`);
