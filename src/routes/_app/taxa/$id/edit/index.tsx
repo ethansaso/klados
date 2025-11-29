@@ -58,6 +58,9 @@ import { pickInatTaxon } from "./-dialogs/InatIdModal";
 import { MediaEditingForm } from "./-MediaEditingForm";
 import { NameEditingForm } from "./-names/NameEditingForm";
 
+// TODO: choose a better approach for the seeding here.
+// This one is quite laggy and fragile; there should be a proper react query loading/error setup.
+
 const taxonFormSchema = taxonPatchSchema.extend({
   source_inat_id: z.number().nullable(),
   source_gbif_id: z.number().nullable(),
@@ -66,7 +69,8 @@ const taxonFormSchema = taxonPatchSchema.extend({
   names: z.array(nameItemSchema),
   characters: z.array(characterStateFormSchema),
 });
-type FormFields = z.infer<typeof taxonFormSchema>;
+
+export type FormFields = z.infer<typeof taxonFormSchema>;
 
 // TODO: suspense
 export const Route = createFileRoute("/_app/taxa/$id/edit/")({
@@ -143,7 +147,6 @@ function RouteComponent() {
     control,
     handleSubmit,
     reset,
-    getValues,
     formState: { errors, isDirty, isSubmitting },
   } = useForm<FormFields>({
     resolver: zodResolver(taxonFormSchema),
