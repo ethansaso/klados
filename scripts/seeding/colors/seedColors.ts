@@ -1,5 +1,3 @@
-// scripts/seeds/seedColors.ts
-
 import "dotenv/config";
 import { eq } from "drizzle-orm";
 import readline from "node:readline";
@@ -19,13 +17,9 @@ type ColorDef = {
 
 const COLOR_TRAIT_SET_KEY = "colors";
 
-// -----------------------------------------------------------------------------
-// Generators
-// -----------------------------------------------------------------------------
-
 function generateNeutralColors(): ColorDef[] {
   return getNeutralColors().map(({ name, hex }) => {
-    const rawLabel = name.replace(/-/g, " "); // light-gray → light gray
+    const rawLabel = name.replace(/-/g, " "); // light-gray -> light gray
     const label = rawLabel
       .split(/\s+/)
       .map((w) => capitalizeWord(w))
@@ -77,10 +71,6 @@ function generateAllColors(): ColorDef[] {
 
   return Array.from(byKey.values());
 }
-
-// -----------------------------------------------------------------------------
-// DB helpers
-// -----------------------------------------------------------------------------
 
 async function getOrCreateColorTraitSet() {
   const existing = await db
@@ -147,10 +137,6 @@ function askYesNo(question: string): Promise<boolean> {
     });
   });
 }
-
-// -----------------------------------------------------------------------------
-// Main
-// -----------------------------------------------------------------------------
 
 export async function run() {
   const colors = generateAllColors();
