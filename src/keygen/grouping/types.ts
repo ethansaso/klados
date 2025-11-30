@@ -1,11 +1,7 @@
+import { Trait } from "../../lib/domain/character-states/types";
 import { HierarchyTaxonNode } from "../hierarchy/types";
 
 export type TaxonGroup = HierarchyTaxonNode[];
-
-export type Trait = {
-  id: number;
-  label: string;
-};
 
 /**
  * One "reason" a branch exists, for a single categorical character.

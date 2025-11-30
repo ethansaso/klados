@@ -13,52 +13,6 @@ export type TaxonCharacterStatesByTaxonId = Record<
 >;
 
 /**
- * Load categorical character states for a taxon and aggregate them into
- * TaxonCharacterStateDTOs (one per character).
- */
-export async function selectTaxonCharacterStatesByTaxonId(
-  tx: Transaction,
-  taxonId: number
-): Promise<TaxonCharacterStateDTO[]> {
-  // One row per (taxon, character, traitValue)
-  const rows = await tx
-    .select({
-      characterId: catStateTbl.characterId,
-      groupId: charsTbl.groupId,
-      traitValueId: catStateTbl.traitValueId,
-      traitValueLabel: traitValTbl.label,
-    })
-    .from(catStateTbl)
-    .innerJoin(charsTbl, eq(charsTbl.id, catStateTbl.characterId))
-    .innerJoin(traitValTbl, eq(traitValTbl.id, catStateTbl.traitValueId))
-    .where(eq(catStateTbl.taxonId, taxonId));
-
-  if (!rows.length) return [];
-
-  const byCharacter = new Map<number, TaxonCharacterStateDTO>();
-
-  for (const row of rows) {
-    let state = byCharacter.get(row.characterId);
-    if (!state) {
-      state = {
-        kind: "categorical",
-        characterId: row.characterId,
-        groupId: row.groupId,
-        traitValues: [],
-      };
-      byCharacter.set(row.characterId, state);
-    }
-
-    state.traitValues.push({
-      id: row.traitValueId,
-      label: row.traitValueLabel,
-    });
-  }
-
-  return Array.from(byCharacter.values());
-}
-
-/**
  * Load categorical character states for many taxa at once.
  * Returns a map taxonId -> TaxonCharacterStateDTO[].
  */
@@ -77,6 +31,7 @@ export async function selectTaxonCharacterStatesByTaxonIds(
       groupId: charsTbl.groupId,
       traitValueId: catStateTbl.traitValueId,
       traitValueLabel: traitValTbl.label,
+      traitValueHexCode: traitValTbl.hexCode,
     })
     .from(catStateTbl)
     .innerJoin(charsTbl, eq(charsTbl.id, catStateTbl.characterId))
@@ -111,6 +66,7 @@ export async function selectTaxonCharacterStatesByTaxonIds(
     state.traitValues.push({
       id: row.traitValueId,
       label: row.traitValueLabel,
+      ...(row.traitValueHexCode ? { hexCode: row.traitValueHexCode } : {}),
     });
   }
 

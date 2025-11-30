@@ -1,6 +1,5 @@
 import { db } from "../../../db/client";
 import {
-  selectTaxonCharacterStatesByTaxonId,
   selectTaxonCharacterStatesByTaxonIds,
   TaxonCharacterStatesByTaxonId,
 } from "./repo";
@@ -14,9 +13,11 @@ export async function getTaxonCharacterStates(args: {
 }): Promise<TaxonCharacterStateDTO[]> {
   const { taxonId } = args;
 
-  return db.transaction(async (tx) => {
-    return selectTaxonCharacterStatesByTaxonId(tx, taxonId);
-  });
+  const map = await db.transaction((tx) =>
+    selectTaxonCharacterStatesByTaxonIds(tx, [taxonId])
+  );
+
+  return map[taxonId] ?? [];
 }
 
 /**

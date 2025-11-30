@@ -1,8 +1,14 @@
+export type Trait = {
+  id: number;
+  label: string;
+  hexCode?: string;
+};
+
 export type TaxonCategoricalStateDTO = {
   kind: "categorical";
   characterId: number;
   groupId: number;
-  traitValues: { id: number; label: string }[];
+  traitValues: Trait[];
 };
 
 export type TaxonCharacterStateDTO =

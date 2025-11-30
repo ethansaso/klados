@@ -1,4 +1,5 @@
-import { capitalizeWord } from "../../utils/case";
+import { capitalizeWord, snakeCase } from "../../utils/case";
+import { COLOR_ALIASES } from "./aliases";
 import {
   BASE_HUE_NAMES,
   HUE_MAP,
@@ -6,9 +7,33 @@ import {
   MODIFIERS_SL,
   NEUTRAL_COLOR_NAMES,
   NEUTRAL_MAP,
-} from "./const";
+  SPECIAL_COLOR_NAMES,
+} from "./canonicals";
 
 export type Modifier = (typeof MODIFIERS)[number];
+
+/**
+ * Fully normalized alias entry.
+ *
+ * - aliasLabel: human-facing string ("Maroon")
+ * - aliasKey: machine key derived from aliasLabel ("maroon")
+ * - canonicalKey: machine key of the canonical color ("dark_red")
+ */
+export type NormalizedColorAlias = {
+  aliasLabel: string;
+  aliasKey: string;
+  canonicalKey: string;
+};
+
+/**
+ * Canonical color definition used by seeding + tests.
+ */
+export type ColorDef = {
+  /** Snake-cased machine key */
+  key: string;
+  label: string;
+  hexCode: string | null;
+};
 
 // TODO: eliminate duplication with src/lib/utils/colorConversions.ts
 export function hslToHex(h: number, s: number, l: number): string {
@@ -79,9 +104,6 @@ const MODIFIERS_SL_MAP: Record<Modifier, { s: number; l: number }> =
     {} as Record<Modifier, { s: number; l: number }>
   );
 
-// -----------------------------------------------------------------------------
-// Neutral helpers
-// -----------------------------------------------------------------------------
 export function getNeutralColors() {
   return NEUTRAL_COLOR_NAMES.map((name, i) => ({
     name,
@@ -89,9 +111,6 @@ export function getNeutralColors() {
   }));
 }
 
-// -----------------------------------------------------------------------------
-// hueIndex + modifier → hex
-// -----------------------------------------------------------------------------
 export function colorFromHueIndex(
   rowIndex: number,
   modifier: Modifier
@@ -104,40 +123,40 @@ export function colorFromHueIndex(
   return hslToHex(hueDeg, sl.s * 100, sl.l * 100);
 }
 
-// -----------------------------------------------------------------------------
-// Expand one BASE_HUE_NAMES row into 6 semantic color names + hex.
-//
-// Universal HSL slots for each row (modifier → S/L):
-//   pale, light, base, grayish, dark, dark-grayish
-//
-// Naming rules by row type:
-//
-// 1) Unbroken hue (light == base == dark), e.g. ["green","green","green"]
-//    pale green
-//    light green
-//    green
-//    grayish green
-//    dark green
-//    dark grayish green
-//
-// 2) Light-shifted (light != base, dark == base), e.g. ["pink","red","red"]
-//    grayish pink        (pale slot)
-//    pink                (light slot)
-//    red                 (base slot)
-//    grayish red         (grayish slot)
-//    dark red            (dark slot)
-//    dark grayish red    (dark-grayish slot)
-//
-// 3) Dark-shifted (light == base, dark != base), e.g. ["yellow","yellow","brown"]
-//    pale yellow         (pale slot)
-//    light yellow        (light slot)
-//    yellow              (base slot)
-//    grayish yellow      (grayish slot)
-//    brown               (dark slot)
-//    grayish brown       (dark-grayish slot)
-//
-// HSL is driven purely by the modifier; hue names are semantic.
-// -----------------------------------------------------------------------------
+/**
+ * Expand one BASE_HUE_NAMES row into 6 semantic color names + hex.
+ *
+ * Universal HSL slots for each row (modifier → S/L):
+ *   pale, light, base, grayish, dark, dark-grayish
+ *
+ * Naming rules by row type:
+ *
+ * 1) Unbroken hue (light == base == dark), e.g. ["green","green","green"]
+ *    pale green
+ *    light green
+ *    green
+ *    grayish green
+ *    dark green
+ *    dark grayish green
+ *
+ * 2) Light-shifted (light != base, dark == base), e.g. ["pink","red","red"]
+ *    grayish pink        (pale slot)
+ *    pink                (light slot)
+ *    red                 (base slot)
+ *    grayish red         (grayish slot)
+ *    dark red            (dark slot)
+ *    dark grayish red    (dark-grayish slot)
+ *
+ * 3) Dark-shifted (light == base, dark != base), e.g. ["yellow","yellow","brown"]
+ *    pale yellow         (pale slot)
+ *    light yellow        (light slot)
+ *    yellow              (base slot)
+ *    grayish yellow      (grayish slot)
+ *    brown               (dark slot)
+ *    grayish brown       (dark-grayish slot)
+ *
+ * HSL is driven purely by the modifier; hue names are semantic.
+ */
 export function expandHueRow(
   rowIndex: number,
   lightHue: string,
@@ -198,4 +217,91 @@ export function getAllHueColors() {
     groupBase: baseHue,
     colors: expandHueRow(rowIndex, lightHue, baseHue, darkHue),
   }));
+}
+
+function generateSpecialColors(): ColorDef[] {
+  return SPECIAL_COLOR_NAMES.map((name) => ({
+    key: snakeCase(name),
+    label: capitalizeWord(name),
+    hexCode: null,
+  }));
+}
+
+function generateNeutralColorDefs(): ColorDef[] {
+  return getNeutralColors().map(({ name, hex }) => {
+    const rawLabel = name.replace(/-/g, " "); // light-gray -> light gray
+    const label = rawLabel
+      .split(/\s+/)
+      .map((w) => capitalizeWord(w))
+      .join(" ");
+    const key = snakeCase(label);
+    return { key, label, hexCode: hex };
+  });
+}
+
+function generateHueColorDefs(): ColorDef[] {
+  const groups = getAllHueColors();
+  const colors: ColorDef[] = [];
+
+  for (const group of groups) {
+    for (const c of group.colors) {
+      // c.name is already something like "grayish pink", "dark grayish red-brown"
+      const label = c.name
+        .split(/\s+/)
+        .map((word) =>
+          word
+            .split("-")
+            .map((w) => capitalizeWord(w))
+            .join("-")
+        )
+        .join(" ");
+      const key = snakeCase(label);
+      colors.push({ key, label, hexCode: c.hex });
+    }
+  }
+
+  // Deduplicate by key, last one wins (shouldn't really collide).
+  const byKey = new Map<string, ColorDef>();
+  for (const c of colors) {
+    byKey.set(c.key, c);
+  }
+
+  return Array.from(byKey.values());
+}
+
+/**
+ * Full canonical palette as ColorDef objects.
+ */
+export function generateCanonicalColorDefs(): ColorDef[] {
+  const neutrals = generateNeutralColorDefs();
+  const hues = generateHueColorDefs();
+  const specials = generateSpecialColors();
+
+  const byKey = new Map<string, ColorDef>();
+
+  for (const c of [...neutrals, ...hues, ...specials]) {
+    byKey.set(c.key, c);
+  }
+
+  return Array.from(byKey.values());
+}
+
+/**
+ * Flatten COLOR_ALIASES into a list of normalized alias entries.
+ */
+export function getNormalizedColorAliases(): NormalizedColorAlias[] {
+  const result: NormalizedColorAlias[] = [];
+
+  for (const [canonicalKey, aliasLabels] of Object.entries(COLOR_ALIASES)) {
+    for (const aliasLabel of aliasLabels) {
+      const aliasKey = snakeCase(aliasLabel);
+      result.push({
+        aliasLabel,
+        aliasKey,
+        canonicalKey,
+      });
+    }
+  }
+
+  return result;
 }

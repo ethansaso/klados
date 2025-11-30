@@ -54,7 +54,7 @@ export const categoricalTraitValue = pgTable(
       name: "canonical_value_same_set_fk",
       columns: [t.setId, t.canonicalValueId],
       foreignColumns: [t.setId, t.id],
-    }).onDelete("restrict"),
+    }).onDelete("cascade"),
 
     // Index to ensure unique keys WITHIN each trait set
     // I.e. "green" can exist both in "cap color" and "spore color", but not twice in "cap color"
@@ -83,6 +83,13 @@ export const categoricalTraitValue = pgTable(
     check(
       "trait_values_hex_code_format_ck",
       sql`${t.hexCode} IS NULL OR ${t.hexCode} ~ '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'`
+    ),
+
+    // CHECK #4: prevent usage of hex codes for non-canonical values
+    check(
+      "trait_values_hex_code_canonical_ck",
+      sql`CASE WHEN ${t.isCanonical} THEN TRUE
+        ELSE ${t.hexCode} IS NULL END`
     ),
   ]
 );

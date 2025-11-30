@@ -15,8 +15,8 @@ At present, it contains all tertiary definitions besides blue-purple,
 which is often an arbitrary distinction on many displays. It
 also adds earth-tones as aliases for darker shades of existing colors,
 i.e. red-brown, brown, yellow-brown, olive-brown, and olive-green,
-as well as the lighter shade pink, and a monotone scale for
-white/gray/black.
+as well as the lighter shade pink, a monotone scale for
+white/gray/black, and the simple "colorless".
 
 ### Enumeration of Base Hues
 

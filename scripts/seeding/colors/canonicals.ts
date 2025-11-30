@@ -29,6 +29,7 @@ export const NEUTRAL_MAP = [
   "#444444",
   "#000000",
 ] as const;
+export const SPECIAL_COLOR_NAMES = ["colorless"] as const;
 
 export const MODIFIERS = [
   "light",

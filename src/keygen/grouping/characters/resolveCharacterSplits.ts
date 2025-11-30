@@ -1,4 +1,7 @@
-import { TaxonCategoricalStateDTO } from "../../../lib/domain/character-states/types";
+import {
+  TaxonCategoricalStateDTO,
+  Trait,
+} from "../../../lib/domain/character-states/types";
 import { HierarchyTaxonNode } from "../../hierarchy/types";
 import { KeyGenOptions } from "../../options";
 import {
@@ -13,11 +16,6 @@ type CharEntry = {
 };
 
 type ByCharacter = Map<number, Map<number, CharEntry>>;
-
-type Trait = {
-  id: number;
-  label: string;
-};
 
 type SharedTraitGroup = {
   traits: Trait[];
