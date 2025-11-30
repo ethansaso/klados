@@ -3,5 +3,7 @@ export * from "./characters/categoricalTrait";
 export * from "./characters/character";
 export * from "./characters/characterGroup";
 export * from "./characters/taxonCharacterState";
+export * from "./flags/flag";
+export * from "./keys/key";
 export * from "./taxa/name";
 export * from "./taxa/taxon";

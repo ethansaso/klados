@@ -18,7 +18,6 @@
   flex: 0 0 auto;
 }
 
-/* TODO: determine sizes from Radix */
 .input-combobox {
   &.size-1 {
     .input-combobox__input {

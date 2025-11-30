@@ -1,4 +1,4 @@
-import { Box, DataList, Flex, Strong, Text } from "@radix-ui/themes";
+import { Box, DataList, Flex, Heading, Strong, Text } from "@radix-ui/themes";
 import { useMemo } from "react";
 import { NameItem } from "../../../../lib/api/taxon-names/validation";
 import { localeDisplayValues } from "../../../../lib/consts/locale-display-values";
@@ -47,9 +47,9 @@ export const NamesDataList = ({ names }: NamesDataListProps) => {
 
   return (
     <Box mb="4">
-      <Text size="3" mb="2">
+      <Heading size="6" mb="2">
         <Strong>Names</Strong>
-      </Text>
+      </Heading>
 
       <DataList.Root size="2">
         {localeEntries.map(({ code, label, items }) => (

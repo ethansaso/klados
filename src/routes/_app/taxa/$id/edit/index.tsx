@@ -204,6 +204,7 @@ function RouteComponent() {
       qc.invalidateQueries({ queryKey: ["taxon", id] }),
       qc.invalidateQueries({ queryKey: ["taxonCharacterValues", id] }),
       qc.invalidateQueries({ queryKey: ["taxa"] }),
+      qc.invalidateQueries({ queryKey: ["taxonCharacterDisplayGroups", id] }),
     ]);
   }
 

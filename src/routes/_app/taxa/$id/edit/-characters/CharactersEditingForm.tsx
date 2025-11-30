@@ -58,7 +58,7 @@ export function CharacterEditingForm({
     <Box mb="3">
       <Heading size="3">Characters</Heading>
       <GroupSearch onSelect={handleGroupSelect} />
-      <div className="character-editor__card-grid">
+      <div className="editor-card-grid">
         {openGroupIds.map((gId) => (
           <GroupCard
             key={gId}

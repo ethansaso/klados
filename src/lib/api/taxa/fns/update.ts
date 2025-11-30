@@ -266,15 +266,10 @@ export const updateTaxon = createServerFn({ method: "POST" })
                   );
                 }
 
-                // Optional: canonicalize aliases here
-                const effectiveId = tv.isCanonical
-                  ? tv.id
-                  : (tv.canonicalValueId ?? tv.id);
-
                 rowsToInsert.push({
                   taxonId: id,
                   characterId: c.characterId,
-                  traitValueId: effectiveId,
+                  traitValueId: tv.id,
                 });
               }
             }

@@ -1,20 +1,25 @@
 import { Box, Heading } from "@radix-ui/themes";
-import { TaxonCharacterStateDTO } from "../../../../../lib/domain/character-states/types";
-import { TraitToken } from "./TraitToken";
+import { TaxonCharacterDisplayGroupDTO } from "../../../../../lib/domain/character-states/types";
+import { GroupCard } from "./GroupCard";
 
 export const TaxonCharacterSection = ({
-  characters,
+  groups,
 }: {
-  characters: TaxonCharacterStateDTO[];
+  groups: TaxonCharacterDisplayGroupDTO[];
 }) => {
+  if (!groups.length) {
+    return null;
+  }
   return (
     <Box>
-      <Heading size="3">Character States</Heading>
-      {characters.map((char) =>
-        char.traitValues.map((trait) => (
-          <TraitToken key={trait.id} trait={trait} />
-        ))
-      )}
+      <Heading size="6" mb="2">
+        Character States
+      </Heading>
+      <div className="editor-card-grid">
+        {groups.map((group) => (
+          <GroupCard key={group.id} group={group} />
+        ))}
+      </div>
     </Box>
   );
 };

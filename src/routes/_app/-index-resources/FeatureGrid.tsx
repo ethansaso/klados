@@ -17,7 +17,7 @@ export const FeatureGrid = () => {
           <PiUsersThree className="feature-icon" />
         </Box>
         <Heading size="6">456,678</Heading>
-        <Text>Active Users</Text>
+        <Text>Community Members</Text>
       </Box>
       <Box className="feature-grid__item">
         <Box className="feature-icon__container">
