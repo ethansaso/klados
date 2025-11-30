@@ -32,8 +32,8 @@ export function NavBar({ user }: NavBarProps) {
   const homeActive = useIsActive("/");
   const taxaActive = useIsActive("/taxa", true);
   const glossaryActive = useIsActive("/glossary", true);
-  const usersActive = useIsActive("/users", true);
   const keysActive = useIsActive("/keys", true);
+  const moreActive = useIsActive(["/users", "/about"], true);
 
   const TaxaItem = useMemo(() => {
     if (roleHasCuratorRights(user?.role)) {
@@ -79,23 +79,30 @@ export function NavBar({ user }: NavBarProps) {
 
       {TaxaItem}
 
+      <TabNav.Link asChild active={keysActive}>
+        <RouterLink to="/keys" preload="intent">
+          Keys
+        </RouterLink>
+      </TabNav.Link>
+
       <TabNav.Link asChild active={glossaryActive}>
         <RouterLink to="/glossary" preload="intent">
           Glossary
         </RouterLink>
       </TabNav.Link>
 
-      <TabNav.Link asChild active={usersActive}>
-        <RouterLink to="/users" preload="intent">
-          Users
-        </RouterLink>
-      </TabNav.Link>
-
-      <TabNav.Link asChild active={keysActive}>
-        <RouterLink to="/keys" preload="intent">
-          Keys
-        </RouterLink>
-      </TabNav.Link>
+      <NavDropdown.Root>
+        <NavDropdown.Trigger
+          active={moreActive}
+          style={{ gap: "var(--space-1)" }}
+        >
+          More <PiCaretDown size="10" />
+        </NavDropdown.Trigger>
+        <NavDropdown.Content>
+          <NavDropdown.Link to="/users">Users</NavDropdown.Link>
+          <NavDropdown.Link to="/about">About</NavDropdown.Link>
+        </NavDropdown.Content>
+      </NavDropdown.Root>
 
       {user ? (
         <UserMenu

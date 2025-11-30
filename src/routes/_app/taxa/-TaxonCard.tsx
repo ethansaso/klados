@@ -36,8 +36,8 @@ export const TaxonCard = ({ taxon }: { taxon: TaxonDTO }) => {
           <Flex align="center" gap="1" className="summary" asChild>
             <Text as="div" size="1" color="gray">
               <PiTreeStructure />
-              {taxon.activeChildCount} child
-              {taxon.activeChildCount == 1 ? "" : "ren"}
+              {taxon.activeChildCount}{" "}
+              {taxon.activeChildCount === 1 ? "subtaxon" : "subtaxa"}
             </Text>
           </Flex>
         </Flex>

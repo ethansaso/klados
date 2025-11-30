@@ -12,6 +12,12 @@
     Arial, "Noto Sans";
 }
 
+.radix-themes[data-is-root-theme="true"] {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
 body {
   margin: 0;
   font-family: var(--default-font-family);

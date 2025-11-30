@@ -2,7 +2,7 @@ import { forwardRef, useContext } from "react";
 import { IconContext } from "react-icons";
 import { IconProps } from "./types";
 
-export const TiOutline = forwardRef<SVGSVGElement, IconProps>(
+export const TiFill = forwardRef<SVGSVGElement, IconProps>(
   ({ size, color, title, className, style, ...rest }, ref) => {
     const ctx = useContext(IconContext);
     const finalSize = size ?? ctx.size ?? "1em";
@@ -22,7 +22,7 @@ export const TiOutline = forwardRef<SVGSVGElement, IconProps>(
         viewBox="0 35 1080 1080"
         width={finalSize}
         height={finalSize}
-        fill="none"
+        fill="currentColor"
         stroke="currentColor"
         strokeLinecap="round"
         strokeWidth={64}

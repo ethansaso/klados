@@ -27,6 +27,7 @@ type TriggerAnchorProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   className?: string;
   style?: React.CSSProperties;
 };
+
 const TriggerAnchor = React.forwardRef<HTMLAnchorElement, TriggerAnchorProps>(
   ({ children, active, className, style, ...anchorProps }, ref) => (
     <NavigationMenu.Trigger
@@ -40,7 +41,6 @@ const TriggerAnchor = React.forwardRef<HTMLAnchorElement, TriggerAnchorProps>(
       <NavigationMenu.Link
         asChild
         className="nav-dropdown__trigger"
-        /** expose active state for CSS */
         data-active={active ? "" : undefined}
       >
         <a ref={ref} {...anchorProps}>
@@ -90,11 +90,67 @@ ItemAnchor.displayName = "ItemAnchor";
 const CreatedTrigger = createLink(TriggerAnchor);
 const CreatedItem = createLink(ItemAnchor);
 
-/** Exported components (docs pattern), preserving your styling API. */
-const Trigger: LinkComponent<typeof TriggerAnchor> = (props) => (
-  <CreatedTrigger preload="intent" {...props} />
-);
+type CreatedTriggerProps = React.ComponentProps<typeof CreatedTrigger>;
 
+/** Plain (pathless) trigger: no <a>, just styled text. */
+type PlainTriggerProps = {
+  children: React.ReactNode;
+  active?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+/** Public Trigger props:
+ *  - With `to`: router-backed link trigger.
+ *  - Without `to`: plain text trigger (no <a>).
+ */
+type TriggerProps = CreatedTriggerProps | PlainTriggerProps;
+
+const Trigger = (props: TriggerProps) => {
+  // Router-backed version when `to` is present
+  if ("to" in props && typeof props.to !== "undefined") {
+    return <CreatedTrigger preload="intent" {...props} />;
+  }
+
+  // Plain version: no <a>, just styled text inside Radix Trigger
+  const { children, active, className, style } = props as PlainTriggerProps;
+
+  return (
+    <NavigationMenu.Trigger
+      asChild
+      className={classNames(
+        "rt-reset rt-BaseTabListTrigger rt-TabNavLink",
+        className
+      )}
+      style={style}
+    >
+      <span
+        className="nav-dropdown__trigger"
+        data-active={active ? "" : undefined}
+        style={{ cursor: "pointer" }}
+      >
+        <Flex
+          as="span"
+          align="center"
+          justify="center"
+          gap="1"
+          className="rt-BaseTabListTriggerInner rt-TabNavLinkInner"
+        >
+          {children}
+        </Flex>
+        <Flex
+          as="span"
+          align="center"
+          className="rt-BaseTabListTriggerInnerHidden rt-TabNavLinkInnerHidden"
+        >
+          {children}
+        </Flex>
+      </span>
+    </NavigationMenu.Trigger>
+  );
+};
+
+/** Exported dropdown item Link. */
 export const Link: LinkComponent<typeof ItemAnchor> = (props) => (
   <ThemeLink color="amber" highContrast underline="hover" asChild>
     <CreatedItem preload="intent" {...props} />

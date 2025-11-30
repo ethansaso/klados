@@ -17,9 +17,16 @@ function RouteComponent() {
   return (
     <>
       <NavBar user={user} />
+      {/* <Flex justify="center" style={{ background: "var(--tomato-5)" }}>
+        <Text color="tomato">
+          <Strong>Note:</Strong> This is a development version of Klados. Data
+          may be lost at any time, and features may be incomplete.
+        </Text>
+      </Flex> */}
       <main>
         <Outlet />
       </main>
+      {/* <Footer /> */}
     </>
   );
 }
