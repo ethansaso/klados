@@ -107,7 +107,7 @@ const seedEditState = (
   taxon: TaxonDetailDTO,
   characterValues: TaxonCharacterStateDTO[]
 ): FormFields => ({
-  parent_id: taxon.ancestors[0]?.id ?? null,
+  parent_id: taxon.ancestors?.[taxon.ancestors.length - 1]?.id ?? null,
   rank: taxon.rank,
   source_gbif_id: taxon.sourceGbifId,
   source_inat_id: taxon.sourceInatId,

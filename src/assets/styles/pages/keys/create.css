@@ -1,0 +1,17 @@
+.key-creator {
+  height: 800px;
+}
+
+.key-sidebar {
+  width: 300px;
+  border-right: 1px solid var(--gray-a5);
+  padding: var(--space-2);
+  box-sizing: border-box;
+}
+
+.key-sidebar__form {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}

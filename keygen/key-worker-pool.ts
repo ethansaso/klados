@@ -1,9 +1,7 @@
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { Worker } from "node:worker_threads";
-import type {
-  KeyGenerationInput,
-  KeyGenerationResult,
-} from "../src/keygen/domain";
+import { KeyGenerationInput, KeyGenerationResult } from "../src/keygen/ioTypes";
 
 type KeygenJob = {
   type: "generateKey";
@@ -22,7 +20,11 @@ type KeygenJobError = {
 
 const WORKER_COUNT = Number.parseInt(process.env.KEYGEN_WORKERS ?? "", 10) || 2;
 
-const workerScript = path.join(__dirname, "key-worker.js");
+// ESM-compatible __dirname / __filename
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const workerScript = path.join(__dirname, "key-worker.ts");
 
 const workers: Worker[] = [];
 let nextWorkerIndex = 0;

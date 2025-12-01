@@ -1,9 +1,9 @@
 import { parentPort } from "node:worker_threads";
+import { generateKeyForTaxon } from "../src/keygen/generateKey";
 import type {
   KeyGenerationInput,
   KeyGenerationResult,
-} from "../src/keygen/domain";
-import { generateKey } from "../src/keygen/engine";
+} from "../src/keygen/ioTypes";
 
 if (!parentPort) {
   throw new Error("key-worker must be run as a worker thread");
@@ -35,7 +35,10 @@ parentPort.on("message", async (message: KeygenJob) => {
   }
 
   try {
-    const result: KeyGenerationResult = await generateKey(message.payload);
+    const result: KeyGenerationResult = await generateKeyForTaxon(
+      Number(message.payload.taxonId),
+      message.payload.options
+    );
     const response: KeygenJobResult = {
       type: "generateKey:result",
       payload: result,

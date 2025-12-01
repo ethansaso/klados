@@ -40,7 +40,7 @@ function TaxonPage() {
   // taxon.sourceInatId
 
   return (
-    <div style={{ width: "100%" }}>
+    <div>
       {taxon.status !== "active" && (
         <Callout.Root
           color={taxon.status === "deprecated" ? "tomato" : undefined}

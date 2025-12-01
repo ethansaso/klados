@@ -37,7 +37,7 @@ export const KeyRenderer = () => {
   );
 
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
+    <div style={{ height: "100%", flexGrow: 1 }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
