@@ -13,7 +13,7 @@ function makeLeaf(taxa: TaxonGroup): KeyLeafNode {
 }
 
 /**
- * Build the best split node for this group of taxa, or a leaf if no useful split exists.
+ * Recursively build the best split node for this group of taxa, or a leaf if no useful split exists.
  */
 export function buildKeyForGroup(
   taxa: TaxonGroup,

@@ -9,25 +9,28 @@ export const generateKeyForTaxon = async (
 ) => {
   const hierarchy = await discoverTaxonHierarchyFromRoot(rootTaxonId, options);
 
-  // Identify initial sibling group
-  // TODO: Rank limiting (e.g. user asks to regenerate key for just genera under Rosaceae)
-  const allNodes = Array.from(hierarchy.values());
-  const initialGroup: TaxonGroup = allNodes.filter(
-    (node) => node.id !== rootTaxonId
-  );
+  const rootNode = hierarchy.get(rootTaxonId);
+  if (!rootNode) {
+    throw new Error(`Root taxon ${rootTaxonId} not found in hierarchy`);
+  }
 
+  // Immediate children only: *true siblings*, same parent.
+  // TODO: Rank limiting (e.g. user asks to regenerate key for just genera under Rosaceae)
+  const initialGroup: TaxonGroup =
+    rootNode.subtaxonIds
+      ?.map((id) => hierarchy.get(id))
+      .filter((n): n is NonNullable<typeof n> => n != null) ?? [];
   if (initialGroup.length === 0) {
-    // Nothing to key; treat as trivial leaf.
+    // Nothing to key; trivial leaf
     return {
       rootTaxonId,
       root: {
         kind: "leaf",
         taxa: [],
-      },
+      } as const,
     };
   }
 
-  // Build the key tree from that sibling set.
   const rootKeyNode = buildKeyForGroup(initialGroup, options);
 
   return {
