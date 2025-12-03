@@ -1,4 +1,4 @@
-import { asc, count, inArray, SQL } from "drizzle-orm";
+import { asc, count, eq, inArray, SQL } from "drizzle-orm";
 import { db } from "../../../db/client";
 import { user as userTbl } from "../../../db/schema/schema";
 import { UserDTO, UsersPaginatedResult } from "./types";
@@ -28,6 +28,7 @@ export async function listUsersPage(
       createdAt: userTbl.createdAt,
       banned: userTbl.banned,
       role: userTbl.role,
+      description: userTbl.description,
     })
     .from(userTbl)
     .where(predicate)
@@ -63,8 +64,44 @@ export async function findUserByIdOrUsername(
       createdAt: true,
       banned: true,
       role: true,
+      description: true,
     },
   });
 
   return user ?? null;
+}
+
+export async function modifyUserRecord(
+  userId: string,
+  updates: Partial<Pick<UserDTO, "name" | "description">>
+): Promise<void> {
+  await db.update(userTbl).set(updates).where(eq(userTbl.id, userId));
+}
+
+/**
+ * Bans a user by setting their 'banned' status to true.
+ * Optionally, you can provide a reason and length for the ban (in ms).
+ */
+export async function setUserBanned(
+  userId: string,
+  options?: {
+    banReason?: string;
+    banExpires?: Date;
+  }
+): Promise<void> {
+  await db
+    .update(userTbl)
+    .set({
+      banned: true,
+      banReason: options?.banReason,
+      banExpires: options?.banExpires,
+    })
+    .where(eq(userTbl.id, userId));
+}
+
+export async function setUserUnbanned(userId: string): Promise<void> {
+  await db
+    .update(userTbl)
+    .set({ banned: false, banReason: null, banExpires: null })
+    .where(eq(userTbl.id, userId));
 }

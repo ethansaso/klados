@@ -23,13 +23,15 @@ export const requireAuthenticationMiddleware = createMiddleware({
   .middleware([userSessionMiddleware])
   .server(async ({ context, next }) => {
     const request = getRequest();
-    const session = context.user;
+    const user = context.user;
 
-    if (!session) {
+    if (!user) {
       forceLoginRedirectFromRequest(request);
     }
 
-    return next();
+    return next({
+      context: { user: user ?? null },
+    });
   });
 
 export const requireCuratorMiddleware = createMiddleware({

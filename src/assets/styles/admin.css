@@ -12,22 +12,6 @@
   }
 }
 
-.admin__sidebar {
-  border-right: 1px solid var(--gray-6);
-  min-width: 200px;
-
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-
-    a {
-      width: 100%;
-      border-radius: 0;
-    }
-  }
-}
-
 .rt-Heading.admin__section-header {
   border-bottom: 1px solid var(--gray-6);
   width: 100%;

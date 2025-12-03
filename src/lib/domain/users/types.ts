@@ -12,6 +12,7 @@ export type UserDTO = Pick<
   | "createdAt"
   | "banned"
   | "role"
+  | "description"
 >;
 
 export interface UsersPaginatedResult extends PaginatedResult {

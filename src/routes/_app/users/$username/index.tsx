@@ -72,8 +72,8 @@ function UserProfilePage() {
       <section style={{ marginTop: 24 }}>
         <div style={{ marginTop: 24 }}>
           <p>
-            This is the user's public profile. Add sections like curated taxa,
-            recent activity, etc.
+            {user.description ??
+              `${preferredDisplay(user)} has not added a description yet.`}
           </p>
         </div>
       </section>
