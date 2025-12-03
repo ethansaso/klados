@@ -42,62 +42,63 @@ export const fetchAndAssembleTaxonNode = async (
  * BFS will truncate if taxonLimit is reached, stopping further descent
  * and 'retreating' to the lowest rank taxa found so far before returning.
  */
-async function discoverTaxonMetaHierarchyBFS(
+const discoverTaxonMetaHierarchyBFS = async (
   rootTaxonId: number,
   options: KeyGenOptions
-): Promise<Map<number, HierarchyTaxonMeta>> {
-  const { taxonLimit } = options;
+): Promise<Map<number, HierarchyTaxonMeta>> => {
+  const { taxonLimit, maxDepthFromRoot } = options;
+
   const metaById = new Map<number, HierarchyTaxonMeta>();
 
-  let currentLevelIds: number[] = [rootTaxonId];
+  // BFS queue holds pairs: (taxonId, depth)
+  const queue: Array<{ id: number; depth: number }> = [
+    { id: rootTaxonId, depth: 0 },
+  ];
 
-  while (currentLevelIds.length > 0) {
-    // If limit provided, check whether including this *entire* level
-    // would exceed it. If so, stop here and discard lower levels.
-    if (
-      typeof taxonLimit === "number" &&
-      metaById.size + currentLevelIds.length > taxonLimit
-    ) {
-      console.warn(
-        `Taxon limit of ${taxonLimit} reached; truncating hierarchy at current depth.`
-      );
+  while (queue.length > 0) {
+    const { id, depth } = queue.shift()!;
+
+    // Already processed?
+    if (metaById.has(id)) continue;
+
+    const taxon = await getTaxon({ id });
+    if (!taxon) {
+      console.warn(`Taxon ${id} not found`);
+      continue;
+    }
+
+    // Save metadata
+    const subtaxonIds = taxon.subtaxa.map((st) => st.id);
+
+    metaById.set(id, {
+      id,
+      name: taxon.acceptedName,
+      rank: taxon.rank,
+      subtaxonIds,
+    });
+
+    // Taxon count guard
+    if (typeof taxonLimit === "number" && metaById.size >= taxonLimit) {
+      console.warn(`Taxon limit ${taxonLimit} reached; truncating traversal.`);
       break;
     }
 
-    const nextLevelIds: number[] = [];
-
-    for (const id of currentLevelIds) {
-      // Skip already-processed taxa
-      // (shouldn't happen, since a taxon cannot have multiple parents)
-      if (metaById.has(id)) continue;
-
-      const taxon = await getTaxon({ id });
-      if (!taxon) {
-        console.warn(`Taxon with ID ${id} not found. Skipping.`);
-        continue;
-      }
-
-      const subtaxonIds = taxon.subtaxa.map((st) => st.id);
-
-      metaById.set(id, {
-        id: taxon.id,
-        name: taxon.acceptedName,
-        rank: taxon.rank,
-        subtaxonIds,
-      });
-
-      for (const child of taxon.subtaxa) {
-        if (!metaById.has(child.id)) {
-          nextLevelIds.push(child.id);
-        }
-      }
+    // Depth guard: include the node, but don't descend further
+    const nextDepth = depth + 1;
+    if (maxDepthFromRoot !== undefined && nextDepth > maxDepthFromRoot) {
+      continue;
     }
 
-    currentLevelIds = nextLevelIds;
+    // Enqueue children
+    for (const child of taxon.subtaxa) {
+      if (!metaById.has(child.id)) {
+        queue.push({ id: child.id, depth: nextDepth });
+      }
+    }
   }
 
   return metaById;
-}
+};
 
 /**
  * Bulk-load character states for all taxa in a discovered tree.

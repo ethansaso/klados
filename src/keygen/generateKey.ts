@@ -1,40 +1,37 @@
-import { TaxonGroup } from "./grouping/types";
 import { discoverTaxonHierarchyFromRoot } from "./hierarchy/discoverHierarchy";
-import { buildKeyForGroup } from "./key-building/recursiveBuilder";
+import { buildKeySubtreeForTaxon } from "./key-building/buildKeyForChildren";
+import { KeyTaxonNode } from "./key-building/types";
 import { DEFAULT_KEYGEN_OPTIONS, KeyGenOptions } from "./options";
+import { TaxonGroup } from "./splitting/types";
 
-export const generateKeyForTaxon = async (
-  rootTaxonId: number,
+/**
+ * Given a taxon id (and options), generates a full key
+ * for the taxon and its subtaxa as a nested KeyTaxonNode tree.
+ */
+export async function generateKeyForTaxon(
+  taxonId: number,
   options: KeyGenOptions = DEFAULT_KEYGEN_OPTIONS
-) => {
-  const hierarchy = await discoverTaxonHierarchyFromRoot(rootTaxonId, options);
+): Promise<{ rootNode: KeyTaxonNode }> {
+  const hierarchy = await discoverTaxonHierarchyFromRoot(taxonId, options);
 
-  const rootNode = hierarchy.get(rootTaxonId);
-  if (!rootNode) {
-    throw new Error(`Root taxon ${rootTaxonId} not found in hierarchy`);
+  const root = hierarchy.get(taxonId);
+  if (!root) {
+    throw new Error(`Root taxon ${taxonId} not found in hierarchy`);
   }
 
-  // Immediate children only: *true siblings*, same parent.
-  // TODO: Rank limiting (e.g. user asks to regenerate key for just genera under Rosaceae)
-  const initialGroup: TaxonGroup =
-    rootNode.subtaxonIds
-      ?.map((id) => hierarchy.get(id))
-      .filter((n): n is NonNullable<typeof n> => n != null) ?? [];
-  if (initialGroup.length === 0) {
-    // Nothing to key; trivial leaf
-    return {
-      rootTaxonId,
-      root: {
-        kind: "leaf",
-        taxa: [],
-      } as const,
-    };
-  }
+  // One level down: siblings under the root
+  const children: TaxonGroup = root.subtaxonIds
+    .map((id) => hierarchy.get(id))
+    .filter((n): n is NonNullable<typeof n> => n !== undefined);
 
-  const rootKeyNode = buildKeyForGroup(initialGroup, options);
-
-  return {
-    rootTaxonId,
-    root: rootKeyNode,
+  const rootNode: KeyTaxonNode = {
+    kind: "taxon",
+    id: taxonId,
+    branches: [],
   };
-};
+
+  // Populate the key recursively
+  buildKeySubtreeForTaxon(rootNode, hierarchy, options);
+
+  return { rootNode };
+}

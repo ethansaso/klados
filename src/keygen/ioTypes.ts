@@ -1,3 +1,4 @@
+import { KeyTaxonNode } from "./key-building/types";
 import { KeyGenOptions } from "./options";
 
 export type KeyGenerationInput = {
@@ -11,4 +12,6 @@ export type KeyGenerationInput = {
   options: KeyGenOptions;
 };
 
-export type KeyGenerationResult = any;
+export type KeyGenerationResult = {
+  rootNode: KeyTaxonNode;
+};

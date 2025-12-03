@@ -13,6 +13,8 @@ import {
 import { DEFAULT_KEYGEN_OPTIONS } from "../../../../keygen/options";
 import { generateKeyFn } from "../../../../lib/api/keygen/generateKey";
 import { taxaQueryOptions } from "../../../../lib/queries/taxa";
+import { toast } from "../../../../lib/utils/toast";
+import { useKeyEditorStore } from "./-store-data/useKeyEditorStore";
 
 interface KeyGeneratorInput {
   taxonId: number;
@@ -25,7 +27,10 @@ export const KeySidebar = () => {
     formState: { errors },
   } = useForm<KeyGeneratorInput>();
   const [taxonQ, setTaxonQ] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const serverGenerateKeyFn = useServerFn(generateKeyFn);
+  const loadKey = useKeyEditorStore((s) => s.loadKey);
 
   const { data: taxaResp } = useQuery(
     taxaQueryOptions(1, 10, { q: taxonQ, status: "active" })
@@ -49,11 +54,30 @@ export const KeySidebar = () => {
 
   const onSubmit = async () => {
     if (!taxonIdVal) return;
-    const result = await serverGenerateKeyFn({
-      data: { taxonId: taxonIdVal, options: DEFAULT_KEYGEN_OPTIONS },
-    });
 
-    console.log("Generated key:", result);
+    setIsSubmitting(true);
+
+    try {
+      const result = await serverGenerateKeyFn({
+        data: { taxonId: taxonIdVal, options: DEFAULT_KEYGEN_OPTIONS },
+      });
+
+      // assuming result has shape { rootNode: KeyTaxonNode }
+      if (!result?.rootNode) {
+        throw new Error("No rootNode returned from keygen");
+      }
+
+      loadKey(result.rootNode);
+    } catch (err: any) {
+      console.error("Key generation failed:", err);
+      toast({
+        variant: "error",
+        description:
+          err?.message ?? "Something went wrong while generating the key.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -107,7 +131,11 @@ export const KeySidebar = () => {
           </Box>
         </section>
         <section>
-          <Button type="submit" disabled={!taxonIdVal}>
+          <Button
+            type="submit"
+            disabled={!taxonIdVal || isSubmitting}
+            loading={isSubmitting}
+          >
             Generate Key
           </Button>
         </section>

@@ -14,6 +14,12 @@ export type KeyGenOptions = {
    * Maximum number of branches to allow at any split in the key.
    */
   maxBranches: number;
+  /**
+   * Maximum subtaxon depth of the generated key.
+   * Works independently from rank to handle incertae sedis
+   * and other irregularities in taxon hierarchy.
+   */
+  maxDepthFromRoot?: number;
 };
 
 export const DEFAULT_KEYGEN_OPTIONS: KeyGenOptions = {
