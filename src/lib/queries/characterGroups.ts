@@ -1,8 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
-import {
-  getCharacterGroup,
-  listCharacterGroups,
-} from "../api/character-groups/fns";
+import { getCharacterGroupFn } from "../api/character-groups/getCharacterGroup";
+import { listCharacterGroupsFn } from "../api/character-groups/listCharacterGroups";
 import {
   CharacterGroupDetailDTO,
   CharacterGroupPaginatedResult,
@@ -16,7 +14,7 @@ export const characterGroupsQueryOptions = (
   queryOptions<CharacterGroupPaginatedResult>({
     queryKey: ["characterGroups", { page, pageSize, q: opts?.q ?? null }],
     queryFn: () =>
-      listCharacterGroups({ data: { page, pageSize: pageSize, ...opts } }),
+      listCharacterGroupsFn({ data: { page, pageSize: pageSize, ...opts } }),
     staleTime: 60_000,
   });
 
@@ -24,6 +22,6 @@ export const characterGroupQueryOptions = (id: number) =>
   queryOptions({
     queryKey: ["characterGroup", id] as const,
     queryFn: () =>
-      getCharacterGroup({ data: { id } }) as Promise<CharacterGroupDetailDTO>,
+      getCharacterGroupFn({ data: { id } }) as Promise<CharacterGroupDetailDTO>,
     staleTime: 60_000,
   });

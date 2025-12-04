@@ -15,9 +15,10 @@ export type TaxonCategoricalStateDTO = {
   traitValues: Trait[];
 };
 
-export type TaxonCharacterStateDTO =
-  | TaxonCategoricalStateDTO
-  | /* TODO: Future types here */ never;
+/**
+ * TODO: Non-categorical DTOs
+ */
+export type TaxonCharacterStateDTO = TaxonCategoricalStateDTO | never;
 
 /**
  * Display-oriented types for viewing/editing types.

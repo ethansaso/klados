@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
 import { generateKeyForTaxon } from "../../../keygen/generateKey";
+import { hydrateKeyFromRoot } from "../../../keygen/hydration/hydrateKey";
 import { KeyGenerationResult } from "../../../keygen/ioTypes";
 
 const KeygenInputSchema = z.object({
@@ -14,6 +15,10 @@ export const generateKeyFn = createServerFn({
 })
   .inputValidator(KeygenInputSchema)
   .handler(async ({ data }): Promise<KeyGenerationResult> => {
-    const result = await generateKeyForTaxon(data.taxonId, data.options);
-    return result;
+    // Initial keygen
+    const { rootNode } = await generateKeyForTaxon(data.taxonId, data.options);
+    // Hydrate with names, traits, groups, etc.
+    const hydratedRoot = await hydrateKeyFromRoot(rootNode);
+
+    return { rootNode: hydratedRoot };
   });

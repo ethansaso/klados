@@ -3,20 +3,16 @@ import {
   Button,
   DataList,
   Flex,
-  Heading,
   Link as RadixLink,
   Text,
 } from "@radix-ui/themes";
 import { Link, UseNavigateResult } from "@tanstack/react-router";
-import { useMemo } from "react";
 import { PiPencilSimple } from "react-icons/pi";
-import { Breadcrumb, Breadcrumbs } from "../../../../components/-Breadcrumbs";
 import { ExGbif } from "../../../../components/icons/ExGbif";
 import { ExInat } from "../../../../components/icons/ExInat";
 import { useMe } from "../../../../lib/auth/useMe";
 import { roleHasCuratorRights } from "../../../../lib/auth/utils";
 import { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
-import { prefixWithRank } from "../../../../lib/utils/prefixWithRank";
 import { TaxonImageBrowser } from "./-TaxonImageBrowser";
 
 export const TaxonMainSection = ({
@@ -28,28 +24,11 @@ export const TaxonMainSection = ({
 }) => {
   const { data: me } = useMe();
 
-  const breadcrumbItems: Breadcrumb[] = useMemo(() => {
-    const items: Breadcrumb[] = taxon.ancestors.map((ancestor) => ({
-      label: prefixWithRank(ancestor.rank, ancestor.acceptedName),
-      to: "/taxa/$id",
-      params: { id: String(ancestor.id) },
-    }));
-    items.push({ label: prefixWithRank(taxon.rank, taxon.acceptedName) });
-    return items;
-  }, [taxon.ancestors, taxon.acceptedName]);
-
   return (
     <Flex gap="4">
       <TaxonImageBrowser media={taxon.media} key={taxon.id} />
       <Flex direction="column" justify="between">
         <Box>
-          <Breadcrumbs items={breadcrumbItems} size="2" />
-          <Heading>
-            <Text>{taxon.acceptedName} </Text>
-            <Text size="3" weight="regular" color="gray">
-              ({taxon.preferredCommonName})
-            </Text>
-          </Heading>
           <DataList.Root mt="2" size="2">
             <DataList.Item>
               <DataList.Label minWidth="88px">Rank</DataList.Label>

@@ -22,11 +22,11 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
-import { createCharacter } from "../../../../lib/api/characters/fns";
+import { createCharacterFn } from "../../../../lib/api/characters/createCharacter";
 import {
   CreateCharacterInput,
   createCharacterSchema,
-} from "../../../../lib/api/characters/validation";
+} from "../../../../lib/domain/characters/validation";
 import { characterGroupsQueryOptions } from "../../../../lib/queries/characterGroups";
 import { traitSetsQueryOptions } from "../../../../lib/queries/traits";
 import { toast } from "../../../../lib/utils/toast";
@@ -34,7 +34,7 @@ import { toast } from "../../../../lib/utils/toast";
 export const AddCharacterModal = NiceModal.create(() => {
   const { visible, hide } = NiceModal.useModal();
   const qc = useQueryClient();
-  const serverCreate = useServerFn(createCharacter);
+  const serverCreate = useServerFn(createCharacterFn);
 
   const {
     register,

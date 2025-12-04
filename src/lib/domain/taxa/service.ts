@@ -10,6 +10,7 @@ import {
   listTaxaQuery,
   markTaxonActive,
   selectTaxonDtoById,
+  selectTaxonDtosByIds,
   updateTaxonStatusAndReplacement,
 } from "./repo";
 import type {
@@ -145,6 +146,18 @@ export async function getTaxon(args: {
   id: number;
 }): Promise<TaxonDetailDTO | null> {
   return fetchTaxonDetailById(args.id);
+}
+
+/**
+ * Get multiple taxa by their IDs.
+ */
+export async function getTaxaByIds(ids: number[]): Promise<TaxonDTO[]> {
+  const dtos = await db.transaction(async (tx) => {
+    const results = await selectTaxonDtosByIds(tx, ids);
+    return results;
+  });
+
+  return dtos;
 }
 
 /**

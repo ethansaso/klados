@@ -5,19 +5,25 @@ import {
   type NodeChange,
 } from "@xyflow/react";
 import { create } from "zustand";
-import { RFEdge, RFNode } from "../-react-flow/components/types";
-import type { KeyTaxonNode } from "../../../../../keygen/key-building/types";
+import type { FrontendTaxonNode } from "../../../keygen/hydration/types";
+import { RFEdge, RFNode } from "../components/types";
 import { buildReactFlowFromKeyTree } from "./buildReactFlow";
 
 type KeyEditorState = {
-  rootNode: KeyTaxonNode | null;
+  rootNode: FrontendTaxonNode | null;
   nodes: RFNode[];
   edges: RFEdge[];
   dirty: boolean;
 
-  loadKey: (root: KeyTaxonNode) => void;
-  applyTreeUpdate: (updater: (root: KeyTaxonNode) => KeyTaxonNode) => void;
+  // sync from backend (hydrated tree)
+  loadKey: (root: FrontendTaxonNode) => void;
 
+  // tree-level updates (operate on hydrated tree)
+  applyTreeUpdate: (
+    updater: (root: FrontendTaxonNode) => FrontendTaxonNode
+  ) => void;
+
+  // RF change handlers
   onNodesChange: (changes: NodeChange<RFNode>[]) => void;
   onEdgesChange: (changes: EdgeChange<RFEdge>[]) => void;
 };

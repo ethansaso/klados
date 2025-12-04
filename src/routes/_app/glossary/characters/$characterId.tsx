@@ -6,10 +6,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { PiTrash } from "react-icons/pi";
 import z from "zod";
 import { ConfirmDeleteModal } from "../../../../components/dialogs/ConfirmDeleteModal";
-import { deleteCharacter } from "../../../../lib/api/characters/fns";
-import { CharacterDetailDTO } from "../../../../lib/api/characters/types";
+import { deleteCharacterFn } from "../../../../lib/api/characters/deleteCharacter";
+import { CharacterDetailDTO } from "../../../../lib/domain/characters/types";
 import { characterQueryOptions } from "../../../../lib/queries/characters";
-import { capitalizeWord } from "../../../../lib/utils/casing";
+import { capitalizeFirstLetter } from "../../../../lib/utils/casing";
 import { toast } from "../../../../lib/utils/toast";
 import { Route as CharactersLayoutRoute } from "./route";
 
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_app/glossary/characters/$characterId")({
 function RouteComponent() {
   const search = CharactersLayoutRoute.useSearch();
   const { characterId } = Route.useLoaderData();
-  const serverDelete = useServerFn(deleteCharacter);
+  const serverDelete = useServerFn(deleteCharacterFn);
   const navigate = useNavigate();
   const qc = useQueryClient();
 
@@ -73,7 +73,7 @@ function RouteComponent() {
     <Box>
       <Heading size="6">Character: {character.label}</Heading>
       <Text as="div" size="2" color="gray">
-        {capitalizeWord(character.type)}
+        {capitalizeFirstLetter(character.type)}
       </Text>
       {character.type === "categorical" && (
         <Text as="div" size="2" color="gray">

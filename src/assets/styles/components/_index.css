@@ -1,9 +1,10 @@
-@import "./combobox.css";
 @import "./breadcrumbs.css";
+@import "./combobox.css";
+@import "./color-bubble.css";
+@import "./footer.css";
 @import "./glossary.css";
 @import "./nav-sidebar.css";
 @import "./navbar.css";
 @import "./select-image-grid.css";
-@import "./toast.css";
 @import "./taxon-grid.css";
-@import "./footer.css";
+@import "./toast.css";

@@ -303,7 +303,7 @@ function RouteComponent() {
       </Flex>
 
       <Form.Root onSubmit={onSave}>
-        <Flex direction="column" gap="3" mb="4">
+        <Flex direction="column" gap="3" mb="5">
           <Flex gap="4">
             {/* Rank */}
             <Box>

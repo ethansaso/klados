@@ -1,4 +1,10 @@
-import { Link as RadixLink, Table, Text, Tooltip } from "@radix-ui/themes";
+import {
+  Flex,
+  Link as RadixLink,
+  Table,
+  Text,
+  Tooltip,
+} from "@radix-ui/themes";
 import { Link as NavLink } from "@tanstack/react-router";
 import { PiSealCheckFill, PiSealQuestionFill } from "react-icons/pi";
 import { UserBadge } from "../../../../components/UserBadge";
@@ -47,18 +53,20 @@ export const KeyRow = (row: KeyRowProps) => {
   return (
     <Table.Row key={row.id}>
       <Table.RowHeaderCell>
-        <RadixLink asChild>
-          <NavLink to="/keys/$keyId" params={{ keyId: row.id }}>
-            {row.name}
-          </NavLink>
-        </RadixLink>
-        {status && Icon && (
-          <Tooltip content={status.tooltip}>
-            <Text color={status.color}>
-              <Icon />
-            </Text>
-          </Tooltip>
-        )}
+        <Flex align="center" gap="1">
+          <RadixLink asChild>
+            <NavLink to="/keys/$keyId" params={{ keyId: row.id }}>
+              {row.name}
+            </NavLink>
+          </RadixLink>
+          {status && Icon && (
+            <Tooltip content={status.tooltip}>
+              <Text color={status.color} asChild>
+                <Icon />
+              </Text>
+            </Tooltip>
+          )}
+        </Flex>
       </Table.RowHeaderCell>
       <Table.Cell>
         <UserHoverCard username={row.creatorUsername} name={row.creatorName} />

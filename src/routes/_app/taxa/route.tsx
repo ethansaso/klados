@@ -6,5 +6,5 @@ export const Route = createFileRoute("/_app/taxa")({
 });
 
 function RouteComponent() {
-  return <ContentOutlet />;
+  return <ContentOutlet align="start" />;
 }

@@ -1,4 +1,4 @@
-import { KeyTaxonNode } from "./key-building/types";
+import { FrontendTaxonNode } from "./hydration/types";
 import { KeyGenOptions } from "./options";
 
 export type KeyGenerationInput = {
@@ -13,5 +13,5 @@ export type KeyGenerationInput = {
 };
 
 export type KeyGenerationResult = {
-  rootNode: KeyTaxonNode;
+  rootNode: FrontendTaxonNode;
 };

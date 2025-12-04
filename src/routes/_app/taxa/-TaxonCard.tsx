@@ -2,7 +2,7 @@ import { Box, Card, Flex, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import { PiTreeStructure } from "react-icons/pi";
 import { TaxonDTO } from "../../../lib/domain/taxa/types";
-import { capitalizeWord } from "../../../lib/utils/casing";
+import { capitalizeFirstLetter } from "../../../lib/utils/casing";
 
 export const TaxonCard = ({ taxon }: { taxon: TaxonDTO }) => {
   const primaryMedia = taxon.media[0];
@@ -13,7 +13,6 @@ export const TaxonCard = ({ taxon }: { taxon: TaxonDTO }) => {
           src={primaryMedia?.url ?? "/logos/LogoDotted.svg"}
           alt={taxon.acceptedName}
           loading="lazy"
-          style={{ border: "1px solid var(--gray-5)" }}
           onError={(e) => {
             e.currentTarget.onerror = null; // prevent infinite loop
             e.currentTarget.src = "/logos/LogoDotted.svg";
@@ -22,7 +21,7 @@ export const TaxonCard = ({ taxon }: { taxon: TaxonDTO }) => {
         <Flex direction="column" flexGrow="1" justify="between">
           <Box mb="1">
             <Text as="div" size="1" weight="bold" color="gray">
-              {capitalizeWord(taxon.rank)}
+              {capitalizeFirstLetter(taxon.rank)}
             </Text>
             <Text as="div" weight="bold" truncate>
               {taxon.acceptedName}

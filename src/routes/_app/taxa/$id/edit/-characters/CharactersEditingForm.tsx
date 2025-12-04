@@ -55,7 +55,7 @@ export function CharacterEditingForm({
   }, [value]);
 
   return (
-    <Box mb="3">
+    <Box mb="5">
       <Heading size="3">Characters</Heading>
       <GroupSearch onSelect={handleGroupSelect} />
       <div className="editor-card-grid">

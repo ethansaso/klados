@@ -18,7 +18,7 @@ export type TraitSetDetailDTO = TraitSetDTO & {};
 export type TraitValueRow = typeof categoricalTraitValue.$inferSelect;
 export type TraitValueDTO = Pick<
   TraitValueRow,
-  "id" | "setId" | "key" | "label" | "isCanonical"
+  "id" | "setId" | "key" | "label" | "isCanonical" | "hexCode"
 > & {
   /** Present when this value is an alias (isCanonical = false). */
   aliasTarget: { id: number; label: string } | null;

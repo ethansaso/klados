@@ -96,7 +96,7 @@ export const MediaEditingForm = ({
   };
 
   return (
-    <Box mb="4">
+    <Box mb="5">
       <Flex mb="3" gap="1">
         <Text size="3" mr="1">
           <Strong>Media</Strong>

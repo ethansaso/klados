@@ -18,17 +18,17 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
-import { createCharacterGroup } from "../../../../lib/api/character-groups/fns";
+import { createCharacterGroupFn } from "../../../../lib/api/character-groups/createCharacterGroup";
 import {
   CreateTraitSetInput,
   createTraitSetSchema,
-} from "../../../../lib/api/traits/validation";
+} from "../../../../lib/domain/traits/validation";
 import { toast } from "../../../../lib/utils/toast";
 
 export const AddCharacterGroupModal = NiceModal.create(() => {
   const { visible, hide } = useModal();
   const qc = useQueryClient();
-  const serverCreate = useServerFn(createCharacterGroup);
+  const serverCreate = useServerFn(createCharacterGroupFn);
 
   const {
     register,

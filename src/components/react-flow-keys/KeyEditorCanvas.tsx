@@ -1,6 +1,6 @@
 import { Background, ReactFlow } from "@xyflow/react";
-import { useKeyEditorStore } from "../-store-data/useKeyEditorStore";
 import { edgeTypes, nodeTypes } from "./components/types";
+import { useKeyEditorStore } from "./data/useKeyEditorStore";
 
 export function KeyEditorCanvas() {
   const nodes = useKeyEditorStore((s) => s.nodes);

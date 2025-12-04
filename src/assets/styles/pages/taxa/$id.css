@@ -1,16 +1,3 @@
-.trait-token {
-}
-
-.trait-color-indicator {
-  width: 8px;
-  height: 8px;
-  display: inline-block;
-  border-radius: 50%;
-  border: 1px solid var(--gray-a5);
-
-  vertical-align: middle;
-}
-
 .taxon-image-browser {
   .taxon-image-browser__thumbnails {
     padding: 0;

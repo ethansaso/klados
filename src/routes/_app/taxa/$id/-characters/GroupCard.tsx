@@ -1,6 +1,6 @@
-import { Card, DataList, Flex, Heading } from "@radix-ui/themes";
+import { Card, DataList, Heading } from "@radix-ui/themes";
+import { TraitTokenList } from "../../../../../components/trait-tokens/TraitTokenList";
 import { TaxonCharacterDisplayGroupDTO } from "../../../../../lib/domain/character-states/types";
-import { TraitToken } from "./TraitToken";
 
 export const GroupCard = ({
   group,
@@ -17,16 +17,9 @@ export const GroupCard = ({
           <DataList.Item key={character.id}>
             <DataList.Label>{character.label}</DataList.Label>
             <DataList.Value>
-              <Flex wrap="wrap" gap="1">
-                {character.state?.traitValues.map((trait, index, arr) => (
-                  <TraitToken
-                    key={trait.id}
-                    trait={trait}
-                    index={index}
-                    isLast={index === arr.length - 1}
-                  />
-                ))}
-              </Flex>
+              {character.state && (
+                <TraitTokenList traits={character.state.traitValues} />
+              )}
             </DataList.Value>
           </DataList.Item>
         ))}

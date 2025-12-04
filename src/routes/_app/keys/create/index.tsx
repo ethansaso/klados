@@ -1,7 +1,7 @@
 import { Flex } from "@radix-ui/themes";
 import { createFileRoute } from "@tanstack/react-router";
+import { KeyEditorCanvas } from "../../../../components/react-flow-keys/KeyEditorCanvas";
 import { KeySidebar } from "./-KeySidebar";
-import { KeyEditorCanvas } from "./-react-flow/KeyEditorCanvas";
 
 export const Route = createFileRoute("/_app/keys/create/")({
   component: RouteComponent,

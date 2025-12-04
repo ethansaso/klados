@@ -79,6 +79,24 @@ export async function selectTaxonDtoById(
 }
 
 /**
+ * Select multiple TaxonDTOs by their IDs within a transaction.
+ */
+export async function selectTaxonDtosByIds(
+  tx: Transaction,
+  ids: number[]
+): Promise<TaxonDTO[]> {
+  const dtos = await tx
+    .select(selectTaxonDTO)
+    .from(taxaTbl)
+    .innerJoin(sci, sciJoinPred)
+    .leftJoin(common, commonJoinPred)
+    .where(inArray(taxaTbl.id, ids))
+    .orderBy(asc(taxaTbl.id));
+
+  return dtos;
+}
+
+/**
  * Delete a taxon by id and return the deleted id, or null if nothing was deleted.
  */
 export async function deleteTaxonById(

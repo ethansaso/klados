@@ -1,0 +1,7 @@
+.color-bubble {
+  display: inline-block;
+  border-radius: 50%;
+  border: 1px solid var(--gray-a5);
+
+  vertical-align: middle;
+}

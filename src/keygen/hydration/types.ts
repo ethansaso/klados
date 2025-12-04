@@ -1,24 +1,25 @@
-import { Trait } from "../lib/domain/character-states/types";
+import { Trait } from "../../lib/domain/character-states/types";
+import {
+  KeyCharRationale,
+  KeyDiffNode,
+  KeyPAGroupRationale,
+  KeyTaxonNode,
+} from "../key-building/types";
 
-export type FrontendTaxonNode = {
-  kind: "taxon";
-  id: number;
+export type FrontendTaxonNode = Omit<KeyTaxonNode, "branches"> & {
   sciName: string;
   commonName?: string;
   imgUrl?: string;
   branches: FrontendKeyBranch[];
 };
 
-export type FrontendDiffNode = {
-  kind: "diff";
-  id: string;
+export type FrontendDiffNode = Omit<KeyDiffNode, "branches"> & {
   branches: FrontendKeyBranch[];
 };
 
 export type FrontendKeyNode = FrontendTaxonNode | FrontendDiffNode;
 
-type FrontendCharRationale = {
-  kind: "character-definition";
+export type FrontendCharRationale = Omit<KeyCharRationale, "characters"> & {
   characters: Record<
     number,
     {
@@ -29,8 +30,7 @@ type FrontendCharRationale = {
   >;
 };
 
-type FrontendPAGroupRationale = {
-  kind: "group-present-absent";
+export type FrontendPAGroupRationale = Omit<KeyPAGroupRationale, "groups"> & {
   groups: Record<
     number,
     {
@@ -43,7 +43,8 @@ type FrontendPAGroupRationale = {
 
 export type FrontendBranchRationale =
   | FrontendCharRationale
-  | FrontendPAGroupRationale;
+  | FrontendPAGroupRationale
+  | null;
 
 export type FrontendKeyBranch = {
   id: string;

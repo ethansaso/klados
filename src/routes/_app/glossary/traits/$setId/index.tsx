@@ -14,11 +14,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { PiPlusCircle, PiTrash } from "react-icons/pi";
 import z from "zod";
 import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
-import {
-  createTraitValue,
-  deleteTraitSet,
-} from "../../../../../lib/api/traits/fns";
-import { TraitSetDTO } from "../../../../../lib/api/traits/types";
+import { createTraitValueFn } from "../../../../../lib/api/traits/createTraitValue";
+import { deleteTraitSetFn } from "../../../../../lib/api/traits/deleteTraitSet";
+import { TraitSetDTO } from "../../../../../lib/domain/traits/types";
 import {
   traitSetQueryOptions,
   traitSetValuesQueryOptions,
@@ -44,8 +42,8 @@ export const Route = createFileRoute("/_app/glossary/traits/$setId/")({
 function RouteComponent() {
   const search = TraitsLayoutRoute.useSearch();
   const { setId } = Route.useLoaderData();
-  const serverCreate = useServerFn(createTraitValue);
-  const serverDelete = useServerFn(deleteTraitSet);
+  const serverCreate = useServerFn(createTraitValueFn);
+  const serverDelete = useServerFn(deleteTraitSetFn);
   const navigate = useNavigate();
   const qc = useQueryClient();
 

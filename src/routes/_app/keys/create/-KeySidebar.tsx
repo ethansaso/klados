@@ -10,11 +10,11 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
+import { useKeyEditorStore } from "../../../../components/react-flow-keys/data/useKeyEditorStore";
 import { DEFAULT_KEYGEN_OPTIONS } from "../../../../keygen/options";
 import { generateKeyFn } from "../../../../lib/api/keygen/generateKey";
 import { taxaQueryOptions } from "../../../../lib/queries/taxa";
 import { toast } from "../../../../lib/utils/toast";
-import { useKeyEditorStore } from "./-store-data/useKeyEditorStore";
 
 interface KeyGeneratorInput {
   taxonId: number;

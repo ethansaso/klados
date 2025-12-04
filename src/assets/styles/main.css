@@ -4,6 +4,7 @@
 @import "./vendors/_index.css";
 @import "./components/_index.css";
 @import "./pages/_index.css";
+@import "./keys/_index.css";
 
 :root,
 .radix-themes {

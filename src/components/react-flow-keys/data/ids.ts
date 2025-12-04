@@ -1,6 +1,6 @@
-import { KeyNode } from "../../../../../keygen/key-building/types";
+import { FrontendKeyNode } from "../../../keygen/hydration/types";
 
-export const keyNodeToRfId = (node: KeyNode): string =>
+export const keyNodeToRfId = (node: FrontendKeyNode): string =>
   node.kind === "taxon" ? `taxon:${node.id}` : `diff:${node.id}`;
 
 export const branchToEdgeId = (branchId: string): string =>

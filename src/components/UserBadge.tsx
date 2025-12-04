@@ -1,7 +1,7 @@
 import { Badge } from "@radix-ui/themes";
 import { ComponentProps } from "react";
 import { UserDTO } from "../lib/domain/users/types";
-import { capitalizeWord } from "../lib/utils/casing";
+import { capitalizeFirstLetter } from "../lib/utils/casing";
 
 interface UserBadgeProps extends ComponentProps<typeof Badge> {
   role: UserDTO["role"];
@@ -15,7 +15,7 @@ export const UserBadge = ({ role, ...rest }: UserBadgeProps) => {
       color={role === "admin" ? "tomato" : undefined}
       {...rest}
     >
-      {capitalizeWord(role)}
+      {capitalizeFirstLetter(role)}
     </Badge>
   );
 };
