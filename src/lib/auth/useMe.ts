@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { meQuery } from "../queries/users";
+import { meQueryOptions } from "../queries/users";
 
 export function useMe() {
-  return useSuspenseQuery(meQuery());
+  return useSuspenseQuery(meQueryOptions());
 }

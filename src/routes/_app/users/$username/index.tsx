@@ -4,7 +4,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { UserBadge } from "../../../../components/UserBadge";
 import { generateLoginRedirectFromLocation } from "../../../../lib/auth/utils";
 import { UserDTO } from "../../../../lib/domain/users/types";
-import { meQuery, userQueryOptions } from "../../../../lib/queries/users";
+import {
+  meQueryOptions,
+  userQueryOptions,
+} from "../../../../lib/queries/users";
 import { getInitials } from "../../../../lib/utils/getInitials";
 
 export const Route = createFileRoute("/_app/users/$username/")({
@@ -12,7 +15,7 @@ export const Route = createFileRoute("/_app/users/$username/")({
     let effectiveUsername = params.username;
     let isMe = false;
 
-    const me = await context.queryClient.fetchQuery(meQuery());
+    const me = await context.queryClient.fetchQuery(meQueryOptions());
     if (params.username === "me") {
       if (!me) {
         throw generateLoginRedirectFromLocation(location);

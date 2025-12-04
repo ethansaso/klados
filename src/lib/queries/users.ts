@@ -28,7 +28,7 @@ export const userQueryOptions = (id: string) =>
 /**
  * Query options for fetching the current authenticated user.
  */
-export const meQuery = () => {
+export const meQueryOptions = () => {
   return queryOptions({
     queryKey: ["me"],
     queryFn: () => getMeFn(),

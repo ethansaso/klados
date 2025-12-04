@@ -1,19 +1,28 @@
-import { Flex } from "@radix-ui/themes";
+import { Flex, Separator } from "@radix-ui/themes";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { FeatureGrid } from "./-index-resources/FeatureGrid";
+import { summaryStatsQueryOptions } from "../../lib/queries/stats";
 import { FinalCTA } from "./-index-resources/FinalCTA";
-import { WhatIsKlados } from "./-index-resources/WhatIsKlados";
+import { HeroSection } from "./-index-resources/HeroSection";
+import { PurposeSection } from "./-index-resources/PurposeSection";
+import { StatsFeatureGrid } from "./-index-resources/StatsFeatureGrid";
 
 export const Route = createFileRoute("/_app/")({
+  loader: async ({ context }) => {
+    context.queryClient.ensureQueryData(summaryStatsQueryOptions());
+  },
   component: Home,
 });
 
 function Home() {
+  const { data: summaryStats } = useSuspenseQuery(summaryStatsQueryOptions());
+
   return (
-    <Flex direction="column" gap="4" align="center">
-      <h1>Welcome to Klados!</h1>
-      <WhatIsKlados />
-      <FeatureGrid />
+    <Flex direction="column" align="center">
+      <HeroSection />
+      <PurposeSection />
+      <Separator size="4" />
+      <StatsFeatureGrid summaryStats={summaryStats} />
       <FinalCTA />
     </Flex>
   );

@@ -19,7 +19,7 @@ import {
 } from "../../components/inputs/ConditionalAlert";
 import { getMeFn } from "../../lib/api/users/getMe";
 import { authClient } from "../../lib/auth/authClient";
-import { meQuery } from "../../lib/queries/users";
+import { meQueryOptions } from "../../lib/queries/users";
 import { toast } from "../../lib/utils/toast";
 
 function isEmail(s: string) {
@@ -89,8 +89,10 @@ function RouteComponent() {
       return;
     }
 
-    await queryClient.invalidateQueries({ queryKey: meQuery().queryKey });
-    await queryClient.refetchQueries({ queryKey: meQuery().queryKey });
+    await queryClient.invalidateQueries({
+      queryKey: meQueryOptions().queryKey,
+    });
+    await queryClient.refetchQueries({ queryKey: meQueryOptions().queryKey });
 
     navigate({ to: "/" });
   };

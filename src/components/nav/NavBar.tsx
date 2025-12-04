@@ -101,6 +101,7 @@ export function NavBar({ user }: NavBarProps) {
         <NavDropdown.Content>
           <NavDropdown.Link to="/users">Users</NavDropdown.Link>
           <NavDropdown.Link to="/about">About</NavDropdown.Link>
+          <NavDropdown.Link to="/donate">Donate</NavDropdown.Link>
         </NavDropdown.Content>
       </NavDropdown.Root>
 

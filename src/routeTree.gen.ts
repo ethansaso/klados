@@ -18,6 +18,7 @@ import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppSignupRouteImport } from './routes/_app/signup'
 import { Route as AppLogoutRouteImport } from './routes/_app/logout'
 import { Route as AppLoginRouteImport } from './routes/_app/login'
+import { Route as AppDonateRouteImport } from './routes/_app/donate'
 import { Route as AppAboutRouteImport } from './routes/_app/about'
 import { Route as AdminUsersRouteRouteImport } from './routes/admin/users/route'
 import { Route as AppTaxaRouteRouteImport } from './routes/_app/taxa/route'
@@ -88,6 +89,11 @@ const AppLogoutRoute = AppLogoutRouteImport.update({
 const AppLoginRoute = AppLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDonateRoute = AppDonateRouteImport.update({
+  id: '/donate',
+  path: '/donate',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppAboutRoute = AppAboutRouteImport.update({
@@ -251,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/taxa': typeof AppTaxaRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
   '/about': typeof AppAboutRoute
+  '/donate': typeof AppDonateRoute
   '/login': typeof AppLoginRoute
   '/logout': typeof AppLogoutRoute
   '/signup': typeof AppSignupRoute
@@ -285,6 +292,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/about': typeof AppAboutRoute
+  '/donate': typeof AppDonateRoute
   '/login': typeof AppLoginRoute
   '/logout': typeof AppLogoutRoute
   '/signup': typeof AppSignupRoute
@@ -319,6 +327,7 @@ export interface FileRoutesById {
   '/_app/taxa': typeof AppTaxaRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
   '/_app/about': typeof AppAboutRoute
+  '/_app/donate': typeof AppDonateRoute
   '/_app/login': typeof AppLoginRoute
   '/_app/logout': typeof AppLogoutRoute
   '/_app/signup': typeof AppSignupRoute
@@ -360,6 +369,7 @@ export interface FileRouteTypes {
     | '/taxa'
     | '/admin/users'
     | '/about'
+    | '/donate'
     | '/login'
     | '/logout'
     | '/signup'
@@ -394,6 +404,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/about'
+    | '/donate'
     | '/login'
     | '/logout'
     | '/signup'
@@ -427,6 +438,7 @@ export interface FileRouteTypes {
     | '/_app/taxa'
     | '/admin/users'
     | '/_app/about'
+    | '/_app/donate'
     | '/_app/login'
     | '/_app/logout'
     | '/_app/signup'
@@ -523,6 +535,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof AppLoginRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/donate': {
+      id: '/_app/donate'
+      path: '/donate'
+      fullPath: '/donate'
+      preLoaderRoute: typeof AppDonateRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/about': {
@@ -880,6 +899,7 @@ interface AppRouteRouteChildren {
   AppGlossaryRouteRoute: typeof AppGlossaryRouteRouteWithChildren
   AppTaxaRouteRoute: typeof AppTaxaRouteRouteWithChildren
   AppAboutRoute: typeof AppAboutRoute
+  AppDonateRoute: typeof AppDonateRoute
   AppLoginRoute: typeof AppLoginRoute
   AppLogoutRoute: typeof AppLogoutRoute
   AppSignupRoute: typeof AppSignupRoute
@@ -893,6 +913,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppGlossaryRouteRoute: AppGlossaryRouteRouteWithChildren,
   AppTaxaRouteRoute: AppTaxaRouteRouteWithChildren,
   AppAboutRoute: AppAboutRoute,
+  AppDonateRoute: AppDonateRoute,
   AppLoginRoute: AppLoginRoute,
   AppLogoutRoute: AppLogoutRoute,
   AppSignupRoute: AppSignupRoute,

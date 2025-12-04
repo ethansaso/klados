@@ -15,7 +15,10 @@ import {
   UserPatch,
   userPatchSchema,
 } from "../../../../lib/domain/users/validation";
-import { meQuery, userQueryOptions } from "../../../../lib/queries/users";
+import {
+  meQueryOptions,
+  userQueryOptions,
+} from "../../../../lib/queries/users";
 import { toast } from "../../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/users/$username/edit")({
@@ -33,7 +36,7 @@ function RouteComponent() {
   const { data: user } = useSuspenseQuery(
     userQueryOptions(Route.useParams().username)
   );
-  const { data: me } = useSuspenseQuery(meQuery());
+  const { data: me } = useSuspenseQuery(meQueryOptions());
   const queryClient = useQueryClient();
 
   const {
@@ -63,7 +66,9 @@ function RouteComponent() {
         },
       });
 
-      await queryClient.invalidateQueries({ queryKey: meQuery().queryKey });
+      await queryClient.invalidateQueries({
+        queryKey: meQueryOptions().queryKey,
+      });
       await queryClient.invalidateQueries({
         queryKey: userQueryOptions(user.username).queryKey,
       });

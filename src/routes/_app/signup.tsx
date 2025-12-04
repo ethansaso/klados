@@ -28,7 +28,7 @@ import {
   passwordSchema,
   usernameSchema,
 } from "../../lib/auth/validation";
-import { meQuery } from "../../lib/queries/users";
+import { meQueryOptions } from "../../lib/queries/users";
 import { toast } from "../../lib/utils/toast";
 
 const schema = z.object({
@@ -88,8 +88,10 @@ function RouteComponent() {
       return;
     }
 
-    await queryClient.invalidateQueries({ queryKey: meQuery().queryKey });
-    await queryClient.refetchQueries({ queryKey: meQuery().queryKey });
+    await queryClient.invalidateQueries({
+      queryKey: meQueryOptions().queryKey,
+    });
+    await queryClient.refetchQueries({ queryKey: meQueryOptions().queryKey });
     navigate({ to: "/" });
   };
 

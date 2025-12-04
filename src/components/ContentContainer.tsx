@@ -18,7 +18,8 @@ export const ContentContainer = ({
 }>) => {
   return (
     <Container
-      size={{ initial: "2", md: "3", lg: "4" }}
+      size={{ initial: undefined, sm: "2", md: "3", lg: "4" }}
+      width={{ initial: "100%", sm: undefined }}
       {...pPerSize[p]}
       style={{ maxWidth: "100%" }}
     >
