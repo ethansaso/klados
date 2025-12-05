@@ -1,4 +1,4 @@
-import { Flex, Text, Link as ThemeLink } from "@radix-ui/themes";
+import { Flex, Separator, Text, Link as ThemeLink } from "@radix-ui/themes";
 import { createLink, type LinkComponent } from "@tanstack/react-router";
 import classNames from "classnames";
 import { NavigationMenu } from "radix-ui";
@@ -150,6 +150,14 @@ const Trigger = (props: TriggerProps) => {
   );
 };
 
+const Divider = () => {
+  return (
+    <li className="nav-dropdown__separator" aria-hidden="true">
+      <Separator size="4" my="1" />
+    </li>
+  );
+};
+
 /** Exported dropdown item Link. */
 export const Link: LinkComponent<typeof ItemAnchor> = (props) => (
   <ThemeLink color="amber" highContrast underline="hover" asChild>
@@ -158,4 +166,4 @@ export const Link: LinkComponent<typeof ItemAnchor> = (props) => (
 );
 
 // TODO: keyboard accessibility
-export const NavDropdown = { Root, Trigger, Content, Link };
+export const NavDropdown = { Root, Trigger, Content, Link, Separator: Divider };

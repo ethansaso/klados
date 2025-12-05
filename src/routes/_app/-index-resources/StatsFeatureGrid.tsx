@@ -8,9 +8,9 @@ interface StatsFeatureGridProps {
 
 export const StatsFeatureGrid = ({ summaryStats }: StatsFeatureGridProps) => {
   return (
-    <Flex direction="column" align="center" py="7">
+    <Flex direction="column" align="center" py="8">
       <Heading mb="3" size="7">
-        Platform Statistics
+        Our Statistics
       </Heading>
       <Box className="feature-grid">
         <Box className="feature-grid__item">

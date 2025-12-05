@@ -1,4 +1,3 @@
-// character-rows/CharacterStateRow.tsx
 import { DataList, Flex } from "@radix-ui/themes";
 import { CharacterGroupDetailDTO } from "../../../../../../lib/domain/character-groups/types";
 import { removeCategoricalTraitValue } from "./stateUtils";
@@ -18,7 +17,7 @@ export function CharacterStateRow({
   allStates,
   onChangeAllStates,
 }: CharacterStateRowProps) {
-  // For now we expect at most one state per character.
+  // Expect at most one state per character
   const state = states[0];
 
   const handleRemoveCategorical = (traitValueId: number) => {

@@ -1,34 +1,47 @@
-import { Button, Flex, TextField } from "@radix-ui/themes";
+import { Flex, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { PiMagnifyingGlass, PiPlusCircle } from "react-icons/pi";
+import { PiMagnifyingGlass } from "react-icons/pi";
+import {
+  TaxonSearchParams,
+  TaxonSearchSchema,
+} from "../../../lib/domain/taxa/search";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
-import { SearchWithQuerySchema } from "../../../lib/validation/search";
+import { TaxaFilterPopover } from "./-TaxonFilterPopover";
 import { TaxonGrid } from "./-TaxonGrid";
+import { useTaxonSearchControls } from "./-useTaxonSearchControls";
 
 export const Route = createFileRoute("/_app/taxa/")({
-  validateSearch: SearchWithQuerySchema,
-  loaderDeps: ({ search: { page, page_size: pageSize, q } }) => ({
-    page,
-    pageSize,
-    q,
-  }),
-  loader: async ({ context, deps: { page, pageSize, q } }) => {
+  validateSearch: TaxonSearchSchema,
+  loaderDeps: ({ search }) => search,
+  loader: async ({ context, deps }) => {
+    const { page, pageSize, q, status, highRank, lowRank, hasMedia } =
+      deps as TaxonSearchParams;
+
     await context.queryClient.ensureQueryData(
-      taxaQueryOptions(page, pageSize, { q, status: "active" })
+      taxaQueryOptions(page, pageSize, {
+        q,
+        status,
+        highRank,
+        lowRank,
+        hasMedia,
+      })
     );
   },
   component: TaxaListPage,
 });
 
 function TaxaListPage() {
-  const search = Route.useSearch();
-  const navigate = Route.useNavigate();
+  const { search, setSearch } = useTaxonSearchControls();
+
   const { data: paginatedResult } = useSuspenseQuery(
-    taxaQueryOptions(search.page, search.page_size, {
+    taxaQueryOptions(search.page, search.pageSize, {
       q: search.q,
-      status: "active",
+      status: search.status,
+      highRank: search.highRank,
+      lowRank: search.lowRank,
+      hasMedia: search.hasMedia,
     })
   );
 
@@ -39,13 +52,13 @@ function TaxaListPage() {
   }, [search.q]);
   useEffect(() => {
     const id = setTimeout(() => {
-      navigate({
-        search: (prev) => ({ ...prev, q: localInput, page: 1 }),
-        replace: true,
+      setSearch({
+        q: localInput || undefined,
+        page: 1,
       });
     }, 250);
     return () => clearTimeout(id);
-  }, [localInput, navigate]);
+  }, [localInput, setSearch]);
 
   return (
     <Flex direction="column">
@@ -60,12 +73,7 @@ function TaxaListPage() {
             <PiMagnifyingGlass size="16" />
           </TextField.Slot>
         </TextField.Root>
-        <Button type="button" asChild>
-          <Link to="/taxa/new">
-            <PiPlusCircle size="16" />
-            Add Taxon
-          </Link>
-        </Button>
+        <TaxaFilterPopover search={search} setSearch={setSearch} />
       </Flex>
       <TaxonGrid results={paginatedResult} />
     </Flex>

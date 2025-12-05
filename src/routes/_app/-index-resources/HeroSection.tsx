@@ -25,7 +25,7 @@ export const HeroSection = () => {
         maxWidth="600px"
         style={{ textAlign: "center" }}
       >
-        <Heading size="9">Visual tools to identify species.</Heading>
+        <Heading size="9">Visual tools to identify organisms.</Heading>
         <Text size="6">
           Browse thousands of species and explore interactive,
           community-maintained guides built from real biological data.

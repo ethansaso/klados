@@ -15,6 +15,7 @@ import { db } from "../../../db/client";
 import { taxonName as namesTbl } from "../../../db/schema/taxa/name";
 import { taxon as taxaTbl } from "../../../db/schema/taxa/taxon";
 import { Transaction } from "../../utils/transactionType";
+import { TaxonSearchParams } from "./search";
 import {
   common,
   commonJoinPred,
@@ -24,11 +25,12 @@ import {
 } from "./sqlAdapters";
 import type {
   LeanTaxonDTO,
-  TaxonDTO,
   TaxonDetailDTO,
+  TaxonDTO,
   TaxonPaginatedResult,
   TaxonRow,
 } from "./types";
+import { computeRankBand } from "./utils";
 
 /**
  * Insert a draft taxon row and return its id.
@@ -267,16 +269,13 @@ export async function fetchTaxonDetailById(
 }
 
 /**
- * List taxa with optional search, status filter and IDs, paginated.
+ * List taxa with optional search + filters, paginated.
  */
-export async function listTaxaQuery(args: {
-  q?: string;
-  status?: "active" | "draft" | "deprecated";
-  ids?: number[];
-  page: number;
-  pageSize: number;
-}): Promise<TaxonPaginatedResult> {
-  const { q, ids, page, pageSize, status } = args;
+export async function listTaxaQuery(
+  args: TaxonSearchParams
+): Promise<TaxonPaginatedResult> {
+  const { q, page, pageSize, status, highRank, lowRank, hasMedia } = args;
+
   const offset = (page - 1) * pageSize;
 
   // Escape %, _ and \ in the search string (no user wildcards)
@@ -292,12 +291,23 @@ export async function listTaxaQuery(args: {
     ? eq(taxaTbl.status, status)
     : eq(taxaTbl.status, "active");
 
+  const allowedRanks = computeRankBand(highRank, lowRank);
+  const rankFilter =
+    allowedRanks && allowedRanks.length
+      ? inArray(taxaTbl.rank, allowedRanks)
+      : undefined;
+
+  const hasMediaFilter = hasMedia
+    ? sql`jsonb_array_length(${taxaTbl.media}) > 0`
+    : undefined;
+
   // When q is provided, filter on names.value (trigram index)
   if (likeAnywhere) {
     const filters: (SQL | undefined)[] = [
       statusFilter,
-      ids && ids.length ? inArray(taxaTbl.id, ids) : undefined,
       ilike(searchNames.value, likeAnywhere),
+      rankFilter,
+      hasMediaFilter,
     ];
     const where = and(...(filters.filter(Boolean) as SQL[]));
 
@@ -331,10 +341,11 @@ export async function listTaxaQuery(args: {
     return { items, page, pageSize, total };
   }
 
-  // No q: only list active taxa by default; still include accepted scientific + preferred common
+  // No q: default to active + any other filters; still include accepted scientific + preferred common
   const baseFilters: (SQL | undefined)[] = [
     statusFilter,
-    ids && ids.length ? inArray(taxaTbl.id, ids) : undefined,
+    rankFilter,
+    hasMediaFilter,
   ];
   const where = and(...(baseFilters.filter(Boolean) as SQL[]));
 

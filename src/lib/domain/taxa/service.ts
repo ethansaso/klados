@@ -13,6 +13,7 @@ import {
   selectTaxonDtosByIds,
   updateTaxonStatusAndReplacement,
 } from "./repo";
+import { TaxonSearchParams } from "./search";
 import type {
   TaxonDetailDTO,
   TaxonDTO,
@@ -163,13 +164,9 @@ export async function getTaxaByIds(ids: number[]): Promise<TaxonDTO[]> {
 /**
  * List taxa with optional search, status filter and IDs, paginated.
  */
-export async function listTaxa(args: {
-  q?: string;
-  status?: "active" | "draft" | "deprecated";
-  ids?: number[];
-  page: number;
-  pageSize: number;
-}): Promise<TaxonPaginatedResult> {
+export async function listTaxa(
+  args: TaxonSearchParams
+): Promise<TaxonPaginatedResult> {
   return listTaxaQuery(args);
 }
 

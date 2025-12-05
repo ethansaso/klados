@@ -48,7 +48,9 @@ export function NavBar({ user }: NavBarProps) {
             <PiCaretDown size="10" />
           </NavDropdown.Trigger>
           <NavDropdown.Content>
-            <NavDropdown.Link to="/taxa">Active taxa</NavDropdown.Link>
+            <NavDropdown.Link to="/taxa">Browse taxa</NavDropdown.Link>
+            <NavDropdown.Separator />
+            <NavDropdown.Link to="/taxa/new">Create taxon</NavDropdown.Link>
             <NavDropdown.Link to="/taxa/drafts">Drafts</NavDropdown.Link>
           </NavDropdown.Content>
         </NavDropdown.Root>

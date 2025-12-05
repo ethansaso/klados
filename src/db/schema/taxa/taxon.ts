@@ -30,6 +30,8 @@ export const TAXON_RANKS_DESCENDING = [
   "subspecies",
   "variety",
 ] as const;
+
+export type TaxonRank = (typeof TAXON_RANKS_DESCENDING)[number];
 export const taxonRank = pgEnum("taxon_rank", TAXON_RANKS_DESCENDING);
 
 export const TAXON_STATUSES = ["draft", "active", "deprecated"] as const;
