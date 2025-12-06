@@ -1,8 +1,9 @@
 .key-creator {
-  height: 800px;
+  flex: 1 0 auto;
 }
 
 .key-sidebar {
+  flex: 0 0 auto;
   width: 300px;
   border-right: 1px solid var(--gray-a5);
   padding: var(--space-2);

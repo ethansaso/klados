@@ -1,4 +1,8 @@
 footer.footer {
   margin-top: auto;
-  background-color: var(--gray-3);
+  border-top: 1px solid var(--border-color);
+
+  .footer__attr {
+    /* border-top: 1px solid var(--border-color); */
+  }
 }

@@ -47,7 +47,7 @@ function TaxonPage() {
   }, [taxon.ancestors, taxon.acceptedName]);
 
   return (
-    <Box>
+    <>
       {taxon.status !== "active" && (
         <Callout.Root
           color={taxon.status === "deprecated" ? "tomato" : undefined}
@@ -70,11 +70,11 @@ function TaxonPage() {
           </Text>
         </Heading>
       </Box>
-      <Flex direction="column" gap="6">
+      <Flex direction="column" gap="6" width="100%">
         <TaxonMainSection taxon={taxon} navigate={navigate} />
         <TaxonCharacterSection groups={displayGroups} />
         <NamesDataList names={taxon.names} />
       </Flex>
-    </Box>
+    </>
   );
 }

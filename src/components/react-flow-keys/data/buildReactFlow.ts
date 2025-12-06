@@ -20,6 +20,17 @@ type BuildContext = {
   prevNodesById: Map<string, RFNode>;
 };
 
+const POS_MIN = 0;
+const POS_MAX = 750;
+
+function randomPosition(): { x: number; y: number } {
+  const span = POS_MAX - POS_MIN;
+  return {
+    x: POS_MIN + Math.random() * span,
+    y: POS_MIN + Math.random() * span,
+  };
+}
+
 function indexNodes(nodes: RFNode[]): Map<string, RFNode> {
   const map = new Map<string, RFNode>();
   for (const n of nodes) map.set(n.id, n);
@@ -124,7 +135,7 @@ export function buildReactFlowFromKeyTree(
   ) {
     const rfId = keyNodeToRfId(node);
     const prev = ctx.prevNodesById.get(rfId);
-    const position = prev?.position ?? { x: 0, y: 0 };
+    const position = prev?.position ?? randomPosition();
 
     // Build + append node
     ctx.nodes.push(buildNode(node, position));

@@ -1,4 +1,5 @@
 body {
   --inat-green: #74ac00;
   --gbif-green: #61a861;
+  --border-color: var(--gray-5);
 }
