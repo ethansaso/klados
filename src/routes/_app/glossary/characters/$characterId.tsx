@@ -5,6 +5,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { PiTrash } from "react-icons/pi";
 import z from "zod";
+import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../components/dialogs/ConfirmDeleteModal";
 import { deleteCharacterFn } from "../../../../lib/api/characters/deleteCharacter";
 import { CharacterDetailDTO } from "../../../../lib/domain/characters/types";
@@ -18,7 +19,7 @@ const ParamsSchema = z.object({
 });
 
 export const Route = createFileRoute("/_app/glossary/characters/$characterId")({
-  loader: async ({ context, params }) => {
+  loader: async ({ params }) => {
     const { characterId } = ParamsSchema.parse(params);
     return { characterId };
   },
@@ -57,7 +58,7 @@ function RouteComponent() {
             variant: "success",
             description: `Character "${character.label}" deleted successfully.`,
           });
-        } catch (error) {
+        } catch {
           toast({
             variant: "error",
             description: `Failed to delete character "${character.label}".`,
@@ -81,15 +82,17 @@ function RouteComponent() {
         </Text>
       )}
       <Text>{character.description}</Text>
-      <Box>
-        <IconButton
-          size="1"
-          color="tomato"
-          onClick={() => handleTraitSetDeleteClick(character)}
-        >
-          <PiTrash />
-        </IconButton>
-      </Box>
+      <CuratorOnly>
+        <Box>
+          <IconButton
+            size="1"
+            color="tomato"
+            onClick={() => handleTraitSetDeleteClick(character)}
+          >
+            <PiTrash />
+          </IconButton>
+        </Box>
+      </CuratorOnly>
     </Box>
   );
 }
