@@ -6,6 +6,7 @@ import { PiGraphFill, PiMagnifyingGlass, PiPlusCircle } from "react-icons/pi";
 import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
 import { GlossarySidebarPager } from "../-chrome/GlossarySidebarPager";
 import { useSectionSearch } from "../-chrome/useSectionSearch";
+import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { characterGroupsQueryOptions } from "../../../../lib/queries/characterGroups";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
@@ -49,14 +50,16 @@ function RouteComponent() {
           <TextField.Slot>
             <PiMagnifyingGlass size="16" />
           </TextField.Slot>
-          <TextField.Slot>
-            <IconButton
-              size="1"
-              onClick={() => NiceModal.show(AddCharacterGroupModal)}
-            >
-              <PiPlusCircle />
-            </IconButton>
-          </TextField.Slot>
+          <CuratorOnly>
+            <TextField.Slot>
+              <IconButton
+                size="1"
+                onClick={() => NiceModal.show(AddCharacterGroupModal)}
+              >
+                <PiPlusCircle />
+              </IconButton>
+            </TextField.Slot>
+          </CuratorOnly>
         </DebouncedTextField>
         <GlossarySidebarList.Root>
           {paginatedResult.items.map((item) => (

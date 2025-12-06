@@ -1,11 +1,12 @@
 import NiceModal from "@ebay/nice-modal-react";
 import { Box, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Outlet, useMatchRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { PiLink, PiMagnifyingGlass, PiPlusCircle, PiTag } from "react-icons/pi";
 import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
 import { GlossarySidebarPager } from "../-chrome/GlossarySidebarPager";
 import { useSectionSearch } from "../-chrome/useSectionSearch";
+import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { traitSetsQueryOptions } from "../../../../lib/queries/traits";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
@@ -34,9 +35,9 @@ function RouteComponent() {
     })
   );
 
-  const matchRoute = useMatchRoute();
-  const match = matchRoute({ to: "/glossary/traits/$setId", fuzzy: true });
-  const selectedId = match ? (match.setId as string | undefined) : undefined;
+  // const matchRoute = useMatchRoute();
+  // const match = matchRoute({ to: "/glossary/traits/$setId", fuzzy: true });
+  // const selectedId = match ? (match.setId as string | undefined) : undefined;
 
   return (
     <Flex gap="4">
@@ -49,14 +50,16 @@ function RouteComponent() {
           <TextField.Slot>
             <PiMagnifyingGlass size="16" />
           </TextField.Slot>
-          <TextField.Slot>
-            <IconButton
-              onClick={() => NiceModal.show(AddTraitSetModal)}
-              size="1"
-            >
-              <PiPlusCircle />
-            </IconButton>
-          </TextField.Slot>
+          <CuratorOnly>
+            <TextField.Slot>
+              <IconButton
+                onClick={() => NiceModal.show(AddTraitSetModal)}
+                size="1"
+              >
+                <PiPlusCircle />
+              </IconButton>
+            </TextField.Slot>
+          </CuratorOnly>
         </DebouncedTextField>
         <GlossarySidebarList.Root>
           {paginatedResult.items.map((item) => (

@@ -4,7 +4,6 @@ import {
   Flex,
   Heading,
   IconButton,
-  Separator,
   Text,
   TextField,
 } from "@radix-ui/themes";
@@ -13,6 +12,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { PiPlusCircle, PiTrash } from "react-icons/pi";
 import z from "zod";
+import { CuratorOnly } from "../../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
 import { createTraitValueFn } from "../../../../../lib/api/traits/createTraitValue";
 import { deleteTraitSetFn } from "../../../../../lib/api/traits/deleteTraitSet";
@@ -130,32 +130,37 @@ function RouteComponent() {
   if (osErr || !traitSet) return <div>Trait set not found.</div>;
   return (
     <Box>
-      <Heading size="6">Trait Set: {traitSet.label}</Heading>
-      <IconButton
-        size="1"
-        color="tomato"
-        onClick={() => handleTraitSetDeleteClick(traitSet)}
-      >
-        <PiTrash />
-      </IconButton>
-      <Text>{traitSet.description}</Text>
-      <Separator mt="2" mb="2" />
-      <Heading size="6">Values:</Heading>
-      <Flex mb="2" asChild>
-        <form onSubmit={handleAddValue}>
-          <TextField.Root
-            id="trait-value"
-            name="trait-value"
-            placeholder="Add a new value..."
+      <Box mb="4">
+        <Heading size="6">Trait Set: {traitSet.label}</Heading>
+        <CuratorOnly>
+          <IconButton
+            size="1"
+            color="tomato"
+            onClick={() => handleTraitSetDeleteClick(traitSet)}
           >
-            <TextField.Slot side="right">
-              <IconButton type="submit" size="1">
-                <PiPlusCircle />
-              </IconButton>
-            </TextField.Slot>
-          </TextField.Root>
-        </form>
-      </Flex>
+            <PiTrash />
+          </IconButton>
+        </CuratorOnly>
+        <Text>{traitSet.description}</Text>
+      </Box>
+      <Heading size="6">Values:</Heading>
+      <CuratorOnly>
+        <Flex mb="2" asChild>
+          <form onSubmit={handleAddValue}>
+            <TextField.Root
+              id="trait-value"
+              name="trait-value"
+              placeholder="Add a new value..."
+            >
+              <TextField.Slot side="right">
+                <IconButton type="submit" size="1">
+                  <PiPlusCircle />
+                </IconButton>
+              </TextField.Slot>
+            </TextField.Root>
+          </form>
+        </Flex>
+      </CuratorOnly>
       {!traitSetValues?.length || osvError ? (
         <div>No values found.</div>
       ) : (

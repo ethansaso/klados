@@ -21,7 +21,6 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../components/inputs/ConditionalAlert";
-import { getMeFn } from "../../lib/api/users/getMe";
 import { authClient } from "../../lib/auth/authClient";
 import {
   emailSchema,
@@ -39,8 +38,8 @@ const schema = z.object({
 type FormFields = z.infer<typeof schema>;
 
 export const Route = createFileRoute("/_app/signup")({
-  beforeLoad: async () => {
-    const user = await getMeFn();
+  beforeLoad: async ({ context }) => {
+    const { user } = context;
     if (user) {
       throw redirect({ to: "/" });
     }
