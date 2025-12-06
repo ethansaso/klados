@@ -1,7 +1,7 @@
 import NiceModal from "@ebay/nice-modal-react";
 import { Box, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Outlet, useMatchRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { PiGraphFill, PiMagnifyingGlass, PiPlusCircle } from "react-icons/pi";
 import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
 import { GlossarySidebarPager } from "../-chrome/GlossarySidebarPager";
@@ -34,9 +34,9 @@ function RouteComponent() {
     })
   );
 
-  const matchRoute = useMatchRoute();
-  const match = matchRoute({ to: "/glossary/groups/$groupId", fuzzy: true });
-  const selectedId = match ? (match.groupId as string | undefined) : undefined;
+  // const matchRoute = useMatchRoute();
+  // const match = matchRoute({ to: "/glossary/groups/$groupId", fuzzy: true });
+  // const selectedId = match ? (match.groupId as string | undefined) : undefined;
 
   return (
     <Flex gap="4">

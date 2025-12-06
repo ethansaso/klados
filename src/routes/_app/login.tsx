@@ -35,7 +35,7 @@ type FormFields = z.infer<typeof schema>;
 
 // TODO: use loading state on signup/signin
 export const Route = createFileRoute("/_app/login")({
-  beforeLoad: async ({}) => {
+  beforeLoad: async () => {
     const user = await getMeFn();
     if (user) {
       throw redirect({ to: "/" });
@@ -51,7 +51,6 @@ function RouteComponent() {
   const {
     register,
     handleSubmit,
-    control,
     formState: { errors },
   } = useForm<FormFields>({
     resolver: zodResolver(schema),

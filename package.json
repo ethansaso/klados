@@ -19,7 +19,10 @@
     "db:admin": "tsx scripts/forceAdmin.ts",
     "db:reset-taxa": "tsx scripts/deleteAllTaxa.ts",
     "test:colors": "tsx scripts/seeding/colors/testColors.ts",
-    "test:keygen": "tsx scripts/runKeygen.ts"
+    "test:keygen": "tsx scripts/runKeygen.ts",
+    "test": "vitest run",
+    "lint": "eslint src --max-warnings=0",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -55,6 +58,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@eslint-react/eslint-plugin": "^2.3.12",
     "@types/pg": "^8.15.6",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
@@ -63,7 +67,9 @@
     "drizzle-kit": "^0.31.7",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.48.1",
     "vite-plugin-svgr": "^4.5.0",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.0.15"
   }
 }

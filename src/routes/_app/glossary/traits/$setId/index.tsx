@@ -30,7 +30,7 @@ const ParamsSchema = z.object({
 });
 
 export const Route = createFileRoute("/_app/glossary/traits/$setId/")({
-  loader: async ({ context, params }) => {
+  loader: async ({ params }) => {
     const { setId } = ParamsSchema.parse(params);
     return { setId };
   },
@@ -116,7 +116,7 @@ function RouteComponent() {
             variant: "success",
             description: `Trait set "${traitSet.label}" deleted successfully.`,
           });
-        } catch (error) {
+        } catch {
           toast({
             variant: "error",
             description: `Failed to delete trait set "${traitSet.label}".`,

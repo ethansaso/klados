@@ -88,7 +88,7 @@ function buildEdge(
     }
 
     default:
-      throw new Error(`Unhandled rationale kind: ${(rationale as any).kind}`);
+      throw new Error(`Unhandled rationale kind.`);
   }
 }
 

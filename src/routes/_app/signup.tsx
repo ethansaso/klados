@@ -39,7 +39,7 @@ const schema = z.object({
 type FormFields = z.infer<typeof schema>;
 
 export const Route = createFileRoute("/_app/signup")({
-  beforeLoad: async ({}) => {
+  beforeLoad: async () => {
     const user = await getMeFn();
     if (user) {
       throw redirect({ to: "/" });

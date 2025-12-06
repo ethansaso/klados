@@ -65,7 +65,7 @@ function buildCharacterDefinitionRationale(
 ): KeyCharRationale {
   const branch = split.branches[branchIndex];
 
-  const characters: KeyCharRationale["characters"] = {} as any;
+  const characters: KeyCharRationale["characters"] = {};
 
   for (const clause of branch.clauses) {
     const traitIds = clause.traits.map((t) => t.id);

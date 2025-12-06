@@ -9,7 +9,18 @@ import {
   TextField,
 } from "@radix-ui/themes";
 import classNames from "classnames";
-import * as React from "react";
+import {
+  Children,
+  ComponentProps,
+  createContext,
+  CSSProperties,
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  use,
+  useEffect,
+  useState,
+} from "react";
 import {
   PiCaretUpDownFill,
   PiCheck,
@@ -40,16 +51,16 @@ type RootProps = {
   loading?: boolean;
   /** Style hooks for the outer wrapper. */
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
   /** Compose with Trigger/Content/Input/List/Item children. */
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
-type ContentProps = React.ComponentProps<typeof Popover.Content> & {
+type ContentProps = ComponentProps<typeof Popover.Content> & {
   behavior?: "select" | "input";
 };
 
-type Ctx = {
+type ComboboxContext = {
   id?: string;
   open: boolean;
   setOpen: (o: boolean) => void;
@@ -66,15 +77,15 @@ type Ctx = {
   setQuery: (q: string) => void;
 
   activeIndex: number;
-  setActiveIndex: React.Dispatch<React.SetStateAction<number>>;
+  setActiveIndex: Dispatch<SetStateAction<number>>;
 
   selectActive: () => void;
   clear: () => void;
 };
 
-const Ctx = React.createContext<Ctx | null>(null);
+const ComboboxContext = createContext<ComboboxContext | null>(null);
 function useCb() {
-  const ctx = React.useContext(Ctx);
+  const ctx = use(ComboboxContext);
   if (!ctx) throw new Error("Combobox.* must be used within Combobox.Root");
   return ctx;
 }
@@ -92,11 +103,11 @@ function Root({
   style,
   children,
 }: RootProps) {
-  const [open, setOpen] = React.useState(false);
-  const [query, setQuery] = React.useState("");
-  const [activeIndex, setActiveIndex] = React.useState(-1);
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [activeIndex, setActiveIndex] = useState(-1);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (options.length === 0) {
       setActiveIndex(-1);
     } else {
@@ -126,7 +137,7 @@ function Root({
     setActiveIndex(-1);
   };
 
-  const ctx: Ctx = {
+  const ctx: ComboboxContext = {
     id,
     open,
     setOpen: (o) => (o ? openPopover() : closePopover()),
@@ -152,11 +163,11 @@ function Root({
   return (
     <div className={className} style={style}>
       {name && <input type="hidden" name={name} value={selectedId} />}
-      <Ctx.Provider value={ctx}>
+      <ComboboxContext.Provider value={ctx}>
         <Popover.Root open={open} onOpenChange={ctx.setOpen}>
           {children}
         </Popover.Root>
-      </Ctx.Provider>
+      </ComboboxContext.Provider>
     </div>
   );
 }
@@ -312,7 +323,7 @@ function List({
 }>) {
   const { id, loading, options } = useCb();
 
-  const hasChildren = React.Children.count(children) > 0;
+  const hasChildren = Children.count(children) > 0;
 
   return (
     <ScrollArea

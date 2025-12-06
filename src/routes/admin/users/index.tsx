@@ -34,7 +34,7 @@ function RouteComponent() {
   if (isError) return <p>Failed to load users: {(error as Error).message}</p>;
   if (!data) return <p>No data.</p>;
 
-  const { items, total } = data;
+  const { items } = data;
   return (
     <Table.Root>
       <Table.Header>

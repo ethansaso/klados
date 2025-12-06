@@ -76,7 +76,7 @@ function RouteComponent() {
         variant: "success",
         description: "Profile updated successfully.",
       });
-    } catch (error) {
+    } catch {
       toast({
         variant: "error",
         description: "Failed to update profile.",

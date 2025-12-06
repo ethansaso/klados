@@ -10,7 +10,7 @@ import { getMeFn } from "../../lib/api/users/getMe";
 import { useIsActive } from "../../lib/hooks/useIsActive";
 
 export const Route = createFileRoute("/admin")({
-  beforeLoad: async ({ location }) => {
+  beforeLoad: async () => {
     const user = await getMeFn();
     if (!user || user.role !== "admin") {
       throw redirect({ to: "/" });

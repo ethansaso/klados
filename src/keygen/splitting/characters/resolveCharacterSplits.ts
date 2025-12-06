@@ -367,7 +367,7 @@ export function resolveCharacterSplits(
     const { groups, notTaxa } = limited;
 
     // 4) turn groups + notTaxa into branches, note inversion
-    const { branches, hasInvertedBranch } = createBranches(
+    const { branches } = createBranches(
       characterId,
       groupsResult.groupId,
       groups,

@@ -1,7 +1,6 @@
-import { Handle, NodeProps, Position } from "@xyflow/react";
-import { RFDiffNode } from "./types";
+import { Handle, Position } from "@xyflow/react";
 
-export default function DiffNodeComponent({}: NodeProps<RFDiffNode>) {
+export default function DiffNodeComponent() {
   return (
     <div
       style={{

@@ -19,7 +19,7 @@ export const InatNamesModal = NiceModal.create<Props>(
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [names, setNames] = useState<InatName[] | null>(null);
-    const [selected, setSelected] = useState<Set<number>>(new Set());
+    const [selected, setSelected] = useState<Set<number>>(() => new Set());
 
     useEffect(() => {
       const controller = new AbortController();

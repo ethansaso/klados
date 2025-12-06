@@ -1,16 +1,15 @@
 import { Box, Heading, Text } from "@radix-ui/themes";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import z from "zod";
 import { characterGroupQueryOptions } from "../../../../lib/queries/characterGroups";
-import { Route as CharacterGroupsLayoutRoute } from "./route";
 
 const ParamsSchema = z.object({
   groupId: z.coerce.number().int().positive(),
 });
 
 export const Route = createFileRoute("/_app/glossary/groups/$groupId")({
-  loader: async ({ context, params }) => {
+  loader: async ({ params }) => {
     const { groupId } = ParamsSchema.parse(params);
     return { groupId };
   },
@@ -18,10 +17,10 @@ export const Route = createFileRoute("/_app/glossary/groups/$groupId")({
 });
 
 function RouteComponent() {
-  const search = CharacterGroupsLayoutRoute.useSearch();
+  // const search = CharacterGroupsLayoutRoute.useSearch();
   const { groupId } = Route.useLoaderData();
-  const navigate = useNavigate();
-  const qc = useQueryClient();
+  // const navigate = useNavigate();
+  // const qc = useQueryClient();
 
   const {
     data: group,

@@ -6,7 +6,6 @@ const convertRedirectErrorToExceptionMiddleware = createMiddleware({
 }).server(async ({ next }) => {
   const result = await next();
   if ("error" in result && isRedirect(result.error)) {
-    // eslint-disable-next-line @typescript-eslint/only-throw-error
     throw result.error;
   }
   return result;

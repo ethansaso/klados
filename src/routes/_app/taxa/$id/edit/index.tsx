@@ -96,7 +96,7 @@ export const Route = createFileRoute("/_app/taxa/$id/edit/")({
 
     return { id, initialTaxon: taxon, initialCharacterValues: values };
   },
-  loader: async ({ context, params }) => {
+  loader: async ({ context }) => {
     const { id, initialTaxon, initialCharacterValues } = context;
     return { id, initialTaxon, initialCharacterValues };
   },
@@ -230,7 +230,7 @@ function RouteComponent() {
       reset(data, { keepDirty: false }); // keep RHF dirty tracking in sync
       await invalidateTaxon(id);
       toast({ description: "Taxon saved.", variant: "success" });
-    } catch (err: any) {
+    } catch (err: Error) {
       toast({
         description: err?.message ?? "Failed to save changes.",
         variant: "error",

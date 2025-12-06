@@ -8,7 +8,7 @@ import { memo } from "react";
 import { RFNullBranchEdge } from "./types";
 
 const NullBranchEdgeComponent = memo((props: EdgeProps<RFNullBranchEdge>) => {
-  const { id, sourceX, sourceY, targetX, targetY, markerEnd, data } = props;
+  const { id, sourceX, sourceY, targetX, targetY, markerEnd } = props;
 
   const [path] = getBezierPath({
     sourceX,
