@@ -65,9 +65,11 @@ function TaxonPage() {
         <Breadcrumbs items={breadcrumbItems} size="2" />
         <Heading>
           <Text>{taxon.acceptedName} </Text>
-          <Text size="3" weight="regular" color="gray">
-            ({taxon.preferredCommonName})
-          </Text>
+          {taxon.preferredCommonName && (
+            <Text size="3" weight="regular" color="gray">
+              ({taxon.preferredCommonName})
+            </Text>
+          )}
         </Heading>
       </Box>
       <Flex direction="column" gap="6" width="100%">
