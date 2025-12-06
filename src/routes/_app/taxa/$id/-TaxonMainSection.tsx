@@ -8,10 +8,9 @@ import {
 } from "@radix-ui/themes";
 import { Link, UseNavigateResult } from "@tanstack/react-router";
 import { PiPencilSimple } from "react-icons/pi";
+import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ExGbif } from "../../../../components/icons/ExGbif";
 import { ExInat } from "../../../../components/icons/ExInat";
-import { useMe } from "../../../../lib/auth/useMe";
-import { roleHasCuratorRights } from "../../../../lib/auth/utils";
 import { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
 import { TaxonImageBrowser } from "./-TaxonImageBrowser";
 
@@ -22,8 +21,6 @@ export const TaxonMainSection = ({
   taxon: TaxonDetailDTO;
   navigate: UseNavigateResult<"string">;
 }) => {
-  const { data: me } = useMe();
-
   return (
     <Flex gap="4">
       <TaxonImageBrowser media={taxon.media} key={taxon.id} />
@@ -64,7 +61,7 @@ export const TaxonMainSection = ({
           </DataList.Root>
         </Box>
         <Flex gap="1" mt="2">
-          {roleHasCuratorRights(me?.role) && (
+          <CuratorOnly>
             <Button
               type="button"
               size="2"
@@ -78,7 +75,7 @@ export const TaxonMainSection = ({
               <PiPencilSimple size={12} />
               Edit
             </Button>
-          )}
+          </CuratorOnly>
           <Button type="button" size="2" asChild>
             <RadixLink
               href={`https://www.inaturalist.org/taxa/${taxon.sourceInatId}`}

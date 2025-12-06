@@ -11,6 +11,7 @@ export const userSessionMiddleware = createMiddleware({
   type: "request",
 }).server(async ({ next, request }) => {
   const session = await auth.api.getSession({ headers: request?.headers });
+  console.log("middleware running", new Date().toISOString());
 
   return await next({
     context: { user: session?.user ?? null },

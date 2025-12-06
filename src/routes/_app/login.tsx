@@ -17,7 +17,6 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../components/inputs/ConditionalAlert";
-import { getMeFn } from "../../lib/api/users/getMe";
 import { authClient } from "../../lib/auth/authClient";
 import { meQueryOptions } from "../../lib/queries/users";
 import { toast } from "../../lib/utils/toast";
@@ -35,8 +34,8 @@ type FormFields = z.infer<typeof schema>;
 
 // TODO: use loading state on signup/signin
 export const Route = createFileRoute("/_app/login")({
-  beforeLoad: async () => {
-    const user = await getMeFn();
+  beforeLoad: async ({ context }) => {
+    const user = context.user;
     if (user) {
       throw redirect({ to: "/" });
     }

@@ -21,7 +21,6 @@ import {
 } from "../../../components/inputs/ConditionalAlert";
 import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
 import { createTaxonDraftFn } from "../../../lib/api/taxa/createTaxonDraft";
-import { getMeFn } from "../../../lib/api/users/getMe";
 import {
   generateLoginRedirectFromLocation,
   roleHasCuratorRights,
@@ -34,8 +33,8 @@ import { taxaQueryOptions } from "../../../lib/queries/taxa";
 import { toast } from "../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/taxa/new")({
-  beforeLoad: async ({ location }) => {
-    const user = await getMeFn();
+  beforeLoad: async ({ context, location }) => {
+    const { user } = context;
     if (!roleHasCuratorRights(user?.role)) {
       throw generateLoginRedirectFromLocation(location);
     }

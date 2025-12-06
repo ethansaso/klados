@@ -6,12 +6,11 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import NavSidebar from "../../components/nav/NavSidebar";
-import { getMeFn } from "../../lib/api/users/getMe";
 import { useIsActive } from "../../lib/hooks/useIsActive";
 
 export const Route = createFileRoute("/admin")({
-  beforeLoad: async () => {
-    const user = await getMeFn();
+  beforeLoad: async ({ context }) => {
+    const user = context.user;
     if (!user || user.role !== "admin") {
       throw redirect({ to: "/" });
     }

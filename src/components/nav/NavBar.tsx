@@ -58,11 +58,7 @@ export function NavBar({ user }: NavBarProps) {
     } else {
       return (
         <TabNav.Link asChild active={taxaActive}>
-          <RouterLink
-            to="/taxa"
-            preload="intent"
-            search={{ q: "", page: 1, page_size: 20 }}
-          >
+          <RouterLink to="/taxa" preload="intent">
             Taxa
           </RouterLink>
         </TabNav.Link>

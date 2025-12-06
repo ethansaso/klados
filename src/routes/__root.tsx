@@ -10,6 +10,7 @@ import {
 import type { ReactNode } from "react";
 import appCssUrl from "../assets/styles/main.css?url";
 import { ToastHost } from "../components/ToastHost";
+import { meQueryOptions } from "../lib/queries/users";
 import { GA_ID, seo } from "../lib/seo";
 
 export const Route = createRootRouteWithContext<{
@@ -65,6 +66,11 @@ export const Route = createRootRouteWithContext<{
       links: [...baseLinks, ...links],
       scripts,
     };
+  },
+  beforeLoad: async ({ context }) => {
+    const user = await context.queryClient.ensureQueryData(meQueryOptions());
+
+    return { user };
   },
   component: RootComponent,
 });
