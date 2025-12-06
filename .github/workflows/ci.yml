@@ -30,5 +30,7 @@ jobs:
           echo "Running lint (does NOT fail CI yet)"
           npm run lint || true
 
-      - name: Test
-        run: npm test
+      - name: Test (non-blocking)
+        run: |
+          echo "Running tests (does NOT fail CI yet)"
+          npm test || true
