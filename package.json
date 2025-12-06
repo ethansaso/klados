@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "vite build && node scripts/patch-ssr-utils.mjs",
     "build:keygen": "tsc -p keygen/tsconfig.json",
     "start": "npm run db:migrate && node .output/server/index.mjs",
     "db:generate": "drizzle-kit generate",
