@@ -76,7 +76,7 @@ export const TaxonMainSection = ({
               Edit
             </Button>
           </CuratorOnly>
-          <Button type="button" size="2" asChild>
+          <Button type="button" size="2" asChild disabled={!taxon.sourceInatId}>
             <RadixLink
               href={`https://www.inaturalist.org/taxa/${taxon.sourceInatId}`}
               target="_blank"
@@ -88,7 +88,7 @@ export const TaxonMainSection = ({
               iNaturalist
             </RadixLink>
           </Button>
-          <Button type="button" size="2" asChild>
+          <Button type="button" size="2" asChild disabled={!taxon.sourceGbifId}>
             <RadixLink
               href={`https://www.gbif.org/species/${taxon.sourceGbifId}`}
               target="_blank"

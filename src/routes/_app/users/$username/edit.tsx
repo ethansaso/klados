@@ -101,9 +101,6 @@ function RouteComponent() {
         <NavSidebar.Item to={``} active>
           Profile
         </NavSidebar.Item>
-        <NavSidebar.Item to={``} active={false}>
-          Other thing
-        </NavSidebar.Item>
       </NavSidebar.Root>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box>
