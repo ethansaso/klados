@@ -43,6 +43,8 @@ export const categoricalTraitValue = pgTable(
     label: text("label").notNull(),
     /** Optional hexadecimal color code (e.g., "#ff0000") */
     hexCode: text("hex_code"),
+    /** Optional description */
+    description: text("description").notNull().default(""),
     isCanonical: boolean("is_canonical").notNull().default(true),
     canonicalValueId: integer("canonical_value_id"),
   }),
@@ -90,6 +92,13 @@ export const categoricalTraitValue = pgTable(
       "trait_values_hex_code_canonical_ck",
       sql`CASE WHEN ${t.isCanonical} THEN TRUE
         ELSE ${t.hexCode} IS NULL END`
+    ),
+
+    // CHECK #5: prevent usage of description for non-canonical values
+    check(
+      "trait_values_description_canonical_ck",
+      sql`CASE WHEN ${t.isCanonical} THEN TRUE
+    ELSE ${t.description} = '' END`
     ),
   ]
 );

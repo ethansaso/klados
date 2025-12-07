@@ -1,5 +1,5 @@
 import NiceModal from "@ebay/nice-modal-react";
-import { Box, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
+import { Card, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { PiLink, PiMagnifyingGlass, PiPlusCircle, PiTag } from "react-icons/pi";
@@ -41,7 +41,7 @@ function RouteComponent() {
 
   return (
     <Flex gap="4">
-      <Box width="275px">
+      <Card style={{ width: 275, height: "fit-content" }}>
         <DebouncedTextField
           initialValue={search.q}
           onDebouncedChange={(value) => setQ(value)}
@@ -90,7 +90,7 @@ function RouteComponent() {
           onPrev={() => prev()}
           onNext={() => next(paginatedResult.total)}
         />
-      </Box>
+      </Card>
       <Outlet />
     </Flex>
   );

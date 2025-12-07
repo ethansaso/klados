@@ -1,4 +1,5 @@
 import { Button, Flex, Popover, Select, Switch, Text } from "@radix-ui/themes";
+import { useMemo } from "react";
 import { PiFunnelFill } from "react-icons/pi";
 import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
 import type { TaxonSearchParams } from "../../../lib/domain/taxa/search";
@@ -11,12 +12,18 @@ type Props = {
 
 // TODO: fix lack of clear-select function in radix ui
 export function TaxaFilterPopover({ search, setSearch }: Props) {
+  const activeFilterCount = useMemo(
+    () =>
+      [search.highRank, search.lowRank, search.hasMedia].filter(Boolean).length,
+    [search.highRank, search.lowRank, search.hasMedia]
+  );
+
   return (
     <Popover.Root>
       <Popover.Trigger>
         <Button type="button" variant="soft">
           <PiFunnelFill />
-          Filters
+          Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
         </Button>
       </Popover.Trigger>
       <Popover.Content>
@@ -27,7 +34,7 @@ export function TaxaFilterPopover({ search, setSearch }: Props) {
 
           {/* High rank */}
           <Flex direction="column" gap="1">
-            <Text size="1" color="gray">
+            <Text as="label" htmlFor="high-rank" size="1" color="gray">
               High rank
             </Text>
             <Select.Root
@@ -42,7 +49,7 @@ export function TaxaFilterPopover({ search, setSearch }: Props) {
                 })
               }
             >
-              <Select.Trigger placeholder="Any" />
+              <Select.Trigger placeholder="Any" id="high-rank" />
               <Select.Content>
                 {TAXON_RANKS_DESCENDING.map((rank) => (
                   <Select.Item key={rank} value={rank}>
@@ -55,7 +62,7 @@ export function TaxaFilterPopover({ search, setSearch }: Props) {
 
           {/* Low rank */}
           <Flex direction="column" gap="1">
-            <Text size="1" color="gray">
+            <Text as="label" htmlFor="low-rank" size="1" color="gray">
               Low rank
             </Text>
             <Select.Root
@@ -70,7 +77,7 @@ export function TaxaFilterPopover({ search, setSearch }: Props) {
                 })
               }
             >
-              <Select.Trigger placeholder="Any" />
+              <Select.Trigger placeholder="Any" id="low-rank" />
               <Select.Content>
                 {TAXON_RANKS_DESCENDING.map((rank) => (
                   <Select.Item key={rank} value={rank}>
@@ -84,6 +91,7 @@ export function TaxaFilterPopover({ search, setSearch }: Props) {
           {/* Has media */}
           <Flex align="center" gap="2">
             <Switch
+              id="has-media"
               checked={!!search.hasMedia}
               onCheckedChange={(checked) =>
                 setSearch({
@@ -92,7 +100,9 @@ export function TaxaFilterPopover({ search, setSearch }: Props) {
                 })
               }
             />
-            <Text size="1">Only taxa with media</Text>
+            <Text as="label" htmlFor="has-media" size="1">
+              Only taxa with media
+            </Text>
           </Flex>
         </Flex>
       </Popover.Content>

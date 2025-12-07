@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PiMagnifyingGlass } from "react-icons/pi";
+import { useDebounce } from "use-debounce";
 import {
   TaxonSearchParams,
   TaxonSearchSchema,
@@ -50,15 +51,12 @@ function TaxaListPage() {
   useEffect(() => {
     setLocalInput(search.q ?? "");
   }, [search.q]);
+  const [debouncedInput] = useDebounce(localInput, 250);
   useEffect(() => {
-    const id = setTimeout(() => {
-      setSearch({
-        q: localInput || undefined,
-        page: 1,
-      });
-    }, 250);
-    return () => clearTimeout(id);
-  }, [localInput, setSearch]);
+    setSearch({
+      q: debouncedInput || undefined,
+    });
+  }, [debouncedInput, setSearch]);
 
   return (
     <Flex direction="column">

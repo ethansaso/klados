@@ -2,7 +2,7 @@
   --cursor-button: pointer;
 
   .rt-Card.active {
-    outline: 2px solid var(--focus-8);
+    outline: 2px solid var(--accent-indicator);
     outline-offset: -1px;
   }
 

@@ -208,6 +208,7 @@ export async function getTraitSetValuesQuery(
       key: v.key,
       label: v.label,
       hexCode: v.hexCode,
+      description: v.description,
       isCanonical: v.isCanonical,
       canonId: canon.id,
       canonLabel: canon.label,
@@ -224,6 +225,7 @@ export async function getTraitSetValuesQuery(
     key: r.key,
     label: r.label,
     hexCode: r.hexCode,
+    description: r.description,
     isCanonical: r.isCanonical,
     aliasTarget: r.isCanonical
       ? null
@@ -259,6 +261,7 @@ export async function listTraitSetValuesQuery(args: {
       key: v.key,
       label: v.label,
       hexCode: v.hexCode,
+      description: v.description,
       isCanonical: v.isCanonical,
       canonId: canon.id,
       canonLabel: canon.label,
@@ -282,6 +285,7 @@ export async function listTraitSetValuesQuery(args: {
     key: r.key,
     label: r.label,
     hexCode: r.hexCode,
+    description: r.description,
     isCanonical: r.isCanonical,
     aliasTarget: r.isCanonical
       ? null
@@ -372,6 +376,7 @@ export async function selectTraitValueDtoById(
       key: v.key,
       label: v.label,
       hexCode: v.hexCode,
+      description: v.description,
       isCanonical: v.isCanonical,
       canonId: canon.id,
       canonLabel: canon.label,
@@ -391,6 +396,7 @@ export async function selectTraitValueDtoById(
     key: row.key,
     label: row.label,
     hexCode: row.hexCode,
+    description: row.description,
     isCanonical: row.isCanonical,
     aliasTarget: row.isCanonical
       ? null
@@ -425,9 +431,11 @@ export async function selectTraitValueDtosByIds(
       key: v.key,
       label: v.label,
       hexCode: v.hexCode,
+      description: v.description,
       isCanonical: v.isCanonical,
       canonId: canon.id,
       canonLabel: canon.label,
+      canonHexCode: canon.hexCode,
     })
     .from(v)
     .leftJoin(canon, eq(v.canonicalValueId, canon.id))
@@ -440,11 +448,16 @@ export async function selectTraitValueDtosByIds(
     key: row.key,
     label: row.label,
     hexCode: row.hexCode,
+    description: row.description,
     isCanonical: row.isCanonical,
     aliasTarget: row.isCanonical
       ? null
       : row.canonId
-        ? { id: row.canonId, label: row.canonLabel! }
+        ? {
+            id: row.canonId,
+            label: row.canonLabel!,
+            hexCode: row.canonHexCode ?? undefined,
+          }
         : null,
   }));
 }
