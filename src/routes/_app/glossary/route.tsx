@@ -15,7 +15,7 @@ function RouteComponent() {
 
   return (
     <ContentOutlet align="stretch">
-      <TabNav.Root mb="3">
+      <TabNav.Root mb="3" size="2">
         <TabNav.Link asChild active={charactersActive}>
           <Link to="/glossary/characters" preload="intent">
             Characters

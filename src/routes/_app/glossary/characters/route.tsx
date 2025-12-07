@@ -74,7 +74,7 @@ function RouteComponent() {
               keyStr={item.key}
               label={item.label}
               to="/glossary/characters/$characterId"
-              params={{ characterId: String(item.id) }}
+              params={{ characterId: item.id }}
             >
               <Flex align="center" gap="1" asChild>
                 <Text as="div" size="1">

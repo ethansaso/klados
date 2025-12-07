@@ -1,6 +1,6 @@
 import NiceModal from "@ebay/nice-modal-react";
 import { Box, Heading, IconButton, Text } from "@radix-ui/themes";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { PiTrash } from "react-icons/pi";
@@ -15,29 +15,27 @@ import { toast } from "../../../../lib/utils/toast";
 import { Route as CharactersLayoutRoute } from "./route";
 
 const ParamsSchema = z.object({
-  characterId: z.coerce.number().int().positive(),
+  id: z.coerce.number().int().positive(),
 });
 
-export const Route = createFileRoute("/_app/glossary/characters/$characterId")({
-  loader: async ({ params }) => {
-    const { characterId } = ParamsSchema.parse(params);
-    return { characterId };
+export const Route = createFileRoute("/_app/glossary/characters/$id")({
+  params: ParamsSchema,
+  loader: async ({ context, params }) => {
+    await context.queryClient.ensureQueryData(characterQueryOptions(params.id));
+
+    return params;
   },
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const search = CharactersLayoutRoute.useSearch();
-  const { characterId } = Route.useLoaderData();
+  const { id } = Route.useLoaderData();
   const serverDelete = useServerFn(deleteCharacterFn);
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const {
-    data: character,
-    error: osErr,
-    isLoading: osLoad,
-  } = useQuery(characterQueryOptions(characterId));
+  const { data: character } = useSuspenseQuery(characterQueryOptions(id));
 
   const handleTraitSetDeleteClick = (character: CharacterDetailDTO) => {
     NiceModal.show(ConfirmDeleteModal, {
@@ -68,8 +66,6 @@ function RouteComponent() {
     });
   };
 
-  if (osLoad) return <div>Loading...</div>;
-  if (osErr || !character) return <div>Character not found.</div>;
   return (
     <Box>
       <Heading size="6">Character: {character.label}</Heading>
