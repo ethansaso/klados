@@ -14,6 +14,7 @@ export type CharacterInGroupDTO = {
   id: number;
   key: string;
   label: string;
+  description: string;
   // TODO: number & range
   type: "categorical";
   // TODO: categorical-only; might want to use union

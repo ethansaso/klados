@@ -1,5 +1,5 @@
 import { Box, Heading, Text } from "@radix-ui/themes";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import z from "zod";
 import { characterGroupQueryOptions } from "../../../../lib/queries/characterGroups";
@@ -9,9 +9,12 @@ const ParamsSchema = z.object({
 });
 
 export const Route = createFileRoute("/_app/glossary/groups/$groupId")({
-  loader: async ({ params }) => {
-    const { groupId } = ParamsSchema.parse(params);
-    return { groupId };
+  params: ParamsSchema,
+  loader: async ({ context, params }) => {
+    await context.queryClient.ensureQueryData(
+      characterGroupQueryOptions(params.groupId)
+    );
+    return params;
   },
   component: RouteComponent,
 });
@@ -22,14 +25,8 @@ function RouteComponent() {
   // const navigate = useNavigate();
   // const qc = useQueryClient();
 
-  const {
-    data: group,
-    error: osErr,
-    isLoading: osLoad,
-  } = useQuery(characterGroupQueryOptions(groupId));
+  const { data: group } = useSuspenseQuery(characterGroupQueryOptions(groupId));
 
-  if (osLoad) return <div>Loading...</div>;
-  if (osErr || !group) return <div>Group not found.</div>;
   return (
     <Box>
       <Heading size="6">Group: {group.label}</Heading>

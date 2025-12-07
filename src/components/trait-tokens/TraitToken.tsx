@@ -3,6 +3,10 @@ import { memo } from "react";
 import { Trait } from "../../lib/domain/character-states/types";
 import { ColorBubble } from "./ColorBubble";
 
+type GenerousTrait = Omit<Trait, "hexCode"> & {
+  hexCode?: string | null;
+};
+
 function formatTraitLabel(label: string, index: number) {
   const lower = label.toLowerCase();
   if (index === 0) {
@@ -18,7 +22,7 @@ export const TraitToken = memo(
     index = 0,
     isLast = false,
   }: {
-    trait: Trait;
+    trait: GenerousTrait;
     index?: number;
     isLast?: boolean;
   }) => {

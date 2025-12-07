@@ -24,6 +24,7 @@ import type {
   TraitSetDetailDTO,
   TraitSetPaginatedResult,
   TraitValueDTO,
+  TraitValuePaginatedResult,
   TraitValueRow,
 } from "./types";
 
@@ -210,6 +211,7 @@ export async function getTraitSetValuesQuery(
       isCanonical: v.isCanonical,
       canonId: canon.id,
       canonLabel: canon.label,
+      canonHexCode: canon.hexCode,
     })
     .from(v)
     .leftJoin(canon, eq(v.canonicalValueId, canon.id))
@@ -226,9 +228,73 @@ export async function getTraitSetValuesQuery(
     aliasTarget: r.isCanonical
       ? null
       : r.canonId
-        ? { id: r.canonId, label: r.canonLabel! }
+        ? {
+            id: r.canonId,
+            label: r.canonLabel!,
+            hexCode: r.canonHexCode ?? undefined,
+          }
         : null,
   }));
+}
+
+/**
+ * List paginated values for a trait set.
+ * Note to CoPilot: Should be identical to function above, but with pagination.
+ */
+export async function listTraitSetValuesQuery(args: {
+  setId: number;
+  page: number;
+  pageSize: number;
+}): Promise<TraitValuePaginatedResult> {
+  const { setId, page, pageSize } = args;
+  const offset = (page - 1) * pageSize;
+
+  const v = valsTbl;
+  const canon = alias(valsTbl, "canon");
+
+  const items = await db
+    .select({
+      id: v.id,
+      setId: v.setId,
+      key: v.key,
+      label: v.label,
+      hexCode: v.hexCode,
+      isCanonical: v.isCanonical,
+      canonId: canon.id,
+      canonLabel: canon.label,
+      canonHexCode: canon.hexCode,
+    })
+    .from(v)
+    .leftJoin(canon, eq(v.canonicalValueId, canon.id))
+    .where(eq(v.setId, setId))
+    .orderBy(asc(v.label), asc(v.id))
+    .limit(pageSize)
+    .offset(offset);
+
+  const [{ total }] = await db
+    .select({ total: count() })
+    .from(v)
+    .where(eq(v.setId, setId));
+
+  const dtos: TraitValueDTO[] = items.map((r) => ({
+    id: r.id,
+    setId: r.setId,
+    key: r.key,
+    label: r.label,
+    hexCode: r.hexCode,
+    isCanonical: r.isCanonical,
+    aliasTarget: r.isCanonical
+      ? null
+      : r.canonId
+        ? {
+            id: r.canonId,
+            label: r.canonLabel!,
+            hexCode: r.canonHexCode ?? undefined,
+          }
+        : null,
+  }));
+
+  return { items: dtos, page, pageSize, total };
 }
 
 /**
@@ -309,6 +375,7 @@ export async function selectTraitValueDtoById(
       isCanonical: v.isCanonical,
       canonId: canon.id,
       canonLabel: canon.label,
+      canonHexCode: canon.hexCode,
     })
     .from(v)
     .leftJoin(canon, eq(v.canonicalValueId, canon.id))
@@ -328,7 +395,11 @@ export async function selectTraitValueDtoById(
     aliasTarget: row.isCanonical
       ? null
       : row.canonId
-        ? { id: row.canonId, label: row.canonLabel! }
+        ? {
+            id: row.canonId,
+            label: row.canonLabel!,
+            hexCode: row.canonHexCode ?? undefined,
+          }
         : null,
   };
 }

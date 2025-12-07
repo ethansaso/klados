@@ -6,6 +6,7 @@ import {
   insertTraitSet,
   insertTraitValueRow,
   listTraitSetsQuery,
+  listTraitSetValuesQuery,
   selectTraitValueDtoById,
   selectTraitValueDtosByIds,
   selectTraitValueRowById,
@@ -15,6 +16,7 @@ import type {
   TraitSetDTO,
   TraitSetPaginatedResult,
   TraitValueDTO,
+  TraitValuePaginatedResult,
 } from "./types";
 
 /**
@@ -88,6 +90,17 @@ export async function getTraitSetValues(args: {
   setId: number;
 }): Promise<TraitValueDTO[]> {
   return getTraitSetValuesQuery(args.setId);
+}
+
+/**
+ * Lists paginated trait values for a given trait set.
+ */
+export async function listTraitSetValues(args: {
+  setId: number;
+  page: number;
+  pageSize: number;
+}): Promise<TraitValuePaginatedResult> {
+  return listTraitSetValuesQuery(args);
 }
 
 /**
