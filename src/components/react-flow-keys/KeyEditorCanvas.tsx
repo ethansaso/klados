@@ -1,5 +1,6 @@
 import { Box } from "@radix-ui/themes";
-import { Background, ReactFlow } from "@xyflow/react";
+import { ReactFlow } from "@xyflow/react";
+import LogoBackground from "./components/LogoBackground";
 import { edgeTypes, nodeTypes } from "./components/types";
 import { useKeyEditorStore } from "./data/useKeyEditorStore";
 
@@ -21,7 +22,7 @@ export function KeyEditorCanvas() {
         fitView
         proOptions={{ hideAttribution: true }}
       >
-        <Background />
+        <LogoBackground />
       </ReactFlow>
     </Box>
   );

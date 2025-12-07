@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Heading } from "@radix-ui/themes";
+import { Box, Button, Card, Flex, Heading } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
@@ -81,65 +81,67 @@ export const KeySidebar = () => {
   };
 
   return (
-    <aside className="key-sidebar">
-      <form className="key-sidebar__form" onSubmit={handleSubmit(onSubmit)}>
-        <section>
-          <Heading size="3" mb="4">
-            Key Sidebar
-          </Heading>
+    <Card asChild>
+      <aside className="key-sidebar">
+        <form className="key-sidebar__form" onSubmit={handleSubmit(onSubmit)}>
+          <section>
+            <Heading size="3" mb="4">
+              Key Editor
+            </Heading>
 
-          <Box>
-            <Flex justify="between" align="baseline" mb="1">
-              <Label.Root htmlFor="taxon-id">Root Taxon</Label.Root>
-              <ConditionalAlert
-                id="taxon-id-error"
-                message={errors.taxonId?.message}
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="taxon-id">Root Taxon</Label.Root>
+                <ConditionalAlert
+                  id="taxon-id-error"
+                  message={errors.taxonId?.message}
+                />
+              </Flex>
+              <Controller
+                control={control}
+                name="taxonId"
+                render={({ field }) => (
+                  <SelectCombobox.Root
+                    id="taxon-id"
+                    value={taxonSelected}
+                    onValueChange={(opt) => {
+                      field.onChange(opt ? Number(opt.id) : null);
+                    }}
+                    options={taxaOptions}
+                    onQueryChange={setTaxonQ}
+                  >
+                    <SelectCombobox.Trigger
+                      placeholder="Select root taxon..."
+                      {...a11yProps("taxon-id-error", !!errors.taxonId)}
+                    />
+                    <SelectCombobox.Content>
+                      <SelectCombobox.Input />
+                      <SelectCombobox.List>
+                        {taxaOptions.map((option, index) => (
+                          <SelectCombobox.Item
+                            key={option.id}
+                            index={index}
+                            option={option}
+                          />
+                        ))}
+                      </SelectCombobox.List>
+                    </SelectCombobox.Content>
+                  </SelectCombobox.Root>
+                )}
               />
-            </Flex>
-            <Controller
-              control={control}
-              name="taxonId"
-              render={({ field }) => (
-                <SelectCombobox.Root
-                  id="taxon-id"
-                  value={taxonSelected}
-                  onValueChange={(opt) => {
-                    field.onChange(opt ? Number(opt.id) : null);
-                  }}
-                  options={taxaOptions}
-                  onQueryChange={setTaxonQ}
-                >
-                  <SelectCombobox.Trigger
-                    placeholder="Select root taxon..."
-                    {...a11yProps("taxon-id-error", !!errors.taxonId)}
-                  />
-                  <SelectCombobox.Content>
-                    <SelectCombobox.Input />
-                    <SelectCombobox.List>
-                      {taxaOptions.map((option, index) => (
-                        <SelectCombobox.Item
-                          key={option.id}
-                          index={index}
-                          option={option}
-                        />
-                      ))}
-                    </SelectCombobox.List>
-                  </SelectCombobox.Content>
-                </SelectCombobox.Root>
-              )}
-            />
-          </Box>
-        </section>
-        <section>
-          <Button
-            type="submit"
-            disabled={!taxonIdVal || isSubmitting}
-            loading={isSubmitting}
-          >
-            Generate Key
-          </Button>
-        </section>
-      </form>
-    </aside>
+            </Box>
+          </section>
+          <section>
+            <Button
+              type="submit"
+              disabled={!taxonIdVal || isSubmitting}
+              loading={isSubmitting}
+            >
+              Generate Key
+            </Button>
+          </section>
+        </form>
+      </aside>
+    </Card>
   );
 };

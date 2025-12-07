@@ -2,7 +2,6 @@ import { discoverTaxonHierarchyFromRoot } from "./hierarchy/discoverHierarchy";
 import { buildKeySubtreeForTaxon } from "./key-building/buildKeyForChildren";
 import { KeyTaxonNode } from "./key-building/types";
 import { DEFAULT_KEYGEN_OPTIONS, KeyGenOptions } from "./options";
-import { TaxonGroup } from "./splitting/types";
 
 /**
  * Given a taxon id (and options), generates a full key
@@ -18,11 +17,6 @@ export async function generateKeyForTaxon(
   if (!root) {
     throw new Error(`Root taxon ${taxonId} not found in hierarchy`);
   }
-
-  // One level down: siblings under the root
-  const children: TaxonGroup = root.subtaxonIds
-    .map((id) => hierarchy.get(id))
-    .filter((n): n is NonNullable<typeof n> => n !== undefined);
 
   const rootNode: KeyTaxonNode = {
     kind: "taxon",

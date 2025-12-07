@@ -10,7 +10,7 @@ export const StatsFeatureGrid = ({ summaryStats }: StatsFeatureGridProps) => {
   return (
     <Flex direction="column" align="center" py="8">
       <Heading mb="3" size="7">
-        Our Statistics
+        Our Stats
       </Heading>
       <Box className="feature-grid">
         <Box className="feature-grid__item">
