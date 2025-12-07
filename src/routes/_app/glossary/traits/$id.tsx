@@ -1,7 +1,6 @@
 import NiceModal from "@ebay/nice-modal-react";
 import {
   Box,
-  Button,
   Flex,
   Heading,
   IconButton,
@@ -16,6 +15,7 @@ import { PiPlusCircle, PiTrash } from "react-icons/pi";
 import z from "zod";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../components/dialogs/ConfirmDeleteModal";
+import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { TraitToken } from "../../../../components/trait-tokens/TraitToken";
 import { createTraitValueFn } from "../../../../lib/api/traits/createTraitValue";
 import { deleteTraitSetFn } from "../../../../lib/api/traits/deleteTraitSet";
@@ -226,30 +226,14 @@ function RouteComponent() {
           )}
         </Table.Body>
       </Table.Root>
-      <Flex mt="3" justify="between" align="center">
-        <Text size="1" color="gray">
-          Page {valuePage} of {totalPages} · {total} value
-          {total === 1 ? "" : "s"}
-        </Text>
-        <Flex gap="2">
-          <Button
-            size="1"
-            variant="soft"
-            disabled={!canPrev}
-            onClick={handlePrev}
-          >
-            Previous
-          </Button>
-          <Button
-            size="1"
-            variant="soft"
-            disabled={!canNext}
-            onClick={handleNext}
-          >
-            Next
-          </Button>
-        </Flex>
-      </Flex>
+      <PaginationFooter
+        page={valuePage}
+        pageSize={PAGE_SIZE}
+        total={total}
+        showValue
+        onPrev={handlePrev}
+        onNext={handleNext}
+      />
     </Box>
   );
 }

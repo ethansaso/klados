@@ -4,9 +4,9 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { PiMagnifyingGlass, PiPlusCircle } from "react-icons/pi";
 import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
-import { GlossarySidebarPager } from "../-chrome/GlossarySidebarPager";
 import { useSectionSearch } from "../-chrome/useSectionSearch";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
+import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { TiOutline } from "../../../../components/icons/TiOutline";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { charactersQueryOptions } from "../../../../lib/queries/characters";
@@ -85,7 +85,7 @@ function RouteComponent() {
             </GlossarySidebarList.Item>
           ))}
         </GlossarySidebarList.Root>
-        <GlossarySidebarPager
+        <PaginationFooter
           page={paginatedResult.page}
           pageSize={paginatedResult.pageSize}
           total={paginatedResult.total}
