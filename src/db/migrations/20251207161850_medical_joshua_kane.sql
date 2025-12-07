@@ -1,0 +1,1 @@
+ALTER TABLE "categorical_trait_value" ADD COLUMN "description" text DEFAULT '' NOT NULL;

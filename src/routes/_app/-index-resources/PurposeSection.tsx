@@ -21,7 +21,7 @@ export const PurposeSection = () => {
                 Browse Species
               </Heading>
               <Text>
-                Explore thousands of species with rich images, descriptions, and
+                Explore diverse species with rich images, descriptions, and
                 morphological data.
               </Text>
             </Box>

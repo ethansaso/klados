@@ -54,7 +54,7 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
                     url: tp.photo.medium_url,
                     license: tp.photo.license_code,
                     owner: tp.photo.attribution_name,
-                    source: "iNaturalist",
+                    source: `https://www.inaturalist.org/photos/${tp.photo.id}`,
                   }) as MediaItem
               )
             );

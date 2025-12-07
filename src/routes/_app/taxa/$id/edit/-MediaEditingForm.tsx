@@ -122,7 +122,7 @@ export const MediaEditingForm = ({
             <Table.ColumnHeaderCell>Image URL</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell>License</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell>Owner</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell>Source</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell>Source URL</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell>Reorder</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell>Delete</Table.ColumnHeaderCell>
           </Table.Row>

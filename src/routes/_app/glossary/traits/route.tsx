@@ -1,12 +1,12 @@
 import NiceModal from "@ebay/nice-modal-react";
-import { Box, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
+import { Card, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { PiLink, PiMagnifyingGlass, PiPlusCircle, PiTag } from "react-icons/pi";
 import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
-import { GlossarySidebarPager } from "../-chrome/GlossarySidebarPager";
 import { useSectionSearch } from "../-chrome/useSectionSearch";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
+import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { traitSetsQueryOptions } from "../../../../lib/queries/traits";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
@@ -41,7 +41,7 @@ function RouteComponent() {
 
   return (
     <Flex gap="4">
-      <Box width="275px">
+      <Card style={{ width: 275, height: "fit-content" }}>
         <DebouncedTextField
           initialValue={search.q}
           onDebouncedChange={(value) => setQ(value)}
@@ -83,14 +83,14 @@ function RouteComponent() {
             </GlossarySidebarList.Item>
           ))}
         </GlossarySidebarList.Root>
-        <GlossarySidebarPager
+        <PaginationFooter
           page={paginatedResult.page}
           pageSize={paginatedResult.pageSize}
           total={paginatedResult.total}
           onPrev={() => prev()}
           onNext={() => next(paginatedResult.total)}
         />
-      </Box>
+      </Card>
       <Outlet />
     </Flex>
   );

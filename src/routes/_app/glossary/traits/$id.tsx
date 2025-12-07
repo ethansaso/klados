@@ -1,7 +1,6 @@
 import NiceModal from "@ebay/nice-modal-react";
 import {
   Box,
-  Button,
   Flex,
   Heading,
   IconButton,
@@ -16,7 +15,8 @@ import { PiPlusCircle, PiTrash } from "react-icons/pi";
 import z from "zod";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../components/dialogs/ConfirmDeleteModal";
-import { TraitToken } from "../../../../components/trait-tokens/TraitToken";
+import { PaginationFooter } from "../../../../components/PaginationFooter";
+import { ColorBubble } from "../../../../components/trait-tokens/ColorBubble";
 import { createTraitValueFn } from "../../../../lib/api/traits/createTraitValue";
 import { deleteTraitSetFn } from "../../../../lib/api/traits/deleteTraitSet";
 import { TraitSetDTO } from "../../../../lib/domain/traits/types";
@@ -170,8 +170,11 @@ function RouteComponent() {
 
   return (
     <Box flexGrow="1">
-      <Box mb="4">
-        <Heading size="6">Trait Set: {traitSet.label}</Heading>
+      <Flex justify="between" gap="2">
+        <Box mb="4">
+          <Heading size="6">Trait Set: {traitSet.label}</Heading>
+          <Text>{traitSet.description}</Text>
+        </Box>
         <CuratorOnly>
           <IconButton
             size="1"
@@ -181,8 +184,7 @@ function RouteComponent() {
             <PiTrash />
           </IconButton>
         </CuratorOnly>
-        <Text>{traitSet.description}</Text>
-      </Box>
+      </Flex>
       <CuratorOnly>
         <Flex mb="2" asChild>
           <form onSubmit={handleAddValue}>
@@ -203,8 +205,10 @@ function RouteComponent() {
       <Table.Root size="1">
         <Table.Header>
           <Table.Row>
+            <Table.ColumnHeaderCell width="45px">Icon</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell>Trait</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell>Alias of</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell>Alias for</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell>Description</Table.ColumnHeaderCell>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -215,41 +219,37 @@ function RouteComponent() {
           ) : (
             aliasCorrectedValues.map((val) => (
               <Table.Row key={val.id}>
-                <Table.Cell>
-                  <TraitToken trait={val} isLast />
+                <Table.Cell justify="center">
+                  {val.hexCode && (
+                    <ColorBubble size={12} hexColor={val.hexCode} />
+                  )}
                 </Table.Cell>
                 <Table.Cell>
-                  {val.isCanonical ? "" : val.aliasTarget?.label}
+                  <Text>{val.label}</Text>
+                </Table.Cell>
+                <Table.Cell>
+                  {val.isCanonical ? (
+                    <Text color="gray">------</Text>
+                  ) : (
+                    <Text>{val.aliasTarget?.label}</Text>
+                  )}
+                </Table.Cell>
+                <Table.Cell>
+                  <Text>{val.description}</Text>
                 </Table.Cell>
               </Table.Row>
             ))
           )}
         </Table.Body>
       </Table.Root>
-      <Flex mt="3" justify="between" align="center">
-        <Text size="1" color="gray">
-          Page {valuePage} of {totalPages} · {total} value
-          {total === 1 ? "" : "s"}
-        </Text>
-        <Flex gap="2">
-          <Button
-            size="1"
-            variant="soft"
-            disabled={!canPrev}
-            onClick={handlePrev}
-          >
-            Previous
-          </Button>
-          <Button
-            size="1"
-            variant="soft"
-            disabled={!canNext}
-            onClick={handleNext}
-          >
-            Next
-          </Button>
-        </Flex>
-      </Flex>
+      <PaginationFooter
+        page={valuePage}
+        pageSize={PAGE_SIZE}
+        total={total}
+        showValue
+        onPrev={handlePrev}
+        onNext={handleNext}
+      />
     </Box>
   );
 }
