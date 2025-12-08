@@ -1,5 +1,5 @@
 import { Link, Text } from "@radix-ui/themes";
-import { PiInfo } from "react-icons/pi";
+import { PiCopyright } from "react-icons/pi";
 import {
   HUMAN_CASED_MEDIA_LICENSES,
   MEDIA_LICENSES,
@@ -34,7 +34,7 @@ export const AnnotationBubbleWrap = ({
     <div className={`annotation-bubble__wrapper spacing-${spacing}`}>
       <div className="annotation-bubble">
         <div className="annotation-bubble__indicator">
-          <PiInfo />
+          <PiCopyright />
         </div>
         <Text className="annotation-bubble__content" size="1" color="gray">
           {ownerName && <div className="owner-name">© {ownerName}</div>}
