@@ -1,7 +1,7 @@
 import { Avatar, Button, Flex, Heading, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { UserBadge } from "../../../../components/UserBadge";
+import { RoleBadge } from "../../../../components/UserBadge";
 import { generateLoginRedirectFromLocation } from "../../../../lib/auth/utils";
 import { UserDTO } from "../../../../lib/domain/users/types";
 import {
@@ -63,7 +63,7 @@ function UserProfilePage() {
               <Text as="div" color="gray">
                 @{user.username}
               </Text>
-              <UserBadge role={user.role} ml="2" />
+              <RoleBadge role={user.role} ml="2" />
             </Flex>
             <Text as="div" color="gray">
               Joined {joined}

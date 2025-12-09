@@ -7,11 +7,12 @@ interface UserBadgeProps extends ComponentProps<typeof Badge> {
   role: UserDTO["role"];
 }
 
-export const UserBadge = ({ role, ...rest }: UserBadgeProps) => {
+export const RoleBadge = ({ role, size = "1", ...rest }: UserBadgeProps) => {
   if (role === "user") return null;
   return (
     <Badge
       variant="soft"
+      size={size}
       color={role === "admin" ? "tomato" : undefined}
       {...rest}
     >

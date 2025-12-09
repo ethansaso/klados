@@ -1,4 +1,4 @@
-import { Card, DataList } from "@radix-ui/themes";
+import { Card, ContextMenu, DataList } from "@radix-ui/themes";
 import {
   BaseEdge,
   EdgeLabelRenderer,
@@ -28,7 +28,17 @@ const CharacterBranchEdgeComponent = memo(
 
     return (
       <>
-        <BaseEdge id={id} path={path} markerEnd={markerEnd} />
+        <ContextMenu.Root>
+          <ContextMenu.Trigger>
+            <g>
+              <BaseEdge id={id} path={path} markerEnd={markerEnd} />
+            </g>
+          </ContextMenu.Trigger>
+
+          <ContextMenu.Content>
+            <ContextMenu.Item disabled>Character Branch Edge</ContextMenu.Item>
+          </ContextMenu.Content>
+        </ContextMenu.Root>
 
         <EdgeLabelRenderer>
           <Card

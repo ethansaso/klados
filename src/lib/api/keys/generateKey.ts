@@ -3,10 +3,11 @@ import z from "zod";
 import { generateKeyForTaxon } from "../../../keygen/generateKey";
 import { hydrateKeyFromRoot } from "../../../keygen/hydration/hydrateKey";
 import { KeyGenerationResult } from "../../../keygen/ioTypes";
+import { KeyGenOptionsSchema } from "../../../keygen/options";
 
 const KeygenInputSchema = z.object({
   taxonId: z.number().int().nonnegative(),
-  options: z.any(), // TODO: refine
+  options: KeyGenOptionsSchema,
 });
 
 // TODO: This should run in a worker thread and be WebSocket-based.

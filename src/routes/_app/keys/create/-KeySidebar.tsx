@@ -1,9 +1,10 @@
 import { Box, Button, Card, Flex, Heading } from "@radix-ui/themes";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
+import { useShallow } from "zustand/react/shallow";
 import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
 import { ComboboxOption } from "../../../../components/inputs/combobox/types";
 import {
@@ -11,8 +12,8 @@ import {
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
 import { useKeyEditorStore } from "../../../../components/react-flow-keys/data/useKeyEditorStore";
-import { DEFAULT_KEYGEN_OPTIONS } from "../../../../keygen/options";
-import { generateKeyFn } from "../../../../lib/api/keygen/generateKey";
+import { generateKeyFn } from "../../../../lib/api/keys/generateKey";
+import { saveKeyFn } from "../../../../lib/api/keys/saveKey";
 import { taxaQueryOptions } from "../../../../lib/queries/taxa";
 import { toast } from "../../../../lib/utils/toast";
 
@@ -30,7 +31,22 @@ export const KeySidebar = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const serverGenerateKeyFn = useServerFn(generateKeyFn);
-  const loadKey = useKeyEditorStore((s) => s.loadKey);
+  const serverSaveKeyFn = useServerFn(saveKeyFn);
+
+  // editor store hooks
+  const initFromGeneratedKey = useKeyEditorStore((s) => s.initFromGeneratedKey);
+  const updateMeta = useKeyEditorStore((s) => s.updateMeta);
+  const markSaved = useKeyEditorStore((s) => s.markSaved);
+  // grab meta
+  const { keyId, rootNode, name, description, dirty } = useKeyEditorStore(
+    useShallow((s) => ({
+      keyId: s.keyId,
+      rootNode: s.rootNode,
+      name: s.name,
+      description: s.description,
+      dirty: s.dirty,
+    }))
+  );
 
   const { data: taxaResp } = useQuery(
     taxaQueryOptions(1, 10, { q: taxonQ, status: "active" })
@@ -52,22 +68,25 @@ export const KeySidebar = () => {
     return taxaOptions.find((o) => o.id === Number(taxonIdVal)) ?? null;
   }, [taxonIdVal, taxaOptions]);
 
-  const onSubmit = async () => {
+  const handleGenerateKey = async () => {
     if (!taxonIdVal) return;
 
     setIsSubmitting(true);
 
     try {
       const result = await serverGenerateKeyFn({
-        data: { taxonId: taxonIdVal, options: DEFAULT_KEYGEN_OPTIONS },
+        data: { taxonId: taxonIdVal, options: {} },
       });
 
-      // assuming result has shape { rootNode: KeyTaxonNode }
       if (!result?.rootNode) {
         throw new Error("No rootNode returned from keygen");
       }
 
-      loadKey(result.rootNode);
+      // 1) initialize the editor store with the generated tree
+      initFromGeneratedKey({ rootNode: result.rootNode });
+
+      // 2) set default metadata for new keys
+      updateMeta({ name: "Untitled", description: "" });
     } catch (err: any) {
       console.error("Key generation failed:", err);
       toast({
@@ -80,10 +99,52 @@ export const KeySidebar = () => {
     }
   };
 
+  const { mutate: saveKey, isPending: isSaving } = useMutation({
+    mutationFn: async () => {
+      if (!rootNode) {
+        throw new Error("No key to save. Generate a key first.");
+      }
+
+      const payload = {
+        id: keyId ?? undefined,
+        rootTaxonId: rootNode.id,
+        name: name || "Untitled",
+        description: description ?? "",
+        rootNode,
+      };
+
+      return serverSaveKeyFn({ data: payload });
+    },
+    onSuccess: (res) => {
+      if (res?.id != null) {
+        markSaved(res.id);
+      } else {
+        markSaved();
+      }
+      toast({
+        variant: "success",
+        description: "Key saved.",
+      });
+    },
+    onError: (err) => {
+      console.error("Key save failed:", err);
+      toast({
+        variant: "error",
+        description:
+          err?.message ?? "Something went wrong while saving the key.",
+      });
+    },
+  });
+
+  const canSave = !!rootNode && dirty && !isSaving;
+
   return (
     <Card asChild>
       <aside className="key-sidebar">
-        <form className="key-sidebar__form" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className="key-sidebar__form"
+          onSubmit={handleSubmit(handleGenerateKey)}
+        >
           <section>
             <Heading size="3" mb="4">
               Key Editor
@@ -131,15 +192,25 @@ export const KeySidebar = () => {
               />
             </Box>
           </section>
-          <section>
-            <Button
-              type="submit"
-              disabled={!taxonIdVal || isSubmitting}
-              loading={isSubmitting}
-            >
-              Generate Key
-            </Button>
-          </section>
+          <Flex asChild justify="between">
+            <section>
+              <Button
+                type="submit"
+                disabled={!taxonIdVal || isSubmitting}
+                loading={isSubmitting}
+              >
+                Generate Key
+              </Button>
+              <Button
+                type="button"
+                disabled={!canSave}
+                loading={isSaving}
+                onClick={() => saveKey()}
+              >
+                Save Key
+              </Button>
+            </section>
+          </Flex>
         </form>
       </aside>
     </Card>

@@ -21,7 +21,7 @@ export const commonJoinPred = and(
 );
 
 /** Reusable selection shape for a TaxonDTO. */
-export const selectTaxonDTO = {
+export const taxonSelector = {
   id: taxaTbl.id,
   parentId: taxaTbl.parentId,
   rank: taxaTbl.rank,

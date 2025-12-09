@@ -16,7 +16,7 @@ import {
   commonJoinPred,
   sci,
   sciJoinPred,
-  selectTaxonDTO,
+  taxonSelector,
 } from "../../../domain/taxa/sqlAdapters";
 import { TaxonDTO } from "../../../domain/taxa/types";
 import {
@@ -285,7 +285,7 @@ export const updateTaxon = createServerFn({ method: "POST" })
       }
 
       const [dto] = await tx
-        .select(selectTaxonDTO)
+        .select(taxonSelector)
         .from(taxaTbl)
         .innerJoin(sci, sciJoinPred)
         .leftJoin(common, commonJoinPred)

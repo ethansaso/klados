@@ -30,7 +30,7 @@ export const requireAuthenticationMiddleware = createMiddleware({
     }
 
     return next({
-      context: { user: user ?? null },
+      context: { user: user! },
     });
   });
 

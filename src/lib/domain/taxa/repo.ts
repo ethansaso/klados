@@ -21,7 +21,7 @@ import {
   commonJoinPred,
   sci,
   sciJoinPred,
-  selectTaxonDTO,
+  taxonSelector,
 } from "./sqlAdapters";
 import type {
   LeanTaxonDTO,
@@ -70,7 +70,7 @@ export async function selectTaxonDtoById(
   id: number
 ): Promise<TaxonDTO | null> {
   const [dto] = await tx
-    .select(selectTaxonDTO)
+    .select(taxonSelector)
     .from(taxaTbl)
     .innerJoin(sci, sciJoinPred)
     .leftJoin(common, commonJoinPred)
@@ -88,7 +88,7 @@ export async function selectTaxonDtosByIds(
   ids: number[]
 ): Promise<TaxonDTO[]> {
   const dtos = await tx
-    .select(selectTaxonDTO)
+    .select(taxonSelector)
     .from(taxaTbl)
     .innerJoin(sci, sciJoinPred)
     .leftJoin(common, commonJoinPred)
@@ -139,7 +139,7 @@ export async function fetchTaxonDetailById(
 ): Promise<TaxonDetailDTO | null> {
   // Base taxon row
   const baseRows = await db
-    .select(selectTaxonDTO)
+    .select(taxonSelector)
     .from(taxaTbl)
     .innerJoin(sci, sciJoinPred)
     .leftJoin(common, commonJoinPred)
@@ -312,7 +312,7 @@ export async function listTaxaQuery(
     const where = and(...(filters.filter(Boolean) as SQL[]));
 
     const items = await db
-      .select(selectTaxonDTO)
+      .select(taxonSelector)
       .from(taxaTbl)
       .innerJoin(searchNames, eq(searchNames.taxonId, taxaTbl.id))
       .innerJoin(sci, sciJoinPred)
@@ -350,7 +350,7 @@ export async function listTaxaQuery(
   const where = and(...(baseFilters.filter(Boolean) as SQL[]));
 
   const items = await db
-    .select(selectTaxonDTO)
+    .select(taxonSelector)
     .from(taxaTbl)
     .innerJoin(sci, sciJoinPred)
     .leftJoin(common, commonJoinPred)

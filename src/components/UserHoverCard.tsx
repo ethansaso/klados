@@ -8,7 +8,9 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { Link as TSLink } from "@tanstack/react-router";
+import { UserRole } from "../db/schema/auth";
 import { getInitials } from "../lib/utils/getInitials";
+import { RoleBadge } from "./UserBadge";
 
 type Size = "1" | "2" | "3";
 
@@ -16,7 +18,8 @@ interface UserHoverCardProps {
   username: string;
   name: string;
   imageUrl?: string;
-  description?: string;
+  description?: string | null;
+  role?: UserRole;
   size?: "1" | "2" | "3";
 }
 
@@ -31,6 +34,7 @@ export const UserHoverCard = ({
   name,
   imageUrl,
   description,
+  role,
   size = "2",
 }: UserHoverCardProps) => {
   return (
@@ -51,21 +55,23 @@ export const UserHoverCard = ({
             size={size}
             variant="soft"
           />
-          <Box>
-            <Heading size={headerSize(size)} as="h3">
-              {name}
-            </Heading>
-            {/* CoPilot: please write the following line to choose size - 1, min 1*/}
-            <Text as="div" size={bodySize(size)} color="gray">
-              @{username}
-            </Text>
-            {description && (
-              <Text as="div" size={bodySize(size)} mt="2">
-                {description}
+          <Flex gap="2">
+            <Box>
+              <Heading size={headerSize(size)} as="h3">
+                {name}
+              </Heading>
+              <Text as="div" size={bodySize(size)} color="gray">
+                @{username}
               </Text>
-            )}
-          </Box>
+            </Box>
+            {role && <RoleBadge role={role} />}
+          </Flex>
         </Flex>
+        {description && (
+          <Text as="div" size={bodySize(size)} mt="2">
+            {description}
+          </Text>
+        )}
       </HoverCard.Content>
     </HoverCard.Root>
   );

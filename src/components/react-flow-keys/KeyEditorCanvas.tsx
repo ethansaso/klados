@@ -20,6 +20,7 @@ export function KeyEditorCanvas() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
+        minZoom={0.2}
         proOptions={{ hideAttribution: true }}
       >
         <LogoBackground />

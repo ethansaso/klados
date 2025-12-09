@@ -1,65 +1,80 @@
+import { useViewport } from "@xyflow/react"; // or "reactflow" v11
 import { memo } from "react";
-import Logo from "/logos/LogoBlack.svg";
 
 const LogoBackground = ({ backgroundColor }: { backgroundColor?: string }) => {
+  const { x, y, zoom } = useViewport();
   const sizeMult = 0.5;
+
+  const baseTileWidth = 160 * sizeMult;
+  const baseTileHeight = 150 * sizeMult;
+
+  const z = zoom || 1;
+
+  // Tile size in *screen* space
+  const tileWidth = baseTileWidth * z;
+  const tileHeight = baseTileHeight * z;
+
+  // Logo sizes / positions inside one tile, scaled with zoom
+  const logoSize = 50 * sizeMult * z;
+  const logoOffsetX = 85 * sizeMult * z;
+  const logoOffsetY = 75 * sizeMult * z;
 
   return (
     <svg
+      className="react-flow__background"
       style={{
         position: "absolute",
-        top: 0,
-        left: 0,
+        inset: 0,
         width: "100%",
         height: "100%",
-        zIndex: 0, // Ensure it's behind the nodes
-        backgroundColor: backgroundColor,
+        zIndex: 0,
+        backgroundColor,
+        pointerEvents: "none",
       }}
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        {/* Define a filter to turn the image gray */}
-        <filter id="gray-filter">
-          <feColorMatrix
-            type="matrix"
-            values="0 0 0 0 0.87
-                    0 0 0 0 0.87
-                    0 0 0 0 0.87
-                    0 0 0 0.5 0"
+        <symbol id="logo-symbol" viewBox="0 0 1080 1080">
+          <path
+            d="M226.7 110.4c-23.6 4.2-43.2 14.3-59.2 30.3-56.4 56.8-33 152.2 43.5 177.1 10.3 3.3 18.6 4.5 32 4.6 19.8.1 38-4.8 54-14.4l8-4.8 4.9 6.7c9.5 12.9 19.1 28.5 26.9 44 11.8 23.3 11.3 20.9 5.7 28.3-2.6 3.5-6.4 9.3-8.3 12.9l-3.6 6.6-23.1 11.6c-32.1 16.1-47.5 25.6-68.9 42.5l-5.4 4.3-7.3-5.6c-11.5-8.9-28-16.2-44.4-19.6-3.3-.7-12.3-1.3-20-1.3-11.8 0-15.7.4-24.8 2.7-53 13.2-88 64.1-80.6 117.3 6.3 45.8 40.9 82.3 85.9 90.8 11.4 2.2 30.2 2 41.5-.3 42.1-8.7 75-42 83.6-84.6 1.4-7 1.7-26.3.6-35.1l-.8-6.2 10.3-8.7c13-11 30.6-22.7 45.8-30.5 6.5-3.3 12.3-6 12.8-6s2.2 1.9 3.7 4.2c9.7 14.6 27.9 27.4 45.3 31.9 21.3 5.4 43.2 2.2 61.7-9 3.8-2.3 7.1-3.8 7.4-3.3 6.9 9.8 16.9 25.6 20.4 32.2 14.9 27.9 26.4 69.1 32.3 116 2.1 17.3 3 75 1.5 100.7-4 66.4-10.1 94-29.2 132.3-20.8 41.6-36 56.3-70.7 68.4-26.2 9.1-55.3 14.1-97.2 16.6-35.5 2.2-49.5 5.9-61.8 16.5-10 8.7-12.3 18.8-6.7 30 5.6 11.2 14.1 17.4 26.6 19.4 3.5.6 25.5 1.6 48.9 2.2 34 .9 60.4.9 132.2-.3 79.1-1.3 100.5-1.3 179.5 0 71.9 1.2 98.3 1.2 132.3.3 45.1-1.2 52.4-1.9 59.8-5.4 9.1-4.2 17.8-16.2 18.9-26 1.3-11-10.7-24.6-26.7-30.2-7.7-2.7-25.9-5.4-44.5-6.5-42.7-2.6-71.4-7.5-97.7-16.6-34.6-12-49.9-26.6-70.2-66.3-20.1-39.6-26.9-70.5-30.6-139.6-3.1-59.2.3-102.8 12-151 8.3-34.4 20.8-62.8 38.3-87.1l5.1-7.2 4.1 2.8c13.5 9.3 27.7 13.5 45 13.4 19.4-.2 34.7-5.5 49.5-17.3 6.1-4.9 15-14.8 17.9-19.9.9-1.5 2.2-1.1 13.4 4.5 15.5 7.9 33.2 19.5 46.5 30.8l10.2 8.7-.7 6.7c-1.5 12.3-.7 28.9 1.7 39.1 14.2 59.9 74.9 95.4 133.8 78.4 17.4-5.1 32.5-14 45.5-27.1 42-42 41.9-109.1 0-150.8-38-37.7-97.3-41.7-140-9.4l-6.5 5-5.4-4.3c-21.4-16.9-36.8-26.4-69-42.6l-23.2-11.6-3-6.1c-1.6-3.4-5.3-9.1-8.2-12.9-6.1-8-6.6-5.4 5.2-28.7 7.8-15.5 17.4-31.1 27-44.1l4.9-6.7 6.3 4c34.4 21.6 80.4 20.6 115-2.5 42.9-28.6 59.3-85.6 38.1-132.2-24.7-54.1-88.1-77.9-142.2-53.4-16.6 7.6-33.6 22.1-44.2 38-19.4 29-23.3 67.1-10 99.2l2.8 6.9-6.8 9.2c-14 18.8-24.8 38-36.1 63.7l-7.2 16.5h-14.7c-16.9 0-23.1 1.3-35.8 7.5-19.5 9.6-33.9 25.9-40.7 46-3.7 11.2-5.1 23.8-3.8 34.1l1.1 8.4-4 5c-26.6 33.6-36.5 47.7-46.1 65.6-3.4 6.5-6.5 11.9-6.8 11.9-.3 0-3.4-5.4-6.8-11.9-9.6-17.9-19.1-31.5-46.1-65.6-3.8-4.8-3.9-5.2-3.1-9.5 2.7-13.7-.3-33.3-7.4-47.5-10.1-20.4-27.1-34.6-49.6-41.7-6.5-2-9.6-2.3-22.6-2.3h-15.2L382 336c-11.3-25.7-22.1-44.9-36.1-63.7l-6.8-9.2 2.6-6.3c11.1-26.9 10.7-58.4-1.2-84.4-14.5-31.7-44.5-55.3-78-61.4-10-1.8-27.3-2.1-35.8-.6z"
+            fill="#f8f8f8"
           />
-        </filter>
+        </symbol>
+
+        <pattern
+          id="logo-bg-pattern"
+          patternUnits="userSpaceOnUse"
+          x={x % tileWidth}
+          y={y % tileHeight}
+          width={tileWidth}
+          height={tileHeight}
+        >
+          <g>
+            <use
+              href="#logo-symbol"
+              x={0}
+              y={0}
+              width={logoSize}
+              height={logoSize}
+            />
+            <use
+              href="#logo-symbol"
+              x={logoOffsetX}
+              y={logoOffsetY}
+              width={logoSize}
+              height={logoSize}
+            />
+          </g>
+        </pattern>
       </defs>
 
-      <pattern
-        id="bg-pattern"
-        patternUnits="userSpaceOnUse"
-        width={160 * sizeMult} // Increase the width to provide more space for the image
-        height={150 * sizeMult} // Increase the height to provide more space for the image
-      >
-        <g>
-          {/* First row of images */}
-          <image
-            href={Logo}
-            x="0"
-            y="0"
-            width={50 * sizeMult} // Adjust width to fit within the pattern size
-            height={50 * sizeMult} // Adjust height to fit within the pattern size
-            filter="url(#gray-filter)"
-          />
-
-          {/* Second row of images, offset by 150px to the right and 150px down */}
-          <image
-            href={Logo}
-            x={85 * sizeMult} // Adjust the horizontal offset
-            y={75 * sizeMult} // Adjust the vertical offset
-            width={50 * sizeMult}
-            height={50 * sizeMult}
-            filter="url(#gray-filter)"
-          />
-        </g>
-      </pattern>
-
-      <rect x="0" y="0" width="100%" height="100%" fill="url(#bg-pattern)" />
+      <rect
+        x="0"
+        y="0"
+        width="100%"
+        height="100%"
+        fill="url(#logo-bg-pattern)"
+      />
     </svg>
   );
 };
