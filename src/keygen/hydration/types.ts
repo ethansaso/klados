@@ -1,4 +1,5 @@
 import { Trait } from "../../lib/domain/character-states/types";
+import { MediaItem } from "../../lib/domain/taxa/validation";
 import {
   KeyCharRationale,
   KeyDiffNode,
@@ -6,20 +7,17 @@ import {
   KeyTaxonNode,
 } from "../key-building/types";
 
-export type FrontendTaxonNode = Omit<KeyTaxonNode, "branches"> & {
+export type HydratedTaxonNode = Omit<KeyTaxonNode, "branches"> & {
   sciName: string;
   commonName?: string;
-  imgUrl?: string;
-  branches: FrontendKeyBranch[];
+  primaryMedia?: MediaItem;
 };
 
-export type FrontendDiffNode = Omit<KeyDiffNode, "branches"> & {
-  branches: FrontendKeyBranch[];
-};
+export type HydratedDiffNode = Omit<KeyDiffNode, "branches"> & {};
 
-export type FrontendKeyNode = FrontendTaxonNode | FrontendDiffNode;
+export type HydratedKeyNode = HydratedTaxonNode | HydratedDiffNode;
 
-export type FrontendCharRationale = Omit<KeyCharRationale, "characters"> & {
+export type HydratedCharRationale = Omit<KeyCharRationale, "characters"> & {
   characters: Record<
     number,
     {
@@ -30,7 +28,7 @@ export type FrontendCharRationale = Omit<KeyCharRationale, "characters"> & {
   >;
 };
 
-export type FrontendPAGroupRationale = Omit<KeyPAGroupRationale, "groups"> & {
+export type HydratedPAGroupRationale = Omit<KeyPAGroupRationale, "groups"> & {
   groups: Record<
     number,
     {
@@ -41,13 +39,20 @@ export type FrontendPAGroupRationale = Omit<KeyPAGroupRationale, "groups"> & {
   >;
 };
 
-export type FrontendBranchRationale =
-  | FrontendCharRationale
-  | FrontendPAGroupRationale
+export type HydratedBranchRationale =
+  | HydratedCharRationale
+  | HydratedPAGroupRationale
   | null;
 
-export type FrontendKeyBranch = {
+export type HydratedKeyBranch = {
   id: string;
-  rationale: FrontendBranchRationale;
-  child: FrontendKeyNode;
+  sourceId: string;
+  targetId: string;
+  rationale: HydratedBranchRationale;
+};
+
+export type HydratedKeyGraphDTO = {
+  rootNodeId: string;
+  nodes: HydratedKeyNode[];
+  branches: HydratedKeyBranch[];
 };

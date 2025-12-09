@@ -16,10 +16,11 @@ export const generateKeyFn = createServerFn({
 })
   .inputValidator(KeygenInputSchema)
   .handler(async ({ data }): Promise<KeyGenerationResult> => {
-    // Initial keygen
+    // Initial keygen (still produces a *tree* of KeyNode / KeyTaxonNode)
     const { rootNode } = await generateKeyForTaxon(data.taxonId, data.options);
-    // Hydrate with names, traits, groups, etc.
-    const hydratedRoot = await hydrateKeyFromRoot(rootNode);
 
-    return { rootNode: hydratedRoot };
+    // Hydrate + convert to adjacency-list graph DTO
+    const graph = await hydrateKeyFromRoot(rootNode);
+
+    return { graph };
   });

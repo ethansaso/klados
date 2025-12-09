@@ -253,17 +253,16 @@ function enforceBranchLimit(
 ): { groups: SharedTraitGroup[]; notTaxa: Set<HierarchyTaxonNode> } {
   const hasNotTaxaInitially = notTaxa.size > 0;
 
-  // If we're already within the allowed branch count, do nothing.
+  // If we're already within the allowed *total* branch count, do nothing.
   if (groups.length + (hasNotTaxaInitially ? 1 : 0) <= maxBranches) {
     return { groups, notTaxa };
   }
 
-  // Too many positive groups: keep the largest, send the rest to inverted.
+  // We are going to need an inverted bucket after trimming.
+  // Reserve 1 slot for it and only keep (maxBranches - 1) positive groups.
   groups.sort((a, b) => b.taxa.length - a.taxa.length);
 
-  // If we already have an inverted bucket, reserve 1 slot for it.
-  const allowedPositive = hasNotTaxaInitially ? maxBranches - 1 : maxBranches;
-
+  const allowedPositive = maxBranches - 1; // maxBranches >= 2 guaranteed upstream
   const kept = groups.slice(0, allowedPositive);
   const trimmed = groups.slice(allowedPositive);
 

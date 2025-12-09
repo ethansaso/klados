@@ -8,12 +8,18 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
+import { MEDIA_LICENSES } from "../../../../../../db/utils/mediaLicense";
 import { MediaItem } from "../../../../../../lib/domain/taxa/validation";
 
 type Props = {
   inatId: number;
   onConfirm: (media: MediaItem[]) => void;
 };
+
+// copilot: make a subset of the type of MEDIA_LICENSES w/o 'all-rights-reserved'
+const ALLOWED_LICENSES = MEDIA_LICENSES.filter(
+  (license) => license !== "all-rights-reserved"
+);
 
 export const InatPhotoSelectModal = NiceModal.create<Props>(
   ({ inatId, onConfirm }) => {
@@ -45,7 +51,9 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
             // first 9 photos
             const taxonPhotos: any[] =
               first.taxon_photos
-                ?.filter((tp) => tp.photo.license_code) // filter out all rights reserved
+                ?.filter((tp) =>
+                  ALLOWED_LICENSES.includes(tp.photo.license_code)
+                ) // filter out all rights reserved
                 .slice(0, 9) ?? [];
             setAllMedia(
               taxonPhotos.map(

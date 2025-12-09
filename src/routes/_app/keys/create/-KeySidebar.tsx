@@ -1,10 +1,18 @@
-import { Box, Button, Card, Flex, Heading } from "@radix-ui/themes";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Box,
+  Button,
+  Card,
+  Flex,
+  Heading,
+  Select,
+  TextField,
+} from "@radix-ui/themes";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
-import { useShallow } from "zustand/react/shallow";
+import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
 import { ComboboxOption } from "../../../../components/inputs/combobox/types";
 import {
@@ -12,41 +20,37 @@ import {
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
 import { useKeyEditorStore } from "../../../../components/react-flow-keys/data/useKeyEditorStore";
+import {
+  KeyGenerationInput,
+  KeyGenerationInputSchema,
+} from "../../../../keygen/ioTypes";
 import { generateKeyFn } from "../../../../lib/api/keys/generateKey";
-import { saveKeyFn } from "../../../../lib/api/keys/saveKey";
 import { taxaQueryOptions } from "../../../../lib/queries/taxa";
+import { capitalizeFirstLetter } from "../../../../lib/utils/casing";
 import { toast } from "../../../../lib/utils/toast";
-
-interface KeyGeneratorInput {
-  taxonId: number;
-}
 
 export const KeySidebar = () => {
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<KeyGeneratorInput>();
+  } = useForm({
+    resolver: zodResolver(KeyGenerationInputSchema),
+    defaultValues: {
+      options: {
+        keyShape: "balanced",
+        maxBranches: 5,
+      },
+    },
+  });
   const [taxonQ, setTaxonQ] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const serverGenerateKeyFn = useServerFn(generateKeyFn);
-  const serverSaveKeyFn = useServerFn(saveKeyFn);
 
   // editor store hooks
   const initFromGeneratedKey = useKeyEditorStore((s) => s.initFromGeneratedKey);
   const updateMeta = useKeyEditorStore((s) => s.updateMeta);
-  const markSaved = useKeyEditorStore((s) => s.markSaved);
-  // grab meta
-  const { keyId, rootNode, name, description, dirty } = useKeyEditorStore(
-    useShallow((s) => ({
-      keyId: s.keyId,
-      rootNode: s.rootNode,
-      name: s.name,
-      description: s.description,
-      dirty: s.dirty,
-    }))
-  );
 
   const { data: taxaResp } = useQuery(
     taxaQueryOptions(1, 10, { q: taxonQ, status: "active" })
@@ -68,22 +72,22 @@ export const KeySidebar = () => {
     return taxaOptions.find((o) => o.id === Number(taxonIdVal)) ?? null;
   }, [taxonIdVal, taxaOptions]);
 
-  const handleGenerateKey = async () => {
+  const handleGenerateKey: SubmitHandler<KeyGenerationInput> = async (data) => {
     if (!taxonIdVal) return;
 
     setIsSubmitting(true);
 
     try {
       const result = await serverGenerateKeyFn({
-        data: { taxonId: taxonIdVal, options: {} },
+        data,
       });
 
-      if (!result?.rootNode) {
-        throw new Error("No rootNode returned from keygen");
+      if (!result || !result.graph) {
+        throw new Error("No graph returned from keygen");
       }
 
-      // 1) initialize the editor store with the generated tree
-      initFromGeneratedKey({ rootNode: result.rootNode });
+      // 1) initialize the editor store with the generated graph
+      initFromGeneratedKey({ graph: result.graph });
 
       // 2) set default metadata for new keys
       updateMeta({ name: "Untitled", description: "" });
@@ -99,45 +103,6 @@ export const KeySidebar = () => {
     }
   };
 
-  const { mutate: saveKey, isPending: isSaving } = useMutation({
-    mutationFn: async () => {
-      if (!rootNode) {
-        throw new Error("No key to save. Generate a key first.");
-      }
-
-      const payload = {
-        id: keyId ?? undefined,
-        rootTaxonId: rootNode.id,
-        name: name || "Untitled",
-        description: description ?? "",
-        rootNode,
-      };
-
-      return serverSaveKeyFn({ data: payload });
-    },
-    onSuccess: (res) => {
-      if (res?.id != null) {
-        markSaved(res.id);
-      } else {
-        markSaved();
-      }
-      toast({
-        variant: "success",
-        description: "Key saved.",
-      });
-    },
-    onError: (err) => {
-      console.error("Key save failed:", err);
-      toast({
-        variant: "error",
-        description:
-          err?.message ?? "Something went wrong while saving the key.",
-      });
-    },
-  });
-
-  const canSave = !!rootNode && dirty && !isSaving;
-
   return (
     <Card asChild>
       <aside className="key-sidebar">
@@ -150,7 +115,7 @@ export const KeySidebar = () => {
               Key Editor
             </Heading>
 
-            <Box>
+            <Box mb="3">
               <Flex justify="between" align="baseline" mb="1">
                 <Label.Root htmlFor="taxon-id">Root Taxon</Label.Root>
                 <ConditionalAlert
@@ -191,6 +156,63 @@ export const KeySidebar = () => {
                 )}
               />
             </Box>
+
+            <Box mb="3">
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="options.keyShape">Key Shape</Label.Root>
+                <ConditionalAlert
+                  id="options.keyShape-error"
+                  message={errors.options?.keyShape?.message}
+                />
+              </Flex>
+              <Controller
+                name="options.keyShape"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <Select.Root
+                    value={value}
+                    onValueChange={(v) => onChange(v as typeof value)}
+                  >
+                    <Select.Trigger id="options.keyShape">
+                      {capitalizeFirstLetter(value!)}
+                    </Select.Trigger>
+                    <Select.Content>
+                      <Select.Item value="balanced">Balanced</Select.Item>
+                      <Select.Item value="lopsided">Lopsided</Select.Item>
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              />
+            </Box>
+            <Box mb="3">
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="options.maxBranches">
+                  Maximum Branches
+                </Label.Root>
+                <ConditionalAlert
+                  id="options.maxBranches-error"
+                  message={errors.options?.maxBranches?.message}
+                />
+              </Flex>
+              <Controller
+                name="options.maxBranches"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <TextField.Root
+                    id="options.maxBranches"
+                    type="number"
+                    value={value}
+                    onChange={onChange}
+                    min={2}
+                    max={10}
+                    {...a11yProps(
+                      "options.maxBranches-error",
+                      !!errors.options?.maxBranches
+                    )}
+                  />
+                )}
+              />
+            </Box>
           </section>
           <Flex asChild justify="between">
             <section>
@@ -200,14 +222,6 @@ export const KeySidebar = () => {
                 loading={isSubmitting}
               >
                 Generate Key
-              </Button>
-              <Button
-                type="button"
-                disabled={!canSave}
-                loading={isSaving}
-                onClick={() => saveKey()}
-              >
-                Save Key
               </Button>
             </section>
           </Flex>

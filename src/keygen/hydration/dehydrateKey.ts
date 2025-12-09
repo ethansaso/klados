@@ -8,14 +8,14 @@ import {
   KeyTaxonNode,
 } from "../key-building/types";
 import {
-  FrontendBranchRationale,
-  FrontendKeyBranch,
-  FrontendKeyNode,
-  FrontendTaxonNode,
+  HydratedBranchRationale,
+  HydratedKeyBranch,
+  HydratedKeyGraphDTO,
+  HydratedKeyNode,
 } from "./types";
 
 function dehydrateBranchRationale(
-  rationale: FrontendBranchRationale
+  rationale: HydratedBranchRationale
 ): KeyBranchRationale {
   if (!rationale) return null;
 
@@ -31,7 +31,11 @@ function dehydrateBranchRationale(
         };
       }
 
-      return { kind: "character-definition", characters };
+      return {
+        kind: "character-definition",
+        characters,
+        annotation: rationale.annotation,
+      };
     }
 
     case "group-present-absent": {
@@ -45,7 +49,11 @@ function dehydrateBranchRationale(
         };
       }
 
-      return { kind: "group-present-absent", groups };
+      return {
+        kind: "group-present-absent",
+        groups,
+        annotation: rationale.annotation,
+      };
     }
 
     default:
@@ -53,41 +61,53 @@ function dehydrateBranchRationale(
   }
 }
 
-function dehydrateBranch(branch: FrontendKeyBranch): KeyBranch {
-  return {
-    id: branch.id,
-    rationale: dehydrateBranchRationale(branch.rationale),
-    child: dehydrateNode(branch.child),
-  };
-}
+export function dehydrateKeyGraph(dto: HydratedKeyGraphDTO): KeyTaxonNode {
+  const nodesById = new Map<string, HydratedKeyNode>(
+    dto.nodes.map((n) => [n.id, n])
+  );
 
-function dehydrateNode(node: FrontendKeyNode): KeyNode {
-  switch (node.kind) {
-    case "taxon": {
+  const branchesBySource = new Map<string, HydratedKeyBranch[]>();
+  for (const br of dto.branches) {
+    const arr = branchesBySource.get(br.sourceId) ?? [];
+    arr.push(br);
+    branchesBySource.set(br.sourceId, arr);
+  }
+
+  function buildNode(id: string): KeyNode {
+    const node = nodesById.get(id);
+    if (!node) {
+      throw new Error(`Missing hydrated node with id ${id} in graph`);
+    }
+
+    const outgoing = branchesBySource.get(id) ?? [];
+
+    const branches: KeyBranch[] = outgoing.map((br) => ({
+      id: br.id,
+      rationale: dehydrateBranchRationale(br.rationale),
+      child: buildNode(br.targetId),
+    }));
+
+    if (node.kind === "taxon") {
       const taxonNode: KeyTaxonNode = {
         kind: "taxon",
         id: node.id,
-        branches: node.branches.map(dehydrateBranch),
+        branches,
       };
       return taxonNode;
     }
-    case "diff": {
-      const diffNode: KeyDiffNode = {
-        kind: "diff",
-        id: node.id,
-        branches: node.branches.map(dehydrateBranch),
-      };
-      return diffNode;
-    }
-    default:
-      throw new Error(`Unknown node kind`);
-  }
-}
 
-export function dehydrateFrontendKey(root: FrontendTaxonNode): KeyTaxonNode {
-  const raw = dehydrateNode(root);
-  if (raw.kind !== "taxon") {
+    const diffNode: KeyDiffNode = {
+      kind: "diff",
+      id: node.id,
+      branches,
+    };
+    return diffNode;
+  }
+
+  const root = buildNode(dto.rootNodeId);
+  if (root.kind !== "taxon") {
     throw new Error("Root of key must be a taxon node");
   }
-  return raw;
+
+  return root;
 }

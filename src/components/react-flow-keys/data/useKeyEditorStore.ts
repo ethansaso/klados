@@ -5,20 +5,24 @@ import {
   type NodeChange,
 } from "@xyflow/react";
 import { create } from "zustand";
-import type { FrontendTaxonNode } from "../../../keygen/hydration/types";
+import type { HydratedKeyGraphDTO } from "../../../keygen/hydration/types";
 import { RFEdge, RFNode } from "../components/types";
-import { buildReactFlowFromKeyTree } from "./buildReactFlow";
+import {
+  computeKeyTreeLayout,
+  layoutKeyTree,
+} from "../layout/computeKeyTreeLayout";
+import { buildReactFlowFromGraph } from "../rf-adapters/buildReactFlow";
 
 type KeyEditorState = {
-  // tree-level state
-  rootNode: FrontendTaxonNode | null;
+  // Minimal structural metadata
+  rootNodeId: string | null;
 
   // metadata state
   keyId: number | null;
   name: string;
   description: string;
 
-  // react-flow state
+  // react-flow state (canonical in the editor)
   nodes: RFNode[];
   edges: RFEdge[];
   dirty: boolean;
@@ -30,27 +34,35 @@ type KeyEditorState = {
 
   /**
    * Load an existing, saved key (from getKeyFn).
-   * Sets metadata, rebuilds RF graph from scratch, and marks dirty = false.
+   * Builds RF graph from the persisted graph DTO and marks dirty = false.
    */
   loadSavedKey: (payload: {
     id: number;
     name: string;
     description: string;
-    rootNode: FrontendTaxonNode;
+    graph: HydratedKeyGraphDTO;
   }) => void;
 
   /**
-   * Initialize a brand-new key from a generated tree (from generateKeyFn).
-   * Resets keyId, rebuilds RF graph from scratch, and marks dirty = true.
+   * Initialize a brand-new key from a generated graph (from generateKeyFn).
+   * Builds RF graph from DTO and marks dirty = true.
    */
-  initFromGeneratedKey: (payload: { rootNode: FrontendTaxonNode }) => void;
+  initFromGeneratedKey: (payload: { graph: HydratedKeyGraphDTO }) => void;
 
   /**
-   * Applies a tree-level update to the hydrated tree, rebuilds RF graph, and marks dirty = true.
+   * Delete branches by branchId (used for both UI and RF-driven deletions).
    */
-  applyTreeUpdate: (
-    updater: (root: FrontendTaxonNode) => FrontendTaxonNode
-  ) => void;
+  deleteBranches: (branchIds: string[]) => void;
+
+  /**
+   * Update the annotation for a given branch ID (edge data only).
+   */
+  updateBranchAnnotation: (branchId: string, annotation: string | null) => void;
+
+  /**
+   * Recompute node positions from the current RF graph using tree layout.
+   */
+  autoLayout: () => void;
 
   /**
    * Marks the current state as saved (dirty = false).
@@ -68,8 +80,7 @@ type KeyEditorState = {
 };
 
 export const useKeyEditorStore = create<KeyEditorState>((set, get) => ({
-  // initial state
-  rootNode: null,
+  rootNodeId: null,
 
   keyId: null,
   name: "",
@@ -86,54 +97,98 @@ export const useKeyEditorStore = create<KeyEditorState>((set, get) => ({
       dirty: true,
     })),
 
-  loadSavedKey: ({ id, name, description, rootNode }) => {
-    const { nodes, edges } = buildReactFlowFromKeyTree(rootNode, [], []);
+  loadSavedKey: ({ id, name, description, graph }) => {
+    const { nodes, edges, rootRfId } = buildReactFlowFromGraph(graph);
+    const laidOutNodes = layoutKeyTree(nodes, edges);
 
     set({
       keyId: id,
       name,
       description,
-      rootNode,
-      nodes,
+      rootNodeId: rootRfId,
+      nodes: laidOutNodes,
       edges,
       dirty: false,
     });
   },
 
-  initFromGeneratedKey: ({ rootNode }) => {
-    // New document from generator: reset meta & layout
-    const { nodes, edges } = buildReactFlowFromKeyTree(rootNode, [], []);
+  initFromGeneratedKey: ({ graph }) => {
+    const { nodes, edges, rootRfId } = buildReactFlowFromGraph(graph);
+    const laidOutNodes = layoutKeyTree(nodes, edges);
 
     set({
       keyId: null,
       name: "",
       description: "",
-      rootNode,
-      nodes,
+      rootNodeId: rootRfId,
+      nodes: laidOutNodes,
       edges,
       dirty: true,
     });
   },
 
-  applyTreeUpdate: (updater) => {
-    const { rootNode, nodes: prevNodes, edges: prevEdges } = get();
-    if (!rootNode) return;
+  deleteBranches: (branchIds) => {
+    if (!branchIds.length) return;
 
-    const newRoot = updater(rootNode);
+    const toDelete = new Set(branchIds);
 
-    // Same document: reuse layout where possible
-    const { nodes, edges } = buildReactFlowFromKeyTree(
-      newRoot,
-      prevNodes,
-      prevEdges
-    );
+    set((state) => {
+      const nextEdges = state.edges.filter((edge) => {
+        const edgeBranchId = edge.data?.branchId;
+        if (!edgeBranchId) return true;
+        return !toDelete.has(edgeBranchId);
+      });
 
-    set({
-      rootNode: newRoot,
-      nodes,
-      edges,
-      dirty: true,
+      return {
+        ...state,
+        edges: nextEdges,
+        dirty: true,
+      };
     });
+  },
+
+  updateBranchAnnotation: (branchId, annotation) =>
+    set((state) => {
+      const nextEdges = state.edges.map((edge) => {
+        if (edge.data?.branchId !== branchId || !edge.data?.rationale) {
+          return edge;
+        }
+
+        return {
+          ...edge,
+          data: {
+            ...edge.data,
+            rationale: {
+              ...edge.data.rationale,
+              annotation,
+            },
+          },
+        };
+      }) as RFEdge[];
+
+      return {
+        ...state,
+        edges: nextEdges,
+        dirty: true,
+      };
+    }),
+
+  autoLayout: () => {
+    const { nodes, edges, rootNodeId } = get();
+    if (!nodes.length || !rootNodeId) return;
+
+    const layoutPositions = computeKeyTreeLayout(nodes, edges);
+
+    const nextNodes = nodes.map((node) => {
+      const pos = layoutPositions.get(node.id);
+      if (!pos) return node;
+      return {
+        ...node,
+        position: pos,
+      };
+    });
+
+    set({ nodes: nextNodes });
   },
 
   markSaved: (id) =>
@@ -144,7 +199,7 @@ export const useKeyEditorStore = create<KeyEditorState>((set, get) => ({
 
   reset: () =>
     set({
-      rootNode: null,
+      rootNodeId: null,
       keyId: null,
       name: "",
       description: "",
@@ -153,15 +208,17 @@ export const useKeyEditorStore = create<KeyEditorState>((set, get) => ({
       dirty: false,
     }),
 
+  // TODO: dirtiness logic could be improved to track actual changes
   onNodesChange: (changes) => {
     set({
       nodes: applyNodeChanges<RFNode>(changes, get().nodes),
+      dirty: true,
     });
   },
-
   onEdgesChange: (changes) => {
     set({
       edges: applyEdgeChanges<RFEdge>(changes, get().edges),
+      dirty: true,
     });
   },
 }));

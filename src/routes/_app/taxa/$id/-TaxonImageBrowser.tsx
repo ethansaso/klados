@@ -13,12 +13,7 @@ export const TaxonImageBrowser = ({ media }: { media: MediaItem[] }) => {
 
   return (
     <Box className="taxon-image-browser">
-      <AnnotationBubbleWrap
-        ownerName={displayedMediaItem?.owner}
-        license={displayedMediaItem?.license}
-        source={displayedMediaItem?.source}
-        spacing="2"
-      >
+      <AnnotationBubbleWrap media={displayedMediaItem} spacing="2">
         <img
           src={displayedMediaItem?.url ?? "/logos/LogoDotted.svg"}
           style={{

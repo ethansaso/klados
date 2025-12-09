@@ -21,5 +21,19 @@
 }
 
 .diff-node {
-  background: green;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2rem;
+  width: 2rem;
+  background: var(--gray-2);
+  border-radius: 50%;
+  border: 1px dashed var(--gray-7);
+  text-align: center;
+  contain: none;
+
+  .rt-Text {
+    transform: rotate(-90deg);
+    line-height: 0;
+  }
 }

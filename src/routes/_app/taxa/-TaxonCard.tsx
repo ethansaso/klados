@@ -8,12 +8,7 @@ import { capitalizeFirstLetter } from "../../../lib/utils/casing";
 export const TaxonCard = ({ taxon }: { taxon: TaxonDTO }) => {
   const primaryMedia = taxon.media[0];
   return (
-    <AnnotationBubbleWrap
-      ownerName={primaryMedia?.owner}
-      license={primaryMedia?.license}
-      source={primaryMedia?.source}
-      spacing="4"
-    >
+    <AnnotationBubbleWrap media={primaryMedia} spacing="4">
       <Card className="taxon-card" asChild>
         <Link to="/taxa/$id" params={{ id: String(taxon.id) }}>
           <img

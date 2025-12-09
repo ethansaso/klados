@@ -1,6 +1,6 @@
 export type KeyTaxonNode = {
   kind: "taxon";
-  id: number;
+  id: string;
   branches: KeyBranch[];
 };
 
@@ -12,7 +12,11 @@ export type KeyDiffNode = {
 
 export type KeyNode = KeyTaxonNode | KeyDiffNode;
 
-export type KeyCharRationale = {
+type BaseKeyRationale = {
+  annotation: string | null;
+};
+
+export type KeyCharRationale = BaseKeyRationale & {
   kind: "character-definition";
   /** Mapping of character IDs to their traits and inversion status */
   characters: Record<
@@ -24,7 +28,7 @@ export type KeyCharRationale = {
   >;
 };
 
-export type KeyPAGroupRationale = {
+export type KeyPAGroupRationale = BaseKeyRationale & {
   kind: "group-present-absent";
   /** Mapping of group IDs to their presence or absence status */
   groups: Record<
@@ -35,6 +39,8 @@ export type KeyPAGroupRationale = {
     }
   >;
 };
+
+export type KeyCustomRationale = BaseKeyRationale & {};
 
 export type KeyBranchRationale = KeyCharRationale | KeyPAGroupRationale | null;
 

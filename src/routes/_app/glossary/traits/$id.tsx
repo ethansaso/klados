@@ -101,6 +101,10 @@ function RouteComponent() {
       qc.invalidateQueries({
         queryKey: traitSetValuesQueryOptions(id).queryKey,
       });
+      qc.invalidateQueries({
+        queryKey: traitSetValuesPaginatedQueryOptions(id, valuePage, PAGE_SIZE)
+          .queryKey,
+      });
     } catch (error) {
       console.error("Error creating trait value:", error);
     }

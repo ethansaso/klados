@@ -27,6 +27,7 @@ import type {
   LeanTaxonDTO,
   TaxonDetailDTO,
   TaxonDTO,
+  TaxonHierarchyDTO,
   TaxonPaginatedResult,
   TaxonRow,
 } from "./types";
@@ -96,6 +97,67 @@ export async function selectTaxonDtosByIds(
     .orderBy(asc(taxaTbl.id));
 
   return dtos;
+}
+
+/**
+ * Get hierarchy meta (name, rank, subtaxonIds) for multiple parent taxa.
+ * Primarily useful for key generation during BFS collection phase.
+ */
+export async function getTaxonHierarchyMetaForParents(
+  parentIds: number[]
+): Promise<TaxonHierarchyDTO[]> {
+  if (!parentIds.length) return [];
+
+  // 1) base meta for the parent taxa
+  const parentRows = await db
+    .select({
+      id: taxaTbl.id,
+      rank: taxaTbl.rank,
+      acceptedName: namesTbl.value,
+    })
+    .from(taxaTbl)
+    .innerJoin(
+      namesTbl,
+      and(
+        eq(namesTbl.taxonId, taxaTbl.id),
+        eq(namesTbl.locale, "sci"),
+        eq(namesTbl.isPreferred, true)
+      )
+    )
+    .where(inArray(taxaTbl.id, parentIds))
+    .orderBy(asc(taxaTbl.id));
+
+  // Initialise meta with empty child arrays
+  const metaById = new Map<number, TaxonHierarchyDTO>();
+  for (const row of parentRows) {
+    metaById.set(row.id, {
+      id: row.id,
+      acceptedName: row.acceptedName,
+      rank: row.rank,
+      subtaxonIds: [],
+    });
+  }
+
+  // 2) children for those parents
+  const childRows = await db
+    .select({
+      id: taxaTbl.id,
+      parentId: taxaTbl.parentId,
+    })
+    .from(taxaTbl)
+    .where(
+      and(inArray(taxaTbl.parentId, parentIds), eq(taxaTbl.status, "active"))
+    )
+    .orderBy(asc(taxaTbl.parentId), asc(taxaTbl.id));
+
+  for (const child of childRows) {
+    if (child.parentId == null) continue;
+    const parentMeta = metaById.get(child.parentId);
+    if (!parentMeta) continue;
+    parentMeta.subtaxonIds.push(child.id);
+  }
+
+  return Array.from(metaById.values());
 }
 
 /**
@@ -257,7 +319,8 @@ export async function fetchTaxonDetailById(
   }));
 
   // Assemble final TaxonDetailDTO
-  const { parentId: _omit, ...baseWithoutParent } = base;
+  const { parentId, ...baseWithoutParent } = base;
+  void parentId;
   const detail: TaxonDetailDTO = {
     ...baseWithoutParent,
     ancestors,

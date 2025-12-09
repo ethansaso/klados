@@ -19,12 +19,17 @@ export const KeyGenOptionsSchema = z.object({
    * Balanced will attempt to evenly split taxa at each step.
    * Lopsided will favor splits that isolate small groups of taxa.
    */
-  keyShape: z.enum(["balanced", "narrow", "bushy"]).default("balanced"),
+  keyShape: z.enum(["balanced", "lopsided"]).default("balanced"),
 
   /**
    * Maximum number of branches to allow at any split in the key.
    */
-  maxBranches: z.number().int().min(2).max(10).default(5),
+  maxBranches: z.coerce
+    .number<number>("Must be a number.")
+    .int("Must be an integer.")
+    .min(2, "Must be at least 2.")
+    .max(10, "Cannot be more than 10.")
+    .default(5),
 
   /**
    * Maximum subtaxon depth of the generated key.
@@ -34,15 +39,22 @@ export const KeyGenOptionsSchema = z.object({
   maxDepthFromRoot: z.number().int().min(1).max(10).optional(),
 });
 
+export const KeyGenOptionsInputSchema = z.object({
+  keyShape: KeyGenOptionsSchema.shape.keyShape, // "balanced" | "lopsided"
+  maxBranches: KeyGenOptionsSchema.shape.maxBranches, // 2–10
+});
+
 /**
  * Normalize raw/partial options into a fully-defaulted KeyGenOptions.
  */
 export function normalizeKeyGenOptions(
-  input?: KeyGenOptionsInput
+  input: KeyGenOptionsInput
 ): KeyGenOptions {
-  // if nothing passed, this is equivalent to "all defaults"
-  return KeyGenOptionsSchema.parse(input ?? {});
+  return KeyGenOptionsSchema.parse({
+    ...input,
+    taxonLimit: HARD_MAX_TAXON_LIMIT,
+  });
 }
 
-export type KeyGenOptionsInput = z.input<typeof KeyGenOptionsSchema>;
+export type KeyGenOptionsInput = z.infer<typeof KeyGenOptionsInputSchema>;
 export type KeyGenOptions = z.infer<typeof KeyGenOptionsSchema>;

@@ -3,9 +3,13 @@ import {
   getTaxonCharacterStates,
 } from "../../lib/domain/character-states/service";
 import { TaxonCharacterStateDTO } from "../../lib/domain/character-states/types";
+import { getTaxonHierarchyMetaForParents } from "../../lib/domain/taxa/repo";
 import { getTaxon } from "../../lib/domain/taxa/service";
+import { TaxonHierarchyDTO } from "../../lib/domain/taxa/types";
 import { KeyGenOptions } from "../options";
-import { HierarchyTaxonMeta, HierarchyTaxonNode } from "./types";
+import { HierarchyTaxonNode } from "./types";
+
+type QueueItem = { id: number; depth: number };
 
 /**
  * Fetches a single taxon and its character states to assemble a KGTaxonNode.
@@ -25,7 +29,7 @@ export const fetchAndAssembleTaxonNode = async (
 
   const taxonNode: HierarchyTaxonNode = {
     id: taxonId,
-    name: taxon.acceptedName,
+    acceptedName: taxon.acceptedName,
     rank: taxon.rank,
     states: taxonData,
     subtaxonIds: taxon.subtaxa.map((subtaxon) => subtaxon.id),
@@ -42,57 +46,62 @@ export const fetchAndAssembleTaxonNode = async (
  * BFS will truncate if taxonLimit is reached, stopping further descent
  * and 'retreating' to the lowest rank taxa found so far before returning.
  */
-const discoverTaxonMetaHierarchyBFS = async (
+export const discoverTaxonMetaHierarchyBFS = async (
   rootTaxonId: number,
   options: KeyGenOptions
-): Promise<Map<number, HierarchyTaxonMeta>> => {
+): Promise<Map<number, TaxonHierarchyDTO>> => {
   const { taxonLimit, maxDepthFromRoot } = options;
 
-  const metaById = new Map<number, HierarchyTaxonMeta>();
-
-  // BFS queue holds pairs: (taxonId, depth)
-  const queue: Array<{ id: number; depth: number }> = [
-    { id: rootTaxonId, depth: 0 },
-  ];
+  const metaById = new Map<number, TaxonHierarchyDTO>();
+  const queue: QueueItem[] = [{ id: rootTaxonId, depth: 0 }];
 
   while (queue.length > 0) {
-    const { id, depth } = queue.shift()!;
-
-    // Already processed?
-    if (metaById.has(id)) continue;
-
-    const taxon = await getTaxon({ id });
-    if (!taxon) {
-      console.warn(`Taxon ${id} not found`);
-      continue;
-    }
-
-    // Save metadata
-    const subtaxonIds = taxon.subtaxa.map((st) => st.id);
-
-    metaById.set(id, {
-      id,
-      name: taxon.acceptedName,
-      rank: taxon.rank,
-      subtaxonIds,
-    });
-
-    // Taxon count guard
     if (typeof taxonLimit === "number" && metaById.size >= taxonLimit) {
       console.warn(`Taxon limit ${taxonLimit} reached; truncating traversal.`);
       break;
     }
 
-    // Depth guard: include the node, but don't descend further
-    const nextDepth = depth + 1;
-    if (maxDepthFromRoot !== undefined && nextDepth > maxDepthFromRoot) {
-      continue;
-    }
+    // Take the entire current frontier (queue)
+    const batch = queue.splice(0, queue.length);
+    const ids = batch.map((b) => b.id);
 
-    // Enqueue children
-    for (const child of taxon.subtaxa) {
-      if (!metaById.has(child.id)) {
-        queue.push({ id: child.id, depth: nextDepth });
+    const taxa = await getTaxonHierarchyMetaForParents(ids);
+    const dtoById = new Map(taxa.map((t) => [t.id, t]));
+
+    for (const { id, depth } of batch) {
+      if (metaById.has(id)) continue;
+
+      const taxon = dtoById.get(id);
+      if (!taxon) {
+        console.warn(`Taxon ${id} not found`);
+        continue;
+      }
+
+      const subtaxonIds = taxon.subtaxonIds;
+
+      metaById.set(id, {
+        id,
+        acceptedName: taxon.acceptedName,
+        rank: taxon.rank,
+        subtaxonIds,
+      });
+
+      if (typeof taxonLimit === "number" && metaById.size >= taxonLimit) {
+        console.warn(
+          `Taxon limit ${taxonLimit} reached; truncating traversal.`
+        );
+        break;
+      }
+
+      const nextDepth = depth + 1;
+      if (maxDepthFromRoot !== undefined && nextDepth > maxDepthFromRoot) {
+        continue;
+      }
+
+      for (const subtaxonId of taxon.subtaxonIds) {
+        if (!metaById.has(subtaxonId)) {
+          queue.push({ id: subtaxonId, depth: nextDepth });
+        }
       }
     }
   }
@@ -104,7 +113,7 @@ const discoverTaxonMetaHierarchyBFS = async (
  * Bulk-load character states for all taxa in a discovered tree.
  */
 async function loadStatesForHierarchy(
-  metaById: Map<number, HierarchyTaxonMeta>
+  metaById: Map<number, TaxonHierarchyDTO>
 ): Promise<Record<number, TaxonCharacterStateDTO[]>> {
   const allIds = Array.from(metaById.keys());
   if (allIds.length === 0) {
@@ -117,7 +126,7 @@ async function loadStatesForHierarchy(
  * Combine structure metadata + character states into KGTaxonNodes.
  */
 function assembleHierarchyNodes(
-  metaById: Map<number, HierarchyTaxonMeta>,
+  metaById: Map<number, TaxonHierarchyDTO>,
   statesByTaxonId: Record<number, TaxonCharacterStateDTO[]>
 ): Map<number, HierarchyTaxonNode> {
   const tree = new Map<number, HierarchyTaxonNode>();
@@ -126,7 +135,7 @@ function assembleHierarchyNodes(
     const states = statesByTaxonId[id] ?? [];
     const node: HierarchyTaxonNode = {
       id: meta.id,
-      name: meta.name,
+      acceptedName: meta.acceptedName,
       rank: meta.rank,
       states,
       subtaxonIds: meta.subtaxonIds,

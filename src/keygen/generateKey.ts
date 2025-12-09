@@ -20,7 +20,7 @@ export async function generateKeyForTaxon(
 
   const rootNode: KeyTaxonNode = {
     kind: "taxon",
-    id: taxonId,
+    id: String(taxonId),
     branches: [],
   };
 

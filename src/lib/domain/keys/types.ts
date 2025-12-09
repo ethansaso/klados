@@ -13,7 +13,7 @@ export type KeyDTO = {
   description?: string;
   status: KeyStatus;
   createdAt: Date;
-  lastModified: Date;
+  updatedAt: Date;
 };
 
 export interface KeyPaginatedResult extends PaginatedResult {
