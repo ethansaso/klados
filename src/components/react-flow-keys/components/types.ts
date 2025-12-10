@@ -1,9 +1,9 @@
 import { Node, NodeTypes } from "@xyflow/react";
 import {
-  FrontendBranchRationale,
-  FrontendCharRationale,
-  FrontendKeyNode,
-  FrontendTaxonNode,
+  HydratedBranchRationale,
+  HydratedCharRationale,
+  HydratedKeyNode,
+  HydratedTaxonNode,
 } from "../../../keygen/hydration/types";
 import { AssertedEdge } from "../util/assertedEdge";
 import CharacterBranchEdgeComponent from "./CharacterBranchEdgeComponent";
@@ -13,10 +13,10 @@ import NullBranchEdgeComponent from "./NullBranchEdgeComponent";
 import TaxonNodeComponent from "./TaxonNodeComponent";
 
 export type KeyEditorTaxonNodeData = {
-  keyNode: FrontendTaxonNode;
+  keyNode: HydratedTaxonNode;
 };
 export type KeyEditorDiffNodeData = {
-  keyNode: FrontendKeyNode;
+  keyNode: HydratedKeyNode;
 };
 
 export type RFTaxonNode = Node<KeyEditorTaxonNodeData, "taxonNode">;
@@ -26,10 +26,10 @@ type BaseBranchEdgeData = {
   branchId: string;
 };
 export type KeyEditorCharacterBranchEdgeData = BaseBranchEdgeData & {
-  rationale: FrontendCharRationale;
+  rationale: HydratedCharRationale;
 };
 export type KeyEditorGroupBranchEdgeData = BaseBranchEdgeData & {
-  rationale: FrontendBranchRationale;
+  rationale: HydratedBranchRationale;
 };
 export type KeyEditorNullBranchEdgeData = BaseBranchEdgeData & {
   rationale: null;

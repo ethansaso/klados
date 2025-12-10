@@ -19,18 +19,6 @@ function keyPartition(split: CharacterDefinitionSplitResult): string {
   return branchKeys.join("||");
 }
 
-/** Returns whether an inverted clause exists in any branch. */
-function hasAnyInvertedClause(
-  branches: CharacterDefinitionSplitBranch[]
-): boolean {
-  for (const b of branches) {
-    for (const clause of b.clauses) {
-      if (clause.inverted) return true;
-    }
-  }
-  return false;
-}
-
 /** Merges post-resolution splits' clauses within a single partition and rescores them. */
 function mergeSplitsForPartition(
   splits: CharacterDefinitionSplitResult[],
@@ -72,7 +60,6 @@ function mergeSplitsForPartition(
   }
 
   const mergedBranches = Array.from(mergedByKey.values());
-  const hasInverted = hasAnyInvertedClause(mergedBranches);
   // Rescore after merging
   const score = scoreCharacterSplit(mergedBranches, options);
 

@@ -1,6 +1,7 @@
 import NiceModal, { useModal } from "@ebay/nice-modal-react";
 import { Button, Dialog, Flex } from "@radix-ui/themes";
 import { useLayoutEffect, useState } from "react";
+import z from "zod";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
 import { ExternalResultSummary } from "./ExternalResultSummary";
 
@@ -40,6 +41,18 @@ const INTERNAL_RANK_TO_INAT_MAPPING: Record<
 
 const SUGGEST_LIMIT = 5;
 
+const InatResultSchema = z.object({
+  id: z.number(),
+  rank: z.string(),
+  name: z.string(),
+  preferred_common_name: z.string().optional(),
+  default_photo: z
+    .object({
+      medium_url: z.string().url(),
+    })
+    .optional(),
+});
+
 const InatIdModal = NiceModal.create<Props>(
   ({ taxonName, rank, onConfirm }) => {
     const modal = useModal();
@@ -75,14 +88,35 @@ const InatIdModal = NiceModal.create<Props>(
           if (!res.ok) throw new Error(`Failed: ${res.status}`);
 
           const data = await res.json();
-          const resultsRaw: any[] = data.results ?? [];
+          let resultsRaw: unknown[] = data.results ?? [];
 
           if (!Array.isArray(resultsRaw) || resultsRaw.length === 0) {
-            setError("No matching taxon found.");
-            return;
+            // First, attempt fallback without rank filter
+            if (iNatRank) {
+              url.searchParams.delete("rank");
+              const resFallback = await fetch(url.toString(), {
+                signal: controller.signal,
+              });
+              if (!resFallback.ok)
+                throw new Error(`Failed: ${resFallback.status}`);
+
+              const dataFallback = await resFallback.json();
+              resultsRaw = dataFallback.results ?? [];
+            }
+
+            if (!Array.isArray(resultsRaw) || resultsRaw.length === 0) {
+              setError("No matching taxon found.");
+              return;
+            }
           }
 
-          const results: InatTaxon[] = resultsRaw.map((t) => ({
+          const parsed = z.array(InatResultSchema).safeParse(resultsRaw);
+          if (!parsed.success) {
+            console.error("iNat taxon parse errors:", parsed.error);
+            throw new Error("Failed to parse iNaturalist taxon data.");
+          }
+
+          const results: InatTaxon[] = parsed.data.map((t) => ({
             id: t.id,
             rank: t.rank,
             scientific_name: t.name,

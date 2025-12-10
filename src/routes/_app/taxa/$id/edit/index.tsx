@@ -334,7 +334,7 @@ function RouteComponent() {
                     </Select.Content>
                   </Select.Root>
                 )}
-              ></Controller>
+              />
             </Box>
             {/* Parent ID (TODO) */}
             <Box>

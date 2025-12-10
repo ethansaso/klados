@@ -4,6 +4,7 @@ import {
   HUMAN_CASED_MEDIA_LICENSES,
   MEDIA_LICENSES,
 } from "../db/utils/mediaLicense";
+import { MediaItem } from "../lib/domain/taxa/validation";
 
 const LICENSE_LINKS: Record<(typeof MEDIA_LICENSES)[number], string> = {
   cc0: "https://creativecommons.org/publicdomain/zero/1.0/",
@@ -16,20 +17,19 @@ const LICENSE_LINKS: Record<(typeof MEDIA_LICENSES)[number], string> = {
   "all-rights-reserved": "",
 };
 
-export const AnnotationBubbleWrap = ({
-  ownerName,
-  license,
-  source,
-  spacing = "2",
-  children,
-}: {
-  ownerName?: string;
-  license?: string;
-  source?: string;
+type AnnotationBubbleWrapProps = {
+  media?: MediaItem | null;
   spacing?: "1" | "2" | "3" | "4";
   children: React.ReactNode;
-}) => {
-  if (!ownerName && !license && !source) return children;
+};
+
+export const AnnotationBubbleWrap = ({
+  media,
+  spacing = "2",
+  children,
+}: AnnotationBubbleWrapProps) => {
+  if (!media) return children;
+  const { owner, license, source } = media;
   return (
     <div className={`annotation-bubble__wrapper spacing-${spacing}`}>
       <div className="annotation-bubble">
@@ -37,7 +37,7 @@ export const AnnotationBubbleWrap = ({
           <PiCopyright />
         </div>
         <Text className="annotation-bubble__content" size="1" color="gray">
-          {ownerName && <div className="owner-name">© {ownerName}</div>}
+          {owner && <div className="owner-name">© {owner}</div>}
           {license && (
             <div className="license">
               <Link
@@ -51,7 +51,7 @@ export const AnnotationBubbleWrap = ({
           )}
           {source && (
             <Link
-              className="source"
+              className="img-source"
               href={source}
               target="_blank"
               rel="noopener noreferrer"

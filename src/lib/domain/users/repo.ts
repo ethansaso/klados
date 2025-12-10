@@ -1,6 +1,7 @@
 import { asc, count, eq, inArray, SQL } from "drizzle-orm";
 import { db } from "../../../db/client";
 import { user as userTbl } from "../../../db/schema/schema";
+import { userDtoSelection } from "./sqlAdapters";
 import { UserDTO, UsersPaginatedResult } from "./types";
 
 export type ListUsersParams = {
@@ -19,17 +20,7 @@ export async function listUsersPage(
     ids && ids.length ? inArray(userTbl.id, ids) : undefined;
 
   const items: UserDTO[] = await db
-    .select({
-      id: userTbl.id,
-      username: userTbl.username,
-      displayUsername: userTbl.displayUsername,
-      name: userTbl.name,
-      image: userTbl.image,
-      createdAt: userTbl.createdAt,
-      banned: userTbl.banned,
-      role: userTbl.role,
-      description: userTbl.description,
-    })
+    .select(userDtoSelection)
     .from(userTbl)
     .where(predicate)
     .orderBy(asc(userTbl.username))

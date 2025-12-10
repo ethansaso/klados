@@ -3,10 +3,11 @@ import z from "zod";
 import { generateKeyForTaxon } from "../../../keygen/generateKey";
 import { hydrateKeyFromRoot } from "../../../keygen/hydration/hydrateKey";
 import { KeyGenerationResult } from "../../../keygen/ioTypes";
+import { KeyGenOptionsSchema } from "../../../keygen/options";
 
 const KeygenInputSchema = z.object({
   taxonId: z.number().int().nonnegative(),
-  options: z.any(), // TODO: refine
+  options: KeyGenOptionsSchema,
 });
 
 // TODO: This should run in a worker thread and be WebSocket-based.
@@ -15,10 +16,11 @@ export const generateKeyFn = createServerFn({
 })
   .inputValidator(KeygenInputSchema)
   .handler(async ({ data }): Promise<KeyGenerationResult> => {
-    // Initial keygen
+    // Initial keygen (still produces a *tree* of KeyNode / KeyTaxonNode)
     const { rootNode } = await generateKeyForTaxon(data.taxonId, data.options);
-    // Hydrate with names, traits, groups, etc.
-    const hydratedRoot = await hydrateKeyFromRoot(rootNode);
 
-    return { rootNode: hydratedRoot };
+    // Hydrate + convert to adjacency-list graph DTO
+    const graph = await hydrateKeyFromRoot(rootNode);
+
+    return { graph };
   });

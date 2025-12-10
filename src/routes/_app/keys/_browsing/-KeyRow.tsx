@@ -7,23 +7,13 @@ import {
 } from "@radix-ui/themes";
 import { Link as NavLink } from "@tanstack/react-router";
 import { PiSealCheckFill, PiSealQuestionFill } from "react-icons/pi";
-import { UserBadge } from "../../../../components/UserBadge";
+import { RoleBadge } from "../../../../components/UserBadge";
 import { UserHoverCard } from "../../../../components/UserHoverCard";
-import { UserDTO } from "../../../../lib/domain/users/types";
-
-export type KeyStatus = "approved" | "pending";
+import { KeyStatus } from "../../../../db/schema/schema";
+import { KeyDTO } from "../../../../lib/domain/keys/types";
 
 export type KeyRowProps = {
-  id: string;
-  name: string;
-  creatorName: string;
-  creatorUsername: string;
-  creatorDescription?: string;
-  creatorRole: UserDTO["role"];
-  dateCreated: string;
-  lastModified: string;
-  votes: number;
-  status?: KeyStatus;
+  rowData: KeyDTO;
 };
 
 const statusMeta: Record<
@@ -32,7 +22,7 @@ const statusMeta: Record<
     icon: React.ComponentType;
     color: React.ComponentProps<typeof Text>["color"];
     tooltip: string;
-  }
+  } | null
 > = {
   approved: {
     icon: PiSealCheckFill,
@@ -44,37 +34,47 @@ const statusMeta: Record<
     color: "amber",
     tooltip: "Awaiting curator approval",
   },
+  unapproved: null,
 };
 
-export const KeyRow = (row: KeyRowProps) => {
-  const status = row.status ? statusMeta[row.status] : undefined;
-  const Icon = status?.icon;
+export const KeyRow = ({ rowData }: KeyRowProps) => {
+  const { status, id, name, author, updatedAt } = rowData;
+  const resolvedMeta = statusMeta[status];
 
   return (
-    <Table.Row key={row.id}>
+    <Table.Row key={rowData.id}>
       <Table.RowHeaderCell>
         <Flex align="center" gap="1">
           <RadixLink asChild>
-            <NavLink to="/keys/$keyId" params={{ keyId: row.id }}>
-              {row.name}
+            <NavLink to="/keys/$id" params={{ id }}>
+              {name}
             </NavLink>
           </RadixLink>
-          {status && Icon && (
-            <Tooltip content={status.tooltip}>
-              <Text color={status.color} asChild>
-                <Icon />
+          {resolvedMeta && (
+            <Tooltip content={resolvedMeta.tooltip}>
+              <Text color={resolvedMeta.color} asChild>
+                <resolvedMeta.icon />
               </Text>
             </Tooltip>
           )}
         </Flex>
       </Table.RowHeaderCell>
       <Table.Cell>
-        <UserHoverCard username={row.creatorUsername} name={row.creatorName} />
-        <UserBadge role={row.creatorRole} ml="2" />
+        <UserHoverCard
+          username={author.name}
+          name={author.name}
+          description={author.description}
+          role={author.role}
+        />
+        <RoleBadge role={author.role} ml="2" />
       </Table.Cell>
-      <Table.Cell>{row.dateCreated}</Table.Cell>
-      <Table.Cell>{row.lastModified}</Table.Cell>
-      <Table.Cell>{row.votes}</Table.Cell>
+      <Table.Cell>
+        {updatedAt.toLocaleString(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })}
+      </Table.Cell>
+      <Table.Cell>0</Table.Cell>
     </Table.Row>
   );
 };

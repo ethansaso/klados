@@ -1,4 +1,3 @@
-// GroupCard.tsx
 import {
   Box,
   Card,

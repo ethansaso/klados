@@ -1,10 +1,10 @@
-import { taxon } from "../../../db/schema/schema";
+import { taxon, TaxonRank } from "../../../db/schema/schema";
 import { NameItem } from "../../api/taxon-names/validation";
 import { PaginatedResult } from "../../validation/pagination";
 
 export type LeanTaxonDTO = {
   id: number;
-  rank: TaxonRow["rank"];
+  rank: TaxonRank;
   acceptedName: string;
 };
 
@@ -23,6 +23,13 @@ export type TaxonDTO = Pick<
   acceptedName: string;
   preferredCommonName: string | null;
   activeChildCount: number;
+};
+
+export type TaxonHierarchyDTO = {
+  id: number;
+  acceptedName: string;
+  rank: TaxonRank;
+  subtaxonIds: number[];
 };
 
 export type TaxonDetailDTO = Omit<TaxonDTO, "parentId"> & {

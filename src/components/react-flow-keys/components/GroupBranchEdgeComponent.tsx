@@ -5,13 +5,13 @@ import {
   getBezierPath,
   type EdgeProps,
 } from "@xyflow/react";
-import type { FrontendBranchRationale } from "../../../keygen/hydration/types";
+import type { HydratedBranchRationale } from "../../../keygen/hydration/types";
 import { RFGroupBranchEdge } from "./types";
 
 type GroupStatusMap = Record<string, "present" | "absent">;
 
 function buildGroupStatusMap(
-  r: FrontendBranchRationale | null
+  r: HydratedBranchRationale | null
 ): GroupStatusMap {
   if (!r || r.kind !== "group-present-absent") return {};
 

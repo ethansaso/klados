@@ -1,7 +1,7 @@
 import {
-  FrontendKeyBranch,
-  FrontendKeyNode,
-  FrontendTaxonNode,
+  HydratedKeyBranch,
+  HydratedKeyGraphDTO,
+  HydratedKeyNode,
 } from "../../../keygen/hydration/types";
 import {
   RFCharacterBranchEdge,
@@ -14,33 +14,10 @@ import {
 } from "../components/types";
 import { branchToEdgeId, keyNodeToRfId } from "./ids";
 
-type BuildContext = {
-  nodes: RFNode[];
-  edges: RFEdge[];
-  prevNodesById: Map<string, RFNode>;
-};
-
-const POS_MIN = 0;
-const POS_MAX = 750;
-
-function randomPosition(): { x: number; y: number } {
-  const span = POS_MAX - POS_MIN;
-  return {
-    x: POS_MIN + Math.random() * span,
-    y: POS_MIN + Math.random() * span,
-  };
-}
-
-function indexNodes(nodes: RFNode[]): Map<string, RFNode> {
-  const map = new Map<string, RFNode>();
-  for (const n of nodes) map.set(n.id, n);
-  return map;
-}
-
 function buildEdge(
   parentRfId: string,
   childRfId: string,
-  viaBranch: FrontendKeyBranch
+  viaBranch: HydratedKeyBranch
 ): RFEdge {
   const rationale = viaBranch.rationale;
 
@@ -93,7 +70,7 @@ function buildEdge(
 }
 
 function buildNode(
-  node: FrontendKeyNode,
+  node: HydratedKeyNode,
   position: { x: number; y: number }
 ): RFNode {
   const rfId = keyNodeToRfId(node);
@@ -117,41 +94,39 @@ function buildNode(
   return rfNode;
 }
 
-export function buildReactFlowFromKeyTree(
-  root: FrontendTaxonNode,
-  prevNodes: RFNode[] = [],
-  prevEdges: RFEdge[] = []
-): { nodes: RFNode[]; edges: RFEdge[] } {
-  const ctx: BuildContext = {
-    nodes: [],
-    edges: [],
-    prevNodesById: indexNodes(prevNodes),
-  };
+/**
+ * Build a complete set of RF nodes/edges from the hydrated key graph.
+ * Returns without layout; layout should be applied afterwards.
+ */
+export function buildReactFlowFromGraph(graph: HydratedKeyGraphDTO): {
+  nodes: RFNode[];
+  edges: RFEdge[];
+  rootRfId: string;
+} {
+  const nodeById = new Map<string, HydratedKeyNode>(
+    graph.nodes.map((n) => [n.id, n])
+  );
 
-  function visit(
-    node: FrontendKeyNode,
-    parentRfId?: string,
-    viaBranch?: FrontendKeyBranch
-  ) {
-    const rfId = keyNodeToRfId(node);
-    const prev = ctx.prevNodesById.get(rfId);
-    const position = prev?.position ?? randomPosition();
-
-    // Build + append node
-    ctx.nodes.push(buildNode(node, position));
-
-    // Build + append edge
-    if (parentRfId && viaBranch) {
-      ctx.edges.push(buildEdge(parentRfId, rfId, viaBranch));
-    }
-
-    // Recurse branches
-    for (const branch of node.branches) {
-      visit(branch.child, rfId, branch);
-    }
+  const rootDomainNode = nodeById.get(graph.rootNodeId);
+  if (!rootDomainNode) {
+    throw new Error(`Root node ${graph.rootNodeId} not found in graph.nodes`);
   }
+  const rootRfId = keyNodeToRfId(rootDomainNode);
 
-  visit(root);
+  const nodes: RFNode[] = graph.nodes.map((node) => {
+    return buildNode(node, { x: 0, y: 0 });
+  });
 
-  return { nodes: ctx.nodes, edges: ctx.edges };
+  const edges: RFEdge[] = graph.branches.flatMap((br) => {
+    const parent = nodeById.get(br.sourceId);
+    const child = nodeById.get(br.targetId);
+    if (!parent || !child) return [];
+
+    const parentRfId = keyNodeToRfId(parent);
+    const childRfId = keyNodeToRfId(child);
+
+    return [buildEdge(parentRfId, childRfId, br)];
+  });
+
+  return { nodes, edges, rootRfId };
 }

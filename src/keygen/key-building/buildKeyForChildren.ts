@@ -30,9 +30,22 @@ function makeDiffNode(): KeyDiffNode {
 function makeTaxonNode(taxonId: number): KeyTaxonNode {
   return {
     kind: "taxon",
-    id: taxonId,
+    // IMPORTANT: ids are now strings, but semantically “the taxon id”
+    id: String(taxonId),
     branches: [],
   };
+}
+
+/**
+ * Helper to get a numeric taxon id back from a KeyTaxonNode.id.
+ * Throws if the id isn’t a numeric string.
+ */
+function getNumericTaxonId(node: KeyTaxonNode): number {
+  const n = Number(node.id);
+  if (Number.isNaN(n)) {
+    throw new Error(`KeyTaxonNode.id "${node.id}" is not a numeric taxon id`);
+  }
+  return n;
 }
 
 function makeBranch(rationale: KeyBranchRationale, child: KeyNode): KeyBranch {
@@ -43,17 +56,29 @@ function makeBranch(rationale: KeyBranchRationale, child: KeyNode): KeyBranch {
   };
 }
 
-function getChildrenForTaxon(
+function getChildrenForTaxonId(
   taxonId: number,
   hierarchy: Map<number, HierarchyTaxonNode>
 ): TaxonGroup {
   const meta = hierarchy.get(taxonId);
   if (!meta) return [];
+
   return (
     meta.subtaxonIds
       .map((id) => hierarchy.get(id))
       .filter((n): n is HierarchyTaxonNode => n !== undefined) ?? []
   );
+}
+
+/**
+ * Convenience wrapper for KeyTaxonNode (string id) -> children as TaxonGroup.
+ */
+function getChildrenForTaxonNode(
+  taxonNode: KeyTaxonNode,
+  hierarchy: Map<number, HierarchyTaxonNode>
+): TaxonGroup {
+  const taxonId = getNumericTaxonId(taxonNode);
+  return getChildrenForTaxonId(taxonId, hierarchy);
 }
 
 /**
@@ -79,6 +104,7 @@ function buildCharacterDefinitionRationale(
   return {
     kind: "character-definition",
     characters,
+    annotation: null,
   };
 }
 
@@ -99,6 +125,7 @@ function buildGroupPresentAbsentRationale(
         status: branch.status,
       },
     },
+    annotation: null,
   };
 }
 
@@ -211,7 +238,7 @@ export function buildKeySubtreeForTaxon(
   hierarchy: Map<number, HierarchyTaxonNode>,
   options: KeyGenOptions
 ): void {
-  const children: TaxonGroup = getChildrenForTaxon(taxonNode.id, hierarchy);
+  const children: TaxonGroup = getChildrenForTaxonNode(taxonNode, hierarchy);
 
   if (children.length === 0) {
     // No subtaxa to key further.

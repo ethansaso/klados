@@ -1,17 +1,20 @@
-import { FrontendTaxonNode } from "./hydration/types";
-import { KeyGenOptions } from "./options";
+import z from "zod";
+import { HydratedKeyGraphDTO } from "./hydration/types";
+import { KeyGenOptionsInputSchema } from "./options";
 
-export type KeyGenerationInput = {
+export const KeyGenerationInputSchema = z.object({
   /**
    * The ID of the taxon to generate a key for.
    */
-  taxonId: number;
+  taxonId: z.number("Please specify a root taxon.").int().nonnegative(),
   /**
    * Options for key generation.
    */
-  options: KeyGenOptions;
-};
+  options: KeyGenOptionsInputSchema,
+});
+
+export type KeyGenerationInput = z.infer<typeof KeyGenerationInputSchema>;
 
 export type KeyGenerationResult = {
-  rootNode: FrontendTaxonNode;
+  graph: HydratedKeyGraphDTO;
 };

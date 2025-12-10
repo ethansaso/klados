@@ -2,7 +2,7 @@
 import "dotenv/config";
 import { closeDb } from "../src/db/client";
 import { generateKeyForTaxon } from "../src/keygen/generateKey";
-import { DEFAULT_KEYGEN_OPTIONS } from "../src/keygen/options";
+import { KeyGenOptionsSchema } from "../src/keygen/options";
 
 type CliOptions = {
   rootId: number;
@@ -78,10 +78,11 @@ async function main() {
       console.log(`Taxon limit: ${taxonLimit}`);
     }
 
-    const result = await generateKeyForTaxon(rootId, {
-      ...DEFAULT_KEYGEN_OPTIONS,
+    const options = KeyGenOptionsSchema.parse({
       taxonLimit,
     });
+
+    const result = await generateKeyForTaxon(rootId, options);
 
     console.log(`\nDone.\nOutput:\n\n`);
     console.log(JSON.stringify(result, null, 2));

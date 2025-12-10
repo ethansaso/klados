@@ -5,5 +5,5 @@ export const Route = createFileRoute("/_app/glossary/characters/")({
 });
 
 function RouteComponent() {
-  return <div>Hello!</div>;
+  return <div>Select a character to inspect it.</div>;
 }
