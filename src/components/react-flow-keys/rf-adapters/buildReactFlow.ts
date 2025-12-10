@@ -11,7 +11,7 @@ import {
   RFNode,
   RFNullBranchEdge,
   RFTaxonNode,
-} from "../components/types";
+} from "../data/types";
 import { branchToEdgeId, keyNodeToRfId } from "./ids";
 
 function buildEdge(
@@ -80,7 +80,7 @@ function buildNode(
       id: rfId,
       type: "taxonNode",
       position,
-      data: { keyNode: node },
+      data: node,
     };
     return rfNode;
   }
@@ -89,7 +89,7 @@ function buildNode(
     id: rfId,
     type: "diffNode",
     position,
-    data: { keyNode: node },
+    data: node,
   };
   return rfNode;
 }

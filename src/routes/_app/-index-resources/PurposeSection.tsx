@@ -9,18 +9,18 @@ import {
 export const PurposeSection = () => {
   return (
     <Flex direction="column" align="center" py="8" className="purpose-section">
-      <Heading mb="5" size="7">
-        A Visual Platform for Exploring Biodiversity
+      <Heading mb="5" size="8">
+        How Klados Helps You Learn
       </Heading>
       <Grid columns="2" gapX="6" gapY="6" width="1000px" asChild>
         <ul className="purpose-list">
           <li>
             <PiBookOpenUser />
             <Box>
-              <Heading size="5" mb="1">
+              <Heading size="5" mb="2">
                 Browse Species
               </Heading>
-              <Text>
+              <Text size="4">
                 Explore diverse species with rich images, descriptions, and
                 morphological data.
               </Text>
@@ -29,11 +29,11 @@ export const PurposeSection = () => {
           <li>
             <PiGraphFill />
             <Box>
-              <Heading size="5" mb="1">
-                Learn to Identify Organisms
+              <Heading size="5" mb="2">
+                Follow Visual Guides
               </Heading>
-              <Text>
-                Use interactive, flowchart-style keys to identify organisms
+              <Text size="4">
+                Use interactive, flowchart-style guides to identify organisms
                 based on their traits.
               </Text>
             </Box>
@@ -41,10 +41,10 @@ export const PurposeSection = () => {
           <li>
             <PiBrowsers />
             <Box>
-              <Heading size="5" mb="1">
+              <Heading size="5" mb="2">
                 Compare Lookalikes
               </Heading>
-              <Text>
+              <Text size="4">
                 Visualize side-by-side comparisons of similar species to spot
                 distinguishing features.
               </Text>
@@ -53,11 +53,11 @@ export const PurposeSection = () => {
           <li>
             <PiBrain />
             <Box>
-              <Heading size="5" mb="1">
+              <Heading size="5" mb="2">
                 Contribute to Biodiversity Knowledge
               </Heading>
-              <Text>
-                Know a group of species well? Make a key and share your
+              <Text size="4">
+                Know a group of species well? Make a guide and share your
                 expertise with the community.
               </Text>
             </Box>

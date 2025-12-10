@@ -1,7 +1,7 @@
 import { Box } from "@radix-ui/themes";
 import { ReactFlow } from "@xyflow/react";
 import LogoBackground from "./components/LogoBackground";
-import { edgeTypes, nodeTypes } from "./components/types";
+import { edgeTypes, nodeTypes } from "./data/types";
 import { useKeyEditorStore } from "./data/useKeyEditorStore";
 
 export function KeyEditorCanvas() {

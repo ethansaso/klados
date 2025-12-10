@@ -9,9 +9,6 @@ interface StatsFeatureGridProps {
 export const StatsFeatureGrid = ({ summaryStats }: StatsFeatureGridProps) => {
   return (
     <Flex direction="column" align="center" py="8">
-      <Heading mb="3" size="7">
-        Our Stats
-      </Heading>
       <Box className="feature-grid">
         <Box className="feature-grid__item">
           <Box className="feature-icon__container">
@@ -34,7 +31,7 @@ export const StatsFeatureGrid = ({ summaryStats }: StatsFeatureGridProps) => {
             <PiTreeStructure className="feature-icon" />
           </Box>
           <Heading size="6">{summaryStats.keysCount.toLocaleString()}</Heading>
-          <Text>Keys Published</Text>
+          <Text>Guides Published</Text>
         </Box>
       </Box>
     </Flex>

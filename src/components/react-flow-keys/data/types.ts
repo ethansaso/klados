@@ -2,22 +2,18 @@ import { Node, NodeTypes } from "@xyflow/react";
 import {
   HydratedBranchRationale,
   HydratedCharRationale,
-  HydratedKeyNode,
+  HydratedDiffNode,
   HydratedTaxonNode,
 } from "../../../keygen/hydration/types";
+import CharacterBranchEdgeComponent from "../components/CharacterBranchEdgeComponent";
+import DiffNodeComponent from "../components/DiffNodeComponent";
+import GroupBranchEdgeComponent from "../components/GroupBranchEdgeComponent";
+import NullBranchEdgeComponent from "../components/NullBranchEdgeComponent";
+import TaxonNodeComponent from "../components/TaxonNodeComponent";
 import { AssertedEdge } from "../util/assertedEdge";
-import CharacterBranchEdgeComponent from "./CharacterBranchEdgeComponent";
-import DiffNodeComponent from "./DiffNodeComponent";
-import GroupBranchEdgeComponent from "./GroupBranchEdgeComponent";
-import NullBranchEdgeComponent from "./NullBranchEdgeComponent";
-import TaxonNodeComponent from "./TaxonNodeComponent";
 
-export type KeyEditorTaxonNodeData = {
-  keyNode: HydratedTaxonNode;
-};
-export type KeyEditorDiffNodeData = {
-  keyNode: HydratedKeyNode;
-};
+export type KeyEditorTaxonNodeData = HydratedTaxonNode;
+export type KeyEditorDiffNodeData = HydratedDiffNode;
 
 export type RFTaxonNode = Node<KeyEditorTaxonNodeData, "taxonNode">;
 export type RFDiffNode = Node<KeyEditorDiffNodeData, "diffNode">;

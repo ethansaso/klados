@@ -187,7 +187,7 @@ export const KeySidebar = () => {
             <Box mb="3">
               <Flex justify="between" align="baseline" mb="1">
                 <Label.Root htmlFor="options.maxBranches">
-                  Maximum Branches
+                  Max branches per couplet
                 </Label.Root>
                 <ConditionalAlert
                   id="options.maxBranches-error"
