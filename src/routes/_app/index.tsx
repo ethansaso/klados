@@ -4,6 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { summaryStatsQueryOptions } from "../../lib/queries/stats";
 import { FinalCTA } from "./-index-resources/FinalCTA";
 import { HeroSection } from "./-index-resources/HeroSection";
+import { KeyDemo } from "./-index-resources/KeyDemo";
 import { PurposeSection } from "./-index-resources/PurposeSection";
 import { StatsFeatureGrid } from "./-index-resources/StatsFeatureGrid";
 
@@ -20,6 +21,8 @@ function Home() {
   return (
     <Flex direction="column" align="center">
       <HeroSection />
+      <KeyDemo />
+      <Separator size="4" />
       <PurposeSection />
       <Separator size="4" />
       <StatsFeatureGrid summaryStats={summaryStats} />

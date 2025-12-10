@@ -6,12 +6,12 @@ import {
 } from "@xyflow/react";
 import { create } from "zustand";
 import type { HydratedKeyGraphDTO } from "../../../keygen/hydration/types";
-import { RFEdge, RFNode } from "../components/types";
 import {
   computeKeyTreeLayout,
   layoutKeyTree,
 } from "../layout/computeKeyTreeLayout";
 import { buildReactFlowFromGraph } from "../rf-adapters/buildReactFlow";
+import { RFEdge, RFNode } from "./types";
 
 type KeyEditorState = {
   // Minimal structural metadata

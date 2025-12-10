@@ -9,7 +9,7 @@ import {
 export const PurposeSection = () => {
   return (
     <Flex direction="column" align="center" py="8" className="purpose-section">
-      <Heading mb="5" size="7">
+      <Heading mb="5" size="8">
         A Visual Platform for Exploring Biodiversity
       </Heading>
       <Grid columns="2" gapX="6" gapY="6" width="1000px" asChild>

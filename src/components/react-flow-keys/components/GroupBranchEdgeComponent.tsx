@@ -6,7 +6,7 @@ import {
   type EdgeProps,
 } from "@xyflow/react";
 import type { HydratedBranchRationale } from "../../../keygen/hydration/types";
-import { RFGroupBranchEdge } from "./types";
+import { RFGroupBranchEdge } from "../data/types";
 
 type GroupStatusMap = Record<string, "present" | "absent">;
 

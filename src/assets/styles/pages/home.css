@@ -1,5 +1,13 @@
+.rf-demo__wrapper {
+  .rf-demo__canvas {
+    border-radius: var(--radius-3);
+    border: 1px solid var(--gray-6);
+  }
+}
+
 .purpose-section {
   width: 100%;
+  background-color: var(--accent-a2);
 
   .purpose-list {
     list-style: none;
@@ -10,7 +18,7 @@
       gap: var(--space-4);
 
       svg {
-        /* color: var(--accent-12); */
+        color: var(--accent-11);
         font-size: 5rem;
         flex-shrink: 0;
       }
@@ -62,5 +70,6 @@
 
 .final-cta {
   width: 100%;
-  background-color: var(--accent-a3);
+  background-color: var(--gray-12);
+  color: var(--gray-1);
 }

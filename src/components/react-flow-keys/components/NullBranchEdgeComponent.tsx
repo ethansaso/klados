@@ -5,7 +5,7 @@ import {
   type EdgeProps,
 } from "@xyflow/react";
 import { memo } from "react";
-import { RFNullBranchEdge } from "./types";
+import { RFNullBranchEdge } from "../data/types";
 
 const NullBranchEdgeComponent = memo((props: EdgeProps<RFNullBranchEdge>) => {
   const { id, sourceX, sourceY, targetX, targetY, markerEnd } = props;

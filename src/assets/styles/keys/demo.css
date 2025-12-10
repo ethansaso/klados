@@ -1,0 +1,21 @@
+.demo-taxon-node {
+  display: flex;
+  flex-direction: column;
+  width: 12rem;
+  overflow: visible;
+  gap: var(--space-2);
+  contain: none;
+
+  img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    border-radius: var(--radius-4);
+    border: 1px solid var(--gray-5);
+  }
+
+  .react-flow__handle {
+    z-index: 20;
+  }
+}
