@@ -142,12 +142,13 @@ function buildGroupsWithDeadTags(
       return null;
     }
 
-    const traitIds = new Set<number>(traits.map((t) => t.id));
+    // ! Use canonical IDs to resolve aliases.
+    const traitIds = new Set<number>(traits.map((t) => t.canonicalId));
 
     // If this trait-set uses any dead trait, it is automatically ambiguous.
     let usesDead = false;
     for (const trait of traits) {
-      if (deadTraitIds.has(trait.id)) {
+      if (deadTraitIds.has(trait.canonicalId)) {
         usesDead = true;
         break;
       }
@@ -156,7 +157,7 @@ function buildGroupsWithDeadTags(
     if (usesDead) {
       notTaxa.add(taxon);
       for (const trait of traits) {
-        deadTraitIds.add(trait.id);
+        deadTraitIds.add(trait.canonicalId);
       }
 
       // Any existing group overlapping this trait-set becomes dead too.
@@ -179,9 +180,13 @@ function buildGroupsWithDeadTags(
 
     // Precompute sorted traits + key for this exact trait-set.
     const sortedTraits = [...traits].sort((a, b) =>
-      a.id === b.id ? 0 : a.id < b.id ? -1 : 1
+      a.canonicalId === b.canonicalId
+        ? 0
+        : a.canonicalId < b.canonicalId
+          ? -1
+          : 1
     );
-    const key = sortedTraits.map((t) => t.id).join("|");
+    const key = sortedTraits.map((t) => t.canonicalId).join("|");
 
     // Join to existing group if exact match.
     const existingExactGroup = groupMap.get(key);
@@ -309,8 +314,8 @@ function createBranches(
     const traitMap = new Map<number, Trait>();
     for (const g of groups) {
       for (const t of g.traits) {
-        if (!traitMap.has(t.id)) {
-          traitMap.set(t.id, t);
+        if (!traitMap.has(t.canonicalId)) {
+          traitMap.set(t.canonicalId, t);
         }
       }
     }

@@ -226,12 +226,12 @@ export async function getTraitSetValuesQuery(
     label: r.label,
     hexCode: r.hexCode,
     description: r.description,
-    isCanonical: r.isCanonical,
     aliasTarget: r.isCanonical
       ? null
       : r.canonId
         ? {
             id: r.canonId,
+            canonicalId: r.canonId,
             label: r.canonLabel!,
             hexCode: r.canonHexCode ?? undefined,
           }
@@ -286,12 +286,12 @@ export async function listTraitSetValuesQuery(args: {
     label: r.label,
     hexCode: r.hexCode,
     description: r.description,
-    isCanonical: r.isCanonical,
     aliasTarget: r.isCanonical
       ? null
       : r.canonId
         ? {
             id: r.canonId,
+            canonicalId: r.canonId,
             label: r.canonLabel!,
             hexCode: r.canonHexCode ?? undefined,
           }
@@ -397,12 +397,12 @@ export async function selectTraitValueDtoById(
     label: row.label,
     hexCode: row.hexCode,
     description: row.description,
-    isCanonical: row.isCanonical,
     aliasTarget: row.isCanonical
       ? null
       : row.canonId
         ? {
             id: row.canonId,
+            canonicalId: row.canonId,
             label: row.canonLabel!,
             hexCode: row.canonHexCode ?? undefined,
           }
@@ -449,12 +449,12 @@ export async function selectTraitValueDtosByIds(
     label: row.label,
     hexCode: row.hexCode,
     description: row.description,
-    isCanonical: row.isCanonical,
     aliasTarget: row.isCanonical
       ? null
       : row.canonId
         ? {
             id: row.canonId,
+            canonicalId: row.canonId,
             label: row.canonLabel!,
             hexCode: row.canonHexCode ?? undefined,
           }

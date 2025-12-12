@@ -114,7 +114,8 @@ export async function selectTaxonCharacterStatesByTaxonIds(
         : undefined;
 
     state.traitValues.push({
-      id: row.traitValueId, // stored value (alias or canonical)
+      id: row.traitValueId, // stored id (alias or canonical)
+      canonicalId: canonicalId, // canonical id
       label: row.traitValueLabel, // label from stored value
       ...(hexCode ? { hexCode } : {}), // color from canonical (if extant)
     });

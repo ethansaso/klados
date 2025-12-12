@@ -134,7 +134,12 @@ async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
 
   const traitById = new Map<number, Trait>();
   for (const tr of traits) {
-    traitById.set(tr.id, { ...tr, hexCode: tr.hexCode ?? undefined });
+    traitById.set(tr.id, {
+      id: tr.id,
+      label: tr.label,
+      canonicalId: tr.aliasTarget?.id ?? tr.id,
+      hexCode: tr.hexCode ?? undefined,
+    });
   }
 
   const groupById = new Map<number, { id: number; label: string }>();

@@ -1,13 +1,15 @@
-import { Box, Callout, Flex, Heading, Text } from "@radix-ui/themes";
+import { Box, Callout, Heading, Tabs, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 import z from "zod";
-import { Breadcrumb, Breadcrumbs } from "../../../../components/-Breadcrumbs";
+import { Breadcrumb, Breadcrumbs } from "../../../../components/Breadcrumbs";
+import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 import { taxonCharacterDisplayGroupsQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
 import { prefixWithRank } from "../../../../lib/utils/prefixWithRank";
 import { TaxonCharacterSection } from "./-characters/TaxonCharacterSection";
+import { LookalikesList } from "./-lookalikes/LookalikesList";
 import { NamesDataList } from "./-NameDataList";
 import { TaxonMainSection } from "./-TaxonMainSection";
 
@@ -22,6 +24,7 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
     await context.queryClient.ensureQueryData(
       taxonCharacterDisplayGroupsQueryOptions(id)
     );
+    await context.queryClient.ensureQueryData(lookalikesQueryOptions(id));
 
     return { id };
   },
@@ -35,6 +38,7 @@ function TaxonPage() {
   const { data: displayGroups } = useSuspenseQuery(
     taxonCharacterDisplayGroupsQueryOptions(id)
   );
+  const { data: lookalikes } = useSuspenseQuery(lookalikesQueryOptions(id));
 
   const breadcrumbItems: Breadcrumb[] = useMemo(() => {
     const items: Breadcrumb[] = taxon.ancestors.map((ancestor) => ({
@@ -63,7 +67,7 @@ function TaxonPage() {
 
       <Box mb="4">
         <Breadcrumbs items={breadcrumbItems} size="2" />
-        <Heading>
+        <Heading size="7">
           <Text>{taxon.acceptedName} </Text>
           {taxon.preferredCommonName && (
             <Text size="3" weight="regular" color="gray">
@@ -72,11 +76,50 @@ function TaxonPage() {
           )}
         </Heading>
       </Box>
-      <Flex direction="column" gap="6" width="100%">
-        <TaxonMainSection taxon={taxon} navigate={navigate} />
-        <TaxonCharacterSection groups={displayGroups} />
-        <NamesDataList names={taxon.names} />
-      </Flex>
+      <Box width="100%">
+        <Box mb="4">
+          <TaxonMainSection taxon={taxon} navigate={navigate} />
+        </Box>
+        <Tabs.Root mb="4" defaultValue="states">
+          <Tabs.List size="2" mb="5">
+            <Tabs.Trigger value="states">Description</Tabs.Trigger>
+            <Tabs.Trigger value="lookalikes">Lookalikes</Tabs.Trigger>
+            <Tabs.Trigger value="names">Names</Tabs.Trigger>
+          </Tabs.List>
+          <Tabs.Content value="states" mt="4">
+            <Box mb="3">
+              <Heading size="4">Morphological Description</Heading>
+              <Text as="p">
+                Some traits may have additional information from the glossary,
+                indicated by an underline. Hover over these terms to view these
+                definitions.
+              </Text>
+            </Box>
+            <TaxonCharacterSection groups={displayGroups} />
+          </Tabs.Content>
+          <Tabs.Content value="lookalikes" mt="4">
+            <Box mb="3">
+              <Heading size="4">Similar Taxa</Heading>
+              <Text as="p">
+                These taxa share similar characteristics with{" "}
+                {taxon.acceptedName}. Click on any taxon to compare
+                side-by-side.
+              </Text>
+            </Box>
+            <LookalikesList
+              taxonId={id}
+              taxonAcceptedName={taxon.acceptedName}
+              lookalikes={lookalikes}
+            />
+          </Tabs.Content>
+          <Tabs.Content value="names" mt="4">
+            <Heading size="4" mb="2">
+              Names
+            </Heading>
+            <NamesDataList names={taxon.names} />
+          </Tabs.Content>
+        </Tabs.Root>
+      </Box>
     </>
   );
 }
