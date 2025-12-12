@@ -28,8 +28,8 @@ import {
   CharacterUpdate,
   taxonPatchSchema,
 } from "../../../domain/taxa/validation";
+import { NameItem } from "../../../domain/taxon-names/validation";
 import { assertHierarchyInvariant } from "../../../utils/assertHierarchyInvariant";
-import { NameItem } from "../../taxon-names/validation";
 
 export const updateTaxon = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])

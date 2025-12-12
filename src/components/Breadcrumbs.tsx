@@ -24,7 +24,7 @@ export const Breadcrumbs = ({ items, size = "3" }: BreadcrumbsProps) => {
   return (
     <ul className="breadcrumbs">
       {items.map((item, index) => (
-        <Text asChild size={size} key={index}>
+        <Text asChild size={size} key={item.label}>
           <li className="breadcrumbs__item">
             {item.to ? (
               <RouterRadixLink

@@ -37,7 +37,6 @@ import { TAXON_RANKS_DESCENDING } from "../../../../../db/schema/schema";
 import { deleteTaxonFn } from "../../../../../lib/api/taxa/deleteTaxon";
 import { updateTaxon } from "../../../../../lib/api/taxa/fns/update";
 import { publishTaxonFn } from "../../../../../lib/api/taxa/publish";
-import { nameItemSchema } from "../../../../../lib/api/taxon-names/validation";
 import { TaxonCharacterStateDTO } from "../../../../../lib/domain/character-states/types";
 import { TaxonDetailDTO } from "../../../../../lib/domain/taxa/types";
 import {
@@ -45,6 +44,7 @@ import {
   mediaItemSchema,
   taxonPatchSchema,
 } from "../../../../../lib/domain/taxa/validation";
+import { nameItemSchema } from "../../../../../lib/domain/taxon-names/validation";
 import {
   taxaQueryOptions,
   taxonQueryOptions,

@@ -1,7 +1,7 @@
-import { Box, DataList, Flex, Heading, Strong, Text } from "@radix-ui/themes";
+import { DataList, Flex, Text } from "@radix-ui/themes";
 import { useMemo } from "react";
-import { NameItem } from "../../../../lib/api/taxon-names/validation";
 import { localeDisplayValues } from "../../../../lib/consts/locale-display-values";
+import { NameItem } from "../../../../lib/domain/taxon-names/validation";
 
 type NamesDataListProps = {
   names: NameItem[];
@@ -46,25 +46,28 @@ export const NamesDataList = ({ names }: NamesDataListProps) => {
   }
 
   return (
-    <Box mb="4">
-      <Heading size="6" mb="2">
-        <Strong>Names</Strong>
-      </Heading>
-
-      <DataList.Root size="2">
-        {localeEntries.map(({ code, label, items }) => (
-          <DataList.Item key={code} align="start">
-            <DataList.Label minWidth="120px">{label}</DataList.Label>
-            <DataList.Value>
-              <Flex direction="column" gap="1">
-                {items.map((item, idx) => (
-                  <Text key={idx}>{item.value}</Text>
-                ))}
-              </Flex>
-            </DataList.Value>
-          </DataList.Item>
-        ))}
-      </DataList.Root>
-    </Box>
+    <DataList.Root size="2">
+      {localeEntries.map(({ code, label, items }) => (
+        <DataList.Item key={code} align="start">
+          <DataList.Label minWidth="120px">{label}</DataList.Label>
+          <DataList.Value>
+            <Flex direction="column" gap="1">
+              {items.map((item, idx) => (
+                <Text
+                  key={idx}
+                  color={
+                    item.locale === "sci" && !item.isPreferred
+                      ? "gray"
+                      : undefined
+                  }
+                >
+                  {item.value}
+                </Text>
+              ))}
+            </Flex>
+          </DataList.Value>
+        </DataList.Item>
+      ))}
+    </DataList.Root>
   );
 };

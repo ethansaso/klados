@@ -1,4 +1,4 @@
-import { NameItem } from "../../../../../../lib/api/taxon-names/validation";
+import { NameItem } from "../../../../../../lib/domain/taxon-names/validation";
 
 export type LocaleEntry = {
   code: string;

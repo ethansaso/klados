@@ -163,7 +163,7 @@ function RouteComponent() {
 
   // Propagates canonical values' hexcodes to their aliases.
   const aliasCorrectedValues = items.map((val) => {
-    if (val.isCanonical) {
+    if (!val.aliasTarget) {
       return val;
     }
     return {
@@ -232,7 +232,7 @@ function RouteComponent() {
                   <Text>{val.label}</Text>
                 </Table.Cell>
                 <Table.Cell>
-                  {val.isCanonical ? (
+                  {!val.aliasTarget ? (
                     <Text color="gray">------</Text>
                   ) : (
                     <Text>{val.aliasTarget?.label}</Text>

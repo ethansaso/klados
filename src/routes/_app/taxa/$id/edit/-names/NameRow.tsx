@@ -7,7 +7,7 @@ import {
 } from "@radix-ui/themes";
 import { memo, useState } from "react";
 import { PiPencil, PiTrash } from "react-icons/pi";
-import { NameItem } from "../../../../../../lib/api/taxon-names/validation";
+import { NameItem } from "../../../../../../lib/domain/taxon-names/validation";
 
 type NameRowProps = {
   localeLabel: string;
