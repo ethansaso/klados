@@ -41,7 +41,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@xyflow/react": "^12.10.0",
     "axios": "^1.13.2",
-    "better-auth": "^1.4.7",
+    "better-auth": "1.4.6",
     "drizzle-orm": "^0.45.1",
     "nitro": "^3.0.1-alpha.1",
     "pg": "^8.16.3",
