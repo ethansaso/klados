@@ -18,7 +18,7 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
-import { createTraitSetFn } from "../../../../lib/api/traits/createTraitSet";
+import { createTraitSetFn } from "../../../../lib/api/traits/createTraitSetFn";
 import {
   CreateTraitSetInput,
   createTraitSetSchema,

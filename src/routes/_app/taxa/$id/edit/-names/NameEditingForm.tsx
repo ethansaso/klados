@@ -10,10 +10,10 @@ import {
 import { useCallback, useMemo } from "react";
 import { FaDove } from "react-icons/fa";
 import { PiPlus } from "react-icons/pi";
-import { selectInatNames } from "../-dialogs/InatNameModal";
 import { localeDisplayValues } from "../../../../../../lib/consts/locale-display-values";
 import { NameItem } from "../../../../../../lib/domain/taxon-names/validation";
 import { toast } from "../../../../../../lib/utils/toast";
+import { selectInatNames } from "./InatNameModal";
 import { NameRow } from "./NameRow";
 import { LocaleEntry } from "./types";
 

@@ -119,8 +119,8 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
       otherCount: otherCnt.otherCnt,
     })
     .from(shared)
-    .innerJoin(taxaTbl, eq(taxaTbl.id, shared.otherTaxonId))
     .crossJoin(targetCountSq)
+    .innerJoin(taxaTbl, eq(taxaTbl.id, shared.otherTaxonId))
     .innerJoin(otherCnt, eq(otherCnt.taxonId, taxaTbl.id))
     .innerJoin(
       sci,

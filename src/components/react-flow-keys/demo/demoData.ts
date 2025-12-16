@@ -19,7 +19,7 @@ export const demoNodes: DemoNode[] = [
   {
     id: "2",
     type: "demoTaxonNode",
-    position: { x: 520, y: 310 },
+    position: { x: 480, y: 310 },
     data: {
       sciName: "Amanita",
       commonName: "Amanita mushrooms",
@@ -34,7 +34,7 @@ export const demoNodes: DemoNode[] = [
   {
     id: "3",
     type: "demoTaxonNode",
-    position: { x: 520, y: 620 },
+    position: { x: 480, y: 620 },
     data: {
       sciName: "Limacella",
       commonName: "Slimecaps",
@@ -49,7 +49,7 @@ export const demoNodes: DemoNode[] = [
   {
     id: "4",
     type: "demoTaxonNode",
-    position: { x: 1040, y: 310 },
+    position: { x: 960, y: 310 },
     data: {
       sciName: "Amanita muscaria",
       commonName: "Fly Agaric",
@@ -64,7 +64,7 @@ export const demoNodes: DemoNode[] = [
   {
     id: "5",
     type: "demoTaxonNode",
-    position: { x: 1040, y: 620 },
+    position: { x: 960, y: 620 },
     data: {
       sciName: "Amanita phalloides",
       commonName: "Death Cap",

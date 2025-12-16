@@ -10,19 +10,13 @@ export const createTaxonDraftFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
   .inputValidator(
     z.object({
-      accepted_name: z.string().nonempty(),
-      parent_id: z.number().int().nullable(),
+      acceptedName: z.string().nonempty(),
+      parentId: z.number().int().nullable(),
       rank: z.enum(TAXON_RANKS_DESCENDING),
     })
   )
   .handler(async ({ data }): Promise<TaxonDTO> => {
-    const { accepted_name, parent_id, rank } = data;
-
-    const dto = await createTaxonDraft({
-      acceptedName: accepted_name,
-      parentId: parent_id,
-      rank,
-    });
+    const dto = await createTaxonDraft(data);
 
     // Rare but still worth catching
     if (!dto) {

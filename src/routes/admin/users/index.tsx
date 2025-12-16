@@ -9,7 +9,7 @@ export const Route = createFileRoute("/admin/users/")({
   validateSearch: SearchSchema,
 
   // Re-run loader when these change
-  loaderDeps: ({ search: { page, page_size: pageSize } }) => ({
+  loaderDeps: ({ search: { page, pageSize: pageSize } }) => ({
     page,
     pageSize,
   }),
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/admin/users/")({
 });
 
 function RouteComponent() {
-  const { page, page_size: pageSize } = useSearch({ from: "/admin/users/" });
+  const { page, pageSize: pageSize } = useSearch({ from: "/admin/users/" });
   const { data, isLoading, isError, error } = useQuery(
     usersQueryOptions(page, pageSize)
   );

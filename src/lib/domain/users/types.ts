@@ -15,6 +15,4 @@ export type UserDTO = Pick<
   | "description"
 >;
 
-export interface UsersPaginatedResult extends PaginatedResult {
-  items: UserDTO[];
-}
+export type UserPaginatedResult = PaginatedResult<UserDTO>;

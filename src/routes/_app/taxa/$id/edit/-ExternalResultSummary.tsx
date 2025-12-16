@@ -11,10 +11,10 @@ import { PiArrowLeft, PiArrowRight } from "react-icons/pi";
 
 interface ExternalResultSummaryProps {
   taxon?: {
-    scientific_name: string;
+    scientificName: string;
     rank: string;
     link: string;
-    common_name?: string;
+    commonName?: string;
     imgSrc?: string;
   };
   searchTitle: string;
@@ -33,7 +33,6 @@ export const ExternalResultSummary = ({
   searchTitle,
   loading,
   error,
-  index,
   total,
   onPrev,
   onNext,
@@ -72,7 +71,7 @@ export const ExternalResultSummary = ({
             >
               <img
                 src={taxon.imgSrc ?? "/logos/LogoDotted.svg"}
-                alt={taxon.scientific_name}
+                alt={taxon.scientificName}
                 key={taxon.imgSrc}
                 style={{
                   width: "100%",
@@ -107,12 +106,12 @@ export const ExternalResultSummary = ({
                 highContrast
                 underline="hover"
               >
-                {taxon.scientific_name}
+                {taxon.scientificName}
               </Link>
             </Text>
-            {taxon.common_name ? (
+            {taxon.commonName ? (
               <Text as="div" color="gray">
-                {taxon.common_name}
+                {taxon.commonName}
               </Text>
             ) : null}
             <Text as="div" color="gray" size="2">

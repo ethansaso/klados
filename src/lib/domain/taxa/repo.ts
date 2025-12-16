@@ -32,6 +32,7 @@ import type {
   TaxonRow,
 } from "./types";
 import { computeRankBand } from "./utils";
+import { TaxonPatch } from "./validation";
 
 /**
  * Insert a draft taxon row and return its id.
@@ -191,6 +192,25 @@ export async function updateTaxonStatusAndReplacement(
     .where(eq(taxaTbl.id, args.id));
 
   return selectTaxonDtoById(tx, args.id);
+}
+
+/**
+ * Apply broad patch to taxon row.
+ */
+export async function updateTaxonRow(
+  tx: Transaction,
+  id: number,
+  patch: TaxonPatch
+): Promise<boolean> {
+  if (Object.keys(patch).length === 0) return true;
+
+  const updated = await tx
+    .update(taxaTbl)
+    .set(patch)
+    .where(eq(taxaTbl.id, id))
+    .returning({ id: taxaTbl.id });
+
+  return updated.length > 0;
 }
 
 /**

@@ -1,9 +1,10 @@
 import z from "zod";
 
-export type PaginatedResult = {
+export type PaginatedResult<T> = {
   page: number;
   pageSize: number;
   total: number;
+  items: T[];
 };
 
 export type PaginationParams = z.infer<typeof PaginationSchema>;

@@ -6,7 +6,7 @@ import { TaxonGrid } from "./-TaxonGrid";
 
 export const Route = createFileRoute("/_app/taxa/drafts")({
   validateSearch: SearchSchema,
-  loaderDeps: ({ search: { page, page_size: pageSize } }) => ({
+  loaderDeps: ({ search: { page, pageSize: pageSize } }) => ({
     page,
     pageSize,
   }),
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_app/taxa/drafts")({
 function TaxaDraftsPage() {
   const search = Route.useSearch();
   const { data: paginatedResult } = useSuspenseQuery(
-    taxaQueryOptions(search.page, search.page_size, {
+    taxaQueryOptions(search.page, search.pageSize, {
       status: "draft",
     })
   );

@@ -25,6 +25,4 @@ export type CharacterGroupDetailDTO = CharacterGroupDTO & {
   characters: CharacterInGroupDTO[];
 };
 
-export interface CharacterGroupPaginatedResult extends PaginatedResult {
-  items: CharacterGroupDTO[];
-}
+export type CharacterGroupPaginatedResult = PaginatedResult<CharacterGroupDTO>;

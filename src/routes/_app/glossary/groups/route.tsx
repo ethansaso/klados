@@ -14,7 +14,7 @@ import { AddCharacterGroupModal } from "./-AddCharacterGroupModal";
 
 export const Route = createFileRoute("/_app/glossary/groups")({
   validateSearch: SearchWithQuerySchema,
-  loaderDeps: ({ search: { page, page_size: pageSize, q } }) => ({
+  loaderDeps: ({ search: { page, pageSize: pageSize, q } }) => ({
     page,
     pageSize,
     q,

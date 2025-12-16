@@ -9,14 +9,7 @@ export const createCharacterFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
   .inputValidator(createCharacterSchema)
   .handler(async ({ data }): Promise<CharacterDTO> => {
-    const dto = await createCharacter({
-      key: data.key,
-      label: data.label,
-      description: data.description,
-      groupId: data.group_id,
-      traitSetId: data.trait_set_id,
-      isMultiSelect: data.is_multi_select,
-    });
+    const dto = await createCharacter(data);
 
     if (!dto) {
       throw notFound();

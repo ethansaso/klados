@@ -16,6 +16,4 @@ export type KeyDTO = {
   updatedAt: Date;
 };
 
-export interface KeyPaginatedResult extends PaginatedResult {
-  items: KeyDTO[];
-}
+export type KeyPaginatedResult = PaginatedResult<KeyDTO>;

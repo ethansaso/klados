@@ -7,6 +7,8 @@ import { Breadcrumb, Breadcrumbs } from "../../../../components/Breadcrumbs";
 import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 import { taxonCharacterDisplayGroupsQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
+import { sourceForTaxonQueryOptions } from "../../../../lib/queries/taxonSources";
+import { formatPublicationForTaxon } from "../../../../lib/utils/formatPublication";
 import { prefixWithRank } from "../../../../lib/utils/prefixWithRank";
 import { TaxonCharacterSection } from "./-characters/TaxonCharacterSection";
 import { LookalikesList } from "./-lookalikes/LookalikesList";
@@ -25,6 +27,7 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
       taxonCharacterDisplayGroupsQueryOptions(id)
     );
     await context.queryClient.ensureQueryData(lookalikesQueryOptions(id));
+    await context.queryClient.ensureQueryData(sourceForTaxonQueryOptions(id));
 
     return { id };
   },
@@ -39,6 +42,7 @@ function TaxonPage() {
     taxonCharacterDisplayGroupsQueryOptions(id)
   );
   const { data: lookalikes } = useSuspenseQuery(lookalikesQueryOptions(id));
+  const { data: sources } = useSuspenseQuery(sourceForTaxonQueryOptions(id));
 
   const breadcrumbItems: Breadcrumb[] = useMemo(() => {
     const items: Breadcrumb[] = taxon.ancestors.map((ancestor) => ({
@@ -85,27 +89,12 @@ function TaxonPage() {
             <Tabs.Trigger value="states">Description</Tabs.Trigger>
             <Tabs.Trigger value="lookalikes">Lookalikes</Tabs.Trigger>
             <Tabs.Trigger value="names">Names</Tabs.Trigger>
+            <Tabs.Trigger value="sources">Sources</Tabs.Trigger>
           </Tabs.List>
           <Tabs.Content value="states" mt="4">
-            <Box mb="3">
-              <Heading size="4">Morphological Description</Heading>
-              <Text as="p">
-                Some traits may have additional information from the glossary,
-                indicated by an underline. Hover over these terms to view these
-                definitions.
-              </Text>
-            </Box>
             <TaxonCharacterSection groups={displayGroups} />
           </Tabs.Content>
           <Tabs.Content value="lookalikes" mt="4">
-            <Box mb="3">
-              <Heading size="4">Similar Taxa</Heading>
-              <Text as="p">
-                These taxa share similar characteristics with{" "}
-                {taxon.acceptedName}. Click on any taxon to compare
-                side-by-side.
-              </Text>
-            </Box>
             <LookalikesList
               taxonId={id}
               taxonAcceptedName={taxon.acceptedName}
@@ -117,6 +106,18 @@ function TaxonPage() {
               Names
             </Heading>
             <NamesDataList names={taxon.names} />
+          </Tabs.Content>
+          <Tabs.Content value="sources" mt="4">
+            <Heading size="4">Sources</Heading>
+            {sources.length > 0 ? (
+              sources.map((s) => (
+                <Text key={s.id} mb="2">
+                  {formatPublicationForTaxon(s)}
+                </Text>
+              ))
+            ) : (
+              <Text color="gray">No sources available.</Text>
+            )}
           </Tabs.Content>
         </Tabs.Root>
       </Box>
