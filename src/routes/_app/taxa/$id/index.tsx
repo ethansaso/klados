@@ -7,6 +7,8 @@ import { Breadcrumb, Breadcrumbs } from "../../../../components/Breadcrumbs";
 import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 import { taxonCharacterDisplayGroupsQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
+import { sourceForTaxonQueryOptions } from "../../../../lib/queries/taxonSources";
+import { formatPublicationForTaxon } from "../../../../lib/utils/formatPublication";
 import { prefixWithRank } from "../../../../lib/utils/prefixWithRank";
 import { TaxonCharacterSection } from "./-characters/TaxonCharacterSection";
 import { LookalikesList } from "./-lookalikes/LookalikesList";
@@ -25,6 +27,7 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
       taxonCharacterDisplayGroupsQueryOptions(id)
     );
     await context.queryClient.ensureQueryData(lookalikesQueryOptions(id));
+    await context.queryClient.ensureQueryData(sourceForTaxonQueryOptions(id));
 
     return { id };
   },
@@ -39,6 +42,7 @@ function TaxonPage() {
     taxonCharacterDisplayGroupsQueryOptions(id)
   );
   const { data: lookalikes } = useSuspenseQuery(lookalikesQueryOptions(id));
+  const { data: sources } = useSuspenseQuery(sourceForTaxonQueryOptions(id));
 
   const breadcrumbItems: Breadcrumb[] = useMemo(() => {
     const items: Breadcrumb[] = taxon.ancestors.map((ancestor) => ({
@@ -104,10 +108,16 @@ function TaxonPage() {
             <NamesDataList names={taxon.names} />
           </Tabs.Content>
           <Tabs.Content value="sources" mt="4">
-            <Heading size="4" mb="2">
-              Sources
-            </Heading>
-            <Text>Coming soon!</Text>
+            <Heading size="4">Sources</Heading>
+            {sources.length > 0 ? (
+              sources.map((s) => (
+                <Text key={s.id} mb="2">
+                  {formatPublicationForTaxon(s)}
+                </Text>
+              ))
+            ) : (
+              <Text color="gray">No sources available.</Text>
+            )}
           </Tabs.Content>
         </Tabs.Root>
       </Box>

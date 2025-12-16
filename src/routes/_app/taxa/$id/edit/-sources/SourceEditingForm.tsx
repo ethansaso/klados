@@ -16,8 +16,8 @@ import {
   SetTaxonSourcesInput,
   TaxonSourceUpsertItem,
 } from "../../../../../../lib/domain/taxon-sources/validation";
+import { formatPublication } from "../../../../../../lib/utils/formatPublication";
 import { pickSource } from "./SourcePickerModal";
-import { formatPublication } from "./formatPublication";
 
 type SourceEditorProps = {
   value: SetTaxonSourcesInput;
@@ -27,7 +27,7 @@ type SourceEditorProps = {
 };
 
 /** Date in local time */
-export function toDateInputValue(d: Date): string {
+function toDateInputValue(d: Date): string {
   return d.toLocaleString(undefined, {
     year: "numeric",
     month: "2-digit",

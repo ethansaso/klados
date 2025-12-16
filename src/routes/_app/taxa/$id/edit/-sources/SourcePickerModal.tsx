@@ -15,7 +15,7 @@ import { ComboboxOption } from "../../../../../../components/inputs/combobox/typ
 import { createSourceFn } from "../../../../../../lib/api/sources/createSourceFn";
 import { SourceDTO } from "../../../../../../lib/domain/sources/types";
 import { sourcesQueryOptions } from "../../../../../../lib/queries/sources";
-import { formatPublication } from "./formatPublication";
+import { formatPublication } from "../../../../../../lib/utils/formatPublication";
 
 // ! This component is only responsible for picking or creating a source, i.e. from the 'source' table.
 // It does NOT handle configuration of the actual taxon source item (accessedAt, locator, note).

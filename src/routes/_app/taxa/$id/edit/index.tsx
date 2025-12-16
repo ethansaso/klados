@@ -219,7 +219,7 @@ function RouteComponent() {
       reset(data, { keepDirty: false }); // keep RHF dirty tracking in sync
       await invalidateTaxon(id);
       toast({ description: "Taxon saved.", variant: "success" });
-    } catch (err: Error) {
+    } catch (err) {
       toast({
         description: err?.message ?? "Failed to save changes.",
         variant: "error",
@@ -242,7 +242,7 @@ function RouteComponent() {
       await invalidateTaxon(id);
       toast({ description: "Taxon published.", variant: "success" });
       navigate({ to: ".." });
-    } catch (err: any) {
+    } catch (err) {
       toast({
         description: err?.message ?? "Failed to publish taxon.",
         variant: "error",
@@ -268,7 +268,7 @@ function RouteComponent() {
         variant: "success",
       });
       navigate({ to: "/taxa/drafts" });
-    } catch (err: any) {
+    } catch (err) {
       toast({
         description: err?.message ?? "Failed to delete taxon.",
         variant: "error",
