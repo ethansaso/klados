@@ -5,15 +5,10 @@ import {
   Button,
   Flex,
   Heading,
-  IconButton,
   Link as RadixLink,
-  Select,
   Text,
-  TextArea,
-  TextField,
-  Tooltip,
 } from "@radix-ui/themes";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   createFileRoute,
   notFound,
@@ -22,103 +17,78 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Form, Label } from "radix-ui";
-import { MouseEventHandler, useMemo, useState } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
-import { FaDove, FaLeaf } from "react-icons/fa";
+import { Form } from "radix-ui";
+import { MouseEventHandler, useState } from "react";
+import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import z from "zod";
-import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
-import { ComboboxOption } from "../../../../../components/inputs/combobox/types";
-import {
-  a11yProps,
-  ConditionalAlert,
-} from "../../../../../components/inputs/ConditionalAlert";
 import { TAXON_RANKS_DESCENDING } from "../../../../../db/schema/schema";
-import { deleteTaxonFn } from "../../../../../lib/api/taxa/deleteTaxon";
-import { updateTaxon } from "../../../../../lib/api/taxa/fns/update";
-import { publishTaxonFn } from "../../../../../lib/api/taxa/publish";
+import { getTaxonCharacterStatesFn } from "../../../../../lib/api/character-states/getTaxonCharacterStates";
+import { deleteTaxonFn } from "../../../../../lib/api/taxa/deleteTaxonFn";
+import { getTaxonFn } from "../../../../../lib/api/taxa/getTaxonFn";
+import { publishTaxonFn } from "../../../../../lib/api/taxa/publishFn";
+import { updateTaxonFn } from "../../../../../lib/api/taxa/updateTaxonFn";
+import { getSourcesForTaxonFn } from "../../../../../lib/api/taxon-sources/getSourcesForTaxonFn";
 import { TaxonCharacterStateDTO } from "../../../../../lib/domain/character-states/types";
+import { SourceDTO } from "../../../../../lib/domain/sources/types";
 import { TaxonDetailDTO } from "../../../../../lib/domain/taxa/types";
 import {
   CharacterUpdate,
   mediaItemSchema,
-  taxonPatchSchema,
 } from "../../../../../lib/domain/taxa/validation";
 import { nameItemSchema } from "../../../../../lib/domain/taxon-names/validation";
+import { TaxonSourceDTO } from "../../../../../lib/domain/taxon-sources/types";
 import {
-  taxaQueryOptions,
-  taxonQueryOptions,
-} from "../../../../../lib/queries/taxa";
-import { taxonCharacterStatesQueryOptions } from "../../../../../lib/queries/taxonCharacterStates";
+  setTaxonSourcesSchema,
+  TaxonSourceUpsertItem,
+} from "../../../../../lib/domain/taxon-sources/validation";
 import { toast } from "../../../../../lib/utils/toast";
 import { CharacterEditingForm } from "./-characters/CharactersEditingForm";
 import { characterStateFormSchema } from "./-characters/validation";
-import { pickGBIFTaxon } from "./-dialogs/GbifIdModal";
-import { pickInatTaxon } from "./-dialogs/InatIdModal";
-import { MediaEditingForm } from "./-MediaEditingForm";
+import { MediaEditingForm } from "./-media/MediaEditingForm";
+import { MetaForm } from "./-meta/MetaForm";
 import { NameEditingForm } from "./-names/NameEditingForm";
+import { SourceEditingForm } from "./-sources/SourceEditingForm";
 
-// TODO: choose a better approach for the seeding here.
-// This one is quite laggy and fragile; there should be a proper react query loading/error setup.
+export type TaxonEditFormValues = z.infer<typeof taxonEditFormSchema>;
 
-const taxonFormSchema = taxonPatchSchema.extend({
-  source_inat_id: z.number().nullable(),
-  source_gbif_id: z.number().nullable(),
-  media: z.array(mediaItemSchema),
+export const taxonEditFormSchema = z.object({
+  parentId: z.number().nullable(),
   rank: z.enum(TAXON_RANKS_DESCENDING),
+  sourceGbifId: z.number().nullable(),
+  sourceInatId: z.number().nullable(),
+  media: z.array(mediaItemSchema),
+  notes: z.string(),
   names: z.array(nameItemSchema),
   characters: z.array(characterStateFormSchema),
+  sources: setTaxonSourcesSchema,
 });
 
-export type FormFields = z.infer<typeof taxonFormSchema>;
-
-// TODO: suspense
-export const Route = createFileRoute("/_app/taxa/$id/edit/")({
-  beforeLoad: async ({ context, params }) => {
-    const id = Number(params.id);
-    if (isNaN(id)) {
-      throw notFound();
-    }
-
-    // ! Forcibly refetch data to ensure we have the latest version to seed form
-    await context.queryClient.invalidateQueries(taxonQueryOptions(id));
-    await context.queryClient.invalidateQueries(
-      taxonCharacterStatesQueryOptions(id)
-    );
-    const taxon = await context.queryClient.fetchQuery(taxonQueryOptions(id));
-    const values = await context.queryClient.fetchQuery(
-      taxonCharacterStatesQueryOptions(id)
-    );
-
-    if (!taxon || !values) {
-      throw notFound();
-    }
-
-    return { id, initialTaxon: taxon, initialCharacterValues: values };
-  },
-  loader: async ({ context }) => {
-    const { id, initialTaxon, initialCharacterValues } = context;
-    return { id, initialTaxon, initialCharacterValues };
-  },
-  component: RouteComponent,
-});
+const seedSources = (rows: TaxonSourceDTO[]): TaxonSourceUpsertItem[] =>
+  rows.map((r) => ({
+    sourceId: r.sourceId,
+    accessedAt: new Date(r.accessedAt),
+    locator: r.locator ?? "",
+    note: r.note ?? "",
+  }));
 
 const seedEditState = (
   taxon: TaxonDetailDTO,
-  characterValues: TaxonCharacterStateDTO[]
-): FormFields => ({
-  parent_id: taxon.ancestors?.[taxon.ancestors.length - 1]?.id ?? null,
+  characterValues: TaxonCharacterStateDTO[],
+  sources: TaxonSourceDTO[]
+): TaxonEditFormValues => ({
+  parentId: taxon.ancestors?.[taxon.ancestors.length - 1]?.id ?? null,
   rank: taxon.rank,
-  source_gbif_id: taxon.sourceGbifId,
-  source_inat_id: taxon.sourceInatId,
+  sourceGbifId: taxon.sourceGbifId,
+  sourceInatId: taxon.sourceInatId,
   media: taxon.media,
   notes: taxon.notes,
   names: taxon.names,
   characters: characterValues,
+  sources: seedSources(sources),
 });
 
 const convertToServerCharacterValues = (
-  values: FormFields["characters"]
+  values: TaxonEditFormValues["characters"]
 ): CharacterUpdate[] => {
   return values.map((v) => {
     switch (v.kind) {
@@ -134,52 +104,74 @@ const convertToServerCharacterValues = (
   });
 };
 
+export const Route = createFileRoute("/_app/taxa/$id/edit/")({
+  beforeLoad: async ({ params }) => {
+    const id = Number(params.id);
+    if (isNaN(id)) {
+      throw notFound();
+    }
+
+    const [taxon, values, sources] = await Promise.all([
+      getTaxonFn({ data: { id } }),
+      getTaxonCharacterStatesFn({ data: { taxonId: id } }),
+      getSourcesForTaxonFn({ data: { id } }),
+    ]);
+
+    if (!taxon || !values || !sources) {
+      throw notFound();
+    }
+
+    return {
+      id,
+      initialTaxon: taxon,
+      initialCharacterValues: values,
+      initialSources: sources,
+    };
+  },
+  loader: async ({ context }) => {
+    const { id, initialTaxon, initialCharacterValues, initialSources } =
+      context;
+    return { id, initialTaxon, initialCharacterValues, initialSources };
+  },
+  component: RouteComponent,
+});
+
 function RouteComponent() {
-  const { id, initialTaxon, initialCharacterValues } = Route.useLoaderData();
+  const { id, initialTaxon, initialCharacterValues, initialSources } =
+    Route.useLoaderData();
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const serverUpdate = useServerFn(updateTaxon);
+  const serverUpdate = useServerFn(updateTaxonFn);
   const serverPublish = useServerFn(publishTaxonFn);
   const serverDelete = useServerFn(deleteTaxonFn);
 
+  const methods = useForm({
+    resolver: zodResolver(taxonEditFormSchema),
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+    defaultValues: seedEditState(
+      initialTaxon,
+      initialCharacterValues,
+      initialSources
+    ),
+  });
   const {
-    register,
     control,
     handleSubmit,
     reset,
-    formState: { errors, isDirty, isSubmitting },
-  } = useForm<FormFields>({
-    resolver: zodResolver(taxonFormSchema),
-    mode: "onSubmit",
-    reValidateMode: "onChange",
-    defaultValues: seedEditState(initialTaxon, initialCharacterValues),
-  });
+    formState: { isDirty, isSubmitting },
+  } = methods;
 
   const [isDeleting, setIsDeleting] = useState(false);
-  // Parent combobox setup
-  const [parentQ, setParentQ] = useState("");
-  const { data: parentResp } = useQuery(
-    taxaQueryOptions(1, 10, { q: parentQ, status: "active" })
-  );
-  const parentOptions = useMemo<ComboboxOption[]>(() => {
-    const items = parentResp?.items ?? [];
-    return items.reduce<ComboboxOption[]>((acc, i) => {
-      if (i.id === id) return acc; // skip self
-      acc.push({
-        id: i.id,
-        label: i.acceptedName,
-        hint: i.rank,
-      });
-      return acc;
-    }, []);
-  }, [parentResp, id]);
-  const parentIdVal = useWatch({ control, name: "parent_id" });
-  const parentSelected = useMemo<ComboboxOption | null>(() => {
-    if (!parentIdVal) return null;
-    return parentOptions.find((o) => o.id === Number(parentIdVal)) ?? null;
-  }, [parentIdVal, parentOptions]);
   // For media fetching
-  const inatId = useWatch({ control, name: "source_inat_id" });
+  const inatId = useWatch({ control, name: "sourceInatId" });
+
+  // Visual mapping for sources editing
+  const [sourcesById, setSourcesById] = useState<Map<number, SourceDTO>>(() => {
+    const m = new Map<number, SourceDTO>();
+    for (const row of initialSources) m.set(row.sourceId, row.source);
+    return m;
+  });
 
   useBlocker({
     shouldBlockFn: () =>
@@ -188,8 +180,6 @@ function RouteComponent() {
         : false,
     enableBeforeUnload: isDirty,
   });
-  // Watch rank for GBIF/iNat fetching
-  const rank = useWatch({ control, name: "rank" });
 
   const isDraft = initialTaxon.status === "draft";
   const statusBadgeColor =
@@ -211,13 +201,12 @@ function RouteComponent() {
   const handleDiscard = () => {
     if (!isDirty) return;
     if (!confirm("Discard unsaved changes?")) return;
-    reset(seedEditState(initialTaxon, initialCharacterValues), {
+    reset(seedEditState(initialTaxon, initialCharacterValues, initialSources), {
       keepDirty: false,
     });
   };
 
   const onSave = handleSubmit(async (data) => {
-    console.log(data);
     if (!isDirty) return;
     try {
       await serverUpdate({
@@ -302,292 +291,111 @@ function RouteComponent() {
         <Badge color={statusBadgeColor}>{initialTaxon.status}</Badge>
       </Flex>
 
-      <Form.Root onSubmit={onSave}>
-        <Flex direction="column" gap="3" mb="5">
-          <Flex gap="4">
-            {/* Rank */}
-            <Box>
-              <Flex justify="between" align="baseline" mb="1">
-                <Label.Root htmlFor="rank">Rank</Label.Root>
-                <ConditionalAlert
-                  id="rank-error"
-                  message={errors.rank?.message}
-                />
-              </Flex>
-              <Controller
-                name="rank"
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <Select.Root
-                    value={value}
-                    onValueChange={(v) => onChange(v as typeof value)}
-                  >
-                    <Select.Trigger style={{ display: "flex" }}>
-                      {value}
-                    </Select.Trigger>
-                    <Select.Content>
-                      {TAXON_RANKS_DESCENDING.map((rank) => (
-                        <Select.Item key={rank} value={rank}>
-                          {rank}
-                        </Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Root>
-                )}
+      <FormProvider {...methods}>
+        <Form.Root onSubmit={onSave}>
+          {/* TODO: sync accepted name */}
+          {/* Basic meta (rank, parent, source IDs) */}
+          <MetaForm id={id} acceptedName={initialTaxon.acceptedName} />
+
+          {/* Characters */}
+          <Controller
+            name="characters"
+            control={control}
+            render={({ field }) => (
+              <CharacterEditingForm
+                value={field.value}
+                onChange={field.onChange}
               />
-            </Box>
-            {/* Parent ID (TODO) */}
-            <Box>
-              <Flex justify="between" align="baseline" mb="1">
-                <Label.Root htmlFor="parent-id">Parent taxon</Label.Root>
-                <ConditionalAlert
-                  id="parent-id-error"
-                  message={errors.parent_id?.message}
-                />
-              </Flex>
-
-              <Controller
-                control={control}
-                name="parent_id"
-                render={({ field }) => (
-                  <SelectCombobox.Root
-                    id="parent-id"
-                    value={parentSelected}
-                    onValueChange={(opt) => {
-                      field.onChange(opt ? Number(opt.id) : null);
-                    }}
-                    options={parentOptions}
-                    onQueryChange={setParentQ}
-                  >
-                    <SelectCombobox.Trigger
-                      placeholder="Select parent taxon"
-                      {...a11yProps("parent-id-error", !!errors.parent_id)}
-                    />
-                    <SelectCombobox.Content>
-                      <SelectCombobox.Input />
-                      <SelectCombobox.List>
-                        {parentOptions.map((option, index) => (
-                          <SelectCombobox.Item
-                            key={option.id}
-                            index={index}
-                            option={option}
-                          />
-                        ))}
-                      </SelectCombobox.List>
-                    </SelectCombobox.Content>
-                  </SelectCombobox.Root>
-                )}
-              />
-            </Box>
-          </Flex>
-          <Flex gap="4">
-            {/* Source GBIF ID */}
-            <Box>
-              <Flex justify="between" align="baseline" mb="1">
-                <Label.Root htmlFor="source-gbif-id">Source GBIF ID</Label.Root>
-                <ConditionalAlert
-                  id="source-gbif-id-error"
-                  message={errors.source_gbif_id?.message}
-                />
-              </Flex>
-              <Controller
-                control={control}
-                name="source_gbif_id"
-                render={({ field }) => (
-                  <TextField.Root
-                    id="source-gbif-id"
-                    type="number"
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.currentTarget.value === ""
-                          ? null
-                          : Number(e.currentTarget.value)
-                      )
-                    }
-                    onBlur={field.onBlur}
-                    {...a11yProps(
-                      "source-gbif-id-error",
-                      !!errors.source_gbif_id
-                    )}
-                  >
-                    <TextField.Slot side="right" pr="3">
-                      <Tooltip content="Fetch from GBIF">
-                        <IconButton
-                          type="button"
-                          variant="ghost"
-                          onClick={async () => {
-                            const picked = await pickGBIFTaxon(
-                              initialTaxon.acceptedName,
-                              rank
-                            );
-                            if (picked) field.onChange(picked.id);
-                          }}
-                        >
-                          <FaLeaf />
-                        </IconButton>
-                      </Tooltip>
-                    </TextField.Slot>
-                  </TextField.Root>
-                )}
-              />
-            </Box>
-            {/* Source iNat ID */}
-            <Box>
-              <Flex justify="between" align="baseline" mb="1">
-                <Label.Root htmlFor="source-inat-id">
-                  Source iNaturalist ID
-                </Label.Root>
-                <ConditionalAlert
-                  id="source-inat-id-error"
-                  message={errors.source_inat_id?.message}
-                />
-              </Flex>
-              <Controller
-                control={control}
-                name="source_inat_id"
-                render={({ field }) => (
-                  <TextField.Root
-                    id="source-inat-id"
-                    type="number"
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.currentTarget.value === ""
-                          ? null
-                          : Number(e.currentTarget.value)
-                      )
-                    }
-                    onBlur={field.onBlur}
-                    {...a11yProps(
-                      "source-inat-id-error",
-                      !!errors.source_inat_id
-                    )}
-                  >
-                    <TextField.Slot side="right" pr="3">
-                      <Tooltip content="Fetch from iNaturalist">
-                        <IconButton
-                          type="button"
-                          variant="ghost"
-                          onClick={async () => {
-                            const picked = await pickInatTaxon(
-                              initialTaxon.acceptedName,
-                              rank
-                            );
-                            if (picked) field.onChange(picked.id);
-                          }}
-                        >
-                          <FaDove />
-                        </IconButton>
-                      </Tooltip>
-                    </TextField.Slot>
-                  </TextField.Root>
-                )}
-              />
-            </Box>
-          </Flex>
-
-          {/* Notes */}
-          <Box>
-            <Flex justify="between" align="baseline" mb="1">
-              <Label.Root htmlFor="notes">Notes</Label.Root>
-              <ConditionalAlert
-                id="notes-error"
-                message={errors.notes?.message}
-              />
-            </Flex>
-            <TextArea
-              id="notes"
-              placeholder="Optional notes about this taxon"
-              {...register("notes")}
-              {...a11yProps("notes-error", !!errors.notes)}
-            />
-          </Box>
-        </Flex>
-
-        <Controller
-          name="characters"
-          control={control}
-          render={({ field }) => (
-            <CharacterEditingForm
-              value={field.value}
-              onChange={field.onChange}
-            />
-          )}
-        />
-
-        {/* Media */}
-        <Controller
-          control={control}
-          name="media"
-          render={({ field: { value, onChange } }) => (
-            <MediaEditingForm
-              value={value}
-              inatId={inatId}
-              onChange={onChange}
-            />
-          )}
-        />
-
-        {/* Names */}
-        <Controller
-          control={control}
-          name="names"
-          render={({ field: { value, onChange } }) => (
-            <NameEditingForm
-              value={value}
-              inatId={inatId}
-              onChange={onChange}
-            />
-          )}
-        />
-
-        {/* TODO: fix spacing, also figure out client discriminated rendering */}
-        <Flex gap="2" justify="between">
-          <Flex gap="2" justify="end">
-            <Button
-              type="button"
-              disabled={isSubmitting || isDeleting || !isDirty}
-              loading={isSubmitting || isDeleting}
-              onClick={handleDiscard}
-              variant="soft"
-            >
-              Discard Changes
-            </Button>
-            <Button
-              type="submit"
-              variant={isDraft ? "soft" : "solid"}
-              loading={isSubmitting || isDeleting}
-              disabled={!isDirty || isSubmitting || isDeleting}
-            >
-              Save
-            </Button>
-          </Flex>
-          <Flex gap="2" justify="end">
-            {isDraft && (
-              <>
-                <Button
-                  type="button"
-                  disabled={isSubmitting || isDeleting}
-                  loading={isSubmitting || isDeleting}
-                  onClick={onPublish}
-                >
-                  Publish
-                </Button>
-                <Button
-                  type="button"
-                  disabled={isDeleting || isSubmitting}
-                  loading={isDeleting || isSubmitting}
-                  color="tomato"
-                  onClick={handleDelete}
-                >
-                  Delete Draft
-                </Button>
-              </>
             )}
+          />
+
+          {/* Media */}
+          <Controller
+            control={control}
+            name="media"
+            render={({ field: { value, onChange } }) => (
+              <MediaEditingForm
+                value={value}
+                inatId={inatId}
+                onChange={onChange}
+              />
+            )}
+          />
+
+          {/* Names */}
+          <Controller
+            control={control}
+            name="names"
+            render={({ field: { value, onChange } }) => (
+              <NameEditingForm
+                value={value}
+                inatId={inatId}
+                onChange={onChange}
+              />
+            )}
+          />
+
+          {/* Sources */}
+          <Controller
+            control={control}
+            name="sources"
+            render={({ field: { value, onChange } }) => (
+              <SourceEditingForm
+                value={value}
+                sourcesById={sourcesById}
+                setSourcesById={setSourcesById}
+                onChange={onChange}
+              />
+            )}
+          />
+
+          {/* TODO: fix spacing, also figure out client discriminated rendering */}
+          <Flex gap="2" justify="between">
+            <Flex gap="2" justify="end">
+              <Button
+                type="button"
+                disabled={isSubmitting || isDeleting || !isDirty}
+                loading={isSubmitting || isDeleting}
+                onClick={handleDiscard}
+                variant="soft"
+              >
+                Discard Changes
+              </Button>
+              <Button
+                type="submit"
+                variant={isDraft ? "soft" : "solid"}
+                loading={isSubmitting || isDeleting}
+                disabled={!isDirty || isSubmitting || isDeleting}
+              >
+                Save
+              </Button>
+            </Flex>
+            <Flex gap="2" justify="end">
+              {isDraft && (
+                <>
+                  <Button
+                    type="button"
+                    disabled={isSubmitting || isDeleting}
+                    loading={isSubmitting || isDeleting}
+                    onClick={onPublish}
+                  >
+                    Publish
+                  </Button>
+                  <Button
+                    type="button"
+                    disabled={isDeleting || isSubmitting}
+                    loading={isDeleting || isSubmitting}
+                    color="tomato"
+                    onClick={handleDelete}
+                  >
+                    Delete Draft
+                  </Button>
+                </>
+              )}
+            </Flex>
           </Flex>
-        </Flex>
-      </Form.Root>
+        </Form.Root>
+      </FormProvider>
     </Box>
   );
 }

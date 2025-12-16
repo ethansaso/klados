@@ -14,7 +14,7 @@ import { AddTraitSetModal } from "./-AddTraitSetModal";
 
 export const Route = createFileRoute("/_app/glossary/traits")({
   validateSearch: SearchWithQuerySchema,
-  loaderDeps: ({ search: { page, page_size: pageSize, q } }) => ({
+  loaderDeps: ({ search: { page, pageSize: pageSize, q } }) => ({
     page,
     pageSize,
     q,

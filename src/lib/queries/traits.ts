@@ -1,8 +1,8 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getTraitSetFn } from "../api/traits/getTraitSet";
-import { getTraitSetValuesFn } from "../api/traits/getTraitSetValues";
-import { listTraitSetsFn } from "../api/traits/listTraitSets";
-import { listTraitSetValuesFn } from "../api/traits/listTraitSetValues";
+import { getTraitSetFn } from "../api/traits/getTraitSetFn";
+import { getTraitSetValuesFn } from "../api/traits/getTraitSetValuesFn";
+import { listTraitSetsFn } from "../api/traits/listTraitSetsFn";
+import { listTraitSetValuesFn } from "../api/traits/listTraitSetValuesFn";
 import {
   TraitSetDetailDTO,
   TraitSetPaginatedResult,
@@ -36,9 +36,7 @@ export const traitSetValuesQueryOptions = (setId: number) =>
   queryOptions({
     queryKey: ["traitSetValues", setId] as const,
     queryFn: () =>
-      getTraitSetValuesFn({ data: { set_id: setId } }) as Promise<
-        TraitValueDTO[]
-      >,
+      getTraitSetValuesFn({ data: { setId } }) as Promise<TraitValueDTO[]>,
     staleTime: 30_000,
   });
 
@@ -51,7 +49,7 @@ export const traitSetValuesPaginatedQueryOptions = (
     queryKey: ["traitSetValuesPaginated", { setId, page, pageSize }] as const,
     queryFn: () =>
       listTraitSetValuesFn({
-        data: { set_id: setId, page, pageSize },
+        data: { setId, page, pageSize },
       }) as Promise<TraitValuePaginatedResult>,
     staleTime: 30_000,
   });

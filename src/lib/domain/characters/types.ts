@@ -30,6 +30,4 @@ export type CategoricalCharacterDetailDTO = Omit<
 
 export type CharacterDetailDTO = CategoricalCharacterDetailDTO | never; // TODO: other types
 
-export interface CharacterPaginatedResult extends PaginatedResult {
-  items: CharacterDTO[];
-}
+export type CharacterPaginatedResult = PaginatedResult<CharacterDTO>;

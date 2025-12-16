@@ -17,8 +17,8 @@ import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../components/dialogs/ConfirmDeleteModal";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { ColorBubble } from "../../../../components/trait-tokens/ColorBubble";
-import { createTraitValueFn } from "../../../../lib/api/traits/createTraitValue";
-import { deleteTraitSetFn } from "../../../../lib/api/traits/deleteTraitSet";
+import { createTraitValueFn } from "../../../../lib/api/traits/createTraitValueFn";
+import { deleteTraitSetFn } from "../../../../lib/api/traits/deleteTraitSetFn";
 import { TraitSetDTO } from "../../../../lib/domain/traits/types";
 import {
   traitSetQueryOptions,
@@ -90,7 +90,7 @@ function RouteComponent() {
     try {
       await serverCreate({
         data: {
-          set_id: id,
+          setId: id,
           key: snakeCase(trimmedValue),
           label: trimmedValue,
         },

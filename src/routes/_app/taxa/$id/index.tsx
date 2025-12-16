@@ -85,27 +85,12 @@ function TaxonPage() {
             <Tabs.Trigger value="states">Description</Tabs.Trigger>
             <Tabs.Trigger value="lookalikes">Lookalikes</Tabs.Trigger>
             <Tabs.Trigger value="names">Names</Tabs.Trigger>
+            <Tabs.Trigger value="sources">Sources</Tabs.Trigger>
           </Tabs.List>
           <Tabs.Content value="states" mt="4">
-            <Box mb="3">
-              <Heading size="4">Morphological Description</Heading>
-              <Text as="p">
-                Some traits may have additional information from the glossary,
-                indicated by an underline. Hover over these terms to view these
-                definitions.
-              </Text>
-            </Box>
             <TaxonCharacterSection groups={displayGroups} />
           </Tabs.Content>
           <Tabs.Content value="lookalikes" mt="4">
-            <Box mb="3">
-              <Heading size="4">Similar Taxa</Heading>
-              <Text as="p">
-                These taxa share similar characteristics with{" "}
-                {taxon.acceptedName}. Click on any taxon to compare
-                side-by-side.
-              </Text>
-            </Box>
             <LookalikesList
               taxonId={id}
               taxonAcceptedName={taxon.acceptedName}
@@ -117,6 +102,12 @@ function TaxonPage() {
               Names
             </Heading>
             <NamesDataList names={taxon.names} />
+          </Tabs.Content>
+          <Tabs.Content value="sources" mt="4">
+            <Heading size="4" mb="2">
+              Sources
+            </Heading>
+            <Text>Coming soon!</Text>
           </Tabs.Content>
         </Tabs.Root>
       </Box>

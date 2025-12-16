@@ -10,24 +10,16 @@ import {
 } from "@radix-ui/themes";
 import { FaDove } from "react-icons/fa";
 import { PiArrowDown, PiArrowUp, PiPlus, PiTrash } from "react-icons/pi";
-import { MEDIA_LICENSES } from "../../../../../db/utils/mediaLicense";
-import { MediaItem } from "../../../../../lib/domain/taxa/validation";
-import { toast } from "../../../../../lib/utils/toast";
-import { selectInatPhotos } from "./-dialogs/InatPhotoSelectModal";
+import { MEDIA_LICENSES } from "../../../../../../db/utils/mediaLicense";
+import { MediaItem } from "../../../../../../lib/domain/taxa/validation";
+import { isUrl } from "../../../../../../lib/utils/isUrl";
+import { toast } from "../../../../../../lib/utils/toast";
+import { selectInatPhotos } from "./InatPhotoSelectModal";
 
 type MediaEditorProps = {
   value: MediaItem[];
   inatId: number | null;
   onChange: (next: MediaItem[]) => void;
-};
-
-const isUrl = (s: string) => {
-  try {
-    new URL(s);
-    return true;
-  } catch {
-    return false;
-  }
 };
 
 const ELIGIBLE: Record<(typeof MEDIA_LICENSES)[number], string> = {

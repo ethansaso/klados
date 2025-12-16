@@ -25,9 +25,5 @@ export type TraitValueDTO = Pick<
   aliasTarget: Trait | null;
 };
 
-export interface TraitSetPaginatedResult extends PaginatedResult {
-  items: TraitSetDTO[];
-}
-export interface TraitValuePaginatedResult extends PaginatedResult {
-  items: TraitValueDTO[];
-}
+export type TraitSetPaginatedResult = PaginatedResult<TraitSetDTO>;
+export type TraitValuePaginatedResult = PaginatedResult<TraitValueDTO>;

@@ -11,6 +11,7 @@ import {
 import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import { requireCuratorMiddleware } from "../../../auth/serverFnMiddleware";
+import { CategoricalCharacterUpdate } from "../../../domain/character-states/validation";
 import {
   common,
   commonJoinPred,
@@ -24,7 +25,6 @@ import {
   getCurrentTaxonMinimal,
 } from "../../../domain/taxa/utils";
 import {
-  CategoricalCharacterUpdate,
   CharacterUpdate,
   taxonPatchSchema,
 } from "../../../domain/taxa/validation";
@@ -40,7 +40,7 @@ export const updateTaxon = createServerFn({ method: "POST" })
       })
       .and(taxonPatchSchema)
       .superRefine((data, ctx) => {
-        const { id, parent_id, ...rest } = data as Record<string, unknown>;
+        const { id, parentId, ...rest } = data;
         // 1) At least one field to update
         const hasAny = Object.values(rest).some((v) => v !== undefined);
         if (!hasAny) {
@@ -50,12 +50,12 @@ export const updateTaxon = createServerFn({ method: "POST" })
             path: [],
           });
         }
-        // 2) parent_id cannot be the same as id
-        if (parent_id != null && parent_id === id) {
+        // 2) parentId cannot be the same as id
+        if (parentId != null && parentId === id) {
           ctx.addIssue({
             code: "custom",
             message: "A taxon's parent cannot be itself.",
-            path: ["parent_id"],
+            path: ["parentId"],
           });
         }
       })
@@ -73,12 +73,12 @@ export const updateTaxon = createServerFn({ method: "POST" })
       }
 
       const nextParentId =
-        "parent_id" in updates ? (updates.parent_id ?? null) : current.parentId;
+        "parentId" in updates ? (updates.parentId ?? null) : current.parentId;
       const nextRank =
         "rank" in updates ? (updates.rank ?? current.rank) : current.rank;
 
       // Make sure new rank hierarchy isn't invalid
-      if ("parent_id" in updates || "rank" in updates) {
+      if ("parentId" in updates || "rank" in updates) {
         await assertHierarchyInvariant({
           tx,
           nextParentId,
@@ -93,12 +93,12 @@ export const updateTaxon = createServerFn({ method: "POST" })
 
       // Build update payload for the taxon row
       const updatePayload: Record<string, unknown> = {};
-      if ("parent_id" in updates) updatePayload.parentId = updates.parent_id;
+      if ("parentId" in updates) updatePayload.parentId = updates.parentId;
       if ("rank" in updates) updatePayload.rank = updates.rank;
-      if ("source_gbif_id" in updates)
-        updatePayload.sourceGbifId = updates.source_gbif_id;
-      if ("source_inat_id" in updates)
-        updatePayload.sourceInatId = updates.source_inat_id;
+      if ("sourceGbifId" in updates)
+        updatePayload.sourceGbifId = updates.sourceGbifId;
+      if ("sourceInatId" in updates)
+        updatePayload.sourceInatId = updates.sourceInatId;
       if ("media" in updates) updatePayload.media = updates.media;
       if ("notes" in updates) updatePayload.notes = updates.notes;
 

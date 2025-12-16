@@ -15,7 +15,7 @@ import { AddCharacterModal } from "./-AddCharacterModal";
 
 export const Route = createFileRoute("/_app/glossary/characters")({
   validateSearch: SearchWithQuerySchema,
-  loaderDeps: ({ search: { page, page_size: pageSize, q } }) => ({
+  loaderDeps: ({ search: { page, pageSize: pageSize, q } }) => ({
     page,
     pageSize,
     q,

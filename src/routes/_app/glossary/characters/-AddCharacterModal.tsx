@@ -48,10 +48,10 @@ export const AddCharacterModal = NiceModal.create(() => {
     defaultValues: {
       key: "",
       label: "",
-      group_id: undefined,
-      trait_set_id: undefined,
+      groupId: undefined,
+      traitSetId: undefined,
       description: undefined,
-      is_multi_select: true,
+      isMultiSelect: true,
     },
   });
 
@@ -77,8 +77,8 @@ export const AddCharacterModal = NiceModal.create(() => {
     hint: i.description,
   })) ?? []) as ComboboxOption[];
   const groupOptions = (groupResp?.items ?? []) as ComboboxOption[];
-  const traitSetIdVal = useWatch({ control, name: "trait_set_id" });
-  const groupIdVal = useWatch({ control, name: "group_id" });
+  const traitSetIdVal = useWatch({ control, name: "traitSetId" });
+  const groupIdVal = useWatch({ control, name: "groupId" });
   const traitSetSelected = useMemo<ComboboxOption | null>(() => {
     if (!traitSetIdVal) return null;
     return traitSetOptions.find((o) => o.id === Number(traitSetIdVal)) ?? null;
@@ -98,10 +98,10 @@ export const AddCharacterModal = NiceModal.create(() => {
   const onSubmit: SubmitHandler<CreateCharacterInput> = async ({
     key,
     label,
-    group_id: groupId,
-    trait_set_id: traitSetId,
+    groupId,
+    traitSetId,
     description,
-    is_multi_select: isMultiSelect,
+    isMultiSelect,
   }) => {
     try {
       await serverCreate({
@@ -109,9 +109,9 @@ export const AddCharacterModal = NiceModal.create(() => {
           key,
           label,
           description,
-          group_id: groupId,
-          trait_set_id: traitSetId,
-          is_multi_select: isMultiSelect,
+          groupId,
+          traitSetId,
+          isMultiSelect,
         },
       });
 
@@ -206,13 +206,11 @@ export const AddCharacterModal = NiceModal.create(() => {
                   <Label.Root htmlFor="trait-set-id">Trait Set</Label.Root>
                   <ConditionalAlert
                     id="trait-set-error"
-                    message={
-                      errors.trait_set_id?.message && "Select a trait set"
-                    }
+                    message={errors.traitSetId?.message && "Select a trait set"}
                   />
                 </Flex>
                 <Controller
-                  name="trait_set_id"
+                  name="traitSetId"
                   control={control}
                   render={({ field }) => (
                     <SelectCombobox.Root
@@ -248,11 +246,11 @@ export const AddCharacterModal = NiceModal.create(() => {
                   <Label.Root htmlFor="group-id">Group</Label.Root>
                   <ConditionalAlert
                     id="group-error"
-                    message={errors.group_id?.message && "Select a group"}
+                    message={errors.groupId?.message && "Select a group"}
                   />
                 </Flex>
                 <Controller
-                  name="group_id"
+                  name="groupId"
                   control={control}
                   render={({ field }) => (
                     <SelectCombobox.Root
@@ -300,7 +298,7 @@ export const AddCharacterModal = NiceModal.create(() => {
             <Box>
               <Flex gap="2" align="center">
                 <Controller
-                  name="is_multi_select"
+                  name="isMultiSelect"
                   control={control}
                   render={({ field }) => (
                     <Checkbox

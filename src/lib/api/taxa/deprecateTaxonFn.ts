@@ -10,13 +10,13 @@ export const deprecateTaxonFn = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       id: z.number(),
-      replaced_by_id: z.number().optional().nullable(),
+      replacedById: z.number().optional().nullable(),
     })
   )
   .handler(async ({ data }): Promise<TaxonDTO> => {
     const dto = await deprecateTaxonDomain({
       id: data.id,
-      replacedById: data.replaced_by_id ?? null,
+      replacedById: data.replacedById ?? null,
     });
 
     if (!dto) {

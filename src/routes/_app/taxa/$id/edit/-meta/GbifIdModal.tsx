@@ -1,14 +1,14 @@
 import NiceModal, { useModal } from "@ebay/nice-modal-react";
 import { Button, Dialog, Flex } from "@radix-ui/themes";
 import { useLayoutEffect, useState } from "react";
+import { ExternalResultSummary } from "../-ExternalResultSummary";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
-import { ExternalResultSummary } from "./ExternalResultSummary";
 
 type GbifTaxon = {
   id: number;
   rank: string;
-  scientific_name: string;
-  src_image?: string;
+  scientificName: string;
+  srcImage?: string;
 };
 
 type Props = {
@@ -32,6 +32,9 @@ const INTERNAL_RANK_TO_GBIF_MAPPING: Record<
   subfamily: "SUBFAMILY",
   tribe: "TRIBE",
   genus: "GENUS",
+  subgenus: "SUBGENUS",
+  section: null,
+  complex: "SPECIES_AGGREGATE",
   species: "SPECIES",
   subspecies: "SUBSPECIES",
   variety: "VARIETY",
@@ -86,7 +89,7 @@ const GbifIdModal = NiceModal.create<Props>(
           // Best-effort attempt at getting an image for each taxon
           const results: GbifTaxon[] = await Promise.all(
             data.map(async (taxon) => {
-              let medium_src: string | undefined;
+              let mediumSrc: string | undefined;
 
               try {
                 const occ = new URL(
@@ -103,19 +106,19 @@ const GbifIdModal = NiceModal.create<Props>(
 
                 const occJson = await occRes.json();
                 const first = occJson?.results?.[0];
-                medium_src =
+                mediumSrc =
                   first?.media?.[0]?.identifier ??
                   first?.associatedMedia ??
                   undefined;
               } catch {
-                medium_src = undefined;
+                mediumSrc = undefined;
               }
 
               return {
                 id: taxon.key,
                 rank: taxon.rank,
-                scientific_name: taxon.scientificName,
-                src_image: medium_src,
+                scientificName: taxon.scientificName,
+                srcImage: mediumSrc,
               } satisfies GbifTaxon;
             })
           );
@@ -156,10 +159,10 @@ const GbifIdModal = NiceModal.create<Props>(
               taxon={
                 current
                   ? {
-                      scientific_name: current.scientific_name,
+                      scientificName: current.scientificName,
                       rank: current.rank.toLowerCase(),
                       link: `https://www.gbif.org/species/${current.id}`,
-                      imgSrc: current.src_image,
+                      imgSrc: current.srcImage,
                     }
                   : undefined
               }

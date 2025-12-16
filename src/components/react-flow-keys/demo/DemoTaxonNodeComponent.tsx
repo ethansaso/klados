@@ -23,11 +23,11 @@ export const DemoTaxonNodeComponent = ({ data }: NodeProps<DemoTaxonNode>) => {
 
         <Flex direction="column" flexGrow="1" justify="between">
           <Box>
-            <Text as="div" weight="bold" truncate>
+            <Text as="div" weight="bold" truncate size="2">
               {sciName}
             </Text>
             {commonName && (
-              <Text as="div" size="1" mb="1" color="gray" truncate>
+              <Text as="div" size="1" color="gray" truncate>
                 {commonName}
               </Text>
             )}

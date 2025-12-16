@@ -27,7 +27,9 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [allMedia, setAllMedia] = useState<MediaItem[] | null>(null);
-    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+    const [selectedIds, setSelectedIds] = useState<Set<number>>(
+      () => new Set()
+    );
 
     useEffect(() => {
       const controller = new AbortController();

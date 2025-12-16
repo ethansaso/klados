@@ -20,7 +20,7 @@ import {
   ConditionalAlert,
 } from "../../../components/inputs/ConditionalAlert";
 import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
-import { createTaxonDraftFn } from "../../../lib/api/taxa/createTaxonDraft";
+import { createTaxonDraftFn } from "../../../lib/api/taxa/createTaxonDraftFn";
 import {
   generateLoginRedirectFromLocation,
   roleHasCuratorRights,
@@ -62,13 +62,13 @@ function RouteComponent() {
   } = useForm<CreateTaxonInput>({
     resolver: zodResolver(createTaxonSchema),
     defaultValues: {
-      accepted_name: "",
-      parent_id: null,
+      acceptedName: "",
+      parentId: null,
       rank: "species",
     },
   });
 
-  const parentIdVal = useWatch({ control, name: "parent_id" });
+  const parentIdVal = useWatch({ control, name: "parentId" });
 
   const comboboxOptions: ComboboxOption[] = useMemo(
     () =>
@@ -85,16 +85,16 @@ function RouteComponent() {
   }, [parentIdVal, comboboxOptions]);
 
   const onSubmit: SubmitHandler<CreateTaxonInput> = async ({
-    accepted_name,
+    acceptedName,
     rank,
-    parent_id,
+    parentId,
   }) => {
     try {
       const res = await serverCreate({
         data: {
-          accepted_name,
+          acceptedName: acceptedName,
           rank,
-          parent_id: parent_id ?? null,
+          parentId,
         },
       });
 
@@ -123,14 +123,14 @@ function RouteComponent() {
               <Label.Root htmlFor="accepted-name">Accepted name</Label.Root>
               <ConditionalAlert
                 id="accepted-name-error"
-                message={errors.accepted_name?.message}
+                message={errors.acceptedName?.message}
               />
             </Flex>
             <TextField.Root
               id="accepted-name"
               placeholder="e.g. Amanita muscaria"
-              {...register("accepted_name")}
-              {...a11yProps("accepted-name-error", !!errors.accepted_name)}
+              {...register("acceptedName")}
+              {...a11yProps("accepted-name-error", !!errors.acceptedName)}
             />
           </Box>
 
@@ -141,7 +141,7 @@ function RouteComponent() {
               {/* Optional field, so no error display */}
             </Flex>
             <Controller
-              name="parent_id"
+              name="parentId"
               control={control}
               render={({ field }) => (
                 <SelectCombobox.Root

@@ -2,15 +2,15 @@ import NiceModal, { useModal } from "@ebay/nice-modal-react";
 import { Button, Dialog, Flex } from "@radix-ui/themes";
 import { useLayoutEffect, useState } from "react";
 import z from "zod";
+import { ExternalResultSummary } from "../-ExternalResultSummary";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
-import { ExternalResultSummary } from "./ExternalResultSummary";
 
 type InatTaxon = {
   id: number;
-  scientific_name: string;
+  scientificName: string;
   rank: string;
-  common_name?: string;
-  medium_src?: string;
+  commonName?: string;
+  mediumSrc?: string;
 };
 
 type Props = {
@@ -34,6 +34,9 @@ const INTERNAL_RANK_TO_INAT_MAPPING: Record<
   subfamily: "subfamily",
   tribe: "tribe",
   genus: "genus",
+  subgenus: "subgenus",
+  section: "section",
+  complex: "complex",
   species: "species",
   subspecies: "subspecies",
   variety: "variety",
@@ -119,9 +122,9 @@ const InatIdModal = NiceModal.create<Props>(
           const results: InatTaxon[] = parsed.data.map((t) => ({
             id: t.id,
             rank: t.rank,
-            scientific_name: t.name,
-            common_name: t.preferred_common_name,
-            medium_src: t.default_photo?.medium_url ?? undefined,
+            scientificName: t.name,
+            commonName: t.preferred_common_name,
+            mediumSrc: t.default_photo?.medium_url ?? undefined,
           }));
 
           if (!controller.signal.aborted) {
@@ -160,11 +163,11 @@ const InatIdModal = NiceModal.create<Props>(
               taxon={
                 current
                   ? {
-                      scientific_name: current.scientific_name,
-                      common_name: current.common_name,
+                      scientificName: current.scientificName,
+                      commonName: current.commonName,
                       rank: current.rank,
                       link: `https://www.inaturalist.org/taxa/${current.id}`,
-                      imgSrc: current.medium_src,
+                      imgSrc: current.mediumSrc,
                     }
                   : undefined
               }

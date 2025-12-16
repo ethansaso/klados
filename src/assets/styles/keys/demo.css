@@ -1,7 +1,7 @@
 .demo-taxon-node {
   display: flex;
   flex-direction: column;
-  width: 12rem;
+  width: 10rem;
   overflow: visible;
   gap: var(--space-2);
   contain: none;

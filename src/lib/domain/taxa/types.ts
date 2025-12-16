@@ -40,6 +40,4 @@ export type TaxonDetailDTO = Omit<TaxonDTO, "parentId"> & {
   subtaxa: LeanTaxonDTO[];
 };
 
-export interface TaxonPaginatedResult extends PaginatedResult {
-  items: TaxonDTO[];
-}
+export type TaxonPaginatedResult = PaginatedResult<TaxonDTO>;
