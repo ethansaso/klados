@@ -8,6 +8,7 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
+import z from "zod";
 import { MEDIA_LICENSES } from "../../../../../../db/utils/mediaLicense";
 import { MediaItem } from "../../../../../../lib/domain/taxa/validation";
 
@@ -16,10 +17,30 @@ type Props = {
   onConfirm: (media: MediaItem[]) => void;
 };
 
-// copilot: make a subset of the type of MEDIA_LICENSES w/o 'all-rights-reserved'
+const InatTaxaResponseSchema = z.object({
+  results: z.array(
+    z.object({
+      taxon_photos: z
+        .array(
+          z.object({
+            photo: z.object({
+              id: z.number(),
+              medium_url: z.string(),
+              license_code: z.string().nullable(), // iNat: null => ARR
+              attribution_name: z.string().nullable(),
+            }),
+          })
+        )
+        .optional(),
+    })
+  ),
+});
+
 const ALLOWED_LICENSES = MEDIA_LICENSES.filter(
-  (license) => license !== "all-rights-reserved"
-);
+  (l) => l !== "all-rights-reserved"
+) as readonly Exclude<(typeof MEDIA_LICENSES)[number], "all-rights-reserved">[];
+
+const AllowedLicenseSchema = z.enum(ALLOWED_LICENSES);
 
 export const InatPhotoSelectModal = NiceModal.create<Props>(
   ({ inatId, onConfirm }) => {
@@ -45,34 +66,43 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
             signal: controller.signal,
           });
           if (!res.ok) throw new Error(`Failed: ${res.status}`);
-          const data = await res.json();
-          const first = data.results?.[0];
-          if (!first) {
-            setError("No matching taxon found.");
-          } else {
-            // first 9 photos
-            const taxonPhotos: any[] =
-              first.taxon_photos
-                ?.filter((tp) =>
-                  ALLOWED_LICENSES.includes(tp.photo.license_code)
-                ) // filter out all rights reserved
-                .slice(0, 9) ?? [];
-            setAllMedia(
-              taxonPhotos.map(
-                (tp) =>
-                  ({
-                    url: tp.photo.medium_url,
-                    license: tp.photo.license_code,
-                    owner: tp.photo.attribution_name,
-                    source: `https://www.inaturalist.org/photos/${tp.photo.id}`,
-                  }) as MediaItem
-              )
+          const data: unknown = await res.json();
+
+          const extracted = extractTaxonPhotos(data);
+          if (extracted.kind === "invalid") {
+            setError(
+              "Failed to parse iNaturalist response. Please contact Klados developers."
             );
+            return;
           }
-        } catch (e: any) {
-          if (e.name !== "AbortError") {
-            if (!controller.signal.aborted)
-              setError(e.message ?? "Failed to fetch iNaturalist taxon.");
+          const taxonPhotos = extracted.photos;
+
+          const media: MediaItem[] = taxonPhotos
+            .map((tp) => tp.photo)
+            .flatMap((p) => {
+              const lic = AllowedLicenseSchema.safeParse(p.license_code);
+              if (!lic.success) return [];
+
+              return [
+                {
+                  url: p.medium_url,
+                  license: lic.data,
+                  owner: p.attribution_name ?? undefined,
+                  source: `https://www.inaturalist.org/photos/${p.id}`,
+                } satisfies MediaItem,
+              ];
+            })
+            .slice(0, 9);
+
+          setAllMedia(media);
+        } catch (e: unknown) {
+          if (e instanceof DOMException && e.name === "AbortError") return;
+          if (!controller.signal.aborted) {
+            setError(
+              e instanceof Error
+                ? e.message
+                : "Failed to fetch iNaturalist taxon."
+            );
           }
         } finally {
           if (!controller.signal.aborted) setLoading(false);
@@ -122,7 +152,7 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
               >
                 {allMedia.length !== 0 ? (
                   allMedia.map((m, i) => (
-                    <CheckboxCards.Item value={String(i)} key={i}>
+                    <CheckboxCards.Item value={String(i)} key={m.url}>
                       <img src={m.url} />
                     </CheckboxCards.Item>
                   ))
@@ -158,4 +188,13 @@ export async function selectInatPhotos(inatId: number) {
       onConfirm: (media) => resolve(media),
     }).then(() => resolve(null));
   });
+}
+
+function extractTaxonPhotos(data: unknown) {
+  const parsed = InatTaxaResponseSchema.safeParse(data);
+  if (!parsed.success) return { kind: "invalid" as const };
+  return {
+    kind: "ok" as const,
+    photos: parsed.data.results[0]?.taxon_photos ?? [],
+  };
 }

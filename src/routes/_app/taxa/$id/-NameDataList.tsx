@@ -52,9 +52,9 @@ export const NamesDataList = ({ names }: NamesDataListProps) => {
           <DataList.Label minWidth="120px">{label}</DataList.Label>
           <DataList.Value>
             <Flex direction="column" gap="1">
-              {items.map((item, idx) => (
+              {items.map((item) => (
                 <Text
-                  key={idx}
+                  key={item.locale + item.value}
                   color={
                     item.locale === "sci" && !item.isPreferred
                       ? "gray"

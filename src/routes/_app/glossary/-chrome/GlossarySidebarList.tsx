@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { NavigationMenu } from "radix-ui";
 import { PropsWithChildren } from "react";
 
-function Root({ children }: PropsWithChildren<{}>) {
+function Root({ children }: PropsWithChildren) {
   return (
     <NavigationMenu.Root orientation="vertical">
       <Flex asChild p="0" m="0" direction="column" gap="1">

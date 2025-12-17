@@ -6,11 +6,11 @@ import {
   setUserBanned,
   setUserUnbanned,
 } from "./repo";
-import { UserDTO, UsersPaginatedResult } from "./types";
+import { UserDTO, UserPaginatedResult } from "./types";
 
 export async function getUsersPage(
   params: ListUsersParams
-): Promise<UsersPaginatedResult> {
+): Promise<UserPaginatedResult> {
   return listUsersPage(params);
 }
 

@@ -1,8 +1,11 @@
 import NiceModal from "@ebay/nice-modal-react";
 import { Button, Dialog, Flex, Spinner, Table, Text } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
+import z from "zod";
 
-type InatName = {
+type InatRawName = z.infer<typeof InatRawNameSchema>;
+
+type NormalizedInatName = {
   value: string;
   locale: string;
   isPreferred: boolean;
@@ -10,15 +13,29 @@ type InatName = {
 
 type Props = {
   inatId: number;
-  onConfirm: (names: InatName[]) => void;
+  onConfirm: (names: NormalizedInatName[]) => void;
 };
+
+const InatRawNameSchema = z.object({
+  name: z.string(),
+  locale: z.string(),
+  is_valid: z.boolean().optional(),
+});
+
+const InatNamesArraySchema = z.array(InatRawNameSchema);
+
+const InatResponseSchema = z.object({
+  results: z
+    .array(z.object({ names: InatNamesArraySchema.optional() }))
+    .optional(),
+});
 
 export const InatNamesModal = NiceModal.create<Props>(
   ({ inatId, onConfirm }) => {
     const { visible, hide } = NiceModal.useModal();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [names, setNames] = useState<InatName[] | null>(null);
+    const [names, setNames] = useState<NormalizedInatName[] | null>(null);
     const [selected, setSelected] = useState<Set<number>>(() => new Set());
 
     useEffect(() => {
@@ -41,14 +58,7 @@ export const InatNamesModal = NiceModal.create<Props>(
           if (!res.ok) throw new Error(`Failed: ${res.status}`);
 
           const data = await res.json();
-          const first = data.results?.[0];
-
-          if (!first) {
-            setError("No matching taxon found.");
-            return;
-          }
-
-          const rawNames: any[] = first.names ?? [];
+          const rawNames = extractInatNames(data);
           const mapped = normalizeInatNames(rawNames);
 
           if (!controller.signal.aborted) {
@@ -56,7 +66,7 @@ export const InatNamesModal = NiceModal.create<Props>(
             // All checked by default
             setSelected(new Set(mapped.map((_, idx) => idx)));
           }
-        } catch (e: any) {
+        } catch (e) {
           if (e.name !== "AbortError" && !controller.signal.aborted) {
             setError(e.message ?? "Failed to fetch iNaturalist names.");
           }
@@ -117,7 +127,7 @@ export const InatNamesModal = NiceModal.create<Props>(
 
 /** Simple helper which aids in acquiring common names for a given taxon. */
 export async function selectInatNames(inatId: number) {
-  return new Promise<InatName[] | null>((resolve) => {
+  return new Promise<NormalizedInatName[] | null>((resolve) => {
     NiceModal.show(InatNamesModal, {
       inatId,
       onConfirm: (names) => resolve(names),
@@ -125,61 +135,43 @@ export async function selectInatNames(inatId: number) {
   });
 }
 
-function normalizeInatNames(rawNames: any[]): InatName[] {
+function extractInatNames(data: unknown) {
+  const parsed = InatResponseSchema.safeParse(data);
+  return parsed.success ? (parsed.data.results?.[0]?.names ?? []) : [];
+}
+
+function normalizeInatNames(rawNames: InatRawName[]): NormalizedInatName[] {
   const seenLocales = new Set<string>();
-  const mapped: InatName[] = [];
 
-  // Track sci entries by index, and the first one with is_valid = true
-  const sciIndices: number[] = [];
-  let sciValidIndex: number | null = null;
+  // Find preferred scientific name: first is_valid sci, else first sci.
+  const preferredSci =
+    rawNames.find((n) => n.locale === "sci" && n.is_valid)?.name ??
+    rawNames.find((n) => n.locale === "sci")?.name ??
+    null;
 
-  for (const n of rawNames) {
-    const nameVal = n.name as string | undefined;
-    const locale = n.locale as string | undefined;
-    if (!nameVal || !locale) continue;
+  return rawNames.flatMap((n) => {
+    const { name, locale } = n;
+    if (!name || !locale) return [];
 
-    // Scientific names marked by iNat API as locale === "sci"
     if (locale === "sci") {
-      const index = mapped.length;
-      const isValid = Boolean(n.is_valid);
+      return [
+        {
+          value: name,
+          locale,
+          isPreferred: preferredSci === name,
+        },
+      ];
+    }
 
-      sciIndices.push(index);
-      if (isValid && sciValidIndex === null) {
-        sciValidIndex = index;
-      }
+    const isPreferred = !seenLocales.has(locale);
+    seenLocales.add(locale);
 
-      mapped.push({
-        value: nameVal,
+    return [
+      {
+        value: name,
         locale,
-        isPreferred: isValid, // provisional; see below
-      });
-      continue;
-    }
-
-    // Common names: first per locale isPreferred = true
-    const isFirstForLocale = !seenLocales.has(locale);
-    if (isFirstForLocale) {
-      seenLocales.add(locale);
-    }
-
-    mapped.push({
-      value: nameVal,
-      locale,
-      isPreferred: isFirstForLocale,
-    });
-  }
-
-  // If any sci names, ensure exactly one preferred.
-  if (sciIndices.length > 0) {
-    const preferredIndex = sciValidIndex ?? sciIndices[0];
-
-    for (const idx of sciIndices) {
-      mapped[idx] = {
-        ...mapped[idx],
-        isPreferred: idx === preferredIndex,
-      };
-    }
-  }
-
-  return mapped;
+        isPreferred,
+      },
+    ];
+  });
 }

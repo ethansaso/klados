@@ -2,9 +2,15 @@ import { Flex, Separator, Text, Link as ThemeLink } from "@radix-ui/themes";
 import { createLink, type LinkComponent } from "@tanstack/react-router";
 import classNames from "classnames";
 import { NavigationMenu } from "radix-ui";
-import * as React from "react";
+import {
+  ComponentProps,
+  ComponentPropsWithRef,
+  CSSProperties,
+  PropsWithChildren,
+  ReactNode,
+} from "react";
 
-function Root({ children }: React.PropsWithChildren<{}>) {
+function Root({ children }: PropsWithChildren) {
   return (
     <NavigationMenu.Item className="rt-TabNavItem nav-dropdown">
       {children}
@@ -12,7 +18,7 @@ function Root({ children }: React.PropsWithChildren<{}>) {
   );
 }
 
-function Content({ children }: React.PropsWithChildren<{}>) {
+function Content({ children }: PropsWithChildren) {
   return (
     <NavigationMenu.Content asChild className="nav-dropdown__content">
       <ul>{children}</ul>
@@ -22,66 +28,67 @@ function Content({ children }: React.PropsWithChildren<{}>) {
 
 /** Base anchor for the TRIGGER (wrapped by Radix Trigger/Link).
  *  Accepts `active`, `className`, `style` so you can keep your highlight styles. */
-type TriggerAnchorProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
+type TriggerAnchorProps = ComponentPropsWithRef<"a"> & {
   active?: boolean;
-  className?: string;
-  style?: React.CSSProperties;
 };
 
-const TriggerAnchor = React.forwardRef<HTMLAnchorElement, TriggerAnchorProps>(
-  ({ children, active, className, style, ...anchorProps }, ref) => (
-    <NavigationMenu.Trigger
+const TriggerAnchor = ({
+  children,
+  active,
+  className,
+  style,
+  ref,
+  ...anchorProps
+}: TriggerAnchorProps) => (
+  <NavigationMenu.Trigger
+    asChild
+    className={classNames(
+      "rt-reset rt-BaseTabListTrigger rt-TabNavLink",
+      className
+    )}
+    style={style}
+  >
+    <NavigationMenu.Link
       asChild
-      className={classNames(
-        "rt-reset rt-BaseTabListTrigger rt-TabNavLink",
-        className
-      )}
-      style={style}
+      className="nav-dropdown__trigger"
+      data-active={active ? "" : undefined}
     >
-      <NavigationMenu.Link
-        asChild
-        className="nav-dropdown__trigger"
-        data-active={active ? "" : undefined}
-      >
-        <a ref={ref} {...anchorProps}>
-          <Flex
-            as="span"
-            align="center"
-            gap="1"
-            className="rt-BaseTabListTriggerInner rt-TabNavLinkInner"
-          >
-            {children}
-          </Flex>
-          <Flex
-            as="span"
-            align="center"
-            className="rt-BaseTabListTriggerInnerHidden rt-TabNavLinkInnerHidden"
-          >
-            {children}
-          </Flex>
-        </a>
-      </NavigationMenu.Link>
-    </NavigationMenu.Trigger>
-  )
+      <a ref={ref} {...anchorProps}>
+        <Flex
+          as="span"
+          align="center"
+          gap="1"
+          className="rt-BaseTabListTriggerInner rt-TabNavLinkInner"
+        >
+          {children}
+        </Flex>
+        <Flex
+          as="span"
+          align="center"
+          className="rt-BaseTabListTriggerInnerHidden rt-TabNavLinkInnerHidden"
+        >
+          {children}
+        </Flex>
+      </a>
+    </NavigationMenu.Link>
+  </NavigationMenu.Trigger>
 );
 TriggerAnchor.displayName = "TriggerAnchor";
 
 /** Base anchor for DROPDOWN ITEM links (non-trigger). */
-type ItemAnchorProps = React.AnchorHTMLAttributes<HTMLAnchorElement>;
-const ItemAnchor = React.forwardRef<HTMLAnchorElement, ItemAnchorProps>(
-  ({ className, ...props }, ref) => (
-    <NavigationMenu.Link asChild>
-      <li>
-        <Text asChild>
-          <a
-            ref={ref}
-            className={classNames("nav-dropdown__link", className)}
-            {...props}
-          />
-        </Text>
-      </li>
-    </NavigationMenu.Link>
-  )
+type ItemAnchorProps = ComponentPropsWithRef<"a">;
+const ItemAnchor = ({ className, ref, ...props }: ItemAnchorProps) => (
+  <NavigationMenu.Link asChild>
+    <li>
+      <Text asChild>
+        <a
+          ref={ref}
+          className={classNames("nav-dropdown__link", className)}
+          {...props}
+        />
+      </Text>
+    </li>
+  </NavigationMenu.Link>
 );
 ItemAnchor.displayName = "ItemAnchor";
 
@@ -90,14 +97,14 @@ ItemAnchor.displayName = "ItemAnchor";
 const CreatedTrigger = createLink(TriggerAnchor);
 const CreatedItem = createLink(ItemAnchor);
 
-type CreatedTriggerProps = React.ComponentProps<typeof CreatedTrigger>;
+type CreatedTriggerProps = ComponentProps<typeof CreatedTrigger>;
 
 /** Plain (pathless) trigger: no <a>, just styled text. */
 type PlainTriggerProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   active?: boolean;
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 };
 
 /** Public Trigger props:

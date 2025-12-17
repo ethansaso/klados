@@ -1,6 +1,13 @@
-import { Box, Callout, Text } from "@radix-ui/themes";
+import {
+  Box,
+  Callout,
+  Flex,
+  Heading,
+  IconButton,
+  Text,
+} from "@radix-ui/themes";
 import { Toast } from "radix-ui";
-import { PiCheck, PiInfo, PiWarning } from "react-icons/pi";
+import { PiCheck, PiInfo, PiWarning, PiX } from "react-icons/pi";
 import { useToastStore } from "../lib/utils/toast";
 
 export function ToastHost() {
@@ -39,24 +46,33 @@ export function ToastHost() {
             <Callout.Root
               color={color}
               variant="soft"
+              role={color === "tomato" ? "alert" : "status"}
               style={{
+                position: "relative",
                 backgroundColor: `var(--${bgColor})`,
                 borderColor: `var(--${borderColor})`,
               }}
             >
               <Callout.Icon>{icon}</Callout.Icon>
-              <Box>
-                <Toast.Title asChild>
-                  <Text as="div" weight="bold" size="2">
-                    {t.title}
-                  </Text>
-                </Toast.Title>
+              <Callout.Text>
+                <Flex justify="between" mb="1" width="100%">
+                  <Toast.Title asChild>
+                    <Heading size="2">{t.title}</Heading>
+                  </Toast.Title>
+                </Flex>
                 <Toast.Description asChild>
                   <Text as="div" size="2">
                     {t.description}
                   </Text>
                 </Toast.Description>
-              </Box>
+              </Callout.Text>
+              <Toast.Close onClick={() => remove(t.id)} asChild color={color}>
+                <Box position="absolute" top="4" right="4">
+                  <IconButton size="1" variant="ghost">
+                    <PiX />
+                  </IconButton>
+                </Box>
+              </Toast.Close>
             </Callout.Root>
           </Toast.Root>
         );

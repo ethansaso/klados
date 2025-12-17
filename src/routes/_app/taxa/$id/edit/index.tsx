@@ -310,17 +310,7 @@ function RouteComponent() {
           />
 
           {/* Media */}
-          <Controller
-            control={control}
-            name="media"
-            render={({ field: { value, onChange } }) => (
-              <MediaEditingForm
-                value={value}
-                inatId={inatId}
-                onChange={onChange}
-              />
-            )}
-          />
+          <MediaEditingForm inatId={inatId} />
 
           {/* Names */}
           <Controller

@@ -17,7 +17,7 @@ const Item = ({ to, children, active }: PropsWithChildren<ItemProps>) => {
   );
 };
 
-const Root = ({ children }: PropsWithChildren<{}>) => {
+const Root = ({ children }: PropsWithChildren) => {
   return (
     <aside className="nav-sidebar">
       <ul>{children}</ul>
