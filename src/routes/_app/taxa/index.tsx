@@ -46,16 +46,21 @@ function TaxaListPage() {
     })
   );
 
-  // Debounced into search
+  // Debounced into search, and synced from search for external changes
   const [localInput, setLocalInput] = useState(search.q ?? "");
+  const [debouncedInput, { cancel }] = useDebounce(localInput, 250);
   useEffect(() => {
-    setLocalInput(search.q ?? "");
-  }, [search.q]);
-  const [debouncedInput] = useDebounce(localInput, 250);
+    const next = search.q ?? "";
+
+    // Cancel any pending to avoid stale updates
+    cancel();
+
+    // Avoid setting if unnecessary (i.e. identical)
+    // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
+    setLocalInput((prev) => (prev === next ? prev : next));
+  }, [search.q, cancel]);
   useEffect(() => {
-    setSearch({
-      q: debouncedInput || undefined,
-    });
+    setSearch({ q: debouncedInput || undefined });
   }, [debouncedInput, setSearch]);
 
   return (

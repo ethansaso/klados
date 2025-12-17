@@ -28,8 +28,12 @@ import { generateKeyFn } from "../../../../lib/api/keys/generateKey";
 import { taxaQueryOptions } from "../../../../lib/queries/taxa";
 import { capitalizeFirstLetter } from "../../../../lib/utils/casing";
 import { toast } from "../../../../lib/utils/toast";
+import { Route } from "./index";
 
 export const KeySidebar = () => {
+  // Pull initial taxon ID from route search params (e.g. referral from taxon page)
+  const { initialId } = Route.useSearch();
+
   const {
     control,
     handleSubmit,
@@ -37,6 +41,7 @@ export const KeySidebar = () => {
   } = useForm({
     resolver: zodResolver(KeyGenerationInputSchema),
     defaultValues: {
+      taxonId: initialId,
       options: {
         keyShape: "balanced",
         maxBranches: 5,
@@ -91,8 +96,7 @@ export const KeySidebar = () => {
 
       // 2) set default metadata for new keys
       updateMeta({ name: "Untitled", description: "" });
-    } catch (err: any) {
-      console.error("Key generation failed:", err);
+    } catch (err) {
       toast({
         variant: "error",
         description:

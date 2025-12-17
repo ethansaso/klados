@@ -5,9 +5,10 @@ import {
   Flex,
   Link as RadixLink,
   Text,
+  Tooltip,
 } from "@radix-ui/themes";
 import { Link, UseNavigateResult } from "@tanstack/react-router";
-import { PiPencilSimple } from "react-icons/pi";
+import { PiPencilSimple, PiTreeStructureFill } from "react-icons/pi";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ExGbif } from "../../../../components/icons/ExGbif";
 import { ExInat } from "../../../../components/icons/ExInat";
@@ -65,6 +66,7 @@ export const TaxonMainSection = ({
             <Button
               type="button"
               size="2"
+              variant="outline"
               onClick={() =>
                 navigate({
                   to: "/taxa/$id/edit",
@@ -76,6 +78,40 @@ export const TaxonMainSection = ({
               Edit
             </Button>
           </CuratorOnly>
+
+          {taxon.activeChildCount > 0 ? (
+            <Button
+              type="button"
+              disabled={taxon.activeChildCount === 0}
+              size="2"
+              onClick={() =>
+                navigate({
+                  to: "/keys/create",
+                  search: { initialId: taxon.id },
+                })
+              }
+            >
+              <PiTreeStructureFill size={12} />
+              Create Key
+            </Button>
+          ) : (
+            <Tooltip content="This taxon has no subtaxa.">
+              <Button
+                type="button"
+                disabled
+                size="2"
+                onClick={() =>
+                  navigate({
+                    to: "/keys/create",
+                    search: { initialId: taxon.id },
+                  })
+                }
+              >
+                <PiTreeStructureFill size={12} />
+                Create Key
+              </Button>
+            </Tooltip>
+          )}
           <Button type="button" size="2" asChild disabled={!taxon.sourceInatId}>
             <RadixLink
               href={`https://www.inaturalist.org/taxa/${taxon.sourceInatId}`}
