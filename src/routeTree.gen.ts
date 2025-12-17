@@ -18,6 +18,7 @@ import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppSignupRouteImport } from './routes/_app/signup'
 import { Route as AppLogoutRouteImport } from './routes/_app/logout'
 import { Route as AppLoginRouteImport } from './routes/_app/login'
+import { Route as AppHealthRouteImport } from './routes/_app/health'
 import { Route as AppDonateRouteImport } from './routes/_app/donate'
 import { Route as AppAboutRouteImport } from './routes/_app/about'
 import { Route as AdminUsersRouteRouteImport } from './routes/admin/users/route'
@@ -89,6 +90,11 @@ const AppLogoutRoute = AppLogoutRouteImport.update({
 const AppLoginRoute = AppLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppHealthRoute = AppHealthRouteImport.update({
+  id: '/health',
+  path: '/health',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppDonateRoute = AppDonateRouteImport.update({
@@ -257,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
   '/about': typeof AppAboutRoute
   '/donate': typeof AppDonateRoute
+  '/health': typeof AppHealthRoute
   '/login': typeof AppLoginRoute
   '/logout': typeof AppLogoutRoute
   '/signup': typeof AppSignupRoute
@@ -291,6 +298,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/about': typeof AppAboutRoute
   '/donate': typeof AppDonateRoute
+  '/health': typeof AppHealthRoute
   '/login': typeof AppLoginRoute
   '/logout': typeof AppLogoutRoute
   '/signup': typeof AppSignupRoute
@@ -327,6 +335,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
   '/_app/about': typeof AppAboutRoute
   '/_app/donate': typeof AppDonateRoute
+  '/_app/health': typeof AppHealthRoute
   '/_app/login': typeof AppLoginRoute
   '/_app/logout': typeof AppLogoutRoute
   '/_app/signup': typeof AppSignupRoute
@@ -369,6 +378,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/about'
     | '/donate'
+    | '/health'
     | '/login'
     | '/logout'
     | '/signup'
@@ -403,6 +413,7 @@ export interface FileRouteTypes {
   to:
     | '/about'
     | '/donate'
+    | '/health'
     | '/login'
     | '/logout'
     | '/signup'
@@ -438,6 +449,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/_app/about'
     | '/_app/donate'
+    | '/_app/health'
     | '/_app/login'
     | '/_app/logout'
     | '/_app/signup'
@@ -533,6 +545,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof AppLoginRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/health': {
+      id: '/_app/health'
+      path: '/health'
+      fullPath: '/health'
+      preLoaderRoute: typeof AppHealthRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/donate': {
@@ -899,6 +918,7 @@ interface AppRouteRouteChildren {
   AppUsersRouteRoute: typeof AppUsersRouteRouteWithChildren
   AppAboutRoute: typeof AppAboutRoute
   AppDonateRoute: typeof AppDonateRoute
+  AppHealthRoute: typeof AppHealthRoute
   AppLoginRoute: typeof AppLoginRoute
   AppLogoutRoute: typeof AppLogoutRoute
   AppSignupRoute: typeof AppSignupRoute
@@ -912,6 +932,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppUsersRouteRoute: AppUsersRouteRouteWithChildren,
   AppAboutRoute: AppAboutRoute,
   AppDonateRoute: AppDonateRoute,
+  AppHealthRoute: AppHealthRoute,
   AppLoginRoute: AppLoginRoute,
   AppLogoutRoute: AppLogoutRoute,
   AppSignupRoute: AppSignupRoute,
