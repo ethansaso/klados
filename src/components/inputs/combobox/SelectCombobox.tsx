@@ -466,6 +466,7 @@ function Item({
   );
 }
 
+// TODO: fix SSR issues with label
 export const SelectCombobox = {
   Root,
   Trigger,

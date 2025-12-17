@@ -20,7 +20,6 @@ const contactFormValidator = z.object({
 
 export const ContactForm = () => {
   const {
-    control,
     register,
     formState: { errors },
   } = useForm({
