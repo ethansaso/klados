@@ -22,15 +22,13 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Typecheck (temporarily disabled)
-        run: echo "Skipping typecheck for now"
+      - name: Typecheck
+        run: npm run typecheck
 
-      - name: Lint (non-blocking)
-        run: |
-          echo "Running lint (does NOT fail CI yet)"
-          npm run lint || true
+      - name: Lint
+        run: npm run lint
 
-      - name: Test (non-blocking)
+      - name: Test (TODO)
         run: |
           echo "Running tests (does NOT fail CI yet)"
           npm test || true

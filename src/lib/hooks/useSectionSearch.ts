@@ -1,10 +1,21 @@
 import { useCallback } from "react";
 
-export function useSectionSearch<
-  RouteObj extends { useSearch: any; useNavigate: any },
->(RouteObj: RouteObj) {
-  const raw = RouteObj.useSearch();
-  const navigate = RouteObj.useNavigate();
+type SectionSearch = {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+};
+
+type RouteLike = {
+  useSearch: () => unknown;
+  useNavigate: () => unknown;
+};
+
+export function useSectionSearch<TRoute extends RouteLike>(Route: TRoute) {
+  const raw = Route.useSearch() as SectionSearch;
+
+  // Keep TanStack's real navigate type (don't try to re-type it)
+  const navigate = Route.useNavigate() as ReturnType<TRoute["useNavigate"]>;
 
   const search = {
     page: raw.page ?? 1,
@@ -12,15 +23,29 @@ export function useSectionSearch<
     q: raw.q ?? "",
   };
 
-  // TODO: fix search navigating back to index on blur/commit
   const setSearch = useCallback(
-    (patch: Partial<typeof search>, replace = false) =>
-      navigate({
+    (patch: Partial<typeof search>, replace = false) => {
+      const opts = {
         to: ".",
-        search: (prev: typeof raw) => ({ ...prev, ...patch }),
+        search: (prev: unknown) => ({
+          ...(prev as Record<string, unknown>),
+          ...patch,
+        }),
         replace,
-      }),
-    [navigate] // prev comes from router; no stale closure issues
+      };
+
+      // Cast through unknown into the *actual* parameter type TanStack expects
+      return (navigate as unknown as (o: unknown) => unknown)(
+        opts as unknown as Parameters<
+          ReturnType<TRoute["useNavigate"]> extends (
+            ...args: infer A
+          ) => unknown
+            ? (...args: A) => unknown
+            : never
+        >[0]
+      );
+    },
+    [navigate]
   );
 
   const setQ = useCallback(

@@ -10,7 +10,6 @@ import {
 } from "@radix-ui/themes";
 import classNames from "classnames";
 import {
-  Children,
   ComponentProps,
   createContext,
   CSSProperties,
@@ -18,7 +17,6 @@ import {
   ReactNode,
   SetStateAction,
   use,
-  useEffect,
   useState,
 } from "react";
 import {
@@ -105,22 +103,21 @@ function Root({
 }: RootProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [activeIndex, setActiveIndex] = useState(-1);
+  const [activeIndexRaw, setActiveIndexRaw] = useState(-1);
 
-  useEffect(() => {
-    if (options.length === 0) {
-      setActiveIndex(-1);
-    } else {
-      setActiveIndex((i) => (i < 0 ? -1 : Math.min(i, options.length - 1)));
-    }
-  }, [options.length]);
+  const activeIndex =
+    options.length === 0
+      ? -1
+      : activeIndexRaw < 0
+        ? -1
+        : Math.min(activeIndexRaw, options.length - 1);
 
   const openPopover = () => {
     if (!disabled) setOpen(true);
   };
   const closePopover = () => {
     setOpen(false);
-    setActiveIndex(-1);
+    setActiveIndexRaw(-1);
     setQuery("");
     onQueryChange?.("");
   };
@@ -134,7 +131,7 @@ function Root({
 
   const clear = () => {
     onValueChange(null);
-    setActiveIndex(-1);
+    setActiveIndexRaw(-1);
   };
 
   const ctx: ComboboxContext = {
@@ -150,10 +147,10 @@ function Root({
     setQuery: (q) => {
       setQuery(q);
       onQueryChange?.(q);
-      setActiveIndex(-1); // wait for new options
+      setActiveIndexRaw(-1); // wait for new options
     },
     activeIndex,
-    setActiveIndex,
+    setActiveIndex: setActiveIndexRaw,
     selectActive,
     clear,
   };
@@ -163,11 +160,11 @@ function Root({
   return (
     <div className={className} style={style}>
       {name && <input type="hidden" name={name} value={selectedId} />}
-      <ComboboxContext.Provider value={ctx}>
+      <ComboboxContext value={ctx}>
         <Popover.Root open={open} onOpenChange={ctx.setOpen}>
           {children}
         </Popover.Root>
-      </ComboboxContext.Provider>
+      </ComboboxContext>
     </div>
   );
 }
@@ -323,7 +320,7 @@ function List({
 }>) {
   const { id, loading, options } = useCb();
 
-  const hasChildren = Children.count(children) > 0;
+  const showFallbacks = options.length === 0;
 
   return (
     <ScrollArea
@@ -343,8 +340,8 @@ function List({
           position: "relative",
         }}
       >
-        {/* Hidden live region for screen readers */}
-        <span
+        {/* Live region must be inside <li> (valid <ul> structure) */}
+        <li
           aria-live="polite"
           aria-atomic="true"
           style={{
@@ -359,14 +356,10 @@ function List({
             whiteSpace: "nowrap",
           }}
         >
-          {loading
-            ? "Loading results"
-            : !hasChildren && options.length === 0
-              ? "No results"
-              : ""}
-        </span>
+          {loading ? "Loading results" : showFallbacks ? "No results" : ""}
+        </li>
 
-        {!hasChildren && loading && (
+        {showFallbacks && loading && (
           <li>
             <Text
               size="2"
@@ -378,7 +371,7 @@ function List({
           </li>
         )}
 
-        {!hasChildren && !loading && options.length === 0 && (
+        {showFallbacks && !loading && (
           <li>
             <Text
               size="2"

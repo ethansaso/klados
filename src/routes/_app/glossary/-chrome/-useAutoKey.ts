@@ -1,39 +1,54 @@
 import { useEffect, useState } from "react";
 import {
   Control,
+  FieldPath,
+  FieldPathValue,
   FieldValues,
-  Path,
   UseFormSetValue,
   useFormState,
   useWatch,
 } from "react-hook-form";
 import { snakeCase } from "../../../../lib/utils/casing";
 
-export function useAutoKey<T extends FieldValues>(
+type StringPath<T extends FieldValues> = {
+  [P in FieldPath<T>]: FieldPathValue<T, P> extends string ? P : never;
+}[FieldPath<T>];
+
+export function useAutoKey<
+  T extends FieldValues,
+  S extends StringPath<T>,
+  K extends StringPath<T>,
+>(
   control: Control<T>,
   setValue: UseFormSetValue<T>,
-  sourceField: Path<T>,
-  keyField: Path<T>
+  sourceField: S,
+  keyField: K
 ) {
   const { isSubmitted } = useFormState({ control });
+
   const sourceVal = useWatch({ control, name: sourceField });
   const keyVal = useWatch({ control, name: keyField });
+
   const [autoKey, setAutoKey] = useState(true);
 
   useEffect(() => {
-    if (autoKey)
-      setValue(keyField, snakeCase(sourceVal || "") as any, {
-        shouldDirty: true,
-        shouldValidate: isSubmitted,
-      });
-  }, [autoKey, sourceVal, setValue, keyField]);
+    if (!autoKey) return;
+
+    setValue(
+      keyField,
+      snakeCase((sourceVal ?? "") as string) as FieldPathValue<T, K>,
+      { shouldDirty: true, shouldValidate: isSubmitted }
+    );
+  }, [autoKey, sourceVal, setValue, keyField, isSubmitted]);
 
   const handleKeyBlur = () => {
-    if (!autoKey)
-      setValue(keyField, snakeCase(keyVal || "") as any, {
-        shouldDirty: true,
-        shouldValidate: isSubmitted,
-      });
+    if (autoKey) return;
+
+    setValue(
+      keyField,
+      snakeCase((keyVal ?? "") as string) as FieldPathValue<T, K>,
+      { shouldDirty: true, shouldValidate: isSubmitted }
+    );
   };
 
   return { autoKey, setAutoKey, handleKeyBlur };

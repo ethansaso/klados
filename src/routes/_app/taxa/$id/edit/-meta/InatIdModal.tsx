@@ -131,7 +131,7 @@ const InatIdModal = NiceModal.create<Props>(
             setTaxonResults(results);
             setIndex(0);
           }
-        } catch (e: any) {
+        } catch (e) {
           if (e.name !== "AbortError" && !controller.signal.aborted) {
             setError(e.message ?? "Failed to fetch iNaturalist taxon.");
           }

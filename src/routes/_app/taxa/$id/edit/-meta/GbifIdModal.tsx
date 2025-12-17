@@ -1,10 +1,19 @@
 import NiceModal, { useModal } from "@ebay/nice-modal-react";
 import { Button, Dialog, Flex } from "@radix-ui/themes";
 import { useLayoutEffect, useState } from "react";
+import z from "zod";
 import { ExternalResultSummary } from "../-ExternalResultSummary";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
 
-type GbifTaxon = {
+const GbifSuggestItemSchema = z.object({
+  key: z.number(),
+  rank: z.string(),
+  scientificName: z.string(),
+});
+
+const GbifSuggestResponseSchema = z.array(GbifSuggestItemSchema);
+
+type NormalizedGbifTaxon = {
   id: number;
   rank: string;
   scientificName: string;
@@ -14,7 +23,7 @@ type GbifTaxon = {
 type Props = {
   taxonName: string;
   rank?: string;
-  onConfirm: (taxon: GbifTaxon) => void;
+  onConfirm: (taxon: NormalizedGbifTaxon) => void;
 };
 
 const INTERNAL_RANK_TO_GBIF_MAPPING: Record<
@@ -47,7 +56,9 @@ const GbifIdModal = NiceModal.create<Props>(
     const modal = useModal();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [taxonResults, setTaxonResults] = useState<GbifTaxon[] | null>(null);
+    const [taxonResults, setTaxonResults] = useState<
+      NormalizedGbifTaxon[] | null
+    >(null);
     const [index, setIndex] = useState(0);
 
     useLayoutEffect(() => {
@@ -80,14 +91,18 @@ const GbifIdModal = NiceModal.create<Props>(
           });
           if (!res.ok) throw new Error(`Failed: ${res.status}`);
 
-          const data: any[] = await res.json();
-          if (!Array.isArray(data) || data.length === 0) {
+          const json = await res.json();
+          const parsed = GbifSuggestResponseSchema.safeParse(json);
+
+          if (!parsed.success || parsed.data.length === 0) {
             setError("No matching taxon found.");
             return;
           }
 
+          const data = parsed.data;
+
           // Best-effort attempt at getting an image for each taxon
-          const results: GbifTaxon[] = await Promise.all(
+          const results: NormalizedGbifTaxon[] = await Promise.all(
             data.map(async (taxon) => {
               let mediumSrc: string | undefined;
 
@@ -119,7 +134,7 @@ const GbifIdModal = NiceModal.create<Props>(
                 rank: taxon.rank,
                 scientificName: taxon.scientificName,
                 srcImage: mediumSrc,
-              } satisfies GbifTaxon;
+              } satisfies NormalizedGbifTaxon;
             })
           );
 
@@ -127,7 +142,7 @@ const GbifIdModal = NiceModal.create<Props>(
             setTaxonResults(results);
             setIndex(0);
           }
-        } catch (e: any) {
+        } catch (e) {
           if (e.name !== "AbortError" && !controller.signal.aborted) {
             setError(e.message ?? "Failed to fetch GBIF taxon.");
           }
@@ -215,7 +230,7 @@ const GbifIdModal = NiceModal.create<Props>(
 
 // Helper to await a result
 export async function pickGBIFTaxon(taxonName: string, rank?: string) {
-  return new Promise<GbifTaxon | null>((resolve) => {
+  return new Promise<NormalizedGbifTaxon | null>((resolve) => {
     NiceModal.show(GbifIdModal, {
       taxonName,
       rank,

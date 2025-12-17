@@ -37,7 +37,7 @@ function resolveDefaults(toast: ToastInput): Omit<ToastItem, "id"> {
   return {
     title,
     description: toast.description,
-    duration: toast.duration ?? 5000,
+    duration: toast.duration ?? 50000,
     variant,
   };
 }

@@ -2,7 +2,7 @@ import { asc, count, eq, inArray, SQL } from "drizzle-orm";
 import { db } from "../../../db/client";
 import { user as userTbl } from "../../../db/schema/schema";
 import { userDtoSelection } from "./sqlAdapters";
-import { UserDTO, UsersPaginatedResult } from "./types";
+import { UserDTO, UserPaginatedResult } from "./types";
 
 export type ListUsersParams = {
   ids?: string[] | null;
@@ -12,7 +12,7 @@ export type ListUsersParams = {
 
 export async function listUsersPage(
   params: ListUsersParams
-): Promise<UsersPaginatedResult> {
+): Promise<UserPaginatedResult> {
   const { ids, page, pageSize } = params;
   const offset = (page - 1) * pageSize;
 

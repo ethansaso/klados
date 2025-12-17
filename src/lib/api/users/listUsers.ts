@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getUsersPage } from "../../domain/users/service";
-import { UsersPaginatedResult } from "../../domain/users/types";
+import { UserPaginatedResult } from "../../domain/users/types";
 import { PaginationSchema } from "../../validation/pagination";
 
 /**
@@ -13,7 +13,7 @@ export const listUsersFn = createServerFn({ method: "GET" })
       ids: z.array(z.string()).optional(),
     })
   )
-  .handler(async ({ data }): Promise<UsersPaginatedResult> => {
+  .handler(async ({ data }): Promise<UserPaginatedResult> => {
     const { ids, page, pageSize } = data;
 
     const result = await getUsersPage({

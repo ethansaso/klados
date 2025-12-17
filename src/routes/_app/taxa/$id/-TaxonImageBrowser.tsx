@@ -33,7 +33,7 @@ export const TaxonImageBrowser = ({ media }: { media: MediaItem[] }) => {
       >
         <ul>
           {media.map((mediaItem, idx) => (
-            <li key={idx}>
+            <li key={mediaItem.url}>
               <img
                 src={mediaItem.url}
                 onClick={() => setSelectedMediaIdx(idx)}

@@ -41,7 +41,7 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
 
   // Parent combobox setup
   const [parentQ, setParentQ] = useState("");
-  const { data: parentResp } = useQuery(
+  const { data: parentResp, isFetching: parentIsFetching } = useQuery(
     taxaQueryOptions(1, 10, { q: parentQ, status: "active" })
   );
   const parentOptions = useMemo<ComboboxOption[]>(() => {
@@ -117,6 +117,7 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
                 }}
                 options={parentOptions}
                 onQueryChange={setParentQ}
+                loading={parentIsFetching}
               >
                 <SelectCombobox.Trigger
                   placeholder="Select parent taxon"

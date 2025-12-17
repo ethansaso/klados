@@ -4,20 +4,20 @@ import {
   ComboboxList,
   ComboboxProvider,
   useComboboxContext,
+  useStoreState,
 } from "@ariakit/react";
 import * as RadixPopover from "@radix-ui/react-popover";
 import { Box, Flex, ScrollArea, Text, Theme } from "@radix-ui/themes";
 import classNames from "classnames";
 import {
-  Children,
   ComponentProps,
   createContext,
   CSSProperties,
   LabelHTMLAttributes,
   ReactNode,
   RefObject,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useState,
@@ -104,10 +104,10 @@ function useDebouncedEffect(
   }, [value, delay, effect]);
 }
 
-const Ctx = createContext<Ctx | null>(null);
+const InputComboboxContext = createContext<Ctx | null>(null);
 
 function useCb() {
-  const ctx = useContext(Ctx);
+  const ctx = use(InputComboboxContext);
   if (!ctx) {
     throw new Error("InputCombobox.* must be used within InputCombobox.Root");
   }
@@ -120,7 +120,7 @@ function QueryWatcher({
   onQueryChange?: (q: string) => void;
 }) {
   const store = useComboboxContext();
-  const value = store?.useState("value") ?? "";
+  const value = useStoreState(store, "value") ?? "";
   useDebouncedEffect(value, DEBOUNCE_MS, onQueryChange);
   return null;
 }
@@ -174,10 +174,10 @@ function Root({
 
       <RadixPopover.Root open={open} onOpenChange={setOpen}>
         <ComboboxProvider open={open} setOpen={setOpen}>
-          <Ctx.Provider value={ctx}>
+          <InputComboboxContext value={ctx}>
             {onQueryChange && <QueryWatcher onQueryChange={onQueryChange} />}
             {children}
-          </Ctx.Provider>
+          </InputComboboxContext>
         </ComboboxProvider>
       </RadixPopover.Root>
     </div>
@@ -269,9 +269,7 @@ function Popover({
 
 function List({ className, style, children }: ListProps) {
   const { id, loading, options, listboxRef } = useCb();
-
-  const hasChildren = Children.count(children) > 0;
-
+  const isEmpty = options.length === 0;
   return (
     <ScrollArea
       type="auto"
@@ -286,13 +284,13 @@ function List({ className, style, children }: ListProps) {
         className="input-combobox__list"
         aria-busy={!!loading}
       >
-        {!hasChildren && loading && (
+        {loading && isEmpty && (
           <Box p="2">
             <Text color="gray">Loading</Text>
           </Box>
         )}
 
-        {!hasChildren && !loading && options.length === 0 && (
+        {!loading && isEmpty && (
           <Box p="2">
             <Text color="gray">No results</Text>
           </Box>
