@@ -6,12 +6,14 @@ import {
   Outlet,
   Scripts,
   createRootRouteWithContext,
+  stripSearchParams,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import appCssUrl from "../assets/styles/main.css?url";
 import { ToastHost } from "../components/ToastHost";
 import { meQueryOptions } from "../lib/queries/users";
 import { GA_ID, seo } from "../lib/seo";
+import { paginationDefaults } from "../lib/validation/pagination";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -71,6 +73,14 @@ export const Route = createRootRouteWithContext<{
     const user = await context.queryClient.ensureQueryData(meQueryOptions());
 
     return { user };
+  },
+  search: {
+    middlewares: [
+      stripSearchParams({
+        ...paginationDefaults,
+        q: "",
+      }),
+    ],
   },
   component: RootComponent,
 });
