@@ -4,7 +4,7 @@
 ![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey)
 
-[https://klados.bio](klados.bio)
+[klados.bio](https://klados.bio)
 
 Klados is a web platform for learning to identify organisms through collaborative visual guides that model relationships across biological taxonomy.
 
