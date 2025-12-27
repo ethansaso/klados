@@ -1,9 +1,17 @@
 import NiceModal from "@ebay/nice-modal-react";
-import { Card, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
+import {
+  Box,
+  Flex,
+  IconButton,
+  Separator,
+  Text,
+  TextField,
+} from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { PiLink, PiMagnifyingGlass, PiPlusCircle, PiTag } from "react-icons/pi";
 import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
+import { ContentContainer } from "../../../../components/ContentContainer";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
@@ -40,12 +48,13 @@ function RouteComponent() {
   // const selectedId = match ? (match.setId as string | undefined) : undefined;
 
   return (
-    <Flex gap="4">
-      <Card style={{ width: 275, height: "fit-content" }}>
+    <Flex height="0" flexGrow="1">
+      <Flex direction="column" width="275px" p="4" height="100%">
         <DebouncedTextField
           initialValue={search.q}
           onDebouncedChange={(value) => setQ(value)}
-          mb="2"
+          mb="3"
+          radius="large"
         >
           <TextField.Slot>
             <PiMagnifyingGlass size="16" />
@@ -83,15 +92,20 @@ function RouteComponent() {
             </GlossarySidebarList.Item>
           ))}
         </GlossarySidebarList.Root>
-        <PaginationFooter
-          page={paginatedResult.page}
-          pageSize={paginatedResult.pageSize}
-          total={paginatedResult.total}
-          onPrev={() => prev()}
-          onNext={() => next(paginatedResult.total)}
-        />
-      </Card>
-      <Outlet />
+        <Box mt="auto">
+          <PaginationFooter
+            page={paginatedResult.page}
+            pageSize={paginatedResult.pageSize}
+            total={paginatedResult.total}
+            onPrev={() => prev()}
+            onNext={() => next(paginatedResult.total)}
+          />
+        </Box>
+      </Flex>
+      <Separator orientation="vertical" size="4" />
+      <ContentContainer align="stretch">
+        <Outlet />
+      </ContentContainer>
     </Flex>
   );
 }
