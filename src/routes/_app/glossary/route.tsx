@@ -1,6 +1,5 @@
-import { TabNav } from "@radix-ui/themes";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ContentOutlet } from "../../../components/ContentContainer";
+import { Flex, TabNav } from "@radix-ui/themes";
+import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useIsActive } from "../../../lib/hooks/useIsActive";
 
 export const Route = createFileRoute("/_app/glossary")({
@@ -14,8 +13,8 @@ function RouteComponent() {
   const groupsActive = useIsActive("/glossary/groups", true);
 
   return (
-    <ContentOutlet align="stretch">
-      <TabNav.Root mb="3" size="2">
+    <Flex direction="column" flexGrow="1">
+      <TabNav.Root size="2">
         <TabNav.Link asChild active={charactersActive}>
           <Link to="/glossary/characters" preload="intent">
             Characters
@@ -32,6 +31,7 @@ function RouteComponent() {
           </Link>
         </TabNav.Link>
       </TabNav.Root>
-    </ContentOutlet>
+      <Outlet />
+    </Flex>
   );
 }

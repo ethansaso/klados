@@ -41,7 +41,7 @@ export async function fetchCharacterDetailById(
         id: groupsTbl.id,
         label: groupsTbl.label,
       },
-      usageCount: sql<number>`COUNT(${valCatTbl.id})`,
+      usageCount: sql<number>`COUNT(DISTINCT ${valCatTbl.taxonId})`,
 
       // categorical meta
       type: sql<"categorical">`'categorical'`,
@@ -104,7 +104,7 @@ export async function selectCharactersByIds(
         id: groupsTbl.id,
         label: groupsTbl.label,
       },
-      usageCount: sql<number>`COUNT(${valCatTbl.id})`,
+      usageCount: sql<number>`COUNT(DISTINCT ${valCatTbl.taxonId})`,
       type: sql<"categorical">`'categorical'`,
       characterId: charsTbl.id,
       traitSetId: catMetaTbl.traitSetId,
@@ -170,7 +170,7 @@ export async function listCharactersQuery(args: {
         id: groupsTbl.id,
         label: groupsTbl.label,
       },
-      usageCount: sql<number>`COUNT(${valCatTbl.id})`,
+      usageCount: sql<number>`COUNT(DISTINCT ${valCatTbl.taxonId})`,
       // categorical meta
       type: sql<"categorical">`'categorical'`,
       characterId: charsTbl.id,
