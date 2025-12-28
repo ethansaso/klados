@@ -1,21 +1,14 @@
 import NiceModal from "@ebay/nice-modal-react";
-import {
-  Box,
-  Flex,
-  IconButton,
-  Separator,
-  Text,
-  TextField,
-} from "@radix-ui/themes";
+import { Box, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { PiLink, PiMagnifyingGlass, PiPlusCircle, PiTag } from "react-icons/pi";
+import { GlossarySidebarLayout } from "../-chrome/GlossarySidebarLayout";
 import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
-import { ContentContainer } from "../../../../components/ContentContainer";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
-import { useSectionSearch } from "../../../../lib/hooks/useSectionSearch";
+import { useGlossarySearch } from "../../../../lib/hooks/useGlossarySearch";
 import { traitSetsQueryOptions } from "../../../../lib/queries/traits";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
 import { AddTraitSetModal } from "./-AddTraitSetModal";
@@ -36,20 +29,16 @@ export const Route = createFileRoute("/_app/glossary/traits")({
 });
 
 function RouteComponent() {
-  const { search, setQ, next, prev } = useSectionSearch(Route);
+  const { search, setQ, next, prev } = useGlossarySearch(Route);
   const { data: paginatedResult } = useSuspenseQuery(
     traitSetsQueryOptions(search.page, search.pageSize, {
       q: search.q,
     })
   );
 
-  // const matchRoute = useMatchRoute();
-  // const match = matchRoute({ to: "/glossary/traits/$setId", fuzzy: true });
-  // const selectedId = match ? (match.setId as string | undefined) : undefined;
-
   return (
-    <Flex height="0" flexGrow="1">
-      <Flex direction="column" width="275px" p="4" height="100%">
+    <GlossarySidebarLayout.Root>
+      <GlossarySidebarLayout.Sidebar>
         <DebouncedTextField
           initialValue={search.q}
           onDebouncedChange={(value) => setQ(value)}
@@ -70,7 +59,7 @@ function RouteComponent() {
             </TextField.Slot>
           </CuratorOnly>
         </DebouncedTextField>
-        <GlossarySidebarList.Root>
+        <GlossarySidebarList.List>
           {paginatedResult.items.map((item) => (
             <GlossarySidebarList.Item
               key={item.id}
@@ -78,6 +67,7 @@ function RouteComponent() {
               label={item.label}
               to="/glossary/traits/$setId"
               params={{ setId: String(item.id) }}
+              search={{ valuePage: 1 }}
             >
               <Flex align="center" gap="1" asChild>
                 <Text as="div" size="1">
@@ -91,7 +81,7 @@ function RouteComponent() {
               </Flex>
             </GlossarySidebarList.Item>
           ))}
-        </GlossarySidebarList.Root>
+        </GlossarySidebarList.List>
         <Box mt="auto">
           <PaginationFooter
             page={paginatedResult.page}
@@ -101,11 +91,9 @@ function RouteComponent() {
             onNext={() => next(paginatedResult.total)}
           />
         </Box>
-      </Flex>
-      <Separator orientation="vertical" size="4" />
-      <ContentContainer align="stretch">
-        <Outlet />
-      </ContentContainer>
-    </Flex>
+      </GlossarySidebarLayout.Sidebar>
+      <GlossarySidebarLayout.Separator />
+      <GlossarySidebarLayout.Content />
+    </GlossarySidebarLayout.Root>
   );
 }

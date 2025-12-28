@@ -8,7 +8,7 @@ import {
   useFormState,
   useWatch,
 } from "react-hook-form";
-import { snakeCase } from "../../../../lib/utils/casing";
+import { snakeCase } from "../utils/casing";
 
 type StringPath<T extends FieldValues> = {
   [P in FieldPath<T>]: FieldPathValue<T, P> extends string ? P : never;

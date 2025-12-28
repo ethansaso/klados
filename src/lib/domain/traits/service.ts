@@ -1,6 +1,7 @@
 import { db } from "../../../db/client";
 import {
   deleteTraitSetById,
+  deleteTraitValueById,
   fetchTraitSetDetailById,
   getTraitSetValuesQuery,
   insertTraitSet,
@@ -79,6 +80,38 @@ export async function deleteTraitSet(args: {
   const { id } = args;
   return db.transaction(async (tx) => {
     const deleted = await deleteTraitSetById(tx, id);
+    return deleted;
+  });
+}
+
+/**
+ * Delete a trait value by id.
+ * Returns { id } if deleted, null if the value does not exist.
+ */
+export async function deleteTraitValue(args: {
+  id: number;
+}): Promise<{ id: number } | null> {
+  const { id } = args;
+
+  return db.transaction(async (tx) => {
+    const dto = await selectTraitValueDtoById(tx, id);
+    if (!dto) return null;
+
+    // Block delete if referenced by a state(s)
+    if (dto.usageCount > 0) {
+      throw new Error(
+        `Cannot delete "${dto.label}" because it is used by ${dto.usageCount} taxon character state(s).`
+      );
+    }
+
+    // Block delete if has dependent aliases
+    if (!dto.aliasTarget && (dto.aliasCount ?? 0) > 0) {
+      throw new Error(
+        `Cannot delete "${dto.label}" because ${dto.aliasCount} alias value(s) depend on it. Remove or reassign those aliases first.`
+      );
+    }
+
+    const deleted = await deleteTraitValueById(tx, id);
     return deleted;
   });
 }

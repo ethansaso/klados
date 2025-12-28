@@ -4,21 +4,26 @@ import {
   Flex,
   Heading,
   IconButton,
-  Table,
   Text,
   TextField,
 } from "@radix-ui/themes";
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useMemo } from "react";
 import { PiPlusCircle, PiTrash } from "react-icons/pi";
 import z from "zod";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../components/dialogs/ConfirmDeleteModal";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
-import { ColorBubble } from "../../../../components/trait-tokens/ColorBubble";
 import { createTraitValueFn } from "../../../../lib/api/traits/createTraitValueFn";
 import { deleteTraitSetFn } from "../../../../lib/api/traits/deleteTraitSetFn";
+import { useMe } from "../../../../lib/auth/useMe";
+import { roleHasCuratorRights } from "../../../../lib/auth/utils";
 import { TraitSetDTO } from "../../../../lib/domain/traits/types";
 import {
   traitSetQueryOptions,
@@ -27,6 +32,8 @@ import {
 } from "../../../../lib/queries/traits";
 import { snakeCase } from "../../../../lib/utils/casing";
 import { toast } from "../../../../lib/utils/toast";
+import { DeleteTraitValueModal } from "./-DeleteTraitValueModal";
+import TraitValuesTable from "./-TraitSetTable";
 import { Route as TraitsLayoutRoute } from "./route";
 
 const ParamsSchema = z.object({
@@ -55,7 +62,6 @@ export const Route = createFileRoute("/_app/glossary/traits/$id")({
 });
 
 // TODO: alias, keys, editing, deleting values
-// TODO: handle 404s
 function RouteComponent() {
   const layoutSearch = TraitsLayoutRoute.useSearch();
   const { id, valuePage } = Route.useLoaderData();
@@ -69,15 +75,90 @@ function RouteComponent() {
   const { data: traitSetValuesPage } = useSuspenseQuery(
     traitSetValuesPaginatedQueryOptions(id, valuePage, PAGE_SIZE)
   );
+  const { data: me } = useMe();
 
   const { items, total } = traitSetValuesPage;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const canPrev = valuePage > 1;
   const canNext = valuePage < totalPages;
 
-  const handleAddValue = async (e: React.FormEvent) => {
+  const invalidateTraitSet = async (setId: number, page: number) => {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: traitSetQueryOptions(setId).queryKey }),
+      qc.invalidateQueries({
+        queryKey: traitSetValuesQueryOptions(setId).queryKey,
+      }),
+      qc.invalidateQueries({
+        queryKey: traitSetValuesPaginatedQueryOptions(setId, page, PAGE_SIZE)
+          .queryKey,
+      }),
+    ]);
+  };
+
+  const createValueMutation = useMutation({
+    mutationFn: async (label: string) => {
+      const trimmedValue = label.trim();
+      if (!trimmedValue) {
+        throw new Error("Trait value cannot be empty.");
+      }
+
+      await serverCreate({
+        data: {
+          setId: id,
+          key: snakeCase(trimmedValue),
+          label: trimmedValue,
+        },
+      });
+
+      return trimmedValue;
+    },
+    onSuccess: (createdLabel) => {
+      toast({
+        description: `Trait value "${createdLabel}" created.`,
+        variant: "success",
+      });
+      invalidateTraitSet(id, valuePage);
+    },
+    onError: (error) => {
+      toast({
+        variant: "error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to create trait value.",
+      });
+    },
+  });
+
+  const deleteTraitSetMutation = useMutation({
+    mutationFn: async (traitSet: TraitSetDTO) => {
+      await serverDelete({ data: { id: traitSet.id } });
+      return traitSet;
+    },
+    onSuccess: (deletedTraitSet) => {
+      invalidateTraitSet(deletedTraitSet.id, valuePage);
+
+      navigate({
+        to: "/glossary/traits",
+        search: layoutSearch,
+      });
+
+      toast({
+        variant: "success",
+        description: `Trait set "${deletedTraitSet.label}" deleted successfully.`,
+      });
+    },
+    onError: (error, traitSetArg) => {
+      toast({
+        variant: "error",
+        description: `Failed to delete trait set "${traitSetArg.label}".`,
+      });
+      void error;
+    },
+  });
+
+  const handleAddValue = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("trig");
 
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
@@ -87,27 +168,11 @@ function RouteComponent() {
     const trimmedValue = eValue.trim();
     if (!trimmedValue) return;
 
-    try {
-      await serverCreate({
-        data: {
-          setId: id,
-          key: snakeCase(trimmedValue),
-          label: trimmedValue,
-        },
-      });
-
-      toast({ description: "Trait value created.", variant: "success" });
-      form.reset();
-      qc.invalidateQueries({
-        queryKey: traitSetValuesQueryOptions(id).queryKey,
-      });
-      qc.invalidateQueries({
-        queryKey: traitSetValuesPaginatedQueryOptions(id, valuePage, PAGE_SIZE)
-          .queryKey,
-      });
-    } catch (error) {
-      console.error("Error creating trait value:", error);
-    }
+    createValueMutation.mutate(trimmedValue, {
+      onSuccess: () => {
+        form.reset();
+      },
+    });
   };
 
   const handleTraitSetDeleteClick = (traitSet: TraitSetDTO) => {
@@ -115,29 +180,7 @@ function RouteComponent() {
       label: traitSet.label,
       itemType: "trait set",
       onConfirm: async () => {
-        try {
-          await serverDelete({ data: { id: traitSet.id } });
-          qc.invalidateQueries({ queryKey: ["traitSets"] });
-          qc.invalidateQueries({
-            queryKey: traitSetQueryOptions(traitSet.id).queryKey,
-          });
-          qc.invalidateQueries({
-            queryKey: traitSetValuesQueryOptions(traitSet.id).queryKey,
-          });
-          navigate({
-            to: "/glossary/traits",
-            search: layoutSearch,
-          });
-          toast({
-            variant: "success",
-            description: `Trait set "${traitSet.label}" deleted successfully.`,
-          });
-        } catch {
-          toast({
-            variant: "error",
-            description: `Failed to delete trait set "${traitSet.label}".`,
-          });
-        }
+        await deleteTraitSetMutation.mutateAsync(traitSet);
       },
     });
   };
@@ -162,15 +205,19 @@ function RouteComponent() {
   };
 
   // Propagates canonical values' hexcodes to their aliases.
-  const aliasCorrectedValues = items.map((val) => {
-    if (!val.aliasTarget) {
-      return val;
-    }
-    return {
-      ...val,
-      hexCode: val.aliasTarget?.hexCode || null,
-    };
-  });
+  const aliasCorrectedValues = useMemo(
+    () =>
+      items.map((val) => {
+        if (!val.aliasTarget) {
+          return val;
+        }
+        return {
+          ...val,
+          hexCode: val.aliasTarget?.hexCode || null,
+        };
+      }),
+    [items]
+  );
 
   return (
     <Box flexGrow="1">
@@ -183,12 +230,14 @@ function RouteComponent() {
           <IconButton
             size="1"
             color="tomato"
+            disabled={deleteTraitSetMutation.isPending}
             onClick={() => handleTraitSetDeleteClick(traitSet)}
           >
             <PiTrash />
           </IconButton>
         </CuratorOnly>
       </Flex>
+
       <CuratorOnly>
         <Flex mb="2" asChild>
           <form onSubmit={handleAddValue}>
@@ -198,7 +247,11 @@ function RouteComponent() {
               placeholder="Add a new value..."
             >
               <TextField.Slot side="right">
-                <IconButton type="submit" size="1">
+                <IconButton
+                  type="submit"
+                  size="1"
+                  disabled={createValueMutation.isPending}
+                >
                   <PiPlusCircle />
                 </IconButton>
               </TextField.Slot>
@@ -206,46 +259,17 @@ function RouteComponent() {
           </form>
         </Flex>
       </CuratorOnly>
-      <Table.Root size="1">
-        <Table.Header>
-          <Table.Row>
-            <Table.ColumnHeaderCell width="45px">Icon</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell>Trait</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell>Alias for</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell>Description</Table.ColumnHeaderCell>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {aliasCorrectedValues.length === 0 ? (
-            <Table.Row>
-              <Table.Cell colSpan={3}>No values found.</Table.Cell>
-            </Table.Row>
-          ) : (
-            aliasCorrectedValues.map((val) => (
-              <Table.Row key={val.id}>
-                <Table.Cell justify="center">
-                  {val.hexCode && (
-                    <ColorBubble size={12} hexColor={val.hexCode} />
-                  )}
-                </Table.Cell>
-                <Table.Cell>
-                  <Text>{val.label}</Text>
-                </Table.Cell>
-                <Table.Cell>
-                  {!val.aliasTarget ? (
-                    <Text color="gray">------</Text>
-                  ) : (
-                    <Text>{val.aliasTarget?.label}</Text>
-                  )}
-                </Table.Cell>
-                <Table.Cell>
-                  <Text>{val.description}</Text>
-                </Table.Cell>
-              </Table.Row>
-            ))
-          )}
-        </Table.Body>
-      </Table.Root>
+
+      <TraitValuesTable
+        values={aliasCorrectedValues}
+        showActions={roleHasCuratorRights(me?.role)}
+        onDeleteClick={(value) => {
+          NiceModal.show(DeleteTraitValueModal, {
+            value,
+            invalidate: () => invalidateTraitSet(id, valuePage),
+          });
+        }}
+      />
       <PaginationFooter
         page={valuePage}
         pageSize={PAGE_SIZE}

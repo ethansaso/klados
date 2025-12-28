@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { NavigationMenu } from "radix-ui";
 import { PropsWithChildren } from "react";
 
-function Root({ children }: PropsWithChildren) {
+function List({ children }: PropsWithChildren) {
   return (
     <NavigationMenu.Root orientation="vertical">
       <Flex asChild p="0" m="0" direction="column" gap="1">
@@ -18,6 +18,7 @@ interface ItemProps {
   label: string;
   to: string;
   params?: Record<string, string | number>;
+  search?: Record<string, string | number>;
 }
 
 function Item({
@@ -25,12 +26,19 @@ function Item({
   label,
   to,
   params,
+  search,
   children,
 }: PropsWithChildren<ItemProps>) {
   return (
     <NavigationMenu.Item asChild>
       <Card asChild style={{ width: "100%" }}>
-        <Link to={to} params={params} search preload="intent">
+        <Link
+          to={to}
+          params={params}
+          search={search}
+          preload="intent"
+          activeOptions={{ includeSearch: false }}
+        >
           <Flex width="100%" gap="5" justify="between">
             <Box flexShrink="1" style={{ minWidth: 0 }}>
               <Text as="p" size="2" truncate className="glossary-label">
@@ -51,6 +59,6 @@ function Item({
 }
 
 export const GlossarySidebarList = {
-  Root,
+  List,
   Item,
 };

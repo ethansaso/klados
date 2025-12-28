@@ -4,7 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PiMagnifyingGlass } from "react-icons/pi";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
-import { useSectionSearch } from "../../../../lib/hooks/useSectionSearch";
+import { useGlossarySearch } from "../../../../lib/hooks/useGlossarySearch";
 import { keysQueryOptions } from "../../../../lib/queries/keys";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
 import { KeyTable } from "./-KeyTable";
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_app/keys/_browsing/")({
 
 function RouteComponent() {
   const navigate = Route.useNavigate();
-  const { search, setQ, next, prev } = useSectionSearch(Route);
+  const { search, setQ, next, prev } = useGlossarySearch(Route);
   const {
     data: { items, page: currentPage, pageSize: currentPageSize, total },
   } = useSuspenseQuery(
