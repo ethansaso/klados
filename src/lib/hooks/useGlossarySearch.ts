@@ -11,10 +11,9 @@ type RouteLike = {
   useNavigate: () => unknown;
 };
 
-export function useSectionSearch<TRoute extends RouteLike>(Route: TRoute) {
+export function useGlossarySearch<TRoute extends RouteLike>(Route: TRoute) {
   const raw = Route.useSearch() as SectionSearch;
 
-  // Keep TanStack's real navigate type (don't try to re-type it)
   const navigate = Route.useNavigate() as ReturnType<TRoute["useNavigate"]>;
 
   const search = {

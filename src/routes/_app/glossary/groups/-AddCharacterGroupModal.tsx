@@ -13,7 +13,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Form, Label } from "radix-ui";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { useAutoKey } from "../-chrome/-useAutoKey";
 import {
   a11yProps,
   ConditionalAlert,
@@ -23,6 +22,7 @@ import {
   CreateTraitSetInput,
   createTraitSetSchema,
 } from "../../../../lib/domain/traits/validation";
+import { useAutoKey } from "../../../../lib/hooks/useAutoKey";
 import { toast } from "../../../../lib/utils/toast";
 
 export const AddCharacterGroupModal = NiceModal.create(() => {

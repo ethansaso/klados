@@ -23,6 +23,10 @@ export type TraitValueDTO = Pick<
 > & {
   /** Present when this value is an alias (isCanonical = false). */
   aliasTarget: Trait | null;
+  /** Number of usages of this trait (from categorical character state table) */
+  usageCount: number;
+  /** Number of aliases pointing to this trait (=0 if not canonical) */
+  aliasCount: number;
 };
 
 export type TraitSetPaginatedResult = PaginatedResult<TraitSetDTO>;

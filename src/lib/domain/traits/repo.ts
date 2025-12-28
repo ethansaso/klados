@@ -16,6 +16,7 @@ import { db } from "../../../db/client";
 import {
   categoricalCharacterMeta as catMetaTbl,
   categoricalTraitSet as setsTbl,
+  taxonCharacterStateCategorical as tcsTbl,
   categoricalTraitValue as valsTbl,
 } from "../../../db/schema/schema";
 import { Transaction } from "../../utils/transactionType";
@@ -144,6 +145,21 @@ export async function deleteTraitSetById(
 }
 
 /**
+ * Delete a trait value by id; returns the deleted id or null if nothing deleted.
+ */
+export async function deleteTraitValueById(
+  tx: Transaction,
+  id: number
+): Promise<{ id: number } | null> {
+  const [deleted] = await tx
+    .delete(valsTbl)
+    .where(eq(valsTbl.id, id))
+    .returning({ id: valsTbl.id });
+
+  return deleted ?? null;
+}
+
+/**
  * Fetch a single trait set detail by id (with aggregates).
  */
 export async function fetchTraitSetDetailById(
@@ -201,6 +217,36 @@ export async function getTraitSetValuesQuery(
   const v = valsTbl;
   const canon = alias(valsTbl, "canon");
 
+  const usageAgg = db
+    .select({
+      traitValueId: tcsTbl.traitValueId,
+      usageCount: sql<number>`CAST(COUNT(${tcsTbl.id}) AS INT)`.as(
+        "usage_count"
+      ),
+    })
+    .from(tcsTbl)
+    .innerJoin(v, eq(tcsTbl.traitValueId, v.id))
+    .where(eq(v.setId, setId))
+    .groupBy(tcsTbl.traitValueId)
+    .as("usage_agg");
+
+  const aliasAgg = db
+    .select({
+      targetId: valsTbl.canonicalValueId,
+      aliasCount: sql<number>`CAST(COUNT(${valsTbl.id}) AS INT)`.as(
+        "alias_count"
+      ),
+    })
+    .from(valsTbl)
+    .where(
+      and(
+        eq(valsTbl.setId, setId),
+        sql`${valsTbl.canonicalValueId} IS NOT NULL`
+      )
+    )
+    .groupBy(valsTbl.canonicalValueId)
+    .as("alias_agg");
+
   const rows = await db
     .select({
       id: v.id,
@@ -213,9 +259,13 @@ export async function getTraitSetValuesQuery(
       canonId: canon.id,
       canonLabel: canon.label,
       canonHexCode: canon.hexCode,
+      usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
+      aliasCount: sql<number>`COALESCE(${aliasAgg.aliasCount}, 0)`,
     })
     .from(v)
     .leftJoin(canon, eq(v.canonicalValueId, canon.id))
+    .leftJoin(usageAgg, eq(usageAgg.traitValueId, v.id))
+    .leftJoin(aliasAgg, eq(aliasAgg.targetId, v.id))
     .where(eq(v.setId, setId))
     .orderBy(asc(v.label), asc(v.id));
 
@@ -226,6 +276,8 @@ export async function getTraitSetValuesQuery(
     label: r.label,
     hexCode: r.hexCode,
     description: r.description,
+    usageCount: r.usageCount,
+    aliasCount: r.aliasCount,
     aliasTarget: r.isCanonical
       ? null
       : r.canonId
@@ -254,6 +306,36 @@ export async function listTraitSetValuesQuery(args: {
   const v = valsTbl;
   const canon = alias(valsTbl, "canon");
 
+  const usageAgg = db
+    .select({
+      traitValueId: tcsTbl.traitValueId,
+      usageCount: sql<number>`CAST(COUNT(${tcsTbl.id}) AS INT)`.as(
+        "usage_count"
+      ),
+    })
+    .from(tcsTbl)
+    .innerJoin(v, eq(tcsTbl.traitValueId, v.id))
+    .where(eq(v.setId, setId))
+    .groupBy(tcsTbl.traitValueId)
+    .as("usage_agg");
+
+  const aliasAgg = db
+    .select({
+      targetId: valsTbl.canonicalValueId,
+      aliasCount: sql<number>`CAST(COUNT(${valsTbl.id}) AS INT)`.as(
+        "alias_count"
+      ),
+    })
+    .from(valsTbl)
+    .where(
+      and(
+        eq(valsTbl.setId, setId),
+        sql`${valsTbl.canonicalValueId} IS NOT NULL`
+      )
+    )
+    .groupBy(valsTbl.canonicalValueId)
+    .as("alias_agg");
+
   const items = await db
     .select({
       id: v.id,
@@ -266,9 +348,13 @@ export async function listTraitSetValuesQuery(args: {
       canonId: canon.id,
       canonLabel: canon.label,
       canonHexCode: canon.hexCode,
+      usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
+      aliasCount: sql<number>`COALESCE(${aliasAgg.aliasCount}, 0)`,
     })
     .from(v)
     .leftJoin(canon, eq(v.canonicalValueId, canon.id))
+    .leftJoin(usageAgg, eq(usageAgg.traitValueId, v.id))
+    .leftJoin(aliasAgg, eq(aliasAgg.targetId, v.id))
     .where(eq(v.setId, setId))
     .orderBy(asc(v.label), asc(v.id))
     .limit(pageSize)
@@ -286,6 +372,8 @@ export async function listTraitSetValuesQuery(args: {
     label: r.label,
     hexCode: r.hexCode,
     description: r.description,
+    usageCount: r.usageCount,
+    aliasCount: r.aliasCount,
     aliasTarget: r.isCanonical
       ? null
       : r.canonId
@@ -369,6 +457,35 @@ export async function selectTraitValueDtoById(
   const v = valsTbl;
   const canon = alias(valsTbl, "canon");
 
+  const usageAgg = tx
+    .select({
+      traitValueId: tcsTbl.traitValueId,
+      usageCount: sql<number>`CAST(COUNT(${tcsTbl.id}) AS INT)`.as(
+        "usage_count"
+      ),
+    })
+    .from(tcsTbl)
+    .where(eq(tcsTbl.traitValueId, id))
+    .groupBy(tcsTbl.traitValueId)
+    .as("usage_agg");
+
+  const aliasAgg = tx
+    .select({
+      targetId: valsTbl.canonicalValueId,
+      aliasCount: sql<number>`CAST(COUNT(${valsTbl.id}) AS INT)`.as(
+        "alias_count"
+      ),
+    })
+    .from(valsTbl)
+    .where(
+      and(
+        eq(valsTbl.canonicalValueId, id),
+        sql`${valsTbl.canonicalValueId} IS NOT NULL`
+      )
+    )
+    .groupBy(valsTbl.canonicalValueId)
+    .as("alias_agg");
+
   const [row] = await tx
     .select({
       id: v.id,
@@ -381,9 +498,13 @@ export async function selectTraitValueDtoById(
       canonId: canon.id,
       canonLabel: canon.label,
       canonHexCode: canon.hexCode,
+      usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
+      aliasCount: sql<number>`COALESCE(${aliasAgg.aliasCount}, 0)`,
     })
     .from(v)
     .leftJoin(canon, eq(v.canonicalValueId, canon.id))
+    .leftJoin(usageAgg, eq(usageAgg.traitValueId, v.id))
+    .leftJoin(aliasAgg, eq(aliasAgg.targetId, v.id))
     .where(eq(v.id, id))
     .orderBy(asc(v.id))
     .limit(1);
@@ -397,6 +518,8 @@ export async function selectTraitValueDtoById(
     label: row.label,
     hexCode: row.hexCode,
     description: row.description,
+    usageCount: row.usageCount,
+    aliasCount: row.aliasCount,
     aliasTarget: row.isCanonical
       ? null
       : row.canonId
@@ -424,6 +547,35 @@ export async function selectTraitValueDtosByIds(
   const v = valsTbl;
   const canon = alias(valsTbl, "canon");
 
+  const usageAgg = tx
+    .select({
+      traitValueId: tcsTbl.traitValueId,
+      usageCount: sql<number>`CAST(COUNT(${tcsTbl.id}) AS INT)`.as(
+        "usage_count"
+      ),
+    })
+    .from(tcsTbl)
+    .where(inArray(tcsTbl.traitValueId, ids))
+    .groupBy(tcsTbl.traitValueId)
+    .as("usage_agg");
+
+  const aliasAgg = tx
+    .select({
+      targetId: valsTbl.canonicalValueId,
+      aliasCount: sql<number>`CAST(COUNT(${valsTbl.id}) AS INT)`.as(
+        "alias_count"
+      ),
+    })
+    .from(valsTbl)
+    .where(
+      and(
+        inArray(valsTbl.canonicalValueId, ids),
+        sql`${valsTbl.canonicalValueId} IS NOT NULL`
+      )
+    )
+    .groupBy(valsTbl.canonicalValueId)
+    .as("alias_agg");
+
   const rows = await tx
     .select({
       id: v.id,
@@ -436,9 +588,13 @@ export async function selectTraitValueDtosByIds(
       canonId: canon.id,
       canonLabel: canon.label,
       canonHexCode: canon.hexCode,
+      usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
+      aliasCount: sql<number>`COALESCE(${aliasAgg.aliasCount}, 0)`,
     })
     .from(v)
     .leftJoin(canon, eq(v.canonicalValueId, canon.id))
+    .leftJoin(usageAgg, eq(usageAgg.traitValueId, v.id))
+    .leftJoin(aliasAgg, eq(aliasAgg.targetId, v.id))
     .where(inArray(v.id, ids))
     .orderBy(asc(v.id));
 
@@ -449,6 +605,8 @@ export async function selectTraitValueDtosByIds(
     label: row.label,
     hexCode: row.hexCode,
     description: row.description,
+    usageCount: row.usageCount,
+    aliasCount: row.aliasCount,
     aliasTarget: row.isCanonical
       ? null
       : row.canonId

@@ -15,7 +15,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { Form, Label } from "radix-ui";
 import { useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
-import { useAutoKey } from "../-chrome/-useAutoKey";
 import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
 import { ComboboxOption } from "../../../../components/inputs/combobox/types";
 import {
@@ -27,6 +26,7 @@ import {
   CreateCharacterInput,
   createCharacterSchema,
 } from "../../../../lib/domain/characters/validation";
+import { useAutoKey } from "../../../../lib/hooks/useAutoKey";
 import { characterGroupsQueryOptions } from "../../../../lib/queries/characterGroups";
 import { traitSetsQueryOptions } from "../../../../lib/queries/traits";
 import { toast } from "../../../../lib/utils/toast";
