@@ -13,17 +13,22 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Form, Label } from "radix-ui";
 import { SubmitHandler, useForm } from "react-hook-form";
+import z from "zod";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
 import { createTraitSetFn } from "../../../../lib/api/traits/createTraitSetFn";
-import {
-  CreateTraitSetInput,
-  createTraitSetSchema,
-} from "../../../../lib/domain/traits/validation";
+import { createTraitSetSchema } from "../../../../lib/domain/traits/validation";
 import { useAutoKey } from "../../../../lib/hooks/useAutoKey";
 import { toast } from "../../../../lib/utils/toast";
+import { trimmed } from "../../../../lib/validation/trimmedOptional";
+
+type CreateTraitSetFormInput = z.infer<typeof createTraitSetFormSchema>;
+
+export const createTraitSetFormSchema = createTraitSetSchema.extend({
+  description: trimmed("Must be a string").max(1000, "Max 1000 characters"),
+});
 
 export const AddTraitSetModal = NiceModal.create(() => {
   const { visible, hide } = useModal();
@@ -37,8 +42,8 @@ export const AddTraitSetModal = NiceModal.create(() => {
     setValue,
     reset,
     formState: { errors, isSubmitting, touchedFields, isSubmitted },
-  } = useForm<CreateTraitSetInput>({
-    resolver: zodResolver(createTraitSetSchema),
+  } = useForm<CreateTraitSetFormInput>({
+    resolver: zodResolver(createTraitSetFormSchema),
     mode: "onSubmit",
     reValidateMode: "onChange",
     defaultValues: {
@@ -55,7 +60,7 @@ export const AddTraitSetModal = NiceModal.create(() => {
     "key"
   );
 
-  const onSubmit: SubmitHandler<CreateTraitSetInput> = async ({
+  const onSubmit: SubmitHandler<CreateTraitSetFormInput> = async ({
     key,
     label,
     description,
