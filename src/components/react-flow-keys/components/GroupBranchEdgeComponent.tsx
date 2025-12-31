@@ -3,6 +3,7 @@ import {
   BaseEdge,
   EdgeLabelRenderer,
   getBezierPath,
+  Position,
   type EdgeProps,
 } from "@xyflow/react";
 import type { HydratedBranchRationale } from "../../../keygen/hydration/types";
@@ -30,8 +31,10 @@ export default function GroupBranchEdgeComponent(
   const [path, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
+    sourcePosition: Position.Right,
     targetX,
     targetY,
+    targetPosition: Position.Left,
   });
 
   const groups = buildGroupStatusMap(data.rationale);
