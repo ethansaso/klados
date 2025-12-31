@@ -43,7 +43,6 @@ export const categoricalTraitValue = pgTable(
     label: text("label").notNull(),
     /** Optional hexadecimal color code (e.g., "#ff0000") */
     hexCode: text("hex_code"),
-    /** Optional description */
     description: text("description").notNull().default(""),
     isCanonical: boolean("is_canonical").notNull().default(true),
     canonicalValueId: integer("canonical_value_id"),

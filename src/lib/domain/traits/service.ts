@@ -11,6 +11,7 @@ import {
   selectTraitValueDtoById,
   selectTraitValueDtosByIds,
   selectTraitValueRowById,
+  updateTraitValueRow,
 } from "./repo";
 import type {
   TraitSetDetailDTO,
@@ -19,6 +20,7 @@ import type {
   TraitValueDTO,
   TraitValuePaginatedResult,
 } from "./types";
+import { UpdateTraitValueInput } from "./validation";
 
 /**
  * List trait sets with optional search, status filter and IDs, paginated.
@@ -203,6 +205,76 @@ export async function createTraitValue(args: {
     if (!dto) {
       throw new Error("Inserted row not found.");
     }
+
+    return dto;
+  });
+}
+
+export async function updateTraitValue(
+  args: UpdateTraitValueInput
+): Promise<TraitValueDTO> {
+  return db.transaction(async (tx) => {
+    const cur = await selectTraitValueDtoById(tx, args.id);
+    if (!cur) throw new Error("Trait value not found.");
+    if (cur.setId !== args.setId) throw new Error("Trait value set mismatch.");
+
+    const aliasTargetId = args.aliasTargetId; // number | null | undefined
+
+    const willBeAlias =
+      aliasTargetId !== undefined
+        ? aliasTargetId !== null
+        : cur.aliasTarget !== null;
+
+    // block: setting alias when this value has aliases
+    if (
+      aliasTargetId !== undefined &&
+      aliasTargetId !== null &&
+      cur.aliasCount > 0
+    ) {
+      throw new Error(
+        `Cannot make "${cur.label}" an alias because ${cur.aliasCount} alias value(s) depend on it.`
+      );
+    }
+
+    // validate target if setting alias
+    if (aliasTargetId !== undefined && aliasTargetId !== null) {
+      if (aliasTargetId === args.id)
+        throw new Error("A trait value cannot alias itself.");
+
+      const target = await selectTraitValueRowById(tx, aliasTargetId);
+      if (!target) throw new Error("Alias target not found.");
+      if (target.setId !== args.setId)
+        throw new Error("Alias target must be in the same trait set.");
+      if (!target.isCanonical)
+        throw new Error("Alias target must be canonical.");
+    }
+
+    // if result is alias, reject attempts to set canonical-only fields
+    if (willBeAlias) {
+      if (args.hexCode !== undefined)
+        throw new Error("Hex code can only be set for canonical values.");
+      if (args.description !== undefined)
+        throw new Error("Description can only be set for canonical values.");
+    }
+
+    const patch = {
+      id: args.id,
+      setId: args.setId,
+      key: args.key?.trim(),
+      label: args.label?.trim(),
+      hexCode: args.hexCode === undefined ? undefined : args.hexCode,
+      description:
+        args.description === undefined
+          ? undefined
+          : (args.description?.trim() ?? ""),
+      aliasTargetId,
+    };
+
+    const updated = await updateTraitValueRow(tx, patch);
+    if (!updated) throw new Error("Update failed.");
+
+    const dto = await selectTraitValueDtoById(tx, args.id);
+    if (!dto) throw new Error("Updated row not found.");
 
     return dto;
   });
