@@ -19,9 +19,9 @@ import {
 } from "../../../../components/inputs/ConditionalAlert";
 import { createCharacterGroupFn } from "../../../../lib/api/character-groups/createCharacterGroup";
 import {
-  CreateTraitSetInput,
-  createTraitSetSchema,
-} from "../../../../lib/domain/traits/validation";
+  CreateCharacterGroupInput,
+  createCharacterGroupSchema,
+} from "../../../../lib/domain/character-groups/validation";
 import { useAutoKey } from "../../../../lib/hooks/useAutoKey";
 import { toast } from "../../../../lib/utils/toast";
 
@@ -37,8 +37,8 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
     setValue,
     reset,
     formState: { errors, isSubmitting, touchedFields, isSubmitted },
-  } = useForm<CreateTraitSetInput>({
-    resolver: zodResolver(createTraitSetSchema),
+  } = useForm<CreateCharacterGroupInput>({
+    resolver: zodResolver(createCharacterGroupSchema),
     mode: "onSubmit",
     reValidateMode: "onChange",
     defaultValues: {
@@ -55,7 +55,7 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
     "key"
   );
 
-  const onSubmit: SubmitHandler<CreateTraitSetInput> = async ({
+  const onSubmit: SubmitHandler<CreateCharacterGroupInput> = async ({
     key,
     label,
     description,

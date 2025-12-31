@@ -619,3 +619,44 @@ export async function selectTraitValueDtosByIds(
         : null,
   }));
 }
+
+export async function updateTraitValueRow(
+  tx: Transaction,
+  args: {
+    id: number;
+    setId: number;
+
+    key?: string;
+    label?: string;
+    hexCode?: string | null;
+    description?: string;
+    aliasTargetId?: number | null;
+  }
+): Promise<{ id: number } | null> {
+  const patch: Record<string, unknown> = {};
+
+  if (args.key !== undefined) patch.key = args.key;
+  if (args.label !== undefined) patch.label = args.label;
+  if (args.hexCode !== undefined) patch.hexCode = args.hexCode;
+  if (args.description !== undefined) patch.description = args.description;
+
+  if (args.aliasTargetId !== undefined) {
+    if (args.aliasTargetId === null) {
+      patch.isCanonical = true;
+      patch.canonicalValueId = null;
+    } else {
+      patch.isCanonical = false;
+      patch.canonicalValueId = args.aliasTargetId;
+      patch.hexCode = null;
+      patch.description = "";
+    }
+  }
+
+  const [updated] = await tx
+    .update(valsTbl)
+    .set(patch)
+    .where(and(eq(valsTbl.id, args.id), eq(valsTbl.setId, args.setId)))
+    .returning({ id: valsTbl.id });
+
+  return updated ?? null;
+}

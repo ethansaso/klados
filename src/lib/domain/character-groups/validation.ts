@@ -14,3 +14,7 @@ export const createCharacterGroupSchema = z.object({
     .max(1000, "Max 1000 characters")
     .optional(),
 });
+
+export type CreateCharacterGroupInput = z.infer<
+  typeof createCharacterGroupSchema
+>;

@@ -33,6 +33,7 @@ import {
 import { snakeCase } from "../../../../lib/utils/casing";
 import { toast } from "../../../../lib/utils/toast";
 import { DeleteTraitValueModal } from "./-DeleteTraitValueModal";
+import { EditTraitSetValueModal } from "./-EditTraitSetValueModal";
 import TraitValuesTable from "./-TraitSetTable";
 import { Route as TraitsLayoutRoute } from "./route";
 
@@ -263,6 +264,12 @@ function RouteComponent() {
       <TraitValuesTable
         values={aliasCorrectedValues}
         showActions={roleHasCuratorRights(me?.role)}
+        onEditClick={(value) => {
+          NiceModal.show(EditTraitSetValueModal, {
+            traitValue: value,
+            invalidate: () => invalidateTraitSet(id, valuePage),
+          });
+        }}
         onDeleteClick={(value) => {
           NiceModal.show(DeleteTraitValueModal, {
             value,
