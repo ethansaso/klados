@@ -5,16 +5,26 @@ import {
   Button,
   Dialog,
   Flex,
+  SegmentedControl,
   Text,
   TextArea,
   TextField,
 } from "@radix-ui/themes";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
-import { useEffect } from "react";
-import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Controller,
+  FormProvider,
+  SubmitHandler,
+  useForm,
+  useWatch,
+} from "react-hook-form";
 import z from "zod";
 import { ClearableColorField } from "../../../../components/inputs/ClearableColorField";
+import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
+import { ComboboxOption } from "../../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
@@ -22,6 +32,7 @@ import {
 import { updateTraitValueFn } from "../../../../lib/api/traits/updateTraitValueFn";
 import { TraitValueDTO } from "../../../../lib/domain/traits/types";
 import { useAutoKey } from "../../../../lib/hooks/useAutoKey";
+import { traitSetValuesPaginatedQueryOptions } from "../../../../lib/queries/traits";
 import { toast } from "../../../../lib/utils/toast";
 import {
   trimmed,
@@ -34,6 +45,7 @@ interface Props {
 }
 
 const updateTraitValueFormSchema = z.object({
+  kind: z.enum(["canon", "alias"]),
   key: trimmedNonEmpty("Please provide a key.", {
     max: { value: 100, message: "Max 100 characters" },
   }),
@@ -52,6 +64,7 @@ const updateTraitValueFormSchema = z.object({
 type FormValues = z.infer<typeof updateTraitValueFormSchema>;
 
 const seedFormValues = (value: TraitValueDTO): FormValues => ({
+  kind: value.aliasTarget ? "alias" : "canon",
   key: value.key,
   label: value.label,
   description: value.description ?? "",
@@ -63,6 +76,7 @@ const seedFormValues = (value: TraitValueDTO): FormValues => ({
 export const EditTraitSetValueModal = NiceModal.create<Props>(
   ({ traitValue, invalidate }) => {
     const { visible, hide } = NiceModal.useModal();
+    const serverUpdate = useServerFn(updateTraitValueFn);
 
     const methods = useForm<FormValues>({
       resolver: zodResolver(updateTraitValueFormSchema),
@@ -73,14 +87,13 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
       control,
       formState: { isSubmitted, touchedFields, errors },
       setValue,
+      setError,
       register,
       reset,
       handleSubmit,
     } = methods;
 
-    useEffect(() => {
-      reset(seedFormValues(traitValue));
-    }, [traitValue, reset]);
+    const kind = useWatch({ control, name: "kind" });
 
     const { autoKey, setAutoKey, handleKeyBlur } = useAutoKey(
       control,
@@ -90,7 +103,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
     );
 
     const mutation = useMutation({
-      mutationFn: updateTraitValueFn,
+      mutationFn: serverUpdate,
       onSuccess: async (res) => {
         await invalidate();
         toast({
@@ -100,26 +113,77 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
         hide();
       },
       onError: (err) => {
-        toast({
-          variant: "error",
-          description: err.message ?? "Failed to update trait value.",
+        setError("root", {
+          type: "server",
+          message: err.message ?? "Failed to update trait value.",
         });
       },
     });
 
     const onSubmit: SubmitHandler<FormValues> = async (data) => {
+      // Client-side guard: if user chose Alias but didn't pick a target
+      if (data.kind === "alias" && data.aliasTargetId == null) {
+        setError("aliasTargetId", {
+          type: "manual",
+          message: "Select a canonical value.",
+        });
+        return;
+      }
+
+      const isAlias = data.kind === "alias";
+
       await mutation.mutateAsync({
         data: {
           id: traitValue.id,
           setId: traitValue.setId,
           key: data.key,
           label: data.label,
-          description: data.description,
-          hexCode: data.hexCode === "" ? null : data.hexCode,
-          aliasTargetId: data.aliasTargetId,
+
+          // Only send alias if user has selected it
+          aliasTargetId: isAlias ? data.aliasTargetId : null,
+          ...(isAlias
+            ? {}
+            : {
+                description: data.description,
+                hexCode: data.hexCode === "" ? null : data.hexCode,
+              }),
         },
       });
     };
+
+    // Alias combobox state
+    const [aliasQuery, setAliasQuery] = useState("");
+    const { data: canonicalResp, isFetching: canonicalLoading } = useQuery(
+      traitSetValuesPaginatedQueryOptions(traitValue.setId, 1, 20, {
+        kind: "canonical",
+        q: aliasQuery,
+      })
+    );
+    const canonicalOptions: ComboboxOption[] = useMemo(() => {
+      const items = canonicalResp?.items ?? [];
+      return items
+        .filter((v) => v.id !== traitValue.id)
+        .map((v) => ({
+          id: v.id,
+          label: v.label,
+          hint: v.key,
+        }));
+    }, [canonicalResp, traitValue.id]);
+    const aliasTargetId = useWatch({ control, name: "aliasTargetId" });
+    const selectedAliasTarget = useMemo<ComboboxOption | null>(() => {
+      if (aliasTargetId == null) return null;
+      return (
+        canonicalOptions.find((o) => Number(o.id) === aliasTargetId) ?? null
+      );
+    }, [aliasTargetId, canonicalOptions]);
+
+    // Reset form when opened
+    useEffect(() => {
+      if (!visible) return;
+      reset(seedFormValues(traitValue));
+      setAutoKey(true);
+      mutation.reset();
+    }, [visible, traitValue, reset]);
 
     return (
       <Dialog.Root
@@ -137,6 +201,13 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
           </Dialog.Description>
           <FormProvider {...methods}>
             <form onSubmit={handleSubmit(onSubmit)}>
+              {errors.root?.message ? (
+                <Box mb="4">
+                  <Text size="2" color="tomato">
+                    {errors.root.message}
+                  </Text>
+                </Box>
+              ) : null}
               <Flex direction="column" gap="3" mb="4">
                 <Box>
                   <Flex justify="between" align="baseline" mb="1">
@@ -189,26 +260,103 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
                   />
                 </Box>
                 <Box>
-                  <Flex justify="between" align="baseline" mb="1">
-                    <Label.Root htmlFor="description">Description</Label.Root>
-                    <ConditionalAlert
-                      id="description-error"
-                      message={errors.description?.message}
+                  <Label.Root htmlFor="kind">Kind</Label.Root>
+                  <Controller
+                    control={control}
+                    name="kind"
+                    render={({ field }) => (
+                      <SegmentedControl.Root
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SegmentedControl.Item value="canon">
+                          Canonical
+                        </SegmentedControl.Item>
+                        <SegmentedControl.Item value="alias">
+                          Alias
+                        </SegmentedControl.Item>
+                      </SegmentedControl.Root>
+                    )}
+                  />
+                </Box>
+                {kind === "alias" ? (
+                  <Box>
+                    <Flex justify="between" align="baseline" mb="1">
+                      <Label.Root htmlFor="alias-target">
+                        Alias target
+                      </Label.Root>
+                      <ConditionalAlert
+                        id="alias-target-error"
+                        message={errors.aliasTargetId?.message}
+                      />
+                    </Flex>
+
+                    <Controller
+                      name="aliasTargetId"
+                      control={control}
+                      render={({ field }) => (
+                        <SelectCombobox.Root
+                          id="alias-target"
+                          value={selectedAliasTarget}
+                          onValueChange={(opt) =>
+                            field.onChange(opt ? Number(opt.id) : null)
+                          }
+                          onQueryChange={setAliasQuery}
+                          options={canonicalOptions}
+                          loading={canonicalLoading}
+                          disabled={mutation.isPending}
+                        >
+                          <SelectCombobox.Trigger placeholder="Select a canonical value" />
+                          <SelectCombobox.Content
+                            behavior="input"
+                            maxWidth="400px"
+                          >
+                            <SelectCombobox.Input placeholder="Search canonical values..." />
+                            <SelectCombobox.List>
+                              {canonicalOptions.map((opt, i) => (
+                                <SelectCombobox.Item
+                                  key={String(opt.id)}
+                                  option={opt}
+                                  index={i}
+                                />
+                              ))}
+                            </SelectCombobox.List>
+                          </SelectCombobox.Content>
+                        </SelectCombobox.Root>
+                      )}
                     />
-                  </Flex>
-                  <TextArea
-                    id="description"
-                    {...register("description")}
-                    {...a11yProps("description-error", !!errors.description)}
-                  />
-                </Box>
-                <Box>
-                  <ClearableColorField
-                    name="hexCode"
-                    label="Color"
-                    disabled={mutation.isPending}
-                  />
-                </Box>
+                  </Box>
+                ) : (
+                  <>
+                    <Box>
+                      <ClearableColorField
+                        name="hexCode"
+                        label="Color"
+                        disabled={mutation.isPending}
+                      />
+                    </Box>
+
+                    <Box>
+                      <Flex justify="between" align="baseline" mb="1">
+                        <Label.Root htmlFor="description">
+                          Description
+                        </Label.Root>
+                        <ConditionalAlert
+                          id="description-error"
+                          message={errors.description?.message}
+                        />
+                      </Flex>
+                      <TextArea
+                        id="description"
+                        {...register("description")}
+                        {...a11yProps(
+                          "description-error",
+                          !!errors.description
+                        )}
+                      />
+                    </Box>
+                  </>
+                )}
               </Flex>
               <Flex justify="end" gap="3">
                 <Dialog.Close>

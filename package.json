@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "vite dev",  
     "build": "vite build && node scripts/patch-ssr-utils.mjs",
     "build:keygen": "tsc -p keygen/tsconfig.json",
     "start": "npm run db:migrate && node .output/server/index.mjs",

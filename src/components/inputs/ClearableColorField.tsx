@@ -40,63 +40,60 @@ export function ClearableColorField({ name, label, disabled = false }: Props) {
 
   return (
     <Box>
-      <Label.Root htmlFor={id}>{label}</Label.Root>
-      <Flex gap="2" align="center">
-        <TextField.Root
-          id={id}
-          placeholder="#RRGGBB"
-          value={value}
-          disabled={disabled}
-          onChange={(e) => field.onChange(e.target.value.trim())}
-          onBlur={field.onBlur}
-          style={{ overflow: "hidden" }}
-          {...a11yProps(errorId, !!errorMessage)}
-        >
-          <TextField.Slot
-            side="left"
-            px="0"
+      <Flex mb="1" align="baseline" justify="between">
+        <Label.Root htmlFor={id}>{label}</Label.Root>
+        <ConditionalAlert id={errorId} message={errorMessage} />
+      </Flex>
+      <TextField.Root
+        id={id}
+        placeholder="#RRGGBB"
+        value={value}
+        disabled={disabled}
+        onChange={(e) => field.onChange(e.target.value.trim())}
+        onBlur={field.onBlur}
+        style={{
+          overflow: "hidden",
+          position: "relative",
+          isolation: "isolate",
+        }}
+        {...a11yProps(errorId, !!errorMessage)}
+      >
+        <TextField.Slot px="2" side="left">
+          <label
             style={{
-              height: "100%",
-              width: "40px",
-              marginRight: "var(--space-2)",
+              background: hasColor ? value : "transparent",
+              borderRadius: "var(--radius-2)",
+              border: "1px solid var(--gray-6)",
+              height: "var(--space-5)",
+              width: "var(--space-5)",
             }}
           >
-            <label
+            <input
+              type="color"
+              value={pickerValue}
+              disabled={disabled}
+              aria-label={`${label} picker`}
+              onChange={(e) => field.onChange(e.target.value)}
               style={{
-                background: hasColor ? value : "transparent",
-                height: "110%",
-                width: "100%",
+                visibility: "hidden",
               }}
-            >
-              <input
-                type="color"
-                value={pickerValue}
-                disabled={disabled}
-                aria-label={`${label} picker`}
-                onChange={(e) => field.onChange(e.target.value)}
-                style={{
-                  visibility: "hidden",
-                }}
-              />
-            </label>
-          </TextField.Slot>
-          <TextField.Slot side="right">
-            <IconButton
-              type="button"
-              size="1"
-              variant="ghost"
-              color="gray"
-              disabled={disabled || !hasColor}
-              onClick={() => field.onChange("")}
-              aria-label={`Clear ${label}`}
-            >
-              <PiX />
-            </IconButton>
-          </TextField.Slot>
-        </TextField.Root>
-      </Flex>
-
-      <ConditionalAlert id={errorId} message={errorMessage} />
+            />
+          </label>
+        </TextField.Slot>
+        <TextField.Slot side="right">
+          <IconButton
+            type="button"
+            size="1"
+            variant="ghost"
+            color="gray"
+            disabled={disabled || !hasColor}
+            onClick={() => field.onChange("")}
+            aria-label={`Clear ${label}`}
+          >
+            <PiX />
+          </IconButton>
+        </TextField.Slot>
+      </TextField.Root>
     </Box>
   );
 }

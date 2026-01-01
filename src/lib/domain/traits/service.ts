@@ -134,6 +134,8 @@ export async function listTraitSetValues(args: {
   setId: number;
   page: number;
   pageSize: number;
+  kind?: "canonical" | "alias";
+  q?: string;
 }): Promise<TraitValuePaginatedResult> {
   return listTraitSetValuesQuery(args);
 }

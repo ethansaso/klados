@@ -28,7 +28,6 @@ import { TraitSetDTO } from "../../../../lib/domain/traits/types";
 import {
   traitSetQueryOptions,
   traitSetValuesPaginatedQueryOptions,
-  traitSetValuesQueryOptions,
 } from "../../../../lib/queries/traits";
 import { snakeCase } from "../../../../lib/utils/casing";
 import { toast } from "../../../../lib/utils/toast";
@@ -83,15 +82,13 @@ function RouteComponent() {
   const canPrev = valuePage > 1;
   const canNext = valuePage < totalPages;
 
-  const invalidateTraitSet = async (setId: number, page: number) => {
+  const invalidateTraitSet = async (setId: number) => {
     await Promise.all([
-      qc.invalidateQueries({ queryKey: traitSetQueryOptions(setId).queryKey }),
+      qc.invalidateQueries({ queryKey: ["traitSetByKey", setId] }),
+      qc.invalidateQueries({ queryKey: ["traitSetValues", setId] }),
       qc.invalidateQueries({
-        queryKey: traitSetValuesQueryOptions(setId).queryKey,
-      }),
-      qc.invalidateQueries({
-        queryKey: traitSetValuesPaginatedQueryOptions(setId, page, PAGE_SIZE)
-          .queryKey,
+        queryKey: ["traitSetValuesPaginated", { setId }],
+        exact: false,
       }),
     ]);
   };
@@ -118,7 +115,7 @@ function RouteComponent() {
         description: `Trait value "${createdLabel}" created.`,
         variant: "success",
       });
-      invalidateTraitSet(id, valuePage);
+      invalidateTraitSet(id);
     },
     onError: (error) => {
       toast({
@@ -137,7 +134,7 @@ function RouteComponent() {
       return traitSet;
     },
     onSuccess: (deletedTraitSet) => {
-      invalidateTraitSet(deletedTraitSet.id, valuePage);
+      invalidateTraitSet(deletedTraitSet.id);
 
       navigate({
         to: "/glossary/traits",
@@ -267,13 +264,13 @@ function RouteComponent() {
         onEditClick={(value) => {
           NiceModal.show(EditTraitSetValueModal, {
             traitValue: value,
-            invalidate: () => invalidateTraitSet(id, valuePage),
+            invalidate: () => invalidateTraitSet(id),
           });
         }}
         onDeleteClick={(value) => {
           NiceModal.show(DeleteTraitValueModal, {
             value,
-            invalidate: () => invalidateTraitSet(id, valuePage),
+            invalidate: () => invalidateTraitSet(id),
           });
         }}
       />
