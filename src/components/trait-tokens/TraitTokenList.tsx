@@ -1,9 +1,9 @@
 import { Flex } from "@radix-ui/themes";
 import { memo } from "react";
-import { Trait } from "../../lib/domain/character-states/types";
 import { TraitToken } from "./TraitToken";
+import { UITokenTrait } from "./types";
 
-export const TraitTokenList = memo(({ traits }: { traits: Trait[] }) => {
+export const TraitTokenList = memo(({ traits }: { traits: UITokenTrait[] }) => {
   return (
     <Flex wrap="wrap" gap="1">
       {traits.map((trait, index, arr) => (

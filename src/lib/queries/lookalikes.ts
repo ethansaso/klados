@@ -6,7 +6,7 @@ import {
 
 export const lookalikesQueryOptions = (id: number) =>
   queryOptions({
-    queryKey: ["lookalikes", id],
+    queryKey: ["taxon", id, "lookalikes"],
     queryFn: () => getLookalikesForTaxonFn({ data: { id } }),
     staleTime: 60_000,
   });

@@ -4,14 +4,14 @@ import { getTaxonCharacterStatesFn } from "../api/character-states/getTaxonChara
 
 export const taxonCharacterStatesQueryOptions = (taxonId: number) =>
   queryOptions({
-    queryKey: ["taxonCharacterValues", taxonId],
+    queryKey: ["taxon", taxonId, "characterStates"],
     queryFn: () => getTaxonCharacterStatesFn({ data: { taxonId } }),
     staleTime: 60_000,
   });
 
 export const taxonCharacterDisplayGroupsQueryOptions = (taxonId: number) =>
   queryOptions({
-    queryKey: ["taxonCharacterDisplayGroups", taxonId],
+    queryKey: ["taxon", taxonId, "characterDisplayGroups"],
     queryFn: () => getTaxonCharacterDisplayGroupsFn({ data: { taxonId } }),
     staleTime: 60_000,
   });

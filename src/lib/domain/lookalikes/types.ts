@@ -1,5 +1,6 @@
 import { TaxonRank } from "../../../db/schema/schema";
-import { TaxonCharacterStateDTO } from "../character-states/types";
+import { Trait } from "../character-states/types";
+import { TaxonDTO } from "../taxa/types";
 import { MediaItem } from "../taxa/validation";
 
 export type TaxonLookalikeDTO = {
@@ -18,12 +19,23 @@ export type TaxonLookalikeDTO = {
   otherCount: number;
 };
 
-export type LookalikeCompareDTO = {
-  a: { taxonId: number; states: TaxonCharacterStateDTO[] };
-  b: { taxonId: number; states: TaxonCharacterStateDTO[] };
-  diff: {
-    shared: TaxonCharacterStateDTO[];
-    onlyA: TaxonCharacterStateDTO[];
-    onlyB: TaxonCharacterStateDTO[];
-  };
+export type LookalikeComparisonAnnotatedStateGroup = {
+  groupId: number;
+  groupLabel: string;
+  aCharacters: LookalikeComparisonAnnotatedCharacterStates[];
+  bCharacters: LookalikeComparisonAnnotatedCharacterStates[];
+};
+
+export type LookalikeComparisonAnnotatedCharacterStates = {
+  characterId: number;
+  characterLabel: string;
+  traits: LookalikeComparisonAnnotatedTrait[];
+};
+
+export type LookalikeComparisonAnnotatedTrait = Trait & { isShared: boolean };
+
+export type LookalikeComparisonDetailDTO = {
+  a: TaxonDTO;
+  b: TaxonDTO;
+  groupedStates: LookalikeComparisonAnnotatedStateGroup[];
 };

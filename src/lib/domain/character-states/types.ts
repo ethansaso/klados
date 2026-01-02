@@ -9,10 +9,13 @@ export type Trait = {
   hexCode?: string;
 };
 
-export type TaxonCategoricalStateDTO = {
-  kind: "categorical";
+type TaxonStateBase = {
   characterId: number;
   groupId: number;
+};
+
+export type TaxonCategoricalStateDTO = TaxonStateBase & {
+  kind: "categorical";
   traitValues: Trait[];
 };
 
