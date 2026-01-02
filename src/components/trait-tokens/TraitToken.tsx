@@ -1,11 +1,7 @@
 import { Flex, Text } from "@radix-ui/themes";
 import { memo } from "react";
-import { Trait } from "../../lib/domain/character-states/types";
 import { ColorBubble } from "./ColorBubble";
-
-type GenerousTrait = Omit<Trait, "hexCode"> & {
-  hexCode?: string | null;
-};
+import { UITokenTrait } from "./types";
 
 function formatTraitLabel(label: string, index: number) {
   const lower = label.toLowerCase();
@@ -22,7 +18,7 @@ export const TraitToken = memo(
     index = 0,
     isLast = false,
   }: {
-    trait: GenerousTrait;
+    trait: UITokenTrait;
     index?: number;
     isLast?: boolean;
   }) => {
@@ -36,7 +32,7 @@ export const TraitToken = memo(
         gap="1"
       >
         {trait.hexCode && <ColorBubble size={8} hexColor={trait.hexCode} />}
-        <Text>
+        <Text weight={trait.weight}>
           {text}
           {!isLast && ","}
         </Text>

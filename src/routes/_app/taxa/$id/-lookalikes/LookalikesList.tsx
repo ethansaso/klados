@@ -11,6 +11,7 @@ interface LookalikesListProps {
   lookalikes: TaxonLookalikeDTO[];
 }
 
+// TODO: consider confidence differential heuristic for when % matched and Jaccard diverge greatly
 export const LookalikesList = ({
   taxonId,
   taxonAcceptedName,
@@ -41,14 +42,12 @@ export const LookalikesList = ({
             onClick={() =>
               NiceModal.show(LookalikeModal, {
                 taxonId,
-                taxonAcceptedName,
                 lookalikeId: l.id,
-                lookalikeAcceptedName: l.acceptedName,
               })
             }
           >
             <Box position="absolute" top="4" right="4">
-              <LookalikePercentBadge percentage={l.pctOfTargetMatched} />
+              <LookalikePercentBadge percentage={l.jaccard} />
             </Box>
           </TaxonCard>
         ))}

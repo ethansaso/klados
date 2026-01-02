@@ -8,7 +8,7 @@ import {
   Link as RadixLink,
   Text,
 } from "@radix-ui/themes";
-import { useQueryClient } from "@tanstack/react-query";
+import { Query, useQueryClient } from "@tanstack/react-query";
 import {
   createFileRoute,
   notFound,
@@ -192,9 +192,20 @@ function RouteComponent() {
   async function invalidateTaxon(id: number) {
     await Promise.all([
       qc.invalidateQueries({ queryKey: ["taxon", id] }),
-      qc.invalidateQueries({ queryKey: ["taxonCharacterValues", id] }),
+      // For browsing lists, etc.
       qc.invalidateQueries({ queryKey: ["taxa"] }),
-      qc.invalidateQueries({ queryKey: ["taxonCharacterDisplayGroups", id] }),
+      // Invalidate all lookalike details involving this taxon
+      qc.invalidateQueries({
+        predicate: (q: Query) => {
+          const key = q.queryKey;
+          if (key[0] !== "lookalikeDetails") return false;
+
+          const a = key[1];
+          const b = key[2];
+
+          return a === id || b === id;
+        },
+      }),
     ]);
   }
 

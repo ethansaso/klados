@@ -1,10 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
 import {
-  getLookalikeDetailsForTaxa,
+  getLookalikeComparisonDetailForTaxa,
   getLookalikesForTaxon,
 } from "../../domain/lookalikes/service";
-import { TaxonLookalikeDTO } from "../../domain/lookalikes/types";
+import {
+  LookalikeCompareDTO,
+  TaxonLookalikeDTO,
+} from "../../domain/lookalikes/types";
 
 export const getLookalikesForTaxonFn = createServerFn({
   method: "POST",
@@ -33,8 +36,8 @@ export const getLookalikeDetailsForTaxaFn = createServerFn({
         .nonnegative("Lookalike Taxon ID must be non-negative."),
     })
   )
-  .handler(async ({ data }) => {
-    return await getLookalikeDetailsForTaxa({
+  .handler(async ({ data }): Promise<LookalikeCompareDTO> => {
+    return await getLookalikeComparisonDetailForTaxa({
       taxonId: data.taxonId,
       lookalikeId: data.lookalikeId,
     });
