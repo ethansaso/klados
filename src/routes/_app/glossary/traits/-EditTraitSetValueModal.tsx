@@ -9,6 +9,7 @@ import {
   Text,
   TextArea,
   TextField,
+  Tooltip,
 } from "@radix-ui/themes";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -16,8 +17,8 @@ import { Label } from "radix-ui";
 import { useEffect, useMemo, useState } from "react";
 import {
   Controller,
+  FieldErrors,
   FormProvider,
-  SubmitHandler,
   useForm,
   useWatch,
 } from "react-hook-form";
@@ -44,14 +45,19 @@ interface Props {
   invalidate: () => Promise<void>;
 }
 
-const updateTraitValueFormSchema = z.object({
-  kind: z.enum(["canon", "alias"]),
+type FormValues = z.infer<typeof formSchema>;
+
+const base = z.object({
   key: trimmedNonEmpty("Please provide a key.", {
     max: { value: 100, message: "Max 100 characters" },
   }),
   label: trimmedNonEmpty("Please provide a label.", {
     max: { value: 200, message: "Max 200 characters" },
   }),
+});
+
+const canonicalSchema = base.extend({
+  kind: z.literal("canon"),
   description: trimmed("Must be a string").max(1000, "Max 1000 characters"),
   hexCode: z
     .string("Must be a string")
@@ -59,27 +65,56 @@ const updateTraitValueFormSchema = z.object({
     .refine((v) => v === "" || /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(v), {
       message: "Must be a valid hex color code",
     }),
-  aliasTargetId: z.number().int().positive().nullable(),
-});
-type FormValues = z.infer<typeof updateTraitValueFormSchema>;
-
-const seedFormValues = (value: TraitValueDTO): FormValues => ({
-  kind: value.aliasTarget ? "alias" : "canon",
-  key: value.key,
-  label: value.label,
-  description: value.description ?? "",
-  hexCode: value.hexCode ?? "",
-  aliasTargetId: value.aliasTarget?.id ?? null,
 });
 
-// TODO: Complete rest of fields
+const aliasSchema = base.extend({
+  kind: z.literal("alias"),
+  aliasTarget: z
+    .object({ id: z.int().positive(), label: z.string() })
+    .nullable(),
+});
+
+const formSchema = z
+  .discriminatedUnion("kind", [canonicalSchema, aliasSchema])
+  // Refine to ensure alias set (to prevent type errors in form-in-progress)
+  .superRefine((val, ctx) => {
+    if (val.kind === "alias" && val.aliasTarget === null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["aliasTarget"],
+        message: "Select a canonical value.",
+      });
+    }
+  });
+
+const seedFormValues = (value: TraitValueDTO): FormValues => {
+  if (value.aliasTarget) {
+    return {
+      kind: "alias",
+      key: value.key,
+      label: value.label,
+      aliasTarget: {
+        id: value.aliasTarget.id,
+        label: value.aliasTarget.label,
+      },
+    };
+  }
+  return {
+    kind: "canon",
+    key: value.key,
+    label: value.label,
+    description: value.description ?? "",
+    hexCode: value.hexCode ?? "",
+  };
+};
+
 export const EditTraitSetValueModal = NiceModal.create<Props>(
   ({ traitValue, invalidate }) => {
     const { visible, hide } = NiceModal.useModal();
     const serverUpdate = useServerFn(updateTraitValueFn);
 
     const methods = useForm<FormValues>({
-      resolver: zodResolver(updateTraitValueFormSchema),
+      resolver: zodResolver(formSchema),
       defaultValues: seedFormValues(traitValue),
     });
 
@@ -93,6 +128,9 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
       handleSubmit,
     } = methods;
 
+    const canonErrors = getErrorsByKind(errors, "canon");
+    const aliasErrors = getErrorsByKind(errors, "alias");
+    const label = useWatch({ control, name: "label" });
     const kind = useWatch({ control, name: "kind" });
 
     const { autoKey, setAutoKey, handleKeyBlur } = useAutoKey(
@@ -120,17 +158,24 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
       },
     });
 
-    const onSubmit: SubmitHandler<FormValues> = async (data) => {
-      // Client-side guard: if user chose Alias but didn't pick a target
-      if (data.kind === "alias" && data.aliasTargetId == null) {
-        setError("aliasTargetId", {
-          type: "manual",
-          message: "Select a canonical value.",
+    const onSubmit = async () => {
+      const raw = methods.getValues();
+
+      // Validate using Zod directly to avoid any weirdness from unregistered fields timing
+      const data = formSchema.parse(raw);
+
+      if (data.kind === "alias") {
+        await mutation.mutateAsync({
+          data: {
+            id: traitValue.id,
+            setId: traitValue.setId,
+            key: data.key,
+            label: data.label,
+            aliasTargetId: data.aliasTarget!.id,
+          },
         });
         return;
       }
-
-      const isAlias = data.kind === "alias";
 
       await mutation.mutateAsync({
         data: {
@@ -138,15 +183,9 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
           setId: traitValue.setId,
           key: data.key,
           label: data.label,
-
-          // Only send alias if user has selected it
-          aliasTargetId: isAlias ? data.aliasTargetId : null,
-          ...(isAlias
-            ? {}
-            : {
-                description: data.description,
-                hexCode: data.hexCode === "" ? null : data.hexCode,
-              }),
+          aliasTargetId: null,
+          description: data.description,
+          hexCode: data.hexCode === "" ? null : data.hexCode,
         },
       });
     };
@@ -169,19 +208,32 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
           hint: v.key,
         }));
     }, [canonicalResp, traitValue.id]);
-    const aliasTargetId = useWatch({ control, name: "aliasTargetId" });
-    const selectedAliasTarget = useMemo<ComboboxOption | null>(() => {
-      if (aliasTargetId == null) return null;
-      return (
-        canonicalOptions.find((o) => Number(o.id) === aliasTargetId) ?? null
-      );
-    }, [aliasTargetId, canonicalOptions]);
+
+    // Derived values for blocking aliasing if value has dependents
+    const aliasBlocked = traitValue.aliasCount > 0 && !traitValue.aliasTarget;
+    const aliasBlockedMsg = `Cannot make "${label}" an alias because ${traitValue.aliasCount} alias value(s) depend on it.`;
+
+    const setKindAtomic = (next: FormValues["kind"]) => {
+      const { key, label } = methods.getValues();
+      const nextValues: FormValues =
+        next === "canon"
+          ? { kind: "canon", key, label, description: "", hexCode: "" }
+          : { kind: "alias", key, label, aliasTarget: null };
+
+      reset(nextValues, {
+        keepDirty: true,
+        keepTouched: true,
+        keepErrors: false,
+      });
+    };
 
     // Reset form when opened
     useEffect(() => {
       if (!visible) return;
       reset(seedFormValues(traitValue));
       setAutoKey(true);
+      // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
+      setAliasQuery("");
       mutation.reset();
     }, [visible, traitValue, reset]);
 
@@ -267,14 +319,32 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
                     render={({ field }) => (
                       <SegmentedControl.Root
                         value={field.value}
-                        onValueChange={field.onChange}
+                        onValueChange={(next) => {
+                          if (next === "alias" && aliasBlocked) return;
+                          setKindAtomic(next as FormValues["kind"]);
+                        }}
                       >
                         <SegmentedControl.Item value="canon">
                           Canonical
                         </SegmentedControl.Item>
-                        <SegmentedControl.Item value="alias">
-                          Alias
-                        </SegmentedControl.Item>
+                        {aliasBlocked ? (
+                          <Tooltip content={aliasBlockedMsg}>
+                            <SegmentedControl.Item
+                              value="alias"
+                              aria-disabled
+                              style={{
+                                cursor: "not-allowed",
+                                color: "var(--gray-a8)",
+                              }}
+                            >
+                              Alias
+                            </SegmentedControl.Item>
+                          </Tooltip>
+                        ) : (
+                          <SegmentedControl.Item value="alias">
+                            Alias
+                          </SegmentedControl.Item>
+                        )}
                       </SegmentedControl.Root>
                     )}
                   />
@@ -287,19 +357,23 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
                       </Label.Root>
                       <ConditionalAlert
                         id="alias-target-error"
-                        message={errors.aliasTargetId?.message}
+                        message={aliasErrors.aliasTarget?.message}
                       />
                     </Flex>
 
                     <Controller
-                      name="aliasTargetId"
+                      name="aliasTarget"
                       control={control}
                       render={({ field }) => (
                         <SelectCombobox.Root
                           id="alias-target"
-                          value={selectedAliasTarget}
+                          value={field.value}
                           onValueChange={(opt) =>
-                            field.onChange(opt ? Number(opt.id) : null)
+                            field.onChange(
+                              opt
+                                ? { id: Number(opt.id), label: opt.label }
+                                : null
+                            )
                           }
                           onQueryChange={setAliasQuery}
                           options={canonicalOptions}
@@ -343,7 +417,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
                         </Label.Root>
                         <ConditionalAlert
                           id="description-error"
-                          message={errors.description?.message}
+                          message={canonErrors.description?.message}
                         />
                       </Flex>
                       <TextArea
@@ -351,7 +425,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
                         {...register("description")}
                         {...a11yProps(
                           "description-error",
-                          !!errors.description
+                          !!canonErrors.description
                         )}
                       />
                     </Box>
@@ -385,3 +459,11 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
     );
   }
 );
+
+function getErrorsByKind<K extends FormValues["kind"]>(
+  errors: FieldErrors<FormValues>,
+  _kind: K
+): FieldErrors<Extract<FormValues, { kind: K }>> {
+  void _kind;
+  return errors as FieldErrors<Extract<FormValues, { kind: K }>>;
+}

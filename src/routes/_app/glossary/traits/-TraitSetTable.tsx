@@ -66,10 +66,10 @@ export default function TraitValuesTable({
 function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
   const noDeletionReason: string | null = useMemo(() => {
     if (value.usageCount > 0) {
-      return `Used ${value.usageCount} time${value.usageCount > 1 ? "s" : ""}`;
+      return "Value in use";
     }
     if (!value.aliasTarget && (value.aliasCount ?? 0) > 0) {
-      return `Has ${value.aliasCount} alias${value.aliasCount > 1 ? "es" : ""}`;
+      return "Value has aliases";
     }
     return null;
   }, [value]);
