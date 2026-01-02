@@ -5,7 +5,7 @@ import {
   getLookalikesForTaxon,
 } from "../../domain/lookalikes/service";
 import {
-  LookalikeCompareDTO,
+  LookalikeComparisonDetailDTO,
   TaxonLookalikeDTO,
 } from "../../domain/lookalikes/types";
 
@@ -36,7 +36,7 @@ export const getLookalikeDetailsForTaxaFn = createServerFn({
         .nonnegative("Lookalike Taxon ID must be non-negative."),
     })
   )
-  .handler(async ({ data }): Promise<LookalikeCompareDTO> => {
+  .handler(async ({ data }): Promise<LookalikeComparisonDetailDTO> => {
     return await getLookalikeComparisonDetailForTaxa({
       taxonId: data.taxonId,
       lookalikeId: data.lookalikeId,
