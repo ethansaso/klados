@@ -43,13 +43,23 @@ export const traitSetValuesQueryOptions = (setId: number) =>
 export const traitSetValuesPaginatedQueryOptions = (
   setId: number,
   page: number,
-  pageSize: number
+  pageSize: number,
+  opts?: { q?: string; kind?: "canonical" | "alias" }
 ) =>
   queryOptions({
-    queryKey: ["traitSetValuesPaginated", { setId, page, pageSize }] as const,
+    queryKey: [
+      "traitSetValuesPaginated",
+      {
+        setId,
+        page,
+        pageSize,
+        kind: opts?.kind ?? null,
+        q: opts?.q ?? null,
+      },
+    ] as const,
     queryFn: () =>
       listTraitSetValuesFn({
-        data: { setId, page, pageSize },
+        data: { setId, page, pageSize, kind: opts?.kind, q: opts?.q },
       }) as Promise<TraitValuePaginatedResult>,
     staleTime: 30_000,
   });

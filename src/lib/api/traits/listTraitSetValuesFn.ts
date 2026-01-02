@@ -2,17 +2,18 @@ import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
 import { listTraitSetValues } from "../../domain/traits/service";
 import { TraitValuePaginatedResult } from "../../domain/traits/types";
+import { PaginationSchema } from "../../validation/pagination";
 
 export const listTraitSetValuesFn = createServerFn({ method: "GET" })
   .inputValidator(
-    z.object({
+    PaginationSchema.extend({
       setId: z.number().int().positive(),
-      page: z.number().int().min(1).default(1),
-      pageSize: z.number().int().min(1).max(100).default(20),
+      kind: z.enum(["canonical", "alias"]).optional(),
+      q: z.string().optional(),
     })
   )
   .handler(async ({ data }): Promise<TraitValuePaginatedResult> => {
-    const { setId, page, pageSize } = data;
+    const { setId, page, pageSize, q } = data;
 
-    return listTraitSetValues({ setId, page, pageSize });
+    return listTraitSetValues({ setId, page, pageSize, kind: data.kind, q });
   });

@@ -6,6 +6,8 @@ import {
   eq,
   ilike,
   inArray,
+  isNotNull,
+  isNull,
   or,
   sql,
   type SQL,
@@ -293,14 +295,15 @@ export async function getTraitSetValuesQuery(
 
 /**
  * List paginated values for a trait set.
- * Note to CoPilot: Should be identical to function above, but with pagination.
  */
 export async function listTraitSetValuesQuery(args: {
   setId: number;
   page: number;
   pageSize: number;
+  kind?: "canonical" | "alias";
+  q?: string;
 }): Promise<TraitValuePaginatedResult> {
-  const { setId, page, pageSize } = args;
+  const { setId, page, pageSize, kind, q } = args;
   const offset = (page - 1) * pageSize;
 
   const v = valsTbl;
@@ -336,6 +339,25 @@ export async function listTraitSetValuesQuery(args: {
     .groupBy(valsTbl.canonicalValueId)
     .as("alias_agg");
 
+  const kindFilter =
+    kind === "canonical"
+      ? isNull(v.canonicalValueId)
+      : kind === "alias"
+        ? isNotNull(v.canonicalValueId)
+        : undefined;
+
+  const qTrimmed = q?.trim();
+  const qFilter =
+    qTrimmed && qTrimmed.length > 0
+      ? or(ilike(v.label, `%${qTrimmed}%`), ilike(v.key, `%${qTrimmed}%`))
+      : undefined;
+
+  const whereClause = and(
+    eq(v.setId, setId),
+    ...(kindFilter ? [kindFilter] : []),
+    ...(qFilter ? [qFilter] : [])
+  );
+
   const items = await db
     .select({
       id: v.id,
@@ -355,7 +377,7 @@ export async function listTraitSetValuesQuery(args: {
     .leftJoin(canon, eq(v.canonicalValueId, canon.id))
     .leftJoin(usageAgg, eq(usageAgg.traitValueId, v.id))
     .leftJoin(aliasAgg, eq(aliasAgg.targetId, v.id))
-    .where(eq(v.setId, setId))
+    .where(whereClause)
     .orderBy(asc(v.label), asc(v.id))
     .limit(pageSize)
     .offset(offset);
@@ -363,7 +385,7 @@ export async function listTraitSetValuesQuery(args: {
   const [{ total }] = await db
     .select({ total: count() })
     .from(v)
-    .where(eq(v.setId, setId));
+    .where(whereClause);
 
   const dtos: TraitValueDTO[] = items.map((r) => ({
     id: r.id,
