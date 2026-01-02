@@ -19,6 +19,7 @@ import {
   Controller,
   FieldErrors,
   FormProvider,
+  SubmitHandler,
   useForm,
   useWatch,
 } from "react-hook-form";
@@ -158,12 +159,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
       },
     });
 
-    const onSubmit = async () => {
-      const raw = methods.getValues();
-
-      // Validate using Zod directly to avoid any weirdness from unregistered fields timing
-      const data = formSchema.parse(raw);
-
+    const onSubmit: SubmitHandler<FormValues> = async (data) => {
       if (data.kind === "alias") {
         await mutation.mutateAsync({
           data: {
