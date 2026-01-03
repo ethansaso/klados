@@ -4,7 +4,6 @@ import {
   Flex,
   IconButton,
   RadioGroup,
-  Strong,
   Text,
 } from "@radix-ui/themes";
 import { useCallback, useMemo } from "react";
@@ -119,11 +118,8 @@ export const NameEditingForm = ({
   }, [value]);
 
   return (
-    <Box mb="4">
+    <Box>
       <Flex mb="3" gap="1" align="center">
-        <Text size="3" mr="1">
-          <Strong>Names</Strong>
-        </Text>
         <IconButton
           type="button"
           radius="full"

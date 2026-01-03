@@ -2,7 +2,6 @@ import {
   Box,
   Flex,
   IconButton,
-  Strong,
   Table,
   Text,
   TextArea,
@@ -53,9 +52,6 @@ export const SourceEditingForm = ({
   return (
     <Box mb="5">
       <Flex mb="3" gap="1" align="center">
-        <Text size="3" mr="1">
-          <Strong>Sources</Strong>
-        </Text>
         <IconButton
           type="button"
           radius="full"

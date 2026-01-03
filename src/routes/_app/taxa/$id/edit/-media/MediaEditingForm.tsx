@@ -3,7 +3,6 @@ import {
   Flex,
   IconButton,
   Select,
-  Strong,
   Table,
   Text,
   TextField,
@@ -69,11 +68,8 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
   };
 
   return (
-    <Box mb="5">
+    <Box>
       <Flex mb="3" gap="1">
-        <Text size="3" mr="1">
-          <Strong>Media</Strong>
-        </Text>
         <IconButton type="button" radius="full" size="1" onClick={addRow}>
           <PiPlus size="16" />
         </IconButton>

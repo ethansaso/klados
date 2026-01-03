@@ -1,4 +1,4 @@
-import { Box, Heading } from "@radix-ui/themes";
+import { Box } from "@radix-ui/themes";
 import { useMemo, useState } from "react";
 import { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
 import { GroupCard } from "./GroupCard";
@@ -55,9 +55,10 @@ export function CharacterEditingForm({
   }, [value]);
 
   return (
-    <Box mb="5">
-      <Heading size="3">Characters</Heading>
-      <GroupSearch onSelect={handleGroupSelect} />
+    <Box>
+      <Box mb="4">
+        <GroupSearch onSelect={handleGroupSelect} />
+      </Box>
       <div className="editor-card-grid">
         {openGroupIds.map((gId) => (
           <GroupCard

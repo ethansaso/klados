@@ -1,5 +1,6 @@
 import { Box } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
+import { Label } from "radix-ui";
 import * as React from "react";
 import { InputCombobox } from "../../../../../../components/inputs/combobox/InputCombobox";
 import { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
@@ -32,6 +33,9 @@ export const GroupSearch = ({ onSelect }: GroupSearchProps) => {
   };
   return (
     <Box>
+      <Box mb="1">
+        <Label.Root htmlFor="character-group-search">Add Group</Label.Root>
+      </Box>
       <InputCombobox.Root
         id="character-group-search"
         value={null}
@@ -40,7 +44,7 @@ export const GroupSearch = ({ onSelect }: GroupSearchProps) => {
         onQueryChange={setSearchQ}
         loading={isLoading}
       >
-        <InputCombobox.Input placeholder="Add a new group…" />
+        <InputCombobox.Input placeholder="Search groups…" />
         <InputCombobox.Popover>
           <InputCombobox.List>
             {options.map((opt) => (
