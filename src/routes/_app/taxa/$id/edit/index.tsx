@@ -335,15 +335,6 @@ function RouteComponent() {
             />
           </FormDescriptor>
 
-          {/* Media */}
-          <Separator size="4" my="4" />
-          <FormDescriptor
-            title="Media"
-            description="Media can be added manually or imported using the iNaturalist button. Remember to properly attribute media sources, and only use media you have rights to use."
-          >
-            <MediaEditingForm inatId={inatId} />
-          </FormDescriptor>
-
           <Separator size="4" my="4" />
 
           {/* Names */}
@@ -362,6 +353,16 @@ function RouteComponent() {
                 />
               )}
             />
+          </FormDescriptor>
+
+          <Separator size="4" my="4" />
+
+          {/* Media */}
+          <FormDescriptor
+            title="Media"
+            description="Media can be added manually or imported using the iNaturalist button. Remember to properly attribute media sources, and only use media you have rights to use."
+          >
+            <MediaEditingForm inatId={inatId} />
           </FormDescriptor>
 
           <Separator size="4" my="4" />

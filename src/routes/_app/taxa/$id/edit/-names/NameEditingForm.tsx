@@ -1,8 +1,8 @@
 import {
   Box,
+  Button,
   DataList,
   Flex,
-  IconButton,
   RadioGroup,
   Text,
 } from "@radix-ui/themes";
@@ -119,28 +119,6 @@ export const NameEditingForm = ({
 
   return (
     <Box>
-      <Flex mb="3" gap="1" align="center">
-        <IconButton
-          type="button"
-          radius="full"
-          size="1"
-          onClick={addRow}
-          aria-label="Add name"
-        >
-          <PiPlus size="16" />
-        </IconButton>
-        <IconButton
-          type="button"
-          radius="full"
-          size="1"
-          color="grass"
-          onClick={setFromInat}
-          aria-label="Import names from iNaturalist"
-        >
-          <FaDove size="16" />
-        </IconButton>
-      </Flex>
-
       {localeEntries.length === 0 ? (
         <Text color="gray" size="2">
           No names added yet. Use the + button to add or import from
@@ -192,6 +170,29 @@ export const NameEditingForm = ({
           })}
         </DataList.Root>
       )}
+      <Flex mt="3" gap="1" align="center">
+        <Button
+          type="button"
+          radius="full"
+          size="1"
+          onClick={addRow}
+          aria-label="Add name"
+        >
+          <PiPlus size="16" />
+          Add Name
+        </Button>
+        <Button
+          type="button"
+          radius="full"
+          size="1"
+          color="grass"
+          onClick={setFromInat}
+          aria-label="Import names from iNaturalist"
+        >
+          <FaDove size="16" />
+          Import from iNaturalist
+        </Button>
+      </Flex>
     </Box>
   );
 };
