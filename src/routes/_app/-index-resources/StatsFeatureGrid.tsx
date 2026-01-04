@@ -8,7 +8,10 @@ interface StatsFeatureGridProps {
 
 export const StatsFeatureGrid = ({ summaryStats }: StatsFeatureGridProps) => {
   return (
-    <Flex direction="column" align="center" py="8">
+    <Flex direction="column" align="center" py="8" px="6">
+      <Heading mb="5" size="8">
+        Our Community in Numbers
+      </Heading>
       <Box className="feature-grid">
         <Box className="feature-grid__item">
           <Box className="feature-icon__container">

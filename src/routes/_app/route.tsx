@@ -18,7 +18,11 @@ function RouteComponent() {
 
   return (
     <>
-      <Flex justify="center" style={{ background: "var(--tomato-5)" }}>
+      <Flex
+        justify="center"
+        p={{ initial: "2", sm: "0" }}
+        style={{ background: "var(--tomato-5)" }}
+      >
         <Text color="tomato">
           <Strong>Note:</Strong> Klados is still under active development.
           Features and layout are incomplete, and data may be lost at any time.

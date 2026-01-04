@@ -6,7 +6,13 @@ export const Footer = () => {
     <footer className="footer">
       {/* <ContentContainer align="start" p="0"></ContentContainer> */}
       <ContentContainer align="start" p="0" className="footer__attr">
-        <Flex justify="between" width="100%">
+        <Flex
+          direction={{ initial: "column", xs: "row" }}
+          align="center"
+          justify="between"
+          width="100%"
+          px={{ initial: "2", sm: "0" }}
+        >
           <Text color="gray">© 2025 Klados. All rights reserved.</Text>
           <Text color="gray">
             Built with <Text color="red">❤️</Text> by{" "}
