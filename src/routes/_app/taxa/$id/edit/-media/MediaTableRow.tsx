@@ -116,7 +116,7 @@ export const MediaTableRow = ({ id, index, onRemove }: MediaTableRowProps) => {
                 field.onChange(v === "__none__" ? undefined : v)
               }
             >
-              <Select.Trigger>
+              <Select.Trigger style={{ width: "100%" }}>
                 {field.value
                   ? ELIGIBLE[field.value as keyof typeof ELIGIBLE]
                   : "—"}

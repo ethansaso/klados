@@ -361,6 +361,7 @@ function RouteComponent() {
           <FormDescriptor
             title="Media"
             description="Media can be added manually or imported using the iNaturalist button. Remember to properly attribute media sources, and only use media you have rights to use."
+            orientation="vertical"
           >
             <MediaEditingForm inatId={inatId} />
           </FormDescriptor>
@@ -370,6 +371,7 @@ function RouteComponent() {
           <FormDescriptor
             title="Sources"
             description="Add or select from existing sources. Use the clock button to update a source's access date."
+            orientation="vertical"
           >
             {/* Sources */}
             <Controller

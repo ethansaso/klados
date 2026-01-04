@@ -101,7 +101,6 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
                 </Table.Row>
               ) : (
                 fields.map((row, i) => {
-                  // note: row is from RHF; read current values via Controllers below
                   return (
                     <MediaTableRow
                       key={row.id}
