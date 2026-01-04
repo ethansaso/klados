@@ -1,7 +1,14 @@
-import { Button, Flex, Link as RtLink, TabNav, Text } from "@radix-ui/themes";
+import {
+  Button,
+  Flex,
+  IconButton,
+  Link as RtLink,
+  TabNav,
+  Text,
+} from "@radix-ui/themes";
 import { Link as RouterLink } from "@tanstack/react-router";
-import { useMemo } from "react";
-import { PiCaretDown } from "react-icons/pi";
+import { useMemo, useState } from "react";
+import { PiCaretDown, PiList } from "react-icons/pi";
 import { getMeFn } from "../../lib/api/users/getMe";
 import { roleHasCuratorRights } from "../../lib/auth/utils";
 import { useIsActive } from "../../lib/hooks/useIsActive";
@@ -29,6 +36,8 @@ function NavBarBrand() {
 }
 
 export function NavBar({ user }: NavBarProps) {
+  const [expanded, setExpanded] = useState(false);
+
   const homeActive = useIsActive("/");
   const taxaActive = useIsActive("/taxa", true);
   const glossaryActive = useIsActive("/glossary", true);
@@ -69,39 +78,44 @@ export function NavBar({ user }: NavBarProps) {
   return (
     <TabNav.Root className="navbar">
       <NavBarBrand />
-      <TabNav.Link asChild active={homeActive}>
-        <RouterLink to="/" preload="intent">
-          Home
-        </RouterLink>
-      </TabNav.Link>
+      <Flex
+        className="navbar__navlinks"
+        display={{ initial: expanded ? "flex" : "none", sm: "flex" }}
+      >
+        <TabNav.Link asChild active={homeActive}>
+          <RouterLink to="/" preload="intent">
+            Home
+          </RouterLink>
+        </TabNav.Link>
 
-      {TaxaItem}
+        {TaxaItem}
 
-      <TabNav.Link asChild active={keysActive}>
-        <RouterLink to="/keys" preload="intent">
-          Keys
-        </RouterLink>
-      </TabNav.Link>
+        <TabNav.Link asChild active={keysActive}>
+          <RouterLink to="/keys" preload="intent">
+            Keys
+          </RouterLink>
+        </TabNav.Link>
 
-      <TabNav.Link asChild active={glossaryActive}>
-        <RouterLink to="/glossary" preload="intent">
-          Glossary
-        </RouterLink>
-      </TabNav.Link>
+        <TabNav.Link asChild active={glossaryActive}>
+          <RouterLink to="/glossary" preload="intent">
+            Glossary
+          </RouterLink>
+        </TabNav.Link>
 
-      <NavDropdown.Root>
-        <NavDropdown.Trigger
-          active={moreActive}
-          style={{ gap: "var(--space-1)" }}
-        >
-          More <PiCaretDown size="10" />
-        </NavDropdown.Trigger>
-        <NavDropdown.Content>
-          <NavDropdown.Link to="/users">Users</NavDropdown.Link>
-          <NavDropdown.Link to="/about">About</NavDropdown.Link>
-          <NavDropdown.Link to="/donate">Donate</NavDropdown.Link>
-        </NavDropdown.Content>
-      </NavDropdown.Root>
+        <NavDropdown.Root>
+          <NavDropdown.Trigger
+            active={moreActive}
+            style={{ gap: "var(--space-1)" }}
+          >
+            More <PiCaretDown size="10" />
+          </NavDropdown.Trigger>
+          <NavDropdown.Content>
+            <NavDropdown.Link to="/users">Users</NavDropdown.Link>
+            <NavDropdown.Link to="/about">About</NavDropdown.Link>
+            <NavDropdown.Link to="/donate">Donate</NavDropdown.Link>
+          </NavDropdown.Content>
+        </NavDropdown.Root>
+      </Flex>
 
       {user ? (
         <UserMenu
@@ -121,6 +135,17 @@ export function NavBar({ user }: NavBarProps) {
           </Button>
         </Flex>
       )}
+      <Flex align="center" display={{ initial: "flex", sm: "none" }}>
+        <IconButton
+          variant="ghost"
+          size="2"
+          aria-label="Open menu"
+          mx="2"
+          onClick={() => setExpanded(!expanded)}
+        >
+          <PiList />
+        </IconButton>
+      </Flex>
     </TabNav.Root>
   );
 }
