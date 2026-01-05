@@ -23,9 +23,9 @@ export const TaxonMainSection = ({
   navigate: UseNavigateResult<"string">;
 }) => {
   return (
-    <Flex gap="4">
+    <Flex gap="4" direction={{ initial: "column", xs: "row" }}>
       <TaxonImageBrowser media={taxon.media} key={taxon.id} />
-      <Flex direction="column" justify="between">
+      <Flex direction="column" justify="between" gap="2">
         <Box>
           <DataList.Root mt="2" size="2">
             <DataList.Item>
@@ -61,7 +61,7 @@ export const TaxonMainSection = ({
             )}
           </DataList.Root>
         </Box>
-        <Flex gap="1" mt="2">
+        <Flex gap="1" mt="2" wrap="wrap">
           <CuratorOnly>
             <Button
               type="button"

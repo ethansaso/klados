@@ -3,7 +3,6 @@ import { useState } from "react";
 import { AnnotationBubbleWrap } from "../../../../components/AnnotationBubbleWrap";
 import { MediaItem } from "../../../../lib/domain/taxa/validation";
 
-const IMG_SIZE = 256;
 const THUMB_SIZE = 48;
 
 // TODO: Scrolling thumbnails if too many to fit
@@ -18,7 +17,6 @@ export const TaxonImageBrowser = ({ media }: { media: MediaItem[] }) => {
           src={displayedMediaItem?.url ?? "/logos/LogoDotted.svg"}
           style={{
             display: "block",
-            height: IMG_SIZE,
             aspectRatio: "1/1",
             objectPosition: "center",
             objectFit: "cover",
@@ -28,7 +26,7 @@ export const TaxonImageBrowser = ({ media }: { media: MediaItem[] }) => {
       </AnnotationBubbleWrap>
       <Flex
         className="taxon-image-browser__thumbnails"
-        style={{ maxWidth: IMG_SIZE, overflow: "hidden" }}
+        style={{ overflow: "hidden" }}
         asChild
       >
         <ul>
