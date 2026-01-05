@@ -1,4 +1,4 @@
-import { Box } from "@radix-ui/themes";
+import { Box, Flex } from "@radix-ui/themes";
 import { createFileRoute } from "@tanstack/react-router";
 import { ReactFlowProvider } from "@xyflow/react";
 import z from "zod";
@@ -20,10 +20,10 @@ function RouteComponent() {
   return (
     <Box className="key-creator">
       <ReactFlowProvider>
-        <Box className="key-creator-overlay">
+        <Flex className="key-creator-overlay" p="4" direction="column" gap="4">
           <KeySidebar />
           <KeyToolbar />
-        </Box>
+        </Flex>
         <KeyEditorCanvas />
       </ReactFlowProvider>
     </Box>

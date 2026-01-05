@@ -218,15 +218,17 @@ export const KeySidebar = () => {
               />
             </Box>
           </section>
-          <Flex asChild justify="between">
+          <Flex asChild justify="between" width="100%">
             <section>
-              <Button
-                type="submit"
-                disabled={!taxonIdVal || isSubmitting}
-                loading={isSubmitting}
-              >
-                Generate Key
-              </Button>
+              <Box asChild width="100%">
+                <Button
+                  type="submit"
+                  disabled={!taxonIdVal || isSubmitting}
+                  loading={isSubmitting}
+                >
+                  Generate Key
+                </Button>
+              </Box>
             </section>
           </Flex>
         </form>

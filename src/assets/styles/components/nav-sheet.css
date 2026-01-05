@@ -1,3 +1,12 @@
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 .nav-sheet {
   position: absolute;
   right: 0;
@@ -24,5 +33,6 @@
     max-width: 350px;
     background: var(--color-background);
     border-left: 1px solid var(--border-color);
+    animation: slide-in-right 0.3s ease forwards;
   }
 }

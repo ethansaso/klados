@@ -1,4 +1,4 @@
-import { Box, Callout, Heading, Tabs, Text } from "@radix-ui/themes";
+import { Box, Callout, Flex, Heading, Tabs, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -72,14 +72,14 @@ function TaxonPage() {
 
       <Box mb="4">
         <Breadcrumbs items={breadcrumbItems} size="2" />
-        <Heading size="7">
-          <Text>{taxon.acceptedName} </Text>
+        <Flex align="baseline" wrap="wrap" gapX="2" gapY="0">
+          <Heading size="7">{taxon.acceptedName}</Heading>
           {taxon.preferredCommonName && (
             <Text size="3" weight="regular" color="gray">
               ({taxon.preferredCommonName})
             </Text>
           )}
-        </Heading>
+        </Flex>
       </Box>
       <Box width="100%">
         <Box mb="4">

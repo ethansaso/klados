@@ -1,9 +1,23 @@
 .taxon-image-browser {
+  --IMG_SIZE: 256px;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    @media (min-width: 520px) {
+      height: var(--IMG_SIZE);
+    }
+  }
+
   .taxon-image-browser__thumbnails {
     padding: 0;
     margin: 0;
     list-style: none;
     background-color: var(--gray-12);
+
+    @media (min-width: 520px) {
+      max-width: var(--IMG_SIZE);
+    }
 
     li {
       img {
