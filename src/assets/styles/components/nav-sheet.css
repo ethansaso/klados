@@ -1,0 +1,28 @@
+.nav-sheet {
+  position: absolute;
+  right: 0;
+  top: 0;
+
+  &::before {
+    position: fixed;
+    content: "";
+    inset: 0;
+    background-color: var(--black-a6);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .nav-sheet__header {
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .nav-sheet__content {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    margin: auto 0 auto auto;
+    max-width: 350px;
+    background: var(--color-background);
+    border-left: 1px solid var(--border-color);
+  }
+}

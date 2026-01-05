@@ -1,41 +1,22 @@
-import {
-  Button,
-  Flex,
-  IconButton,
-  Link as RtLink,
-  TabNav,
-  Text,
-} from "@radix-ui/themes";
+import { Button, Dialog, Flex, IconButton, TabNav } from "@radix-ui/themes";
 import { Link as RouterLink } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PiCaretDown, PiList } from "react-icons/pi";
 import { getMeFn } from "../../lib/api/users/getMe";
 import { roleHasCuratorRights } from "../../lib/auth/utils";
 import { useIsActive } from "../../lib/hooks/useIsActive";
-import { Logo } from "./Logo";
+import { useMediaQuery } from "../../lib/hooks/useMediaQuery";
+import { NavBarBrand } from "./NavBarBrand";
 import { NavDropdown } from "./NavDropdown";
+import { NavSheet } from "./NavSheet";
 import { UserMenu } from "./UserMenu";
 
 interface NavBarProps {
   user: Awaited<ReturnType<typeof getMeFn>> | undefined;
 }
 
-function NavBarBrand() {
-  return (
-    <RtLink asChild underline="none" highContrast>
-      <RouterLink to="/" preload="intent">
-        <Flex align="center" gap="2" px="2" py="1" mr="4">
-          <Logo size={24} />
-          <Text weight="bold" size="6">
-            Klados
-          </Text>
-        </Flex>
-      </RouterLink>
-    </RtLink>
-  );
-}
-
 export function NavBar({ user }: NavBarProps) {
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const [expanded, setExpanded] = useState(false);
 
   const homeActive = useIsActive("/");
@@ -80,7 +61,7 @@ export function NavBar({ user }: NavBarProps) {
       <NavBarBrand />
       <Flex
         className="navbar__navlinks"
-        display={{ initial: expanded ? "flex" : "none", sm: "flex" }}
+        display={{ initial: "none", sm: "flex" }}
       >
         <TabNav.Link asChild active={homeActive}>
           <RouterLink to="/" preload="intent">
@@ -135,17 +116,26 @@ export function NavBar({ user }: NavBarProps) {
           </Button>
         </Flex>
       )}
-      <Flex align="center" display={{ initial: "flex", sm: "none" }}>
-        <IconButton
-          variant="ghost"
-          size="2"
-          aria-label="Open menu"
-          mx="2"
-          onClick={() => setExpanded(!expanded)}
-        >
-          <PiList />
-        </IconButton>
-      </Flex>
+      {/* Mobile hamburger + sheet */}
+      {isMobile ? (
+        <Dialog.Root open={expanded} onOpenChange={setExpanded}>
+          <Dialog.Trigger>
+            <Flex align="center" display={{ initial: "flex", sm: "none" }}>
+              <IconButton
+                variant="ghost"
+                size="2"
+                aria-label="Open menu"
+                mx="2"
+                onClick={() => setExpanded(!expanded)}
+              >
+                <PiList />
+              </IconButton>
+            </Flex>
+          </Dialog.Trigger>
+
+          <NavSheet user={user} onNavigate={() => setExpanded(false)} />
+        </Dialog.Root>
+      ) : null}
     </TabNav.Root>
   );
 }

@@ -11,6 +11,7 @@ nav:has(.navbar) {
 .navbar {
   box-shadow: none;
   flex: 1;
+  flex-wrap: wrap;
   padding: 0 var(--space-2);
   max-width: 1440px;
   overflow: visible;
@@ -40,7 +41,7 @@ nav:has(.navbar) {
   padding: var(--space-2);
   gap: var(--space-1);
   z-index: 1000;
-  
+
   list-style: none;
   background-color: var(--color-background);
   border: 1px solid var(--gray-a5);
