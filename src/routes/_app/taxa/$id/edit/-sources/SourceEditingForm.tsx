@@ -1,8 +1,8 @@
 import {
   Box,
+  Button,
   Flex,
   IconButton,
-  Strong,
   Table,
   Text,
   TextArea,
@@ -52,35 +52,6 @@ export const SourceEditingForm = ({
 
   return (
     <Box mb="5">
-      <Flex mb="3" gap="1" align="center">
-        <Text size="3" mr="1">
-          <Strong>Sources</Strong>
-        </Text>
-        <IconButton
-          type="button"
-          radius="full"
-          size="1"
-          onClick={async () => {
-            const picked = await pickSource();
-            if (!picked) return;
-            if (sourcesById.has(picked.id)) return;
-
-            setSourcesById((prev) => new Map(prev).set(picked.id, picked));
-            onChange([
-              ...value,
-              {
-                sourceId: picked.id,
-                accessedAt: new Date(),
-                locator: "",
-                note: "",
-              },
-            ]);
-          }}
-        >
-          <PiPlus size="16" />
-        </IconButton>
-      </Flex>
-
       <Table.Root variant="surface">
         <Table.Header>
           <Table.Row>
@@ -172,6 +143,32 @@ export const SourceEditingForm = ({
           )}
         </Table.Body>
       </Table.Root>
+      <Flex mt="3" gap="1" align="center">
+        <Button
+          type="button"
+          radius="full"
+          size="1"
+          onClick={async () => {
+            const picked = await pickSource();
+            if (!picked) return;
+            if (sourcesById.has(picked.id)) return;
+
+            setSourcesById((prev) => new Map(prev).set(picked.id, picked));
+            onChange([
+              ...value,
+              {
+                sourceId: picked.id,
+                accessedAt: new Date(),
+                locator: "",
+                note: "",
+              },
+            ]);
+          }}
+        >
+          <PiPlus size="16" />
+          Add Source
+        </Button>
+      </Flex>
     </Box>
   );
 };

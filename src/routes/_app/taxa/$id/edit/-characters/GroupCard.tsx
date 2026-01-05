@@ -52,9 +52,9 @@ export function GroupCard({
   };
 
   return (
-    <Card mt="3">
+    <Card>
       <Flex mb="2" align="center" justify="between">
-        <Heading size="2" weight="bold">
+        <Heading size="2" weight="medium">
           {label}
         </Heading>
         {confirmingDelete ? (

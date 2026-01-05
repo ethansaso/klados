@@ -8,11 +8,23 @@ import {
 
 export const PurposeSection = () => {
   return (
-    <Flex direction="column" align="center" py="8" className="purpose-section">
+    <Flex
+      direction="column"
+      align="center"
+      py="8"
+      px="6"
+      className="purpose-section"
+    >
       <Heading mb="5" size="8">
         How Klados Helps You Learn
       </Heading>
-      <Grid columns="2" gapX="6" gapY="6" width="1000px" asChild>
+      <Grid
+        columns={{ initial: "1", sm: "2" }}
+        gapX="6"
+        gapY="6"
+        maxWidth="1000px"
+        asChild
+      >
         <ul className="purpose-list">
           <li>
             <PiBookOpenUser />

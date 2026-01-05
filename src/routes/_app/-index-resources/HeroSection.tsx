@@ -7,12 +7,14 @@ export const HeroSection = () => {
     <Flex
       align="center"
       justify="center"
+      py="6"
+      px="6"
+      minHeight="496px"
+      width="100%"
       style={{
         backgroundImage: "url(/about/forest-bg.jpeg)",
         backgroundSize: "cover",
         backgroundPosition: "0 50%",
-        height: 496,
-        width: "100%",
         // darken by 50%
         backgroundBlendMode: "darken",
         backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -31,12 +33,14 @@ export const HeroSection = () => {
           community-maintained guides built from real biological data.
         </Text>
         <Box>
-          <Button size="4" asChild radius="full">
-            <Link to="/taxa">
-              Browse Species
-              <PiArrowRight />
-            </Link>
-          </Button>
+          <Box asChild width={{ initial: "100%", xs: "auto" }}>
+            <Button size="4" asChild radius="full">
+              <Link to="/taxa">
+                Browse Species
+                <PiArrowRight />
+              </Link>
+            </Button>
+          </Box>
         </Box>
       </Flex>
     </Flex>

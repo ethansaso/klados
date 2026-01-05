@@ -39,8 +39,11 @@ function RouteComponent() {
       </Box>
       <Box mb="5">
         <Heading mb="3">Meet the Founder</Heading>
-        <Flex gap="8">
-          <Box>
+        <Flex
+          direction={{ initial: "column-reverse", sm: "row" }}
+          gap={{ initial: "2", sm: "8" }}
+        >
+          <Box flexShrink="1">
             <Text as="p" mb="2">
               Hi there! My name is Ethan Saso, and I'm a full-stack developer
               with a lifelong passion for naturalism. I originally created
@@ -70,11 +73,14 @@ function RouteComponent() {
               .
             </Text>
           </Box>
-          <img
-            src={"/about/ethan-headshot.jpeg"}
-            alt="Ethan Saso"
-            height="208px"
-          />
+          <Box asChild flexShrink="0" height="208px" width="208px">
+            <img
+              src={"/about/ethan-headshot.jpeg"}
+              alt="Ethan Saso"
+              height="100%"
+              width="100%"
+            />
+          </Box>
         </Flex>
       </Box>
     </ContentContainer>

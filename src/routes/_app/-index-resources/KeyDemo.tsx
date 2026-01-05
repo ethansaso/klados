@@ -5,15 +5,20 @@ import { KeyDemoCanvas } from "../../../components/react-flow-keys/demo/KeyDemoC
 
 export const KeyDemo = () => {
   return (
-    <Box width="100%">
+    <Box width="100%" px="6">
       <Container
         pt="8"
         pb="7"
         size={{ sm: "2", md: "3", lg: "4" }}
         width="100%"
       >
-        <Flex width="100%" gap="9" align="center">
-          <Box maxWidth="380px">
+        <Flex
+          direction={{ initial: "column", sm: "row" }}
+          width="100%"
+          gap={{ initial: "6", sm: "9" }}
+          align="center"
+        >
+          <Box maxWidth={{ sm: "380px" }}>
             <Heading size="8" mb="4">
               A Clearer Way to Navigate Biodiversity
             </Heading>
@@ -25,12 +30,14 @@ export const KeyDemo = () => {
               Its free, community-driven guides offer a visually rich
               alternative to traditional dichotomous keys.
             </Text>
-            <Button type="button" radius="full" size="3" asChild>
-              <Link to="/keys">
-                Explore guides
-                <PiArrowRightBold />
-              </Link>
-            </Button>
+            <Box width={{ initial: "100%", xs: "auto" }} asChild>
+              <Button type="button" radius="full" size="3" asChild>
+                <Link to="/keys">
+                  Explore guides
+                  <PiArrowRightBold />
+                </Link>
+              </Button>
+            </Box>
           </Box>
           <KeyDemoCanvas />
         </Flex>

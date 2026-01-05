@@ -4,6 +4,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 import z from "zod";
 import { Breadcrumb, Breadcrumbs } from "../../../../components/Breadcrumbs";
+import { ContentContainer } from "../../../../components/ContentContainer";
 import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 import { taxonCharacterDisplayGroupsQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
@@ -55,7 +56,7 @@ function TaxonPage() {
   }, [taxon.ancestors, taxon.acceptedName]);
 
   return (
-    <>
+    <ContentContainer align="start">
       {taxon.status !== "active" && (
         <Callout.Root
           color={taxon.status === "deprecated" ? "tomato" : undefined}
@@ -121,6 +122,6 @@ function TaxonPage() {
           </Tabs.Content>
         </Tabs.Root>
       </Box>
-    </>
+    </ContentContainer>
   );
 }

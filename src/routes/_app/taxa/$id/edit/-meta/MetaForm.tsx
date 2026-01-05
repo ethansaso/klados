@@ -64,10 +64,10 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
   }, [parentIdVal, parentOptions]);
 
   return (
-    <Flex direction="column" gap="3" mb="5">
+    <Flex direction="column" gap="3">
       <Flex gap="4">
         {/* Rank */}
-        <Box>
+        <Box flexGrow="1" flexShrink="1" flexBasis="0">
           <Flex justify="between" align="baseline" mb="1">
             <Label.Root htmlFor="rank">Rank</Label.Root>
             <ConditionalAlert id="rank-error" message={errors.rank?.message} />
@@ -80,7 +80,7 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
                 value={value}
                 onValueChange={(v) => onChange(v as typeof value)}
               >
-                <Select.Trigger style={{ display: "flex" }}>
+                <Select.Trigger style={{ width: "100%" }}>
                   {value}
                 </Select.Trigger>
                 <Select.Content>
@@ -96,7 +96,7 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
         </Box>
 
         {/* Parent taxon */}
-        <Box>
+        <Box flexGrow="1" flexShrink="1" flexBasis="0">
           <Flex justify="between" align="baseline" mb="1">
             <Label.Root htmlFor="parent-id">Parent taxon</Label.Root>
             <ConditionalAlert
