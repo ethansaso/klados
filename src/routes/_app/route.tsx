@@ -20,7 +20,8 @@ function RouteComponent() {
     <>
       <Flex
         justify="center"
-        p={{ initial: "2", sm: "0" }}
+        px={{ initial: "2", sm: "0" }}
+        py={{ initial: "1", sm: "0" }}
         style={{ background: "var(--tomato-5)" }}
       >
         <Text color="tomato">

@@ -7,13 +7,14 @@ export const HeroSection = () => {
     <Flex
       align="center"
       justify="center"
+      py="6"
       px="6"
+      minHeight="496px"
+      width="100%"
       style={{
         backgroundImage: "url(/about/forest-bg.jpeg)",
         backgroundSize: "cover",
         backgroundPosition: "0 50%",
-        height: 496,
-        width: "100%",
         // darken by 50%
         backgroundBlendMode: "darken",
         backgroundColor: "rgba(0, 0, 0, 0.5)",

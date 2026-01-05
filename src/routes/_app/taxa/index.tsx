@@ -4,6 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PiMagnifyingGlass } from "react-icons/pi";
 import { useDebounce } from "use-debounce";
+import { ContentContainer } from "../../../components/ContentContainer";
 import {
   TaxonSearchParams,
   TaxonSearchSchema,
@@ -64,7 +65,7 @@ function TaxaListPage() {
   }, [debouncedInput, setSearch]);
 
   return (
-    <Flex direction="column">
+    <ContentContainer align="start">
       <Flex mb="4" gap="2">
         <TextField.Root
           placeholder="Search taxa..."
@@ -79,6 +80,6 @@ function TaxaListPage() {
         <TaxaFilterPopover search={search} setSearch={setSearch} />
       </Flex>
       <TaxonGrid results={paginatedResult} />
-    </Flex>
+    </ContentContainer>
   );
 }

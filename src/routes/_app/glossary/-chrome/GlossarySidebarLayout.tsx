@@ -5,7 +5,11 @@ import { ContentContainer } from "../../../../components/ContentContainer";
 
 function Root({ children }: PropsWithChildren) {
   return (
-    <Flex height="0" flexGrow="1">
+    <Flex
+      height={{ initial: "auto", sm: "0" }}
+      flexGrow="1"
+      direction={{ initial: "column", sm: "row" }}
+    >
       {children}
     </Flex>
   );
@@ -13,14 +17,24 @@ function Root({ children }: PropsWithChildren) {
 
 function Sidebar({ children }: PropsWithChildren) {
   return (
-    <Flex direction="column" width="275px" height="100%" p="4">
+    <Flex
+      direction="column"
+      width={{ initial: "auto", sm: "275px" }}
+      height="100%"
+      p="4"
+    >
       {children}
     </Flex>
   );
 }
 
 function Separator() {
-  return <RadixSeparator orientation="vertical" size="4" />;
+  return (
+    <RadixSeparator
+      orientation={{ initial: "horizontal", sm: "vertical" }}
+      size="4"
+    />
+  );
 }
 
 function Content() {

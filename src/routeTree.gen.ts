@@ -23,7 +23,6 @@ import { Route as AppDonateRouteImport } from './routes/_app/donate'
 import { Route as AppAboutRouteImport } from './routes/_app/about'
 import { Route as AdminUsersRouteRouteImport } from './routes/admin/users/route'
 import { Route as AppUsersRouteRouteImport } from './routes/_app/users/route'
-import { Route as AppTaxaRouteRouteImport } from './routes/_app/taxa/route'
 import { Route as AppGlossaryRouteRouteImport } from './routes/_app/glossary/route'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
 import { Route as AppUsersIndexRouteImport } from './routes/_app/users/index'
@@ -117,11 +116,6 @@ const AppUsersRouteRoute = AppUsersRouteRouteImport.update({
   path: '/users',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppTaxaRouteRoute = AppTaxaRouteRouteImport.update({
-  id: '/taxa',
-  path: '/taxa',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 const AppGlossaryRouteRoute = AppGlossaryRouteRouteImport.update({
   id: '/glossary',
   path: '/glossary',
@@ -138,9 +132,9 @@ const AppUsersIndexRoute = AppUsersIndexRouteImport.update({
   getParentRoute: () => AppUsersRouteRoute,
 } as any)
 const AppTaxaIndexRoute = AppTaxaIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppTaxaRouteRoute,
+  id: '/taxa/',
+  path: '/taxa/',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppGlossaryIndexRoute = AppGlossaryIndexRouteImport.update({
   id: '/',
@@ -153,14 +147,14 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppTaxaNewRoute = AppTaxaNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => AppTaxaRouteRoute,
+  id: '/taxa/new',
+  path: '/taxa/new',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppTaxaDraftsRoute = AppTaxaDraftsRouteImport.update({
-  id: '/drafts',
-  path: '/drafts',
-  getParentRoute: () => AppTaxaRouteRoute,
+  id: '/taxa/drafts',
+  path: '/taxa/drafts',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppKeysBrowsingRouteRoute = AppKeysBrowsingRouteRouteImport.update({
   id: '/_browsing',
@@ -188,9 +182,9 @@ const AppUsersUsernameIndexRoute = AppUsersUsernameIndexRouteImport.update({
   getParentRoute: () => AppUsersRouteRoute,
 } as any)
 const AppTaxaIdIndexRoute = AppTaxaIdIndexRouteImport.update({
-  id: '/$id/',
-  path: '/$id/',
-  getParentRoute: () => AppTaxaRouteRoute,
+  id: '/taxa/$id/',
+  path: '/taxa/$id/',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppKeysCreateIndexRoute = AppKeysCreateIndexRouteImport.update({
   id: '/create/',
@@ -245,9 +239,9 @@ const AppGlossaryCharactersIdRoute = AppGlossaryCharactersIdRouteImport.update({
   getParentRoute: () => AppGlossaryCharactersRouteRoute,
 } as any)
 const AppTaxaIdEditRouteRoute = AppTaxaIdEditRouteRouteImport.update({
-  id: '/$id/edit',
-  path: '/$id/edit',
-  getParentRoute: () => AppTaxaRouteRoute,
+  id: '/taxa/$id/edit',
+  path: '/taxa/$id/edit',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppTaxaIdEditIndexRoute = AppTaxaIdEditIndexRouteImport.update({
   id: '/',
@@ -258,7 +252,6 @@ const AppTaxaIdEditIndexRoute = AppTaxaIdEditIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteRouteWithChildren
   '/glossary': typeof AppGlossaryRouteRouteWithChildren
-  '/taxa': typeof AppTaxaRouteRouteWithChildren
   '/users': typeof AppUsersRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
   '/about': typeof AppAboutRoute
@@ -277,7 +270,7 @@ export interface FileRoutesByFullPath {
   '/taxa/new': typeof AppTaxaNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/glossary/': typeof AppGlossaryIndexRoute
-  '/taxa/': typeof AppTaxaIndexRoute
+  '/taxa': typeof AppTaxaIndexRoute
   '/users/': typeof AppUsersIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/taxa/$id/edit': typeof AppTaxaIdEditRouteRouteWithChildren
@@ -330,7 +323,6 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteRouteWithChildren
   '/admin': typeof AdminRouteRouteWithChildren
   '/_app/glossary': typeof AppGlossaryRouteRouteWithChildren
-  '/_app/taxa': typeof AppTaxaRouteRouteWithChildren
   '/_app/users': typeof AppUsersRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
   '/_app/about': typeof AppAboutRoute
@@ -373,7 +365,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/admin'
     | '/glossary'
-    | '/taxa'
     | '/users'
     | '/admin/users'
     | '/about'
@@ -392,7 +383,7 @@ export interface FileRouteTypes {
     | '/taxa/new'
     | '/api/auth/$'
     | '/glossary/'
-    | '/taxa/'
+    | '/taxa'
     | '/users/'
     | '/admin/users/'
     | '/taxa/$id/edit'
@@ -444,7 +435,6 @@ export interface FileRouteTypes {
     | '/_app'
     | '/admin'
     | '/_app/glossary'
-    | '/_app/taxa'
     | '/_app/users'
     | '/admin/users'
     | '/_app/about'
@@ -582,13 +572,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/taxa': {
-      id: '/_app/taxa'
-      path: '/taxa'
-      fullPath: '/taxa'
-      preLoaderRoute: typeof AppTaxaRouteRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/_app/glossary': {
       id: '/_app/glossary'
       path: '/glossary'
@@ -612,10 +595,10 @@ declare module '@tanstack/react-router' {
     }
     '/_app/taxa/': {
       id: '/_app/taxa/'
-      path: '/'
-      fullPath: '/taxa/'
+      path: '/taxa'
+      fullPath: '/taxa'
       preLoaderRoute: typeof AppTaxaIndexRouteImport
-      parentRoute: typeof AppTaxaRouteRoute
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/glossary/': {
       id: '/_app/glossary/'
@@ -633,17 +616,17 @@ declare module '@tanstack/react-router' {
     }
     '/_app/taxa/new': {
       id: '/_app/taxa/new'
-      path: '/new'
+      path: '/taxa/new'
       fullPath: '/taxa/new'
       preLoaderRoute: typeof AppTaxaNewRouteImport
-      parentRoute: typeof AppTaxaRouteRoute
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/taxa/drafts': {
       id: '/_app/taxa/drafts'
-      path: '/drafts'
+      path: '/taxa/drafts'
       fullPath: '/taxa/drafts'
       preLoaderRoute: typeof AppTaxaDraftsRouteImport
-      parentRoute: typeof AppTaxaRouteRoute
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/keys/_browsing': {
       id: '/_app/keys/_browsing'
@@ -682,10 +665,10 @@ declare module '@tanstack/react-router' {
     }
     '/_app/taxa/$id/': {
       id: '/_app/taxa/$id/'
-      path: '/$id'
+      path: '/taxa/$id'
       fullPath: '/taxa/$id'
       preLoaderRoute: typeof AppTaxaIdIndexRouteImport
-      parentRoute: typeof AppTaxaRouteRoute
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/keys/create/': {
       id: '/_app/keys/create/'
@@ -759,10 +742,10 @@ declare module '@tanstack/react-router' {
     }
     '/_app/taxa/$id/edit': {
       id: '/_app/taxa/$id/edit'
-      path: '/$id/edit'
+      path: '/taxa/$id/edit'
       fullPath: '/taxa/$id/edit'
       preLoaderRoute: typeof AppTaxaIdEditRouteRouteImport
-      parentRoute: typeof AppTaxaRouteRoute
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/taxa/$id/edit/': {
       id: '/_app/taxa/$id/edit/'
@@ -839,37 +822,6 @@ const AppGlossaryRouteRouteChildren: AppGlossaryRouteRouteChildren = {
 const AppGlossaryRouteRouteWithChildren =
   AppGlossaryRouteRoute._addFileChildren(AppGlossaryRouteRouteChildren)
 
-interface AppTaxaIdEditRouteRouteChildren {
-  AppTaxaIdEditIndexRoute: typeof AppTaxaIdEditIndexRoute
-}
-
-const AppTaxaIdEditRouteRouteChildren: AppTaxaIdEditRouteRouteChildren = {
-  AppTaxaIdEditIndexRoute: AppTaxaIdEditIndexRoute,
-}
-
-const AppTaxaIdEditRouteRouteWithChildren =
-  AppTaxaIdEditRouteRoute._addFileChildren(AppTaxaIdEditRouteRouteChildren)
-
-interface AppTaxaRouteRouteChildren {
-  AppTaxaDraftsRoute: typeof AppTaxaDraftsRoute
-  AppTaxaNewRoute: typeof AppTaxaNewRoute
-  AppTaxaIndexRoute: typeof AppTaxaIndexRoute
-  AppTaxaIdEditRouteRoute: typeof AppTaxaIdEditRouteRouteWithChildren
-  AppTaxaIdIndexRoute: typeof AppTaxaIdIndexRoute
-}
-
-const AppTaxaRouteRouteChildren: AppTaxaRouteRouteChildren = {
-  AppTaxaDraftsRoute: AppTaxaDraftsRoute,
-  AppTaxaNewRoute: AppTaxaNewRoute,
-  AppTaxaIndexRoute: AppTaxaIndexRoute,
-  AppTaxaIdEditRouteRoute: AppTaxaIdEditRouteRouteWithChildren,
-  AppTaxaIdIndexRoute: AppTaxaIdIndexRoute,
-}
-
-const AppTaxaRouteRouteWithChildren = AppTaxaRouteRoute._addFileChildren(
-  AppTaxaRouteRouteChildren,
-)
-
 interface AppUsersRouteRouteChildren {
   AppUsersIndexRoute: typeof AppUsersIndexRoute
   AppUsersUsernameEditRoute: typeof AppUsersUsernameEditRoute
@@ -912,9 +864,19 @@ const AppKeysRouteChildren: AppKeysRouteChildren = {
 const AppKeysRouteWithChildren =
   AppKeysRoute._addFileChildren(AppKeysRouteChildren)
 
+interface AppTaxaIdEditRouteRouteChildren {
+  AppTaxaIdEditIndexRoute: typeof AppTaxaIdEditIndexRoute
+}
+
+const AppTaxaIdEditRouteRouteChildren: AppTaxaIdEditRouteRouteChildren = {
+  AppTaxaIdEditIndexRoute: AppTaxaIdEditIndexRoute,
+}
+
+const AppTaxaIdEditRouteRouteWithChildren =
+  AppTaxaIdEditRouteRoute._addFileChildren(AppTaxaIdEditRouteRouteChildren)
+
 interface AppRouteRouteChildren {
   AppGlossaryRouteRoute: typeof AppGlossaryRouteRouteWithChildren
-  AppTaxaRouteRoute: typeof AppTaxaRouteRouteWithChildren
   AppUsersRouteRoute: typeof AppUsersRouteRouteWithChildren
   AppAboutRoute: typeof AppAboutRoute
   AppDonateRoute: typeof AppDonateRoute
@@ -924,11 +886,15 @@ interface AppRouteRouteChildren {
   AppSignupRoute: typeof AppSignupRoute
   AppIndexRoute: typeof AppIndexRoute
   AppKeysRoute: typeof AppKeysRouteWithChildren
+  AppTaxaDraftsRoute: typeof AppTaxaDraftsRoute
+  AppTaxaNewRoute: typeof AppTaxaNewRoute
+  AppTaxaIndexRoute: typeof AppTaxaIndexRoute
+  AppTaxaIdEditRouteRoute: typeof AppTaxaIdEditRouteRouteWithChildren
+  AppTaxaIdIndexRoute: typeof AppTaxaIdIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppGlossaryRouteRoute: AppGlossaryRouteRouteWithChildren,
-  AppTaxaRouteRoute: AppTaxaRouteRouteWithChildren,
   AppUsersRouteRoute: AppUsersRouteRouteWithChildren,
   AppAboutRoute: AppAboutRoute,
   AppDonateRoute: AppDonateRoute,
@@ -938,6 +904,11 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSignupRoute: AppSignupRoute,
   AppIndexRoute: AppIndexRoute,
   AppKeysRoute: AppKeysRouteWithChildren,
+  AppTaxaDraftsRoute: AppTaxaDraftsRoute,
+  AppTaxaNewRoute: AppTaxaNewRoute,
+  AppTaxaIndexRoute: AppTaxaIndexRoute,
+  AppTaxaIdEditRouteRoute: AppTaxaIdEditRouteRouteWithChildren,
+  AppTaxaIdIndexRoute: AppTaxaIdIndexRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

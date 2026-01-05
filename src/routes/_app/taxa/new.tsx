@@ -13,6 +13,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
+import { ContentContainer } from "../../../components/ContentContainer";
 import { SelectCombobox } from "../../../components/inputs/combobox/SelectCombobox";
 import { ComboboxOption } from "../../../components/inputs/combobox/types";
 import {
@@ -113,108 +114,110 @@ function RouteComponent() {
   };
 
   return (
-    <Box>
-      <Heading mb="4">Add New Taxon</Heading>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Flex direction="column" gap="4" maxWidth="480px">
-          {/* Accepted name */}
-          <Box>
-            <Flex justify="between" align="baseline" mb="1">
-              <Label.Root htmlFor="accepted-name">Accepted name</Label.Root>
-              <ConditionalAlert
-                id="accepted-name-error"
-                message={errors.acceptedName?.message}
+    <ContentContainer align="center">
+      <Box>
+        <Heading mb="4">Add New Taxon</Heading>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Flex direction="column" gap="4" maxWidth="480px">
+            {/* Accepted name */}
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="accepted-name">Accepted name</Label.Root>
+                <ConditionalAlert
+                  id="accepted-name-error"
+                  message={errors.acceptedName?.message}
+                />
+              </Flex>
+              <TextField.Root
+                id="accepted-name"
+                placeholder="e.g. Amanita muscaria"
+                {...register("acceptedName")}
+                {...a11yProps("accepted-name-error", !!errors.acceptedName)}
               />
-            </Flex>
-            <TextField.Root
-              id="accepted-name"
-              placeholder="e.g. Amanita muscaria"
-              {...register("acceptedName")}
-              {...a11yProps("accepted-name-error", !!errors.acceptedName)}
-            />
-          </Box>
+            </Box>
 
-          {/* Parent taxon (optional) */}
-          <Box>
-            <Flex justify="between" align="baseline" mb="1">
-              <Label.Root htmlFor="parent-id">Parent taxon</Label.Root>
-              {/* Optional field, so no error display */}
-            </Flex>
-            <Controller
-              name="parentId"
-              control={control}
-              render={({ field }) => (
-                <SelectCombobox.Root
-                  id="parent-id"
-                  value={parentSelected}
-                  onValueChange={(opt) =>
-                    field.onChange(opt ? Number(opt.id) : null)
-                  }
-                  options={comboboxOptions}
-                  onQueryChange={setParentQ}
-                >
-                  <SelectCombobox.Trigger placeholder="Select parent taxon (optional)" />
-                  <SelectCombobox.Content>
-                    <SelectCombobox.Input placeholder="Search taxa..." />
-                    <SelectCombobox.List>
-                      {comboboxOptions.map((option, index) => (
-                        <SelectCombobox.Item
-                          key={option.id}
-                          index={index}
-                          option={option}
-                        />
+            {/* Parent taxon (optional) */}
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="parent-id">Parent taxon</Label.Root>
+                {/* Optional field, so no error display */}
+              </Flex>
+              <Controller
+                name="parentId"
+                control={control}
+                render={({ field }) => (
+                  <SelectCombobox.Root
+                    id="parent-id"
+                    value={parentSelected}
+                    onValueChange={(opt) =>
+                      field.onChange(opt ? Number(opt.id) : null)
+                    }
+                    options={comboboxOptions}
+                    onQueryChange={setParentQ}
+                  >
+                    <SelectCombobox.Trigger placeholder="Select parent taxon (optional)" />
+                    <SelectCombobox.Content>
+                      <SelectCombobox.Input placeholder="Search taxa..." />
+                      <SelectCombobox.List>
+                        {comboboxOptions.map((option, index) => (
+                          <SelectCombobox.Item
+                            key={option.id}
+                            index={index}
+                            option={option}
+                          />
+                        ))}
+                      </SelectCombobox.List>
+                    </SelectCombobox.Content>
+                  </SelectCombobox.Root>
+                )}
+              />
+            </Box>
+
+            {/* Rank (required, but starts unset / placeholder) */}
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="rank">Rank</Label.Root>
+                <ConditionalAlert
+                  id="rank-error"
+                  message={errors.rank?.message}
+                />
+              </Flex>
+              <Controller
+                name="rank"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <Select.Root
+                    value={value}
+                    onValueChange={(v) => onChange(v as typeof value)}
+                  >
+                    <Select.Trigger style={{ width: "100%" }}>
+                      {value || "Select rank"}
+                    </Select.Trigger>
+                    <Select.Content>
+                      {TAXON_RANKS_DESCENDING.map((rank) => (
+                        <Select.Item key={rank} value={rank}>
+                          {rank}
+                        </Select.Item>
                       ))}
-                    </SelectCombobox.List>
-                  </SelectCombobox.Content>
-                </SelectCombobox.Root>
-              )}
-            />
-          </Box>
-
-          {/* Rank (required, but starts unset / placeholder) */}
-          <Box>
-            <Flex justify="between" align="baseline" mb="1">
-              <Label.Root htmlFor="rank">Rank</Label.Root>
-              <ConditionalAlert
-                id="rank-error"
-                message={errors.rank?.message}
+                    </Select.Content>
+                  </Select.Root>
+                )}
               />
-            </Flex>
-            <Controller
-              name="rank"
-              control={control}
-              render={({ field: { value, onChange } }) => (
-                <Select.Root
-                  value={value}
-                  onValueChange={(v) => onChange(v as typeof value)}
-                >
-                  <Select.Trigger style={{ width: "100%" }}>
-                    {value || "Select rank"}
-                  </Select.Trigger>
-                  <Select.Content>
-                    {TAXON_RANKS_DESCENDING.map((rank) => (
-                      <Select.Item key={rank} value={rank}>
-                        {rank}
-                      </Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select.Root>
-              )}
-            />
-          </Box>
+            </Box>
 
-          {/* Actions */}
-          <Flex justify="end" gap="3">
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              loading={isSubmitting}
-            >
-              Create taxon
-            </Button>
+            {/* Actions */}
+            <Flex justify="end" gap="3">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                loading={isSubmitting}
+              >
+                Create taxon
+              </Button>
+            </Flex>
           </Flex>
-        </Flex>
-      </form>
-    </Box>
+        </form>
+      </Box>
+    </ContentContainer>
   );
 }

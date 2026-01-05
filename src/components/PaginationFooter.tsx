@@ -17,7 +17,7 @@ export function PaginationFooter({
 }) {
   const max = Math.max(1, Math.ceil(total / pageSize));
   return (
-    <Flex mt="3" justify="between" align="center">
+    <Flex mt="3" justify="between" align="center" wrap="wrap" gap="2">
       <Text size="1" color="gray">
         Page {page} of {max}
         {showValue ? ` · ${total} value${total === 1 ? "" : "s"}` : ""}

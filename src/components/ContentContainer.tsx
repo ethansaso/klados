@@ -6,7 +6,7 @@ const pPerSize = {
   "0": { px: "1", py: "2" },
   "1": { px: "2", py: "3" },
   "2": { px: "3", py: "4" },
-  "3": { px: "4", py: "6" },
+  "3": { px: "4", py: { initial: "4", sm: "6" } },
 };
 
 export const ContentContainer = ({

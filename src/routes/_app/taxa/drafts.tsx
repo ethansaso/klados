@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { ContentContainer } from "../../../components/ContentContainer";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
 import { SearchSchema } from "../../../lib/validation/search";
 import { TaxonGrid } from "./-TaxonGrid";
@@ -26,5 +27,9 @@ function TaxaDraftsPage() {
     })
   );
 
-  return <TaxonGrid results={paginatedResult} />;
+  return (
+    <ContentContainer align="start">
+      <TaxonGrid results={paginatedResult} />
+    </ContentContainer>
+  );
 }
