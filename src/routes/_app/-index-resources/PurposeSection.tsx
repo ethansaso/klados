@@ -15,7 +15,7 @@ export const PurposeSection = () => {
       px="6"
       className="purpose-section"
     >
-      <Heading mb="5" size="8">
+      <Heading mb="5" size={{ initial: "7", sm: "8" }} align="center">
         How Klados Helps You Learn
       </Heading>
       <Grid

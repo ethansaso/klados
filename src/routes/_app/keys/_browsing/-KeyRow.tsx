@@ -60,13 +60,15 @@ export const KeyRow = ({ rowData }: KeyRowProps) => {
         </Flex>
       </Table.RowHeaderCell>
       <Table.Cell>
-        <UserHoverCard
-          username={author.name}
-          name={author.name}
-          description={author.description}
-          role={author.role}
-        />
-        <RoleBadge role={author.role} ml="2" />
+        <Flex gap="2" align="baseline">
+          <UserHoverCard
+            username={author.name}
+            name={author.name}
+            description={author.description}
+            role={author.role}
+          />
+          <RoleBadge role={author.role} />
+        </Flex>
       </Table.Cell>
       <Table.Cell>
         {updatedAt.toLocaleString(undefined, {

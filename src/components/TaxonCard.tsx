@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { memo, PropsWithChildren } from "react";
 import { MediaItem } from "../lib/domain/taxa/validation";
 import { capitalizeFirstLetter } from "../lib/utils/casing";
-import { AnnotationBubbleWrap } from "./AnnotationBubbleWrap";
+import { AnnotationBubbleWrap } from "./annotations/AnnotationBubbleWrap";
 
 interface TaxonCardProps {
   id: number;
@@ -42,7 +42,12 @@ export const TaxonCard = memo(
             <Text as="div" size="1" weight="bold" color="gray">
               {capitalizeFirstLetter(rank)}
             </Text>
-            <Text as="div" weight="bold" truncate>
+            <Text
+              as="div"
+              weight="bold"
+              size={{ initial: "2", sm: "3" }}
+              truncate
+            >
               {acceptedName}
             </Text>
             {preferredCommonName && (
@@ -57,9 +62,12 @@ export const TaxonCard = memo(
     );
 
     return (
-      <AnnotationBubbleWrap media={thumbnail} spacing="4">
+      <AnnotationBubbleWrap
+        media={thumbnail}
+        spacing={{ initial: "1", sm: "4" }}
+      >
         {serveAsLink ? (
-          <Card className="taxon-card" asChild>
+          <Card className="taxon-card" size="1" asChild>
             <Link to="/taxa/$id" params={{ id: String(id) }}>
               {content}
             </Link>

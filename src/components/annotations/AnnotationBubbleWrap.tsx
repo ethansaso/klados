@@ -3,8 +3,9 @@ import { PiCopyright } from "react-icons/pi";
 import {
   HUMAN_CASED_MEDIA_LICENSES,
   MEDIA_LICENSES,
-} from "../db/utils/mediaLicense";
-import { MediaItem } from "../lib/domain/taxa/validation";
+} from "../../db/utils/mediaLicense";
+import { MediaItem } from "../../lib/domain/taxa/validation";
+import { spacingClasses } from "./spacingClasses";
 
 const LICENSE_LINKS: Record<(typeof MEDIA_LICENSES)[number], string> = {
   cc0: "https://creativecommons.org/publicdomain/zero/1.0/",
@@ -17,9 +18,19 @@ const LICENSE_LINKS: Record<(typeof MEDIA_LICENSES)[number], string> = {
   "all-rights-reserved": "",
 };
 
+type Size = "1" | "2" | "3" | "4";
+type ResponsiveSize = {
+  initial?: Size;
+  xs?: Size;
+  sm?: Size;
+  md?: Size;
+  lg?: Size;
+  xl?: Size;
+};
+
 type AnnotationBubbleWrapProps = {
   media?: MediaItem | null;
-  spacing?: "1" | "2" | "3" | "4";
+  spacing?: Size | ResponsiveSize;
   children: React.ReactNode;
 };
 
@@ -29,9 +40,12 @@ export const AnnotationBubbleWrap = ({
   children,
 }: AnnotationBubbleWrapProps) => {
   if (!media) return children;
+
   const { owner, license, source } = media;
+  const classes = spacingClasses(spacing).join(" ");
+
   return (
-    <div className={`annotation-bubble__wrapper spacing-${spacing}`}>
+    <div className={`annotation-bubble__wrapper ${classes}`}>
       <div className="annotation-bubble">
         <div className="annotation-bubble__indicator">
           <PiCopyright />

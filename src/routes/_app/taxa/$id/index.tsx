@@ -86,7 +86,7 @@ function TaxonPage() {
           <TaxonMainSection taxon={taxon} navigate={navigate} />
         </Box>
         <Tabs.Root mb="4" defaultValue="states">
-          <Tabs.List size="2" mb="5">
+          <Tabs.List size={{ initial: "1", xs: "2" }} mb="5">
             <Tabs.Trigger value="states">Description</Tabs.Trigger>
             <Tabs.Trigger value="lookalikes">Lookalikes</Tabs.Trigger>
             <Tabs.Trigger value="names">Names</Tabs.Trigger>

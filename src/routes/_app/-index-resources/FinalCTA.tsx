@@ -7,7 +7,8 @@ export const FinalCTA = () => {
       direction={{ initial: "column", xs: "row" }}
       align="center"
       justify="center"
-      p="4"
+      py="5"
+      px="6"
       gap={{ initial: "4", xs: "6" }}
       className="final-cta"
     >

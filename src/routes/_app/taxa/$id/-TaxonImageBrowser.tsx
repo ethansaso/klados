@@ -1,6 +1,6 @@
 import { Box, Flex } from "@radix-ui/themes";
 import { useState } from "react";
-import { AnnotationBubbleWrap } from "../../../../components/AnnotationBubbleWrap";
+import { AnnotationBubbleWrap } from "../../../../components/annotations/AnnotationBubbleWrap";
 import { MediaItem } from "../../../../lib/domain/taxa/validation";
 
 const THUMB_SIZE = 48;

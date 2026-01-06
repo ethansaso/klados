@@ -65,7 +65,7 @@ export const TaxonMainSection = ({
           <CuratorOnly>
             <Button
               type="button"
-              size="2"
+              size={{ initial: "1", sm: "2" }}
               variant="outline"
               onClick={() =>
                 navigate({
@@ -83,7 +83,7 @@ export const TaxonMainSection = ({
             <Button
               type="button"
               disabled={taxon.activeChildCount === 0}
-              size="2"
+              size={{ initial: "1", sm: "2" }}
               onClick={() =>
                 navigate({
                   to: "/keys/create",
@@ -99,7 +99,7 @@ export const TaxonMainSection = ({
               <Button
                 type="button"
                 disabled
-                size="2"
+                size={{ initial: "1", sm: "2" }}
                 onClick={() =>
                   navigate({
                     to: "/keys/create",
@@ -112,7 +112,12 @@ export const TaxonMainSection = ({
               </Button>
             </Tooltip>
           )}
-          <Button type="button" size="2" asChild disabled={!taxon.sourceInatId}>
+          <Button
+            type="button"
+            size={{ initial: "1", sm: "2" }}
+            asChild
+            disabled={!taxon.sourceInatId}
+          >
             <RadixLink
               href={`https://www.inaturalist.org/taxa/${taxon.sourceInatId}`}
               target="_blank"
@@ -124,7 +129,12 @@ export const TaxonMainSection = ({
               iNaturalist
             </RadixLink>
           </Button>
-          <Button type="button" size="2" asChild disabled={!taxon.sourceGbifId}>
+          <Button
+            type="button"
+            size={{ initial: "1", sm: "2" }}
+            asChild
+            disabled={!taxon.sourceGbifId}
+          >
             <RadixLink
               href={`https://www.gbif.org/species/${taxon.sourceGbifId}`}
               target="_blank"
