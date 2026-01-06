@@ -1,17 +1,89 @@
 .annotation-bubble__wrapper {
   position: relative;
+  --edge-spacing: var(--space-2);
 
-  &.spacing-1 {
+  /* ---- Breakpoints ---- */
+  &.spacing-initial-1 {
     --edge-spacing: var(--space-1);
   }
-  &.spacing-2 {
+  &.spacing-initial-2 {
     --edge-spacing: var(--space-2);
   }
-  &.spacing-3 {
+  &.spacing-initial-3 {
     --edge-spacing: var(--space-3);
   }
-  &.spacing-4 {
+  &.spacing-initial-4 {
     --edge-spacing: var(--space-4);
+  }
+  @media (min-width: 520px) {
+    &.spacing-xs-1 {
+      --edge-spacing: var(--space-1);
+    }
+    &.spacing-xs-2 {
+      --edge-spacing: var(--space-2);
+    }
+    &.spacing-xs-3 {
+      --edge-spacing: var(--space-3);
+    }
+    &.spacing-xs-4 {
+      --edge-spacing: var(--space-4);
+    }
+  }
+  @media (min-width: 768px) {
+    &.spacing-sm-1 {
+      --edge-spacing: var(--space-1);
+    }
+    &.spacing-sm-2 {
+      --edge-spacing: var(--space-2);
+    }
+    &.spacing-sm-3 {
+      --edge-spacing: var(--space-3);
+    }
+    &.spacing-sm-4 {
+      --edge-spacing: var(--space-4);
+    }
+  }
+  @media (min-width: 1024px) {
+    &.spacing-md-1 {
+      --edge-spacing: var(--space-1);
+    }
+    &.spacing-md-2 {
+      --edge-spacing: var(--space-2);
+    }
+    &.spacing-md-3 {
+      --edge-spacing: var(--space-3);
+    }
+    &.spacing-md-4 {
+      --edge-spacing: var(--space-4);
+    }
+  }
+  @media (min-width: 1280px) {
+    &.spacing-lg-1 {
+      --edge-spacing: var(--space-1);
+    }
+    &.spacing-lg-2 {
+      --edge-spacing: var(--space-2);
+    }
+    &.spacing-lg-3 {
+      --edge-spacing: var(--space-3);
+    }
+    &.spacing-lg-4 {
+      --edge-spacing: var(--space-4);
+    }
+  }
+  @media (min-width: 1640px) {
+    &.spacing-xl-1 {
+      --edge-spacing: var(--space-1);
+    }
+    &.spacing-xl-2 {
+      --edge-spacing: var(--space-2);
+    }
+    &.spacing-xl-3 {
+      --edge-spacing: var(--space-3);
+    }
+    &.spacing-xl-4 {
+      --edge-spacing: var(--space-4);
+    }
   }
 
   img {
@@ -26,6 +98,7 @@
     background-color: var(--color-background-overlay);
     mix-blend-mode: screen;
     z-index: 1000;
+    max-width: calc(100% - (var(--edge-spacing) + var(--space-1)) * 2);
 
     .annotation-bubble__indicator {
       display: block;
@@ -39,7 +112,6 @@
       border-radius: var(--radius-4);
       padding: var(--space-2);
       background-color: var(--gray-a11);
-      max-width: 200px;
 
       &,
       a {

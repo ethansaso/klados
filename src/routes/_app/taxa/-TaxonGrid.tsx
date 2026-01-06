@@ -6,7 +6,11 @@ import { TaxonPaginatedResult } from "../../../lib/domain/taxa/types";
 export const TaxonGrid = ({ results }: { results: TaxonPaginatedResult }) => {
   if (!results.items.length) return <Text>No taxa found.</Text>;
   return (
-    <Grid columns={{ initial: "3", md: "5" }} gap="4" className="taxon-grid">
+    <Grid
+      columns={{ initial: "3", md: "5" }}
+      gap={{ initial: "2", md: "4" }}
+      className="taxon-grid"
+    >
       {results.items.map((t) => (
         <TaxonCard
           key={t.id}
@@ -17,7 +21,13 @@ export const TaxonGrid = ({ results }: { results: TaxonPaginatedResult }) => {
           thumbnail={t.media[0]}
           serveAsLink
         >
-          <Flex mt="1" align="center" gap="1" className="summary" asChild>
+          <Flex
+            mt={{ sm: "1" }}
+            align="center"
+            gap="1"
+            className="summary"
+            asChild
+          >
             <Text as="div" size="1" color="gray">
               <PiTreeStructure />
               {t.activeChildCount}{" "}
