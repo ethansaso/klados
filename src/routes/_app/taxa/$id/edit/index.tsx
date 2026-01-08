@@ -22,6 +22,7 @@ import { Form } from "radix-ui";
 import { MouseEventHandler, useState } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import z from "zod";
+import { ContentContainer } from "../../../../../components/ContentContainer";
 import { FormDescriptor } from "../../../../../components/FormDescriptor";
 import { TAXON_RANKS_DESCENDING } from "../../../../../db/schema/schema";
 import { getTaxonCharacterStatesFn } from "../../../../../lib/api/character-states/getTaxonCharacterStates";
@@ -292,7 +293,7 @@ function RouteComponent() {
   };
 
   return (
-    <Box>
+    <ContentContainer align="start">
       <Text size="2">Editing details for:</Text>
       <Flex align="baseline" gap="2" mb="2">
         <Heading>{initialTaxon.acceptedName}</Heading>
@@ -435,6 +436,6 @@ function RouteComponent() {
           </Flex>
         </Form.Root>
       </FormProvider>
-    </Box>
+    </ContentContainer>
   );
 }
