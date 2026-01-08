@@ -9,7 +9,7 @@ export const HeroSection = () => {
       justify="center"
       py="6"
       px="6"
-      minHeight={{ initial: "60dvh", sm: "496px" }}
+      minHeight={{ initial: "60svh", sm: "496px" }}
       width="100%"
       style={{
         backgroundImage: "url(/about/forest-bg.jpeg)",
