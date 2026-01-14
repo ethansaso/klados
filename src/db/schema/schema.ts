@@ -3,6 +3,7 @@ export * from "./characters/categoricalTrait";
 export * from "./characters/character";
 export * from "./characters/characterGroup";
 export * from "./characters/taxonCharacterState";
+export * from "./characters/units";
 export * from "./flags/flag";
 export * from "./keys/key";
 export * from "./sources/source";
