@@ -11,6 +11,7 @@ import {
 import { withTimestamps } from "../../utils/timestamps";
 import { categoricalTraitSet } from "./categoricalTrait";
 import { characterGroup } from "./characterGroup";
+import { unitFamily } from "./units";
 
 export const character = pgTable(
   "character",
@@ -55,26 +56,8 @@ const numericCharacterKind = pgEnum("numeric_character_kind", [
 ]);
 
 /**
- * Canonical storage/display units for numeric characters.
- * TODO: evaluate a better way to handle units
- */
-const numericUnit = pgEnum("numeric_unit", [
-  "um",
-  "mm",
-  "cm",
-  "m",
-  "count",
-  "percent",
-]);
-
-/**
  * Numeric-specific metadata for a character.
- * One-to-one with characters where the character represents
- * a numeric measurement (single value or range).
- *
- * Values for these characters are stored per-taxon in:
- * - taxon_character_number (kind='single')
- * - taxon_character_number_range (kind='range')
+ * Can represent either single-value or range characters.
  */
 export const numericCharacterMeta = pgTable(
   "numeric_character_meta",
@@ -86,7 +69,10 @@ export const numericCharacterMeta = pgTable(
     // Controls which taxon table is used and which UI control is rendered.
     kind: numericCharacterKind("kind").notNull(), // 'single' | 'range'
 
-    // Canonical unit for storage & display (e.g. 'mm', 'cm', 'um').
-    unit: numericUnit("unit").notNull(),
-  })
+    // Dimension family for values
+    unitFamilyId: integer("unit_family_id")
+      .notNull()
+      .references(() => unitFamily.id, { onDelete: "restrict" }),
+  }),
+  (t) => [index("numeric_meta_unit_family_idx").on(t.unitFamilyId)]
 );

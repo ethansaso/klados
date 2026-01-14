@@ -15,6 +15,7 @@ export type ParsedNumeric =
     };
 
 const DASH_REGEX = /[–—]/g; // en/em dash → "-"
+const MICRO_REGEX = /[µμ]/g; // normalize micro symbols
 
 /**
  * Try to interpret the query as numeric (single or range),
@@ -33,35 +34,29 @@ export function parseNumericQuery(raw: string): ParsedNumeric {
   const trimmed = raw.trim();
   if (!trimmed) return { kind: "none" };
 
-  // Normalize dash characters.
   const normalized = trimmed.replace(DASH_REGEX, "-");
 
-  // Split on whitespace to peel off an optional unit token.
   const parts = normalized.split(/\s+/);
   let unitText: string | undefined;
   let numericPart = normalized;
 
-  // If last token has letters (incl. µ), treat as unit text.
   const last = parts[parts.length - 1];
   if (parts.length > 1 && /[a-zA-Zµμ%]+/.test(last)) {
     unitText = last;
     numericPart = parts.slice(0, -1).join(" ");
   }
 
-  // Try a range: "a-b" or "a - b"
   const rangeMatch = numericPart.match(
     /^\s*([+-]?\d+(\.\d+)?)\s*-\s*([+-]?\d+(\.\d+)?)\s*$/
   );
   if (rangeMatch) {
     const min = Number(rangeMatch[1]);
     const max = Number(rangeMatch[3]);
-
     if (!Number.isNaN(min) && !Number.isNaN(max)) {
       return { kind: "range", min, max, unitText };
     }
   }
 
-  // Try a single number: "a"
   const singleMatch = numericPart.match(/^[+-]?\d+(\.\d+)?$/);
   if (singleMatch) {
     const value = Number(singleMatch[0]);
@@ -70,36 +65,55 @@ export function parseNumericQuery(raw: string): ParsedNumeric {
     }
   }
 
-  // Not a numeric-ish query.
   return { kind: "none" };
 }
 
 /**
- * Naively maps raw unit text from the query to a canonical unit label.
- * String-based, case insensitive.
+ * Normalize raw unit tokens to a canonical lookup string.
+ * No DB validation happens here -- just string input normalization.
+ *
+ * Examples:
+ *  - "µm" / "μm" / "um" / "micron(s)" -> "um"
+ *  - "%" / "percent" -> "%"
+ *  - "inches" -> "in"
  */
-export function resolveRequestedUnit(unitText?: string): string | null {
+export function normalizeUnitToken(unitText?: string): string | null {
   if (!unitText) return null;
-  const raw = unitText.trim().toLowerCase();
+
+  const raw0 = unitText.trim().toLowerCase();
+  if (!raw0) return null;
+
+  // normalize micro characters
+  const raw = raw0.replace(MICRO_REGEX, "u");
 
   switch (raw) {
     case "um":
-    case "µm":
     case "micron":
     case "microns":
       return "um";
     case "mm":
-      return "mm";
     case "cm":
-      return "cm";
     case "m":
-      return "m";
-    case "count":
-      return "count";
+      return raw;
+
+    case "in":
+    case "inch":
+    case "inches":
+      return "in";
+    case "ft":
+    case "foot":
+    case "feet":
+      return "ft";
+
     case "%":
     case "percent":
-      return "percent";
+      return "%";
+
+    case "count":
+      return "count";
+
     default:
-      return null;
+      // TODO: pass through things like "cm2", "mm3", "in²" if they begin seeing use. Keeping simple for now (1/14/26).
+      return raw;
   }
 }
