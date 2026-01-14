@@ -37,13 +37,15 @@ export const unit = pgTable(
     familyId: integer("family_id")
       .notNull()
       .references(() => unitFamily.id, { onDelete: "restrict" }),
-    symbol: text("symbol").notNull(), // e.g. "mm", "in", "kg"
+    key: text("key").notNull(), // e.g. "um", "in", "kg" (should be lowercase)
+    symbol: text("symbol").notNull(), // e.g. µm, "in", "kg"
 
     // Numeric ensures e.g. 0.0254 is exact
     scale: numeric("scale", { precision: 30, scale: 18 }).notNull(),
   }),
   (t) => [
     uniqueIndex("units_family_symbol_uq").on(t.familyId, t.symbol),
+    uniqueIndex("units_family_key_uq").on(t.familyId, t.key),
     index("units_family_idx").on(t.familyId),
 
     // scale must be > 0

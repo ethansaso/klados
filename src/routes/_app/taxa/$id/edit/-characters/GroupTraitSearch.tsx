@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
 import { InputCombobox } from "../../../../../../components/inputs/combobox/InputCombobox";
 import { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
-import { searchGroupTraitSuggestions } from "../../../../../../lib/api/character-suggestions/fns";
+import { searchGroupTraitSuggestionsFn } from "../../../../../../lib/api/character-suggestions/fns";
 import { TraitSuggestion } from "../../../../../../lib/api/character-suggestions/types";
 
 type GroupTraitSearchProps = {
@@ -25,7 +25,7 @@ export function GroupTraitSearch({
   const [selectedOption, setSelectedOption] =
     React.useState<ComboboxOption | null>(null);
 
-  const serverSearch = useServerFn(searchGroupTraitSuggestions);
+  const serverSearch = useServerFn(searchGroupTraitSuggestionsFn);
 
   // Simple "request id" guard so stale responses don't win.
   const requestIdRef = React.useRef(0);
