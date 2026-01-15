@@ -7,7 +7,7 @@ The second is to define all numeric states as values of relative units, e.g. 5 m
 First approach pros/cons
 Pros
 - Extremely simple queries -- just ==, >, <
-- Easily processed by dichotomous key algorithm, etc. internal processes are first-class
+- Easily processed by guidegen algorithm, etc. internal processes are first-class
 Cons
 - Rounding issues 
 - Conversion must be applied at every read/write
@@ -20,7 +20,7 @@ Pros
 - Conversion unnecessary at read/write
 Cons
 - Messy, probably inefficient queries (have to search every type of unit w/ a conversion)
-- Conversion must be applied at every processing step (e.g. dichotomous key generation)
+- Conversion must be applied at every processing step (e.g. guidegen generation)
 
 
 

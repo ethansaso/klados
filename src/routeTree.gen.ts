@@ -31,15 +31,15 @@ import { Route as AppGlossaryIndexRouteImport } from './routes/_app/glossary/ind
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppTaxaNewRouteImport } from './routes/_app/taxa/new'
 import { Route as AppTaxaDraftsRouteImport } from './routes/_app/taxa/drafts'
-import { Route as AppKeysBrowsingRouteRouteImport } from './routes/_app/keys/_browsing/route'
+import { Route as AppGuidesBrowsingRouteRouteImport } from './routes/_app/guides/_browsing/route'
 import { Route as AppGlossaryTraitsRouteRouteImport } from './routes/_app/glossary/traits/route'
 import { Route as AppGlossaryGroupsRouteRouteImport } from './routes/_app/glossary/groups/route'
 import { Route as AppGlossaryCharactersRouteRouteImport } from './routes/_app/glossary/characters/route'
 import { Route as AppUsersUsernameIndexRouteImport } from './routes/_app/users/$username/index'
 import { Route as AppTaxaIdIndexRouteImport } from './routes/_app/taxa/$id/index'
-import { Route as AppKeysCreateIndexRouteImport } from './routes/_app/keys/create/index'
-import { Route as AppKeysBrowsingIndexRouteImport } from './routes/_app/keys/_browsing/index'
-import { Route as AppKeysIdIndexRouteImport } from './routes/_app/keys/$id/index'
+import { Route as AppGuidesCreateIndexRouteImport } from './routes/_app/guides/create/index'
+import { Route as AppGuidesBrowsingIndexRouteImport } from './routes/_app/guides/_browsing/index'
+import { Route as AppGuidesIdIndexRouteImport } from './routes/_app/guides/$id/index'
 import { Route as AppGlossaryTraitsIndexRouteImport } from './routes/_app/glossary/traits/index'
 import { Route as AppGlossaryGroupsIndexRouteImport } from './routes/_app/glossary/groups/index'
 import { Route as AppGlossaryCharactersIndexRouteImport } from './routes/_app/glossary/characters/index'
@@ -50,7 +50,7 @@ import { Route as AppGlossaryCharactersIdRouteImport } from './routes/_app/gloss
 import { Route as AppTaxaIdEditRouteRouteImport } from './routes/_app/taxa/$id/edit/route'
 import { Route as AppTaxaIdEditIndexRouteImport } from './routes/_app/taxa/$id/edit/index'
 
-const AppKeysRouteImport = createFileRoute('/_app/keys')()
+const AppGuidesRouteImport = createFileRoute('/_app/guides')()
 
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
@@ -61,9 +61,9 @@ const AppRouteRoute = AppRouteRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppKeysRoute = AppKeysRouteImport.update({
-  id: '/keys',
-  path: '/keys',
+const AppGuidesRoute = AppGuidesRouteImport.update({
+  id: '/guides',
+  path: '/guides',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -156,9 +156,9 @@ const AppTaxaDraftsRoute = AppTaxaDraftsRouteImport.update({
   path: '/taxa/drafts',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppKeysBrowsingRouteRoute = AppKeysBrowsingRouteRouteImport.update({
+const AppGuidesBrowsingRouteRoute = AppGuidesBrowsingRouteRouteImport.update({
   id: '/_browsing',
-  getParentRoute: () => AppKeysRoute,
+  getParentRoute: () => AppGuidesRoute,
 } as any)
 const AppGlossaryTraitsRouteRoute = AppGlossaryTraitsRouteRouteImport.update({
   id: '/traits',
@@ -186,20 +186,20 @@ const AppTaxaIdIndexRoute = AppTaxaIdIndexRouteImport.update({
   path: '/taxa/$id/',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppKeysCreateIndexRoute = AppKeysCreateIndexRouteImport.update({
+const AppGuidesCreateIndexRoute = AppGuidesCreateIndexRouteImport.update({
   id: '/create/',
   path: '/create/',
-  getParentRoute: () => AppKeysRoute,
+  getParentRoute: () => AppGuidesRoute,
 } as any)
-const AppKeysBrowsingIndexRoute = AppKeysBrowsingIndexRouteImport.update({
+const AppGuidesBrowsingIndexRoute = AppGuidesBrowsingIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppKeysBrowsingRouteRoute,
+  getParentRoute: () => AppGuidesBrowsingRouteRoute,
 } as any)
-const AppKeysIdIndexRoute = AppKeysIdIndexRouteImport.update({
+const AppGuidesIdIndexRoute = AppGuidesIdIndexRouteImport.update({
   id: '/$id/',
   path: '/$id/',
-  getParentRoute: () => AppKeysRoute,
+  getParentRoute: () => AppGuidesRoute,
 } as any)
 const AppGlossaryTraitsIndexRoute = AppGlossaryTraitsIndexRouteImport.update({
   id: '/',
@@ -265,7 +265,7 @@ export interface FileRoutesByFullPath {
   '/glossary/characters': typeof AppGlossaryCharactersRouteRouteWithChildren
   '/glossary/groups': typeof AppGlossaryGroupsRouteRouteWithChildren
   '/glossary/traits': typeof AppGlossaryTraitsRouteRouteWithChildren
-  '/keys': typeof AppKeysBrowsingRouteRouteWithChildren
+  '/guides': typeof AppGuidesBrowsingRouteRouteWithChildren
   '/taxa/drafts': typeof AppTaxaDraftsRoute
   '/taxa/new': typeof AppTaxaNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -281,9 +281,9 @@ export interface FileRoutesByFullPath {
   '/glossary/characters/': typeof AppGlossaryCharactersIndexRoute
   '/glossary/groups/': typeof AppGlossaryGroupsIndexRoute
   '/glossary/traits/': typeof AppGlossaryTraitsIndexRoute
-  '/keys/$id': typeof AppKeysIdIndexRoute
-  '/keys/': typeof AppKeysBrowsingIndexRoute
-  '/keys/create': typeof AppKeysCreateIndexRoute
+  '/guides/$id': typeof AppGuidesIdIndexRoute
+  '/guides/': typeof AppGuidesBrowsingIndexRoute
+  '/guides/create': typeof AppGuidesCreateIndexRoute
   '/taxa/$id': typeof AppTaxaIdIndexRoute
   '/users/$username': typeof AppUsersUsernameIndexRoute
   '/taxa/$id/edit/': typeof AppTaxaIdEditIndexRoute
@@ -297,7 +297,7 @@ export interface FileRoutesByTo {
   '/signup': typeof AppSignupRoute
   '/': typeof AppIndexRoute
   '/admin': typeof AdminIndexRoute
-  '/keys': typeof AppKeysBrowsingIndexRoute
+  '/guides': typeof AppGuidesBrowsingIndexRoute
   '/taxa/drafts': typeof AppTaxaDraftsRoute
   '/taxa/new': typeof AppTaxaNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -312,8 +312,8 @@ export interface FileRoutesByTo {
   '/glossary/characters': typeof AppGlossaryCharactersIndexRoute
   '/glossary/groups': typeof AppGlossaryGroupsIndexRoute
   '/glossary/traits': typeof AppGlossaryTraitsIndexRoute
-  '/keys/$id': typeof AppKeysIdIndexRoute
-  '/keys/create': typeof AppKeysCreateIndexRoute
+  '/guides/$id': typeof AppGuidesIdIndexRoute
+  '/guides/create': typeof AppGuidesCreateIndexRoute
   '/taxa/$id': typeof AppTaxaIdIndexRoute
   '/users/$username': typeof AppUsersUsernameIndexRoute
   '/taxa/$id/edit': typeof AppTaxaIdEditIndexRoute
@@ -336,8 +336,8 @@ export interface FileRoutesById {
   '/_app/glossary/characters': typeof AppGlossaryCharactersRouteRouteWithChildren
   '/_app/glossary/groups': typeof AppGlossaryGroupsRouteRouteWithChildren
   '/_app/glossary/traits': typeof AppGlossaryTraitsRouteRouteWithChildren
-  '/_app/keys': typeof AppKeysRouteWithChildren
-  '/_app/keys/_browsing': typeof AppKeysBrowsingRouteRouteWithChildren
+  '/_app/guides': typeof AppGuidesRouteWithChildren
+  '/_app/guides/_browsing': typeof AppGuidesBrowsingRouteRouteWithChildren
   '/_app/taxa/drafts': typeof AppTaxaDraftsRoute
   '/_app/taxa/new': typeof AppTaxaNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -353,9 +353,9 @@ export interface FileRoutesById {
   '/_app/glossary/characters/': typeof AppGlossaryCharactersIndexRoute
   '/_app/glossary/groups/': typeof AppGlossaryGroupsIndexRoute
   '/_app/glossary/traits/': typeof AppGlossaryTraitsIndexRoute
-  '/_app/keys/$id/': typeof AppKeysIdIndexRoute
-  '/_app/keys/_browsing/': typeof AppKeysBrowsingIndexRoute
-  '/_app/keys/create/': typeof AppKeysCreateIndexRoute
+  '/_app/guides/$id/': typeof AppGuidesIdIndexRoute
+  '/_app/guides/_browsing/': typeof AppGuidesBrowsingIndexRoute
+  '/_app/guides/create/': typeof AppGuidesCreateIndexRoute
   '/_app/taxa/$id/': typeof AppTaxaIdIndexRoute
   '/_app/users/$username/': typeof AppUsersUsernameIndexRoute
   '/_app/taxa/$id/edit/': typeof AppTaxaIdEditIndexRoute
@@ -378,7 +378,7 @@ export interface FileRouteTypes {
     | '/glossary/characters'
     | '/glossary/groups'
     | '/glossary/traits'
-    | '/keys'
+    | '/guides'
     | '/taxa/drafts'
     | '/taxa/new'
     | '/api/auth/$'
@@ -394,9 +394,9 @@ export interface FileRouteTypes {
     | '/glossary/characters/'
     | '/glossary/groups/'
     | '/glossary/traits/'
-    | '/keys/$id'
-    | '/keys/'
-    | '/keys/create'
+    | '/guides/$id'
+    | '/guides/'
+    | '/guides/create'
     | '/taxa/$id'
     | '/users/$username'
     | '/taxa/$id/edit/'
@@ -410,7 +410,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/'
     | '/admin'
-    | '/keys'
+    | '/guides'
     | '/taxa/drafts'
     | '/taxa/new'
     | '/api/auth/$'
@@ -425,8 +425,8 @@ export interface FileRouteTypes {
     | '/glossary/characters'
     | '/glossary/groups'
     | '/glossary/traits'
-    | '/keys/$id'
-    | '/keys/create'
+    | '/guides/$id'
+    | '/guides/create'
     | '/taxa/$id'
     | '/users/$username'
     | '/taxa/$id/edit'
@@ -448,8 +448,8 @@ export interface FileRouteTypes {
     | '/_app/glossary/characters'
     | '/_app/glossary/groups'
     | '/_app/glossary/traits'
-    | '/_app/keys'
-    | '/_app/keys/_browsing'
+    | '/_app/guides'
+    | '/_app/guides/_browsing'
     | '/_app/taxa/drafts'
     | '/_app/taxa/new'
     | '/api/auth/$'
@@ -465,9 +465,9 @@ export interface FileRouteTypes {
     | '/_app/glossary/characters/'
     | '/_app/glossary/groups/'
     | '/_app/glossary/traits/'
-    | '/_app/keys/$id/'
-    | '/_app/keys/_browsing/'
-    | '/_app/keys/create/'
+    | '/_app/guides/$id/'
+    | '/_app/guides/_browsing/'
+    | '/_app/guides/create/'
     | '/_app/taxa/$id/'
     | '/_app/users/$username/'
     | '/_app/taxa/$id/edit/'
@@ -495,11 +495,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app/keys': {
-      id: '/_app/keys'
-      path: '/keys'
-      fullPath: '/keys'
-      preLoaderRoute: typeof AppKeysRouteImport
+    '/_app/guides': {
+      id: '/_app/guides'
+      path: '/guides'
+      fullPath: '/guides'
+      preLoaderRoute: typeof AppGuidesRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/admin/': {
@@ -628,12 +628,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTaxaDraftsRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/keys/_browsing': {
-      id: '/_app/keys/_browsing'
-      path: '/keys'
-      fullPath: '/keys'
-      preLoaderRoute: typeof AppKeysBrowsingRouteRouteImport
-      parentRoute: typeof AppKeysRoute
+    '/_app/guides/_browsing': {
+      id: '/_app/guides/_browsing'
+      path: '/guides'
+      fullPath: '/guides'
+      preLoaderRoute: typeof AppGuidesBrowsingRouteRouteImport
+      parentRoute: typeof AppGuidesRoute
     }
     '/_app/glossary/traits': {
       id: '/_app/glossary/traits'
@@ -670,26 +670,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTaxaIdIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/keys/create/': {
-      id: '/_app/keys/create/'
+    '/_app/guides/create/': {
+      id: '/_app/guides/create/'
       path: '/create'
-      fullPath: '/keys/create'
-      preLoaderRoute: typeof AppKeysCreateIndexRouteImport
-      parentRoute: typeof AppKeysRoute
+      fullPath: '/guides/create'
+      preLoaderRoute: typeof AppGuidesCreateIndexRouteImport
+      parentRoute: typeof AppGuidesRoute
     }
-    '/_app/keys/_browsing/': {
-      id: '/_app/keys/_browsing/'
+    '/_app/guides/_browsing/': {
+      id: '/_app/guides/_browsing/'
       path: '/'
-      fullPath: '/keys/'
-      preLoaderRoute: typeof AppKeysBrowsingIndexRouteImport
-      parentRoute: typeof AppKeysBrowsingRouteRoute
+      fullPath: '/guides/'
+      preLoaderRoute: typeof AppGuidesBrowsingIndexRouteImport
+      parentRoute: typeof AppGuidesBrowsingRouteRoute
     }
-    '/_app/keys/$id/': {
-      id: '/_app/keys/$id/'
+    '/_app/guides/$id/': {
+      id: '/_app/guides/$id/'
       path: '/$id'
-      fullPath: '/keys/$id'
-      preLoaderRoute: typeof AppKeysIdIndexRouteImport
-      parentRoute: typeof AppKeysRoute
+      fullPath: '/guides/$id'
+      preLoaderRoute: typeof AppGuidesIdIndexRouteImport
+      parentRoute: typeof AppGuidesRoute
     }
     '/_app/glossary/traits/': {
       id: '/_app/glossary/traits/'
@@ -838,31 +838,35 @@ const AppUsersRouteRouteWithChildren = AppUsersRouteRoute._addFileChildren(
   AppUsersRouteRouteChildren,
 )
 
-interface AppKeysBrowsingRouteRouteChildren {
-  AppKeysBrowsingIndexRoute: typeof AppKeysBrowsingIndexRoute
+interface AppGuidesBrowsingRouteRouteChildren {
+  AppGuidesBrowsingIndexRoute: typeof AppGuidesBrowsingIndexRoute
 }
 
-const AppKeysBrowsingRouteRouteChildren: AppKeysBrowsingRouteRouteChildren = {
-  AppKeysBrowsingIndexRoute: AppKeysBrowsingIndexRoute,
+const AppGuidesBrowsingRouteRouteChildren: AppGuidesBrowsingRouteRouteChildren =
+  {
+    AppGuidesBrowsingIndexRoute: AppGuidesBrowsingIndexRoute,
+  }
+
+const AppGuidesBrowsingRouteRouteWithChildren =
+  AppGuidesBrowsingRouteRoute._addFileChildren(
+    AppGuidesBrowsingRouteRouteChildren,
+  )
+
+interface AppGuidesRouteChildren {
+  AppGuidesBrowsingRouteRoute: typeof AppGuidesBrowsingRouteRouteWithChildren
+  AppGuidesIdIndexRoute: typeof AppGuidesIdIndexRoute
+  AppGuidesCreateIndexRoute: typeof AppGuidesCreateIndexRoute
 }
 
-const AppKeysBrowsingRouteRouteWithChildren =
-  AppKeysBrowsingRouteRoute._addFileChildren(AppKeysBrowsingRouteRouteChildren)
-
-interface AppKeysRouteChildren {
-  AppKeysBrowsingRouteRoute: typeof AppKeysBrowsingRouteRouteWithChildren
-  AppKeysIdIndexRoute: typeof AppKeysIdIndexRoute
-  AppKeysCreateIndexRoute: typeof AppKeysCreateIndexRoute
+const AppGuidesRouteChildren: AppGuidesRouteChildren = {
+  AppGuidesBrowsingRouteRoute: AppGuidesBrowsingRouteRouteWithChildren,
+  AppGuidesIdIndexRoute: AppGuidesIdIndexRoute,
+  AppGuidesCreateIndexRoute: AppGuidesCreateIndexRoute,
 }
 
-const AppKeysRouteChildren: AppKeysRouteChildren = {
-  AppKeysBrowsingRouteRoute: AppKeysBrowsingRouteRouteWithChildren,
-  AppKeysIdIndexRoute: AppKeysIdIndexRoute,
-  AppKeysCreateIndexRoute: AppKeysCreateIndexRoute,
-}
-
-const AppKeysRouteWithChildren =
-  AppKeysRoute._addFileChildren(AppKeysRouteChildren)
+const AppGuidesRouteWithChildren = AppGuidesRoute._addFileChildren(
+  AppGuidesRouteChildren,
+)
 
 interface AppTaxaIdEditRouteRouteChildren {
   AppTaxaIdEditIndexRoute: typeof AppTaxaIdEditIndexRoute
@@ -885,7 +889,7 @@ interface AppRouteRouteChildren {
   AppLogoutRoute: typeof AppLogoutRoute
   AppSignupRoute: typeof AppSignupRoute
   AppIndexRoute: typeof AppIndexRoute
-  AppKeysRoute: typeof AppKeysRouteWithChildren
+  AppGuidesRoute: typeof AppGuidesRouteWithChildren
   AppTaxaDraftsRoute: typeof AppTaxaDraftsRoute
   AppTaxaNewRoute: typeof AppTaxaNewRoute
   AppTaxaIndexRoute: typeof AppTaxaIndexRoute
@@ -903,7 +907,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppLogoutRoute: AppLogoutRoute,
   AppSignupRoute: AppSignupRoute,
   AppIndexRoute: AppIndexRoute,
-  AppKeysRoute: AppKeysRouteWithChildren,
+  AppGuidesRoute: AppGuidesRouteWithChildren,
   AppTaxaDraftsRoute: AppTaxaDraftsRoute,
   AppTaxaNewRoute: AppTaxaNewRoute,
   AppTaxaIndexRoute: AppTaxaIndexRoute,

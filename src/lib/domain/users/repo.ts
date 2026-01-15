@@ -44,8 +44,9 @@ export async function findUserByIdOrUsername(
   idOrUsername: string
 ): Promise<UserDTO | null> {
   const user = await db.query.user.findFirst({
-    where: (t, { eq, or }) =>
-      or(eq(t.id, idOrUsername), eq(t.username, idOrUsername)),
+    where: {
+      OR: [{ id: idOrUsername }, { username: idOrUsername }],
+    },
     columns: {
       id: true,
       username: true,

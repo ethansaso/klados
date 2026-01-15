@@ -28,6 +28,7 @@ import {
   usernameSchema,
 } from "../../lib/auth/validation";
 import { meQueryOptions } from "../../lib/queries/users";
+import { routeSeo } from "../../lib/utils/head/routeSeo";
 import { toast } from "../../lib/utils/toast";
 
 const schema = z.object({
@@ -38,6 +39,10 @@ const schema = z.object({
 type FormFields = z.infer<typeof schema>;
 
 export const Route = createFileRoute("/_app/signup")({
+  head: () =>
+    routeSeo({
+      title: "Signup | Klados",
+    }),
   beforeLoad: async ({ context }) => {
     const { user } = context;
     if (user) {

@@ -103,7 +103,7 @@ export async function selectTaxonDtosByIds(
 
 /**
  * Get hierarchy meta (name, rank, subtaxonIds) for multiple parent taxa.
- * Primarily useful for key generation during BFS collection phase.
+ * Primarily useful for guide generation during BFS collection phase.
  */
 export async function getTaxonHierarchyMetaForParents(
   parentIds: number[]

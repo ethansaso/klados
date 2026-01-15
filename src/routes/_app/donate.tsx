@@ -2,8 +2,13 @@ import { Box, Flex, Heading, Strong, Text } from "@radix-ui/themes";
 import { createFileRoute } from "@tanstack/react-router";
 import { ContentContainer } from "../../components/ContentContainer";
 import { KoFiWidget } from "../../components/KoFiWidget";
+import { routeSeo } from "../../lib/utils/head/routeSeo";
 
 export const Route = createFileRoute("/_app/donate")({
+  head: () =>
+    routeSeo({
+      title: "Donate | Klados",
+    }),
   component: RouteComponent,
 });
 

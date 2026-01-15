@@ -10,6 +10,7 @@ import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 import { taxonCharacterDisplayGroupsQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
 import { sourceForTaxonQueryOptions } from "../../../../lib/queries/taxonSources";
 import { formatPublicationForTaxon } from "../../../../lib/utils/formatPublication";
+import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { prefixWithRank } from "../../../../lib/utils/prefixWithRank";
 import { TaxonCharacterSection } from "./-characters/TaxonCharacterSection";
 import { LookalikesList } from "./-lookalikes/LookalikesList";
@@ -23,15 +24,24 @@ const ParamsSchema = z.object({
 export const Route = createFileRoute("/_app/taxa/$id/")({
   loader: async ({ context, params }) => {
     const { id } = ParamsSchema.parse(params);
-    await context.queryClient.ensureQueryData(taxonQueryOptions(id));
-    await context.queryClient.ensureQueryData(
-      taxonCharacterDisplayGroupsQueryOptions(id)
-    );
-    await context.queryClient.ensureQueryData(lookalikesQueryOptions(id));
-    await context.queryClient.ensureQueryData(sourceForTaxonQueryOptions(id));
 
-    return { id };
+    const [taxon] = await Promise.all([
+      context.queryClient.ensureQueryData(taxonQueryOptions(id)),
+      context.queryClient.ensureQueryData(
+        taxonCharacterDisplayGroupsQueryOptions(id)
+      ),
+      context.queryClient.ensureQueryData(lookalikesQueryOptions(id)),
+      context.queryClient.ensureQueryData(sourceForTaxonQueryOptions(id)),
+    ]);
+
+    return { id, taxon };
   },
+  head: ({ loaderData }) =>
+    routeSeo({
+      title: loaderData
+        ? `${loaderData.taxon.acceptedName} | Klados`
+        : "Klados",
+    }),
   component: TaxonPage,
 });
 
@@ -53,7 +63,7 @@ function TaxonPage() {
     }));
     items.push({ label: prefixWithRank(taxon.rank, taxon.acceptedName) });
     return items;
-  }, [taxon.ancestors, taxon.acceptedName]);
+  }, [taxon.ancestors, taxon.acceptedName, taxon.rank]);
 
   return (
     <ContentContainer align="start">

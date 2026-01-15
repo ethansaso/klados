@@ -31,9 +31,14 @@ import {
   createTaxonSchema,
 } from "../../../lib/domain/taxa/validation";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
+import { routeSeo } from "../../../lib/utils/head/routeSeo";
 import { toast } from "../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/taxa/new")({
+  head: () =>
+    routeSeo({
+      title: "Create Taxon | Klados",
+    }),
   beforeLoad: async ({ context, location }) => {
     const { user } = context;
     if (!roleHasCuratorRights(user?.role)) {

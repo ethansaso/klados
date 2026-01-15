@@ -91,8 +91,8 @@ export function NavSheet({ user, onNavigate }: Props) {
                 </NavSheetLinkButton>
               )}
 
-              <NavSheetLinkButton to="/keys" onNavigate={onNavigate}>
-                Keys
+              <NavSheetLinkButton to="/guides" onNavigate={onNavigate}>
+                Guides
               </NavSheetLinkButton>
 
               <NavSheetLinkButton to="/glossary" onNavigate={onNavigate}>

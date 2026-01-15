@@ -86,13 +86,13 @@ export const TaxonMainSection = ({
               size={{ initial: "1", sm: "2" }}
               onClick={() =>
                 navigate({
-                  to: "/keys/create",
+                  to: "/guides/create",
                   search: { initialId: taxon.id },
                 })
               }
             >
               <PiTreeStructureFill size={12} />
-              Create Key
+              Create Guide
             </Button>
           ) : (
             <Tooltip content="This taxon has no subtaxa.">
@@ -102,13 +102,13 @@ export const TaxonMainSection = ({
                 size={{ initial: "1", sm: "2" }}
                 onClick={() =>
                   navigate({
-                    to: "/keys/create",
+                    to: "/guides/create",
                     search: { initialId: taxon.id },
                   })
                 }
               >
                 <PiTreeStructureFill size={12} />
-                Create Key
+                Create Guide
               </Button>
             </Tooltip>
           )}
