@@ -17,7 +17,7 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
-import { createCharacterGroupFn } from "../../../../lib/api/character-groups/createCharacterGroup";
+import { createCharacterGroupFn } from "../../../../lib/api/character-groups/createCharacterGroupFn";
 import {
   CreateCharacterGroupInput,
   createCharacterGroupSchema,

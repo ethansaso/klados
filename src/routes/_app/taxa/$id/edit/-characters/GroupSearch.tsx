@@ -7,7 +7,7 @@ import { ComboboxOption } from "../../../../../../components/inputs/combobox/typ
 import { characterGroupsQueryOptions } from "../../../../../../lib/queries/characterGroups";
 
 interface GroupSearchProps {
-  onSelect: (todo: ComboboxOption) => void;
+  onSelect: (group: ComboboxOption) => void;
 }
 
 export const GroupSearch = ({ onSelect }: GroupSearchProps) => {

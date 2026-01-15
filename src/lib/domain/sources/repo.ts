@@ -105,8 +105,6 @@ export async function listSourcesQuery(
   const filters: (SQL | undefined)[] = [];
 
   if (likeAnywhere) {
-    // ilike is case insensitive, should function fine
-    // TODO: test this works
     filters.push(
       or(
         ilike(sourceTbl.name, likeAnywhere),

@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getCharacterGroupFn } from "../api/character-groups/getCharacterGroup";
-import { listCharacterGroupsFn } from "../api/character-groups/listCharacterGroups";
+import { getCharacterGroupFn } from "../api/character-groups/getCharacterGroupFn";
+import { listCharacterGroupsFn } from "../api/character-groups/listCharacterGroupsFn";
 import {
   CharacterGroupDetailDTO,
   CharacterGroupPaginatedResult,

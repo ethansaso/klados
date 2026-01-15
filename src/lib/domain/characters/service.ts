@@ -1,7 +1,7 @@
 import { db } from "../../../db/client";
 import { snakeCase } from "../../utils/casing";
 import {
-  countCategoricalUsageForCharacter,
+  countUsageForCharacter,
   deleteCharacterById,
   fetchCharacterDetailById,
   insertCategoricalMeta,
@@ -38,10 +38,7 @@ export async function getCharactersByIds(
   }
 
   const dtos = await db.transaction(async (tx) => {
-    const results: CategoricalCharacterDTO[] = await selectCharactersByIds(
-      tx,
-      ids
-    );
+    const results: CharacterDTO[] = await selectCharactersByIds(tx, ids);
     return results;
   });
 
@@ -128,7 +125,6 @@ export class CharacterInUseError extends Error {
  * Delete a character if it is unused.
  * Returns { id } if deleted, null if the character does not exist.
  * Throws CharacterInUseError if in use.
- * TODO: extend for numeric/range kinds when supported.
  */
 export async function deleteCharacter(args: {
   id: number;
@@ -136,7 +132,11 @@ export async function deleteCharacter(args: {
   const { id } = args;
 
   return db.transaction(async (tx) => {
-    const usageCount = await countCategoricalUsageForCharacter(tx, id);
+    const usageCount = await countUsageForCharacter(tx, id);
+
+    if (usageCount === null) {
+      return null;
+    }
 
     if (usageCount > 0) {
       throw new CharacterInUseError(usageCount);
