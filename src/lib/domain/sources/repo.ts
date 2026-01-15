@@ -1,6 +1,7 @@
 import { and, asc, count, desc, eq, ilike, or, SQL } from "drizzle-orm";
 import { db } from "../../../db/client";
 import { source as sourceTbl } from "../../../db/schema/sources/source";
+import { likeAnywhere } from "../../utils/likeAnywhere";
 import { Transaction } from "../../utils/transactionType";
 import { SourceSearchParams } from "./search";
 import { sourceSelectDto } from "./sqlAdapters";
@@ -98,18 +99,16 @@ export async function listSourcesQuery(
   const { q, page, pageSize } = args;
   const offset = (page - 1) * pageSize;
 
-  const rawQ = q?.trim();
-  const likeAnywhere =
-    rawQ && rawQ.length ? `%${rawQ.replace(/([%_\\])/g, "\\$1")}%` : undefined;
+  const like = likeAnywhere(q);
 
   const filters: (SQL | undefined)[] = [];
 
-  if (likeAnywhere) {
+  if (like) {
     filters.push(
       or(
-        ilike(sourceTbl.name, likeAnywhere),
-        ilike(sourceTbl.authors, likeAnywhere),
-        ilike(sourceTbl.publisher, likeAnywhere)
+        ilike(sourceTbl.name, like),
+        ilike(sourceTbl.authors, like),
+        ilike(sourceTbl.publisher, like)
       )
     );
   }

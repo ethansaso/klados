@@ -1,5 +1,6 @@
 import { db } from "../../../db/client";
 import { snakeCase } from "../../utils/casing";
+import { selectUnitFamilyById } from "../units/repo";
 import {
   countUsageForCharacter,
   deleteCharacterById,
@@ -10,7 +11,6 @@ import {
   listCharactersQuery,
   selectCharacterGroupById,
   selectCharactersByIds,
-  selectUnitFamilyById,
 } from "./repo";
 import type {
   CategoricalCharacterDTO,

@@ -17,6 +17,7 @@ import {
 } from "../../../../../lib/domain/characters/validation";
 import { toast } from "../../../../../lib/utils/toast";
 import { AddCategoricalCharacterForm } from "./AddCategoricalCharacterForm";
+import { AddCharacterBaseForm } from "./AddCharacterBaseForm";
 import { AddNumberCharacterForm } from "./AddNumberCharacterForm";
 import { AddRangeCharacterForm } from "./AddRangeCharacterForm";
 
@@ -91,13 +92,15 @@ export const AddCharacterModal = NiceModal.create(() => {
 
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)}>
-            {type === "categorical" ? (
-              <AddCategoricalCharacterForm />
-            ) : type === "number" ? (
-              <AddNumberCharacterForm />
-            ) : (
-              <AddRangeCharacterForm />
-            )}
+            <AddCharacterBaseForm>
+              {type === "categorical" ? (
+                <AddCategoricalCharacterForm />
+              ) : type === "number" ? (
+                <AddNumberCharacterForm />
+              ) : (
+                <AddRangeCharacterForm />
+              )}
+            </AddCharacterBaseForm>
 
             <Flex justify="end" gap="3">
               <Dialog.Close>

@@ -1,10 +1,3 @@
-export type UnitDTO = {
-  id: number;
-  familyId: number;
-  key: string;
-  symbol: string;
-};
-
 // Shared character context for all suggestions.
 type BaseCharacterContext = {
   characterId: number;

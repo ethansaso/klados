@@ -1,12 +1,12 @@
 import "dotenv/config";
 import { and, eq } from "drizzle-orm";
-import readline from "node:readline";
 import { db } from "../../../src/db/client";
 import {
   categoricalTraitSet,
   categoricalTraitValue,
 } from "../../../src/db/schema/schema";
 import { Transaction } from "../../../src/lib/utils/transactionType";
+import { askYesNo } from "../../utils/askYesNo";
 import {
   ansiBlock,
   generateCanonicalColorDefs,
@@ -20,22 +20,6 @@ type ColorDef = {
 };
 
 const COLOR_TRAIT_SET_KEY = "colors";
-
-/** Confirms via CLI after colors are printed. */
-function askYesNo(question: string): Promise<boolean> {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  return new Promise((resolve) => {
-    rl.question(question, (answer) => {
-      rl.close();
-      const normalized = answer.trim().toLowerCase();
-      resolve(normalized === "y" || normalized === "yes");
-    });
-  });
-}
 
 /**
  * Fetch or create the "colors" trait set inside a transaction.
