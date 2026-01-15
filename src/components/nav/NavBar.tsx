@@ -22,7 +22,7 @@ export function NavBar({ user }: NavBarProps) {
   const homeActive = useIsActive("/");
   const taxaActive = useIsActive("/taxa", true);
   const glossaryActive = useIsActive("/glossary", true);
-  const keysActive = useIsActive("/keys", true);
+  const guidesActive = useIsActive("/guides", true);
   const moreActive = useIsActive(["/users", "/about"], true);
 
   const TaxaItem = useMemo(() => {
@@ -71,9 +71,9 @@ export function NavBar({ user }: NavBarProps) {
 
         {TaxaItem}
 
-        <TabNav.Link asChild active={keysActive}>
-          <RouterLink to="/keys" preload="intent">
-            Keys
+        <TabNav.Link asChild active={guidesActive}>
+          <RouterLink to="/guides" preload="intent">
+            Guides
           </RouterLink>
         </TabNav.Link>
 

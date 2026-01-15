@@ -10,11 +10,16 @@ import {
   TaxonSearchSchema,
 } from "../../../lib/domain/taxa/search";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
+import { routeSeo } from "../../../lib/utils/head/routeSeo";
 import { TaxaFilterPopover } from "./-TaxonFilterPopover";
 import { TaxonGrid } from "./-TaxonGrid";
 import { useTaxonSearchControls } from "./-useTaxonSearchControls";
 
 export const Route = createFileRoute("/_app/taxa/")({
+  head: () =>
+    routeSeo({
+      title: "Taxa | Klados",
+    }),
   validateSearch: TaxonSearchSchema,
   loaderDeps: ({ search }) => search,
   loader: async ({ context, deps }) => {

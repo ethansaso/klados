@@ -19,6 +19,7 @@ import {
 } from "../../components/inputs/ConditionalAlert";
 import { authClient } from "../../lib/auth/authClient";
 import { meQueryOptions } from "../../lib/queries/users";
+import { routeSeo } from "../../lib/utils/head/routeSeo";
 import { toast } from "../../lib/utils/toast";
 
 function isEmail(s: string) {
@@ -34,6 +35,10 @@ type FormFields = z.infer<typeof schema>;
 
 // TODO: use loading state on signup/signin
 export const Route = createFileRoute("/_app/login")({
+  head: () =>
+    routeSeo({
+      title: "Login | Klados",
+    }),
   beforeLoad: async ({ context }) => {
     const user = context.user;
     if (user) {

@@ -37,7 +37,9 @@ export const StatsFeatureGrid = ({ summaryStats }: StatsFeatureGridProps) => {
           <Box className="feature-icon__container">
             <PiTreeStructure className="feature-icon" />
           </Box>
-          <Heading size="6">{summaryStats.keysCount.toLocaleString()}</Heading>
+          <Heading size="6">
+            {summaryStats.guidesCount.toLocaleString()}
+          </Heading>
           <Text>Guides Published</Text>
         </Box>
       </Box>

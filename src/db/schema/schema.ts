@@ -5,7 +5,7 @@ export * from "./characters/characterGroup";
 export * from "./characters/taxonCharacterState";
 export * from "./characters/units";
 export * from "./flags/flag";
-export * from "./keys/key";
+export * from "./guides/guide";
 export * from "./sources/source";
 export * from "./sources/taxonSource";
 export * from "./taxa/name";

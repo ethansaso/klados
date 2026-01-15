@@ -44,6 +44,7 @@ import {
   setTaxonSourcesSchema,
   TaxonSourceUpsertItem,
 } from "../../../../../lib/domain/taxon-sources/validation";
+import { routeSeo } from "../../../../../lib/utils/head/routeSeo";
 import { toast } from "../../../../../lib/utils/toast";
 import { CharacterEditingForm } from "./-characters/CharactersEditingForm";
 import { characterStateFormSchema } from "./-characters/validation";
@@ -136,6 +137,12 @@ export const Route = createFileRoute("/_app/taxa/$id/edit/")({
       context;
     return { id, initialTaxon, initialCharacterValues, initialSources };
   },
+  head: ({ loaderData }) =>
+    routeSeo({
+      title: loaderData
+        ? `Editing ${loaderData.initialTaxon.acceptedName} | Klados`
+        : "Klados",
+    }),
   component: RouteComponent,
 });
 

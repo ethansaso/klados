@@ -2,10 +2,15 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { ContentContainer } from "../../../components/ContentContainer";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
+import { routeSeo } from "../../../lib/utils/head/routeSeo";
 import { SearchSchema } from "../../../lib/validation/search";
 import { TaxonGrid } from "./-TaxonGrid";
 
 export const Route = createFileRoute("/_app/taxa/drafts")({
+  head: () =>
+    routeSeo({
+      title: "Taxon Drafts | Klados",
+    }),
   validateSearch: SearchSchema,
   loaderDeps: ({ search: { page, pageSize: pageSize } }) => ({
     page,

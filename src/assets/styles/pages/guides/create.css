@@ -1,0 +1,47 @@
+.guide-editor {
+  position: relative;
+  flex: 1 0 auto;
+  display: flex;
+}
+
+.guide-editor-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  justify-content: end;
+  pointer-events: none;
+
+  z-index: 1;
+
+  @media (min-width: 768px) {
+    width: 300px;
+  }
+}
+
+.guide-editor-sidebar {
+  width: 100%;
+  flex: 0 0 auto;
+  background-color: var(--color-background);
+  pointer-events: auto;
+
+  @media (min-width: 768px) {
+    flex: 1 0 auto;
+    margin: 0;
+  }
+}
+
+.guide-editor-toolbar {
+  display: flex;
+  width: 100%;
+  gap: var(--space-2);
+  pointer-events: auto;
+}
+
+.guide-editor-sidebar__form {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}

@@ -1,24 +1,13 @@
-import { eq, ExtractTablesWithRelations } from "drizzle-orm";
-import {
-  NodePgDatabase,
-  NodePgQueryResultHKT,
-} from "drizzle-orm/node-postgres";
-import { PgTransaction } from "drizzle-orm/pg-core";
-import * as schema from "../../db/schema/schema";
+import { eq } from "drizzle-orm";
+import { db } from "../../db/client";
 import {
   taxon as taxaTbl,
   TAXON_RANKS_DESCENDING,
 } from "../../db/schema/schema";
+import { Transaction } from "./transactionType";
 
 type Rank = (typeof TAXON_RANKS_DESCENDING)[number];
-
-type Db = NodePgDatabase<typeof schema>;
-type Tx = PgTransaction<
-  NodePgQueryResultHKT,
-  typeof schema,
-  ExtractTablesWithRelations<typeof schema>
->;
-type DbOrTx = Db | Tx;
+type DbOrTx = typeof db | Transaction;
 
 function rankIndex(r: Rank): number {
   const i = TAXON_RANKS_DESCENDING.indexOf(r);

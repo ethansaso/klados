@@ -46,7 +46,7 @@ async function resolveUnitFromToken(token: string): Promise<UnitDTO | null> {
 
 /**
  * Categorical suggestions: find trait values within the given group
- * whose labels/keys match the query.
+ * whose labels/guides match the query.
  */
 export async function searchCategoricalSuggestions(opts: {
   groupId: number;

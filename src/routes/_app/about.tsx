@@ -1,8 +1,13 @@
 import { Box, Em, Flex, Heading, Link, Text } from "@radix-ui/themes";
 import { createFileRoute } from "@tanstack/react-router";
 import { ContentContainer } from "../../components/ContentContainer";
+import { routeSeo } from "../../lib/utils/head/routeSeo";
 
 export const Route = createFileRoute("/_app/about")({
+  head: () =>
+    routeSeo({
+      title: "About | Klados",
+    }),
   component: RouteComponent,
 });
 
@@ -14,12 +19,12 @@ function RouteComponent() {
         <Text as="p" mb="2">
           Klados is a community-oriented taxonomy platform that provides both a
           free repository of morphological data and a modern interface for
-          creating and sharing flowchart-style identification guides known as
-          "dichotomous keys".
+          creating and sharing flowchart-style identification guides modelled
+          after traditional resources called "dichotomous keys".
         </Text>
         <Text as="p" size="2">
           <Em>
-            Disclaimer: Klados is currently in early alpha. Generated keys
+            Disclaimer: Klados is currently in early alpha. Generated guides
             and/or taxon descriptions may contain errors and should be reviewed
             before acceptance.
           </Em>
@@ -47,11 +52,11 @@ function RouteComponent() {
             <Text as="p" mb="2">
               Hi there! My name is Ethan Saso, and I'm a full-stack developer
               with a lifelong passion for naturalism. I originally created
-              Klados under a different name, 'TaxoKeys', at the end of college
-              as my first web development project. Once I'd picked up more
-              experience from my career, I decided to return and rebuild the
-              platform from the ground up as Klados, with a focus on community
-              contribution and open science.
+              Klados under a different name, 'TaxoKeys', in my last semester of
+              college as my first web development project. Once I'd picked up
+              more experience from my career, I decided to return and rebuild
+              the platform from the ground up as Klados, with a focus on
+              community contribution and open science.
             </Text>
             <Text as="p" mb="2">
               I graduated from UC Berkeley in 2024 with a degree in Molecular

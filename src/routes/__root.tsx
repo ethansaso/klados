@@ -12,23 +12,26 @@ import type { ReactNode } from "react";
 import appCssUrl from "../assets/styles/main.css?url";
 import { ToastHost } from "../components/ToastHost";
 import { meQueryOptions } from "../lib/queries/users";
-import { GA_ID, seo } from "../lib/seo";
+import { GA_ID, rootSeo } from "../lib/utils/head/rootSeo";
 import { paginationDefaults } from "../lib/validation/pagination";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
   head: () => {
-    const { meta, links } = seo({
+    const { meta } = rootSeo({
       title: "Klados",
       description: "Twenty-first century identification.",
       image: "/logos/LogoBrand.png",
-      canonicalPath: "/",
     });
 
     const baseLinks = [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous" as const,
+      },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap",
@@ -65,7 +68,7 @@ export const Route = createRootRouteWithContext<{
         { name: "viewport", content: "width=device-width, initial-scale=1" },
         ...meta,
       ],
-      links: [...baseLinks, ...links],
+      links: baseLinks,
       scripts,
     };
   },

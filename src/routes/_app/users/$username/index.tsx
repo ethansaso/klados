@@ -9,6 +9,7 @@ import {
   userQueryOptions,
 } from "../../../../lib/queries/users";
 import { getInitials } from "../../../../lib/utils/getInitials";
+import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 
 export const Route = createFileRoute("/_app/users/$username/")({
   loader: async ({ location, context, params }) => {
@@ -31,6 +32,10 @@ export const Route = createFileRoute("/_app/users/$username/")({
 
     return { effectiveUsername, isMe };
   },
+  head: ({ loaderData }) =>
+    routeSeo({
+      title: loaderData ? `${loaderData.effectiveUsername} | Klados` : "Klados",
+    }),
 
   component: UserProfilePage,
 });
