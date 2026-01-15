@@ -11,7 +11,9 @@ import {
 export const catUsageSel = db
   .select({
     characterId: valCatTbl.characterId,
-    usageCount: sql<number>`COUNT(DISTINCT ${valCatTbl.taxonId})`,
+    catUsageCount: sql<number>`COUNT(DISTINCT ${valCatTbl.taxonId})`.as(
+      "catUsageCount"
+    ),
   })
   .from(valCatTbl)
   .groupBy(valCatTbl.characterId)
@@ -20,7 +22,9 @@ export const catUsageSel = db
 export const numUsageSel = db
   .select({
     characterId: valNumTbl.characterId,
-    usageCount: sql<number>`COUNT(DISTINCT ${valNumTbl.taxonId})`,
+    numUsageCount: sql<number>`COUNT(DISTINCT ${valNumTbl.taxonId})`.as(
+      "numUsageCount"
+    ),
   })
   .from(valNumTbl)
   .groupBy(valNumTbl.characterId)
@@ -29,7 +33,9 @@ export const numUsageSel = db
 export const rangeUsageSel = db
   .select({
     characterId: valRangeTbl.characterId,
-    usageCount: sql<number>`COUNT(DISTINCT ${valRangeTbl.taxonId})`,
+    rangeUsageCount: sql<number>`COUNT(DISTINCT ${valRangeTbl.taxonId})`.as(
+      "rangeUsageCount"
+    ),
   })
   .from(valRangeTbl)
   .groupBy(valRangeTbl.characterId)
@@ -40,6 +46,7 @@ export const hasSomeMetaExpr = sql`
   ${catMetaTbl.characterId} IS NOT NULL
   OR ${numMetaTbl.characterId} IS NOT NULL
 `;
+
 // Select kind of character
 export const characterTypeExpr = sql<"categorical" | "number" | "range">`
   CASE

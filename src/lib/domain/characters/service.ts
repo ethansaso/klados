@@ -6,16 +6,21 @@ import {
   fetchCharacterDetailById,
   insertCategoricalMeta,
   insertCharacter,
+  insertNumericMeta,
   listCharactersQuery,
   selectCharacterGroupById,
   selectCharactersByIds,
+  selectUnitFamilyById,
 } from "./repo";
 import type {
   CategoricalCharacterDTO,
   CharacterDTO,
   CharacterDetailDTO,
   CharacterPaginatedResult,
+  NumberCharacterDTO,
+  RangeCharacterDTO,
 } from "./types";
+import { CreateCharacterInput } from "./validation";
 
 /**
  * Get a character by id.
@@ -58,55 +63,89 @@ export async function listCharacters(args: {
  * Create a character.
  * TODO: add more than categorical
  */
-export async function createCharacter(args: {
-  key: string;
-  label: string;
-  description?: string;
-  groupId: number;
-  traitSetId: number;
-  isMultiSelect: boolean;
-}): Promise<CharacterDTO | null> {
-  const { key, label, description, groupId, traitSetId, isMultiSelect } = args;
-
-  const normalizedKey = snakeCase(key.trim());
-  const normalizedLabel = label.trim();
-  const normalizedDescription = description?.trim() ?? "";
+export async function createCharacter(
+  args: CreateCharacterInput
+): Promise<CharacterDTO | null> {
+  const normalizedKey = snakeCase(args.key.trim());
+  const normalizedLabel = args.label.trim();
+  const normalizedDescription = args.description?.trim() ?? "";
 
   return db.transaction(async (tx) => {
+    // Make sure unit family exists!
+    if (args.type === "number" || args.type === "range") {
+      const fam = await selectUnitFamilyById(tx, args.unitFamilyId);
+      if (!fam) {
+        return null;
+      }
+    }
+
     const charRow = await insertCharacter(tx, {
       key: normalizedKey,
       label: normalizedLabel,
       description: normalizedDescription,
-      groupId,
+      groupId: args.groupId,
     });
 
-    if (!charRow) {
-      return null;
+    if (!charRow) return null;
+
+    if (args.type === "categorical") {
+      await insertCategoricalMeta(tx, {
+        characterId: charRow.id,
+        traitSetId: args.traitSetId,
+        isMultiSelect: args.isMultiSelect,
+      });
+    } else {
+      await insertNumericMeta(tx, {
+        characterId: charRow.id,
+        unitFamilyId: args.unitFamilyId,
+        kind: args.type === "number" ? "single" : "range",
+      });
     }
-
-    await insertCategoricalMeta(tx, {
-      characterId: charRow.id,
-      traitSetId,
-      isMultiSelect,
-    });
 
     const groupRow = await selectCharacterGroupById(tx, charRow.groupId);
-    if (!groupRow) {
-      return null;
+    if (!groupRow) return null;
+
+    if (args.type === "categorical") {
+      const dto: CategoricalCharacterDTO = {
+        id: charRow.id,
+        key: charRow.key,
+        label: charRow.label,
+        description: charRow.description,
+        group: { id: groupRow.id, label: groupRow.label },
+        usageCount: 0,
+        type: "categorical",
+        characterId: charRow.id,
+        traitSetId: args.traitSetId,
+      };
+      return dto;
     }
 
-    const dto: CategoricalCharacterDTO = {
+    if (args.type === "number") {
+      const dto: NumberCharacterDTO = {
+        id: charRow.id,
+        key: charRow.key,
+        label: charRow.label,
+        description: charRow.description,
+        group: { id: groupRow.id, label: groupRow.label },
+        usageCount: 0,
+        type: "number",
+        characterId: charRow.id,
+        unitFamilyId: args.unitFamilyId,
+      };
+      return dto;
+    }
+
+    const dto: RangeCharacterDTO = {
       id: charRow.id,
       key: charRow.key,
       label: charRow.label,
       description: charRow.description,
       group: { id: groupRow.id, label: groupRow.label },
       usageCount: 0,
-      type: "categorical",
+      type: "range",
       characterId: charRow.id,
-      traitSetId,
+      unitFamilyId: args.unitFamilyId,
     };
-
     return dto;
   });
 }
