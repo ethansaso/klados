@@ -1,10 +1,21 @@
-import { and, asc, count, eq, ilike, inArray, or, type SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  eq,
+  ilike,
+  inArray,
+  or,
+  sql,
+  type SQL,
+} from "drizzle-orm";
 
 import { db } from "../../../db/client";
 import {
   categoricalCharacterMeta as catMetaTbl,
   character as charsTbl,
   characterGroup as groupsTbl,
+  numericCharacterMeta as numMetaTbl,
 } from "../../../db/schema/schema";
 import { Transaction } from "../../utils/transactionType";
 import type {
@@ -105,7 +116,6 @@ export async function listCharacterGroupsQuery(args: {
 
 /**
  * Fetch a single character group detail by id.
- * TODO: add other character types besides categorical
  */
 export async function fetchCharacterGroupDetailById(
   id: number
@@ -122,45 +132,79 @@ export async function fetchCharacterGroupDetailById(
     .where(eq(groupsTbl.id, id))
     .limit(1);
 
-  if (!groupRow) {
-    return null;
-  }
+  if (!groupRow) return null;
 
-  // Characters in group (only categorical!)
+  // Characters belonging to group
   const rows = await db
     .select({
       id: charsTbl.id,
       key: charsTbl.key,
       label: charsTbl.label,
       description: charsTbl.description,
+
       traitSetId: catMetaTbl.traitSetId,
+      unitFamilyId: numMetaTbl.unitFamilyId,
+
+      // Either categorical if in table, else type specified by numeric meta kind
+      type: sql<"categorical" | "number" | "range">`CASE
+        WHEN ${catMetaTbl.characterId} IS NOT NULL THEN 'categorical'
+        WHEN ${numMetaTbl.kind} = 'single' THEN 'number'
+        ELSE 'range'
+      END`,
     })
     .from(charsTbl)
-    .innerJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
-    .where(eq(charsTbl.groupId, id))
+    .leftJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
+    .leftJoin(numMetaTbl, eq(numMetaTbl.characterId, charsTbl.id))
+    .where(
+      and(
+        eq(charsTbl.groupId, id),
+        // Only return characters that have some meta (all should, but defensive)
+        or(
+          sql`${catMetaTbl.characterId} IS NOT NULL`,
+          sql`${numMetaTbl.characterId} IS NOT NULL`
+        )
+      )
+    )
     .orderBy(asc(charsTbl.key), asc(charsTbl.id));
 
-  const characters: CharacterInGroupDTO[] = rows.map((row) => ({
-    id: row.id,
-    key: row.key,
-    label: row.label,
-    description: row.description,
-    type: "categorical" as const,
-    traitSetId: row.traitSetId ?? undefined,
-  }));
+  const characters: CharacterInGroupDTO[] = rows.map((row) => {
+    const base = {
+      id: row.id,
+      key: row.key,
+      label: row.label,
+      description: row.description,
+    };
 
-  const characterCount = characters.length;
+    if (row.type === "categorical") {
+      if (row.traitSetId == null) {
+        throw new Error(
+          `Categorical character ${row.id} is missing traitSetId in group detail`
+        );
+      }
+      return { ...base, type: "categorical", traitSetId: row.traitSetId };
+    }
 
-  const group: CharacterGroupDetailDTO = {
+    if (row.unitFamilyId == null) {
+      throw new Error(
+        `Numeric character ${row.id} is missing unitFamilyId in group detail (type=${row.type})`
+      );
+    }
+
+    if (row.type === "number") {
+      return { ...base, type: "number", unitFamilyId: row.unitFamilyId };
+    }
+
+    return { ...base, type: "range", unitFamilyId: row.unitFamilyId };
+  });
+
+  return {
     id: groupRow.id,
     key: groupRow.key,
     label: groupRow.label,
     description: groupRow.description,
-    characterCount,
+    characterCount: characters.length,
     characters,
   };
-
-  return group;
 }
 
 /**

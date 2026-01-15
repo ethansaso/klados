@@ -37,7 +37,6 @@ function RouteComponent() {
             <Text as="div" weight="medium">
               {char.label}
             </Text>
-            {/* TODO: fix this */}
             <Text as="div">{char.description}</Text>
           </Box>
         ))}

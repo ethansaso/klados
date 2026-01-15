@@ -12,7 +12,6 @@ type Props = Omit<
 
 const DEBOUNCE_DELAY = 200;
 
-/** TODO: if this starts causing problems due to lack of re-seeding, consider maintaining a ref to last committed value and re-seeding on *all* external changes */
 export const DebouncedTextField = ({
   initialValue,
   onDebouncedChange,

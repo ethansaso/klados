@@ -1,10 +1,17 @@
-import { categoricalCharacterMeta, character } from "../../../db/schema/schema";
+import {
+  categoricalCharacterMeta,
+  character,
+  numericCharacterMeta,
+  unitFamily,
+} from "../../../db/schema/schema";
 import { PaginatedResult } from "../../validation/pagination";
 import { CharacterGroupRow } from "../character-groups/types";
 import { TraitSetRow } from "../traits/types";
 
 export type CharacterRow = typeof character.$inferSelect;
 export type CategoricalMetaRow = typeof categoricalCharacterMeta.$inferSelect;
+export type NumericMetaRow = typeof numericCharacterMeta.$inferSelect;
+export type UnitFamilyRow = typeof unitFamily.$inferSelect;
 
 type BaseCharacterDTO = Pick<
   CharacterRow,
@@ -18,7 +25,25 @@ export type CategoricalCharacterDTO = BaseCharacterDTO & {
   type: "categorical";
 } & Pick<CategoricalMetaRow, "characterId" | "traitSetId">;
 
-export type CharacterDTO = CategoricalCharacterDTO | never; // TODO: other types
+export type NumberCharacterDTO = BaseCharacterDTO & {
+  type: "number";
+} & Pick<NumericMetaRow, "characterId" | "unitFamilyId">;
+
+export type RangeCharacterDTO = BaseCharacterDTO & {
+  type: "range";
+} & Pick<NumericMetaRow, "characterId" | "unitFamilyId">;
+
+export type CharacterDTO =
+  | CategoricalCharacterDTO
+  | NumberCharacterDTO
+  | RangeCharacterDTO;
+
+type BaseNumericCharacterDetailDTO = Omit<
+  NumberCharacterDTO | RangeCharacterDTO,
+  "unitFamilyId"
+> & {
+  unitFamily: Pick<UnitFamilyRow, "id" | "label" | "description">;
+};
 
 export type CategoricalCharacterDetailDTO = Omit<
   CategoricalCharacterDTO,
@@ -28,6 +53,17 @@ export type CategoricalCharacterDetailDTO = Omit<
     traitSet: Pick<TraitSetRow, "id" | "key" | "label" | "description">;
   };
 
-export type CharacterDetailDTO = CategoricalCharacterDetailDTO | never; // TODO: other types
+export type NumberCharacterDetailDTO = BaseNumericCharacterDetailDTO & {
+  type: "number";
+};
+
+export type RangeCharacterDetailDTO = BaseNumericCharacterDetailDTO & {
+  type: "range";
+};
+
+export type CharacterDetailDTO =
+  | CategoricalCharacterDetailDTO
+  | NumberCharacterDetailDTO
+  | RangeCharacterDetailDTO;
 
 export type CharacterPaginatedResult = PaginatedResult<CharacterDTO>;

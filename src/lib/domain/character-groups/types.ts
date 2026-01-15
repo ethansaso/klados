@@ -10,16 +10,30 @@ export type CharacterGroupDTO = Pick<
   characterCount: number;
 };
 
-export type CharacterInGroupDTO = {
+type BaseCharacterInGroupDTO = {
   id: number;
   key: string;
   label: string;
   description: string;
-  // TODO: number & range
-  type: "categorical";
-  // TODO: categorical-only; might want to use union
-  traitSetId?: number;
 };
+
+export type CategoricalCharacterInGroupDTO = BaseCharacterInGroupDTO & {
+  type: "categorical";
+  traitSetId: number;
+};
+export type NumberCharacterInGroupDTO = BaseCharacterInGroupDTO & {
+  type: "number";
+  unitFamilyId: number;
+};
+export type RangeCharacterInGroupDTO = BaseCharacterInGroupDTO & {
+  type: "range";
+  unitFamilyId: number;
+};
+
+export type CharacterInGroupDTO =
+  | CategoricalCharacterInGroupDTO
+  | NumberCharacterInGroupDTO
+  | RangeCharacterInGroupDTO;
 
 export type CharacterGroupDetailDTO = CharacterGroupDTO & {
   characters: CharacterInGroupDTO[];
