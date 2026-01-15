@@ -42,7 +42,7 @@ type BaseNumericCharacterDetailDTO = Omit<
   NumberCharacterDTO | RangeCharacterDTO,
   "unitFamilyId"
 > & {
-  unitFamily: Pick<UnitFamilyRow, "id" | "label" | "description">;
+  unitFamily: Pick<UnitFamilyRow, "id" | "label">;
 };
 
 export type CategoricalCharacterDetailDTO = Omit<

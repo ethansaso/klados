@@ -17,6 +17,7 @@ import {
   characterGroup as groupsTbl,
   numericCharacterMeta as numMetaTbl,
 } from "../../../db/schema/schema";
+import { likeAnywhere } from "../../utils/likeAnywhere";
 import { Transaction } from "../../utils/transactionType";
 import type {
   CharacterGroupDTO,
@@ -70,17 +71,12 @@ export async function listCharacterGroupsQuery(args: {
   const { q, ids, page, pageSize } = args;
   const offset = (page - 1) * pageSize;
 
-  const rawQ = q?.trim();
-  const likeAnywhere =
-    rawQ && rawQ.length ? `%${rawQ.replace(/([%_\\])/g, "\\$1")}%` : undefined;
+  const like = likeAnywhere(q);
 
   const filters: (SQL | undefined)[] = [
     ids && ids.length ? inArray(groupsTbl.id, ids) : undefined,
-    likeAnywhere
-      ? or(
-          ilike(groupsTbl.label, likeAnywhere),
-          ilike(groupsTbl.key, likeAnywhere)
-        )
+    like
+      ? or(ilike(groupsTbl.label, like), ilike(groupsTbl.key, like))
       : undefined,
   ];
   const where = and(...(filters.filter(Boolean) as SQL[]));

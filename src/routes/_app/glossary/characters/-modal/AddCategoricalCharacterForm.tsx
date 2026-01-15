@@ -1,41 +1,25 @@
-import {
-  Box,
-  Button,
-  Checkbox,
-  Flex,
-  Text,
-  TextArea,
-  TextField,
-} from "@radix-ui/themes";
+import { Box, Checkbox, Flex, Text } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
 import { ComboboxOption } from "../../../../../components/inputs/combobox/types";
-import {
-  a11yProps,
-  ConditionalAlert,
-} from "../../../../../components/inputs/ConditionalAlert";
-import type { CreateCategoricalCharacterInput } from "../../../../../lib/domain/characters/validation";
-import { useAutoKey } from "../../../../../lib/hooks/useAutoKey";
+import { ConditionalAlert } from "../../../../../components/inputs/ConditionalAlert";
+import type { CreateCharacterInput } from "../../../../../lib/domain/characters/validation";
 import { characterGroupsQueryOptions } from "../../../../../lib/queries/characterGroups";
 import { traitSetsQueryOptions } from "../../../../../lib/queries/traits";
 
+type CreateCategoricalCharacterInput = Extract<
+  CreateCharacterInput,
+  { type: "categorical" }
+>;
+
 export function AddCategoricalCharacterForm() {
   const {
-    register,
     control,
-    setValue,
     formState: { errors },
   } = useFormContext<CreateCategoricalCharacterInput>();
-
-  const { autoKey, setAutoKey, handleKeyBlur } = useAutoKey(
-    control,
-    setValue,
-    "label",
-    "key"
-  );
 
   const [traitSetQuery, setTraitSetQuery] = useState("");
   const [groupQuery, setGroupQuery] = useState("");
@@ -69,48 +53,7 @@ export function AddCategoricalCharacterForm() {
   }, [groupIdVal, groupOptions]);
 
   return (
-    <Flex direction="column" gap="3" mb="4">
-      <Box>
-        <Flex justify="between" align="baseline" mb="1">
-          <Label.Root htmlFor="label">Label</Label.Root>
-          <ConditionalAlert id="label-error" message={errors.label?.message} />
-        </Flex>
-        <TextField.Root
-          id="label"
-          type="text"
-          placeholder="e.g. cap color, spore diameter"
-          {...register("label")}
-          {...a11yProps("label-error", !!errors.label)}
-        />
-      </Box>
-
-      <Box>
-        <Flex justify="between" align="baseline" mb="1">
-          <Label.Root htmlFor="key">Key</Label.Root>
-          <Flex align="center" gap="2">
-            <ConditionalAlert id="key-error" message={errors.key?.message} />
-            <Text size="1" color="gray">
-              {autoKey ? "Auto" : "Manual"}
-            </Text>
-            <Button
-              size="1"
-              variant="soft"
-              type="button"
-              onClick={() => setAutoKey((v) => !v)}
-            >
-              {autoKey ? "Edit" : "Use auto"}
-            </Button>
-          </Flex>
-        </Flex>
-        <TextField.Root
-          id="key"
-          type="text"
-          readOnly={autoKey}
-          {...register("key", { onBlur: handleKeyBlur })}
-          {...a11yProps("key-error", !!errors.key)}
-        />
-      </Box>
-
+    <>
       <Flex gap="4">
         <Box flexBasis={"50%"} minWidth="180px">
           <Flex justify="between" align="baseline" mb="1">
@@ -194,22 +137,6 @@ export function AddCategoricalCharacterForm() {
       </Flex>
 
       <Box>
-        <Flex justify="between" align="baseline" mb="1">
-          <Label.Root htmlFor="description">Description</Label.Root>
-          <ConditionalAlert
-            id="description-error"
-            message={errors.description?.message}
-          />
-        </Flex>
-        <TextArea
-          id="description"
-          placeholder="Optional description for this character"
-          {...register("description")}
-          {...a11yProps("description-error", !!errors.description)}
-        />
-      </Box>
-
-      <Box>
         <Flex gap="2" align="center">
           <Controller
             name="isMultiSelect"
@@ -226,7 +153,11 @@ export function AddCategoricalCharacterForm() {
             Allow multiple selections
           </Label.Root>
         </Flex>
+        <Text as="div" size="1" color="gray" mt="1">
+          If disabled, taxa can only be assigned a single trait for this
+          character.
+        </Text>
       </Box>
-    </Flex>
+    </>
   );
 }

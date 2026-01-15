@@ -6,6 +6,7 @@ import {
   taxon as taxonTbl,
   user as userTbl,
 } from "../../../db/schema/schema";
+import { likeAnywhere } from "../../utils/likeAnywhere";
 import { userDtoSelection } from "../users/sqlAdapters";
 import { KeyDTO, KeyPaginatedResult } from "./types";
 
@@ -19,16 +20,14 @@ export async function listKeysQuery(args: {
   const offset = (page - 1) * pageSize;
 
   // Escape %, _ and \ in the search string (no user wildcards)
-  const rawQ = q?.trim();
-  const likeAnywhere =
-    rawQ && rawQ.length ? `%${rawQ.replace(/([%_\\])/g, "\\$1")}%` : undefined;
+  const like = likeAnywhere(q);
 
   const filters: (SQL | undefined)[] = [
     ids && ids.length ? inArray(keyTbl.id, ids) : undefined,
-    likeAnywhere
+    like
       ? or(
-          ilike(keyTbl.name, likeAnywhere),
-          ilike(nameTbl.value, likeAnywhere) // accepted scientific name
+          ilike(keyTbl.name, like),
+          ilike(nameTbl.value, like) // accepted scientific name
         )
       : undefined,
   ];

@@ -1,0 +1,1 @@
+ALTER TABLE "unit_family" DROP COLUMN "description";

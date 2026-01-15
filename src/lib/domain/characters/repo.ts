@@ -21,6 +21,7 @@ import {
   taxonCharacterStateNumber as valNumTbl,
   taxonCharacterStateRange as valRangeTbl,
 } from "../../../db/schema/schema";
+import { likeAnywhere } from "../../utils/likeAnywhere";
 import { Transaction } from "../../utils/transactionType";
 import {
   catUsageSel,
@@ -180,7 +181,6 @@ export async function fetchCharacterDetailById(
       unitFamily: {
         id: unitFamilyTbl.id,
         label: unitFamilyTbl.label,
-        description: unitFamilyTbl.description,
       },
     })
     .from(charsTbl)
@@ -199,8 +199,7 @@ export async function fetchCharacterDetailById(
       groupsTbl.label,
       numMetaTbl.kind,
       unitFamilyTbl.id,
-      unitFamilyTbl.label,
-      unitFamilyTbl.description
+      unitFamilyTbl.label
     )
     .limit(1)
     .then((rows) => rows[0]);
@@ -284,17 +283,12 @@ export async function listCharactersQuery(args: {
   const { q, ids, page, pageSize } = args;
   const offset = (page - 1) * pageSize;
 
-  const rawQ = q?.trim();
-  const likeAnywhere =
-    rawQ && rawQ.length ? `%${rawQ.replace(/([%_\\])/g, "\\$1")}%` : undefined;
+  const like = likeAnywhere(q);
 
   const userFilters: (SQL | undefined)[] = [
     ids && ids.length ? inArray(charsTbl.id, ids) : undefined,
-    likeAnywhere
-      ? or(
-          ilike(charsTbl.label, likeAnywhere),
-          ilike(charsTbl.key, likeAnywhere)
-        )
+    like
+      ? or(ilike(charsTbl.label, like), ilike(charsTbl.key, like))
       : undefined,
   ];
 
@@ -422,19 +416,6 @@ export async function insertNumericMeta(
     unitFamilyId: args.unitFamilyId,
     kind: args.kind,
   });
-}
-
-export async function selectUnitFamilyById(
-  tx: Transaction,
-  unitFamilyId: number
-): Promise<{ id: number; label: string } | null> {
-  const [row] = await tx
-    .select({ id: unitFamilyTbl.id, label: unitFamilyTbl.label })
-    .from(unitFamilyTbl)
-    .where(eq(unitFamilyTbl.id, unitFamilyId))
-    .limit(1);
-
-  return row ?? null;
 }
 
 /**

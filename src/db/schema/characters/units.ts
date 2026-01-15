@@ -19,7 +19,6 @@ export const unitFamily = pgTable(
   withTimestamps({
     id: serial("id").primaryKey(),
     label: text("label").notNull(),
-    description: text("description").notNull().default(""),
   }),
   (t) => [uniqueIndex("unit_families_label_uq").on(t.label)]
 );

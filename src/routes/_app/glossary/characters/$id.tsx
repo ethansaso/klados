@@ -72,9 +72,13 @@ function RouteComponent() {
       <Text as="div" size="2" color="gray">
         {capitalizeFirstLetter(character.type)}
       </Text>
-      {character.type === "categorical" && (
+      {character.type === "categorical" ? (
         <Text as="div" size="2" color="gray">
           Trait set: "{character.traitSet.label}"
+        </Text>
+      ) : (
+        <Text as="div" size="2" color="gray">
+          Unit family: "{character.unitFamily.label}"
         </Text>
       )}
       <Text>{character.description}</Text>

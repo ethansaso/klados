@@ -14,6 +14,7 @@ import { alias } from "drizzle-orm/pg-core";
 import { db } from "../../../db/client";
 import { taxonName as namesTbl } from "../../../db/schema/taxa/name";
 import { taxon as taxaTbl } from "../../../db/schema/taxa/taxon";
+import { likeAnywhere } from "../../utils/likeAnywhere";
 import { Transaction } from "../../utils/transactionType";
 import { TaxonSearchParams } from "./search";
 import {
@@ -362,9 +363,7 @@ export async function listTaxaQuery(
   const offset = (page - 1) * pageSize;
 
   // Escape %, _ and \ in the search string (no user wildcards)
-  const rawQ = q?.trim();
-  const likeAnywhere =
-    rawQ && rawQ.length ? `%${rawQ.replace(/([%_\\])/g, "\\$1")}%` : undefined;
+  const like = likeAnywhere(q);
 
   // Aliases for filtering names when searching
   const searchNames = alias(namesTbl, "search_names");
@@ -385,10 +384,10 @@ export async function listTaxaQuery(
     : undefined;
 
   // When q is provided, filter on names.value (trigram index)
-  if (likeAnywhere) {
+  if (like) {
     const filters: (SQL | undefined)[] = [
       statusFilter,
-      ilike(searchNames.value, likeAnywhere),
+      ilike(searchNames.value, like),
       rankFilter,
       hasMediaFilter,
     ];

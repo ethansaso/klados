@@ -10,12 +10,12 @@ import {
   characterGroup,
   numericCharacterMeta,
 } from "../../../db/schema/schema";
+import { UnitDTO } from "../../domain/units/types";
 import { normalizeUnitToken, ParsedNumeric } from "./numericParsing";
 import {
   CategoricalValueSuggestion,
   NumericRangeSuggestion,
   NumericSingleSuggestion,
-  UnitDTO,
 } from "./types";
 
 /**
@@ -30,6 +30,7 @@ async function resolveUnitFromToken(token: string): Promise<UnitDTO | null> {
       familyId: unit.familyId,
       key: unit.key,
       symbol: unit.symbol,
+      scale: unit.scale,
     })
     .from(unit)
     .where(
