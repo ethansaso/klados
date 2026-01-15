@@ -11,10 +11,15 @@ import { TiOutline } from "../../../../components/icons/TiOutline";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { useGlossarySearch } from "../../../../lib/hooks/useGlossarySearch";
 import { charactersQueryOptions } from "../../../../lib/queries/characters";
+import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
 import { AddCharacterModal } from "./-modal/AddCharacterModal";
 
 export const Route = createFileRoute("/_app/glossary/characters")({
+  head: () =>
+    routeSeo({
+      title: "Browse Characters | Klados",
+    }),
   validateSearch: SearchWithQuerySchema,
   loaderDeps: ({ search: { page, pageSize: pageSize, q } }) => ({
     page,

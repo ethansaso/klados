@@ -10,10 +10,15 @@ import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { useGlossarySearch } from "../../../../lib/hooks/useGlossarySearch";
 import { characterGroupsQueryOptions } from "../../../../lib/queries/characterGroups";
+import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
 import { AddCharacterGroupModal } from "./-AddCharacterGroupModal";
 
 export const Route = createFileRoute("/_app/glossary/groups")({
+  head: () =>
+    routeSeo({
+      title: "Browse Character Groups | Klados",
+    }),
   validateSearch: SearchWithQuerySchema,
   loaderDeps: ({ search: { page, pageSize: pageSize, q } }) => ({
     page,

@@ -46,6 +46,9 @@ const SearchSchema = z.object({
 const PAGE_SIZE = 10;
 
 export const Route = createFileRoute("/_app/glossary/traits/$id")({
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex,follow" }],
+  }),
   params: ParamsSchema,
   validateSearch: SearchSchema,
   loaderDeps: ({ search }) => ({

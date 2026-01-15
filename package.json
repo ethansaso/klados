@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "type": "module",
-  "packageManager": "npm@11.6.2",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build && node scripts/patch-ssr-utils.mjs",
