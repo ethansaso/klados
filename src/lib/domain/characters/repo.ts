@@ -245,9 +245,9 @@ export async function selectCharactersByIds(
       group: { id: groupsTbl.id, label: groupsTbl.label },
 
       usageCount: sql<number>`CASE
-        WHEN ${characterTypeExpr} = 'categorical' THEN COALESCE(${catUsageSel.usageCount}, 0)
-        WHEN ${characterTypeExpr} = 'number'      THEN COALESCE(${numUsageSel.usageCount}, 0)
-        WHEN ${characterTypeExpr} = 'range'       THEN COALESCE(${rangeUsageSel.usageCount}, 0)
+        WHEN ${characterTypeExpr} = 'categorical' THEN COALESCE(${catUsageSel.catUsageCount}, 0)
+        WHEN ${characterTypeExpr} = 'number'      THEN COALESCE(${numUsageSel.numUsageCount}, 0)
+        WHEN ${characterTypeExpr} = 'range'       THEN COALESCE(${rangeUsageSel.rangeUsageCount}, 0)
         ELSE 0
       END`,
 
@@ -310,9 +310,9 @@ export async function listCharactersQuery(args: {
 
       // corruption edge-case: if multiple meta exist (shouldn't happen), sum usages
       usageCount: sql<number>`(
-        COALESCE(${catUsageSel.usageCount}, 0) +
-        COALESCE(${numUsageSel.usageCount}, 0) +
-        COALESCE(${rangeUsageSel.usageCount}, 0)
+        COALESCE(${catUsageSel.catUsageCount}, 0) +
+        COALESCE(${numUsageSel.numUsageCount}, 0) +
+        COALESCE(${rangeUsageSel.rangeUsageCount}, 0)
       )`,
 
       type: characterTypeExpr,
@@ -402,6 +402,39 @@ export async function insertCategoricalMeta(
     traitSetId: args.traitSetId,
     isMultiSelect: args.isMultiSelect,
   });
+}
+
+/**
+ * Insert numeric meta for a character.
+ * * kind: 'single' => DTO type 'number'
+ * * kind: 'range'  => DTO type 'range'
+ */
+export async function insertNumericMeta(
+  tx: Transaction,
+  args: {
+    characterId: number;
+    unitFamilyId: number;
+    kind: "single" | "range";
+  }
+): Promise<void> {
+  await tx.insert(numMetaTbl).values({
+    characterId: args.characterId,
+    unitFamilyId: args.unitFamilyId,
+    kind: args.kind,
+  });
+}
+
+export async function selectUnitFamilyById(
+  tx: Transaction,
+  unitFamilyId: number
+): Promise<{ id: number; label: string } | null> {
+  const [row] = await tx
+    .select({ id: unitFamilyTbl.id, label: unitFamilyTbl.label })
+    .from(unitFamilyTbl)
+    .where(eq(unitFamilyTbl.id, unitFamilyId))
+    .limit(1);
+
+  return row ?? null;
 }
 
 /**

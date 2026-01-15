@@ -12,7 +12,7 @@ import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextF
 import { useGlossarySearch } from "../../../../lib/hooks/useGlossarySearch";
 import { charactersQueryOptions } from "../../../../lib/queries/characters";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
-import { AddCharacterModal } from "./-AddCharacterModal";
+import { AddCharacterModal } from "./-modal/AddCharacterModal";
 
 export const Route = createFileRoute("/_app/glossary/characters")({
   validateSearch: SearchWithQuerySchema,
