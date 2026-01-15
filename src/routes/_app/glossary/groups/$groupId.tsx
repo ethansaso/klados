@@ -9,6 +9,9 @@ const ParamsSchema = z.object({
 });
 
 export const Route = createFileRoute("/_app/glossary/groups/$groupId")({
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex,follow" }],
+  }),
   params: ParamsSchema,
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData(
