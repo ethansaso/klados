@@ -1,6 +1,7 @@
 @import "@radix-ui/themes/styles.css";
 @import "admin.css";
 @import "forms.css";
+@import "typography.css";
 @import "vars.css";
 @import "./vendors/_index.css";
 @import "./components/_index.css";
