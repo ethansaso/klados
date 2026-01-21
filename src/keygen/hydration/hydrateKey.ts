@@ -137,6 +137,7 @@ async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
     traitById.set(tr.id, {
       id: tr.id,
       label: tr.label,
+      description: tr.aliasTarget?.description ?? tr.description,
       canonicalId: tr.aliasTarget?.id ?? tr.id,
       hexCode: tr.hexCode ?? undefined,
     });
@@ -152,7 +153,7 @@ async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
 
 function hydrateBranchRationale(
   raw: KeyBranchRationale | null,
-  meta: HydrationMeta
+  meta: HydrationMeta,
 ): HydratedBranchRationale {
   if (!raw) return null;
 
@@ -234,7 +235,7 @@ function hydrateNode(node: KeyNode, meta: HydrationMeta): HydratedKeyNode {
 }
 
 export async function hydrateKeyFromRoot(
-  root: KeyTaxonNode
+  root: KeyTaxonNode,
 ): Promise<HydratedKeyGraphDTO> {
   const ids = collectIdsFromTree(root);
   const meta = await loadHydrationMeta(ids);
@@ -267,7 +268,7 @@ export async function hydrateKeyFromRoot(
       sourceId,
       targetId,
       rationale: hydrateBranchRationale(branch.rationale, meta),
-    })
+    }),
   );
 
   return {

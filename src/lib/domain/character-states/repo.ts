@@ -72,12 +72,18 @@ export async function selectTaxonCharacterStatesByTaxonIds(
   );
 
   const canonicalRows = await tx
-    .select({ id: catValTbl.id, hexCode: catValTbl.hexCode })
+    .select({
+      id: catValTbl.id,
+      hexCode: catValTbl.hexCode,
+      description: catValTbl.description,
+    })
     .from(catValTbl)
     .where(inArray(catValTbl.id, canonicalIds));
 
   const hexByCanonicalId = new Map(canonicalRows.map((r) => [r.id, r.hexCode]));
-
+  const descriptionByCanonicalId = new Map(
+    canonicalRows.map((r) => [r.id, r.description]),
+  );
   const byTaxon = new Map<number, Map<number, TaxonCharacterStateDTO>>();
 
   // Build categorical states
@@ -108,12 +114,14 @@ export async function selectTaxonCharacterStatesByTaxonIds(
       : (row.canonicalValueId ?? row.traitValueId);
 
     const hexCode = hexByCanonicalId.get(canonicalId);
+    const description = descriptionByCanonicalId.get(canonicalId);
 
     state.traitValues.push({
       id: row.traitValueId,
       canonicalId,
       label: row.traitValueLabel,
-      ...(hexCode ? { hexCode } : {}),
+      description: description ?? "",
+      hexCode: hexCode || undefined,
     });
   }
 
