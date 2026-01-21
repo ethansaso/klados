@@ -1,8 +1,14 @@
 import { Box } from "@radix-ui/themes";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useFormContext } from "react-hook-form";
+import { TaxonEditFormValues } from "..";
 import { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
 import { GroupCard } from "./GroupCard";
-import { GroupSearch } from "./GroupSearch";
+import { GroupSearch } from "./search/GroupSearch";
+import {
+  removeCategoricalTraitValue,
+  removeCharacterState,
+} from "./stateUtils";
 import { CharacterStateFormValue } from "./validation";
 
 type CharacterEditingFormProps = {
@@ -14,6 +20,8 @@ export function CharacterEditingForm({
   value,
   onChange,
 }: CharacterEditingFormProps) {
+  const { getValues } = useFormContext<TaxonEditFormValues>();
+
   const [openGroupIds, setOpenGroupIds] = useState<number[]>(() => {
     const seen = new Set<number>();
     for (const row of value) {
@@ -35,8 +43,9 @@ export function CharacterEditingForm({
   const handleDeleteGroup = (groupId: number, characterIds: number[]) => {
     // Remove all character states associated with this group.
     if (characterIds.length > 0) {
-      const next = value.filter(
-        (row) => !characterIds.includes(row.characterId)
+      const current = getValues("characters");
+      const next = current.filter(
+        (row) => !characterIds.includes(row.characterId),
       );
       onChange(next);
     }
@@ -44,15 +53,42 @@ export function CharacterEditingForm({
     setOpenGroupIds((prev) => prev.filter((gId) => gId !== groupId));
   };
 
-  const stateByCharacterId = useMemo(() => {
+  // Group states by groupId for efficient per-card updates
+  const statesByGroupId = useMemo(() => {
     const map = new Map<number, CharacterStateFormValue[]>();
     for (const row of value) {
-      const arr = map.get(row.characterId) ?? [];
-      arr.push(row);
-      map.set(row.characterId, arr);
+      const existing = map.get(row.groupId);
+      if (existing) {
+        existing.push(row);
+      } else {
+        map.set(row.groupId, [row]);
+      }
     }
     return map;
   }, [value]);
+
+  // getValues is stable, so these callbacks are stable
+  const handleRemoveCategoricalValue = useCallback(
+    (characterId: number, traitValueId: number) => {
+      const current = getValues("characters");
+      const next = removeCategoricalTraitValue(
+        current,
+        characterId,
+        traitValueId,
+      );
+      onChange(next);
+    },
+    [getValues, onChange],
+  );
+
+  const handleRemoveState = useCallback(
+    (characterId: number) => {
+      const current = getValues("characters");
+      const next = removeCharacterState(current, characterId);
+      onChange(next);
+    },
+    [getValues, onChange],
+  );
 
   return (
     <Box>
@@ -64,10 +100,11 @@ export function CharacterEditingForm({
           <GroupCard
             key={gId}
             groupId={gId}
-            value={value}
-            stateByCharacterId={stateByCharacterId}
+            statesForGroup={statesByGroupId.get(gId) ?? []}
             onChange={onChange}
             onDelete={handleDeleteGroup}
+            onRemoveCategoricalValue={handleRemoveCategoricalValue}
+            onRemoveState={handleRemoveState}
           />
         ))}
       </div>

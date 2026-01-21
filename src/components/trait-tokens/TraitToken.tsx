@@ -1,7 +1,7 @@
 import { Flex, Text } from "@radix-ui/themes";
 import { memo } from "react";
 import { ColorBubble } from "./ColorBubble";
-import { UITokenTrait } from "./types";
+import { UITrait } from "./types";
 
 function formatTraitLabel(label: string, index: number) {
   const lower = label.toLowerCase();
@@ -18,7 +18,7 @@ export const TraitToken = memo(
     index = 0,
     isLast = false,
   }: {
-    trait: UITokenTrait;
+    trait: UITrait;
     index?: number;
     isLast?: boolean;
   }) => {
@@ -38,5 +38,5 @@ export const TraitToken = memo(
         </Text>
       </Flex>
     );
-  }
+  },
 );

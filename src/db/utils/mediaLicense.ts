@@ -1,6 +1,7 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 
 export const MEDIA_LICENSES = [
+  "unknown",
   "cc0", // Creative Commons Zero (public domain)
   "cc-by", // Attribution
   "cc-by-sa", // Attribution-ShareAlike
@@ -15,6 +16,7 @@ export const HUMAN_CASED_MEDIA_LICENSES: Record<
   (typeof MEDIA_LICENSES)[number],
   string
 > = {
+  unknown: "Unknown License",
   cc0: "CC0",
   "cc-by": "CC BY",
   "cc-by-sa": "CC BY-SA",

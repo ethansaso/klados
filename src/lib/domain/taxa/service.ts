@@ -3,8 +3,17 @@ import { and, count, eq } from "drizzle-orm";
 import { db } from "../../../db/client";
 import { taxon as taxaTbl } from "../../../db/schema/taxa/taxon";
 import { assertHierarchyInvariant } from "../../utils/assertHierarchyInvariant";
-import { replaceCategoricalStatesForTaxon } from "../character-states/repo";
-import { CategoricalCharacterUpdate } from "../character-states/validation";
+import {
+  replaceCategoricalStatesForTaxon,
+  replaceNumberStatesForTaxon,
+  replaceRangeStatesForTaxon,
+} from "../character-states/repo";
+import {
+  CategoricalCharacterUpdate,
+  CharacterUpdate,
+  NumberCharacterUpdate,
+  RangeCharacterUpdate,
+} from "../character-states/validation";
 import { replaceNamesForTaxon } from "../taxon-names/repo";
 import type { NameItem } from "../taxon-names/validation";
 import { setSourcesForTaxon } from "../taxon-sources/repo";
@@ -32,7 +41,7 @@ import {
   getChildCount,
   getCurrentTaxonMinimal,
 } from "./utils";
-import { CharacterUpdate, UpdateTaxonInput } from "./validation";
+import { UpdateTaxonInput } from "./validation";
 
 /**
  * Create a new draft taxon with an accepted scientific name.
@@ -289,15 +298,20 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
     // 3) categorical characters replace (if provided)
     if ("characters" in updates) {
       const characters = (updates.characters ?? []) as CharacterUpdate[];
+
       const categorical = characters.filter(
         (c): c is CategoricalCharacterUpdate => c.kind === "categorical"
       );
-      if (categorical.length !== characters.length) {
-        throw new Error(
-          "Only categorical characters are supported at this time."
-        );
-      }
+      const number = characters.filter(
+        (c): c is NumberCharacterUpdate => c.kind === "number"
+      );
+      const range = characters.filter(
+        (c): c is RangeCharacterUpdate => c.kind === "range"
+      );
+
       await replaceCategoricalStatesForTaxon(tx, id, categorical);
+      await replaceNumberStatesForTaxon(tx, id, number);
+      await replaceRangeStatesForTaxon(tx, id, range);
     }
 
     // 4) taxon sources set (if provided)

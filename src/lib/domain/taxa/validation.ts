@@ -7,9 +7,9 @@ import { setTaxonSourcesSchema } from "../taxon-sources/validation";
 
 export const mediaItemSchema = z.object({
   url: z.url(),
-  license: z.enum(MEDIA_LICENSES).optional(),
-  owner: z.string().optional(),
-  source: z.string().optional(),
+  license: z.enum(MEDIA_LICENSES),
+  owner: z.string(),
+  source: z.string(),
 });
 
 export const taxonPatchSchema = z.object({
@@ -64,4 +64,3 @@ export type MediaItem = z.infer<typeof mediaItemSchema>;
 export type TaxonPatch = z.infer<typeof taxonPatchSchema>;
 export type CreateTaxonInput = z.infer<typeof createTaxonSchema>;
 export type UpdateTaxonInput = z.infer<typeof updateTaxonInputSchema>;
-export type CharacterUpdate = z.infer<typeof characterUpdateSchema>;

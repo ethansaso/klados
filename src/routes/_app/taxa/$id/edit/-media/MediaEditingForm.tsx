@@ -36,12 +36,13 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const itemIds = fields.map((f) => f.id);
 
-  const addRow = () => append({ url: "" });
+  const addRow = () =>
+    append({ url: "", license: "unknown", owner: "", source: "" });
 
   const addFromInat = async () => {
     if (!inatId) {
@@ -106,7 +107,7 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
                       key={row.id}
                       id={row.id}
                       index={i}
-                      onRemove={(index) => remove(index)}
+                      onRemove={() => remove(i)}
                     />
                   );
                 })

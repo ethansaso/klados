@@ -9,6 +9,7 @@ import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../components/dialogs/ConfirmDeleteModal";
 import { deleteCharacterFn } from "../../../../lib/api/characters/deleteCharacter";
 import { CharacterDetailDTO } from "../../../../lib/domain/characters/types";
+import { characterGroupQueryOptions } from "../../../../lib/queries/characterGroups";
 import { characterQueryOptions } from "../../../../lib/queries/characters";
 import { capitalizeFirstLetter } from "../../../../lib/utils/casing";
 import { toast } from "../../../../lib/utils/toast";
@@ -50,6 +51,9 @@ function RouteComponent() {
           qc.invalidateQueries({ queryKey: ["characters"] });
           qc.invalidateQueries({
             queryKey: characterQueryOptions(character.id).queryKey,
+          });
+          qc.invalidateQueries({
+            queryKey: characterGroupQueryOptions(character.group.id).queryKey,
           });
           navigate({
             to: "/glossary/characters",

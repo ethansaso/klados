@@ -1,11 +1,47 @@
-import { Trait } from "../../lib/domain/character-states/types";
+import {
+  TaxonCharacterStateDTO,
+  Trait,
+} from "../../lib/domain/character-states/types";
+import { UnitDTO } from "../../lib/domain/units/types";
+
+// UI-focused types with optional weight styling.
+// Exclude metadata like characterId and groupId.
+// This allows simpler usage in contexts where those IDs are
+// difficult or impossible to provide.
 
 type Weight = "light" | "regular" | "medium" | "bold";
 
-type GenerousTrait = Omit<Trait, "hexCode"> & {
+export type UITrait = Omit<Trait, "hexCode" | "canonicalId"> & {
   hexCode?: string | null;
-};
-
-export type UITokenTrait = GenerousTrait & {
   weight?: Weight;
 };
+
+export type UIUnit = Pick<UnitDTO, "symbol" | "scale">;
+
+export type UICategoricalState = Pick<
+  Extract<TaxonCharacterStateDTO, { kind: "categorical" }>,
+  "kind"
+> & {
+  traitValues: UITrait[];
+};
+
+export type UINumberState = Pick<
+  Extract<TaxonCharacterStateDTO, { kind: "number" }>,
+  "kind" | "siBaseValue"
+> & {
+  unit: UIUnit | null;
+  weight?: Weight;
+};
+
+export type UIRangeState = Pick<
+  Extract<TaxonCharacterStateDTO, { kind: "range" }>,
+  "kind" | "siBaseMin" | "siBaseMax"
+> & {
+  unit: UIUnit | null;
+  weight?: Weight;
+};
+
+export type UICharacterState =
+  | UICategoricalState
+  | UINumberState
+  | UIRangeState;

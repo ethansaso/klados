@@ -1,17 +1,13 @@
 import { Badge, Flex, IconButton } from "@radix-ui/themes";
+import { ReactNode } from "react";
 import { PiX } from "react-icons/pi";
 
-type CategoricalTraitTagProps = {
-  characterId: number;
-  traitValue: { id: number; label: string };
-  onRemove?: (traitValueId: number) => void;
-  // later: modifiers, onClick to open editor, etc.
+type StateTagWrapperProps = {
+  children: ReactNode;
+  onRemove?: () => void;
 };
 
-export function CategoricalStateTag({
-  traitValue,
-  onRemove,
-}: CategoricalTraitTagProps) {
+export function StateTagWrapper({ children, onRemove }: StateTagWrapperProps) {
   return (
     <Badge
       asChild
@@ -20,14 +16,14 @@ export function CategoricalStateTag({
       className="character-editor__tag"
     >
       <Flex align="center" gap="2">
-        <span>{traitValue.label}</span>
+        {children}
         {onRemove && (
           <IconButton
             type="button"
             size="1"
             variant="ghost"
             color="tomato"
-            onClick={() => onRemove(traitValue.id)}
+            onClick={onRemove}
             style={{
               padding: "calc(var(--space-1) / 2)",
               marginRight: "-3px",

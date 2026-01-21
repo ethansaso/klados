@@ -12,15 +12,16 @@ type BaseNumericSuggestion = BaseCharacterContext & {
   // Family unit belongs to
   unitFamilyId: number;
 
-  // UI convenience fields.
   unitLabel: string | null; // prefer unit.symbol (e.g. "µm")
-  unitKey?: string | null; // optional: ascii-safe key (e.g. "um")
+  unitKey: string | null; // ascii-safe key (e.g. "um")
+  unitScale: string | null; // e.g. "0.001" for "mm"
 };
 
 export type CategoricalValueSuggestion = BaseCharacterContext & {
   kind: "categorical-value";
   traitValueId: number;
   traitValueLabel: string; // "Red"
+  traitValueHexCode: string | null; // "#FF0000" or null
 };
 export type NumericSingleSuggestion = BaseNumericSuggestion & {
   kind: "numeric-single";

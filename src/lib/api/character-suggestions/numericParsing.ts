@@ -47,7 +47,7 @@ export function parseNumericQuery(raw: string): ParsedNumeric {
   }
 
   const rangeMatch = numericPart.match(
-    /^\s*([+-]?\d+(\.\d+)?)\s*-\s*([+-]?\d+(\.\d+)?)\s*$/
+    /^\s*([+-]?\d+(\.\d+)?)\s*-\s*([+-]?\d+(\.\d+)?)\s*$/,
   );
   if (rangeMatch) {
     const min = Number(rangeMatch[1]);
@@ -83,37 +83,111 @@ export function normalizeUnitToken(unitText?: string): string | null {
   const raw0 = unitText.trim().toLowerCase();
   if (!raw0) return null;
 
-  // normalize micro characters
+  // Normalize micro characters (µ and μ)
   const raw = raw0.replace(MICRO_REGEX, "u");
 
-  switch (raw) {
+  // Strip trailing 's' for plurals (but not for single-char units like "m")
+  const singular = raw.length > 2 && raw.endsWith("s") ? raw.slice(0, -1) : raw;
+
+  switch (singular) {
+    // LENGTH
+    case "nm":
+    case "nanometer":
+    case "nanometre":
+      return "nm";
+
     case "um":
     case "micron":
-    case "microns":
+    case "micrometer":
+    case "micrometre":
       return "um";
+
     case "mm":
+    case "millimeter":
+    case "millimetre":
+      return "mm";
+
     case "cm":
+    case "centimeter":
+    case "centimetre":
+      return "cm";
+
     case "m":
-      return raw;
+    case "meter":
+    case "metre":
+      return "m";
 
     case "in":
     case "inch":
-    case "inches":
+    case "inche": // "inches" -> "inche" after strip
       return "in";
+
     case "ft":
     case "foot":
     case "feet":
       return "ft";
 
-    case "%":
-    case "percent":
-      return "%";
+    // AREA
+    case "nm2":
+    case "nm²":
+      return "nm2";
 
-    case "count":
-      return "count";
+    case "um2":
+    case "um²":
+      return "um2";
 
+    case "mm2":
+    case "mm²":
+      return "mm2";
+
+    case "cm2":
+    case "cm²":
+      return "cm2";
+
+    case "m2":
+    case "m²":
+      return "m2";
+
+    case "in2":
+    case "in²":
+      return "in2";
+
+    case "ft2":
+    case "ft²":
+      return "ft2";
+
+    // WEIGHT
+    case "mg":
+    case "milligram":
+    case "milligramme":
+      return "mg";
+
+    case "g":
+    case "gram":
+    case "gramme":
+      return "g";
+
+    case "kg":
+    case "kilogram":
+    case "kilogramme":
+      return "kg";
+
+    case "lb":
+    case "pound":
+      return "lb";
+
+    case "oz":
+    case "ounce":
+      return "oz";
+
+    // ANGLE
+    case "deg":
+    case "degree":
+    case "°":
+      return "deg";
+
+    // DIMENSIONLESS - no units, pass through for DB lookup
     default:
-      // TODO: pass through things like "cm2", "mm3", "in²" if they begin seeing use. Keeping simple for now (1/14/26).
       return raw;
   }
 }

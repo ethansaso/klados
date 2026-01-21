@@ -58,9 +58,9 @@ export const taxon = pgTable(
       .$type<
         Array<{
           url: string;
-          license?: (typeof mediaLicenseEnum.enumValues)[number];
-          owner?: string;
-          source?: string;
+          license: (typeof mediaLicenseEnum.enumValues)[number];
+          owner: string;
+          source: string;
         }>
       >()
       .notNull()
@@ -83,7 +83,7 @@ export const taxon = pgTable(
 
     check(
       "taxa_parent_not_self",
-      sql`${t.parentId} IS NULL OR ${t.parentId} <> ${t.id}`
+      sql`${t.parentId} IS NULL OR ${t.parentId} <> ${t.id}`,
     ),
     index("taxa_parent_idx").on(t.parentId),
     index("taxa_rank_idx").on(t.rank),
@@ -93,5 +93,5 @@ export const taxon = pgTable(
     uniqueIndex("taxa_source_inat_uq")
       .on(t.sourceInatId)
       .where(sql`${t.sourceInatId} IS NOT NULL`),
-  ]
+  ],
 );

@@ -1,24 +1,18 @@
 import { Card, DataList, Heading, Separator } from "@radix-ui/themes";
-import { TraitTokenList } from "../../../../../components/trait-tokens/TraitTokenList";
-import { TaxonCharacterDisplayGroupDTO } from "../../../../../lib/domain/character-states/types";
+import { CharacterStateDisplay } from "../../../../../components/trait-tokens/CharacterStateDisplay";
+import { GroupedCharacterStates } from "../../../../../lib/domain/character-states/utils";
 
-export const GroupCard = ({
-  group,
-}: {
-  group: TaxonCharacterDisplayGroupDTO;
-}) => {
+export const GroupCard = ({ group }: { group: GroupedCharacterStates }) => {
   return (
     <Card size="2">
-      <Heading size="2">{group.label}</Heading>
+      <Heading size="2">{group.groupLabel}</Heading>
       <Separator size="4" mt="1" mb="3" />
       <DataList.Root size="2">
-        {group.characters.map((character) => (
-          <DataList.Item key={character.id}>
-            <DataList.Label>{character.label}</DataList.Label>
+        {group.states.map((state) => (
+          <DataList.Item key={state.characterId}>
+            <DataList.Label>{state.characterLabel}</DataList.Label>
             <DataList.Value>
-              {character.state && (
-                <TraitTokenList traits={character.state.traitValues} />
-              )}
+              <CharacterStateDisplay state={state} />
             </DataList.Value>
           </DataList.Item>
         ))}

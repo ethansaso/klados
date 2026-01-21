@@ -36,7 +36,7 @@ const SourcePickerModal = NiceModal.create<Props>(({ onConfirm }) => {
   const [selected, setSelected] = useState<ComboboxOption | null>(null);
 
   const { data: searchResp, isFetching } = useQuery(
-    sourcesQueryOptions(1, 10, { q })
+    sourcesQueryOptions(1, 10, { q }),
   );
 
   const options = useMemo<ComboboxOption[]>(() => {
@@ -54,7 +54,7 @@ const SourcePickerModal = NiceModal.create<Props>(({ onConfirm }) => {
     if (!selected) return null;
     return (
       (searchResp?.items ?? []).find(
-        (s: SourceDTO) => s.id === Number(selected.id)
+        (s: SourceDTO) => s.id === Number(selected.id),
       ) ?? null
     );
   }, [selected, searchResp]);

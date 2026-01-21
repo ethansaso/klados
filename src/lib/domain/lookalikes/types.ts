@@ -1,5 +1,10 @@
 import { TaxonRank } from "../../../db/schema/schema";
-import { Trait } from "../character-states/types";
+import {
+  TaxonCategoricalStateDTO,
+  TaxonNumberStateDTO,
+  TaxonRangeStateDTO,
+  Trait,
+} from "../character-states/types";
 import { TaxonDTO } from "../taxa/types";
 import { MediaItem } from "../taxa/validation";
 
@@ -19,23 +24,52 @@ export type TaxonLookalikeDTO = {
   otherCount: number;
 };
 
-export type LookalikeComparisonAnnotatedStateGroup = {
-  groupId: number;
-  groupLabel: string;
-  aCharacters: LookalikeComparisonAnnotatedCharacterStates[];
-  bCharacters: LookalikeComparisonAnnotatedCharacterStates[];
+type OverlapAnnotation = {
+  isOverlapping: boolean;
 };
 
-export type LookalikeComparisonAnnotatedCharacterStates = {
+export type LookalikeComparisonAnnotatedCategoricalTrait = Trait &
+  OverlapAnnotation;
+
+export type LookalikeComparisonAnnotatedCategoricalState = Pick<
+  TaxonCategoricalStateDTO,
+  "kind"
+> & {
+  traits: LookalikeComparisonAnnotatedCategoricalTrait[];
+};
+
+export type LookalikeComparisonAnnotatedNumberState = Pick<
+  TaxonNumberStateDTO,
+  "kind" | "siBaseValue" | "unit"
+> &
+  OverlapAnnotation;
+
+export type LookalikeComparisonAnnotatedRangeState = Pick<
+  TaxonRangeStateDTO,
+  "kind" | "siBaseMin" | "siBaseMax" | "unit"
+> &
+  OverlapAnnotation;
+
+export type LookalikeComparisonAnnotatedState =
+  | LookalikeComparisonAnnotatedCategoricalState
+  | LookalikeComparisonAnnotatedNumberState
+  | LookalikeComparisonAnnotatedRangeState;
+
+export type LookalikeComparisonCharacter = {
   characterId: number;
   characterLabel: string;
-  traits: LookalikeComparisonAnnotatedTrait[];
+  state: LookalikeComparisonAnnotatedState | null;
 };
 
-export type LookalikeComparisonAnnotatedTrait = Trait & { isShared: boolean };
+export type LookalikeComparisonGroup = {
+  groupId: number;
+  groupLabel: string;
+  aCharacters: LookalikeComparisonCharacter[];
+  bCharacters: LookalikeComparisonCharacter[];
+};
 
 export type LookalikeComparisonDetailDTO = {
   a: TaxonDTO;
   b: TaxonDTO;
-  groupedStates: LookalikeComparisonAnnotatedStateGroup[];
+  groupedStates: LookalikeComparisonGroup[];
 };

@@ -2,6 +2,8 @@
  * Low-level ID-based types.
  */
 
+import { UnitDTO } from "../units/types";
+
 export type Trait = {
   id: number;
   canonicalId: number;
@@ -11,38 +13,32 @@ export type Trait = {
 
 type TaxonStateBase = {
   characterId: number;
+  characterLabel: string;
+  characterDescription: string;
   groupId: number;
+  groupLabel: string;
+  groupDescription: string;
+};
+
+type TaxonNumericStateBase = TaxonStateBase & {
+  unit: UnitDTO | null;
 };
 
 export type TaxonCategoricalStateDTO = TaxonStateBase & {
   kind: "categorical";
   traitValues: Trait[];
 };
-
-/**
- * TODO: Non-categorical DTOs
- */
-export type TaxonCharacterStateDTO = TaxonCategoricalStateDTO | never;
-
-/**
- * Display-oriented types for viewing/editing types.
- */
-
-export type DisplayCharacterState = {
-  kind: "categorical";
-  traitValues: Trait[];
+export type TaxonNumberStateDTO = TaxonNumericStateBase & {
+  kind: "number";
+  siBaseValue: number;
+};
+export type TaxonRangeStateDTO = TaxonNumericStateBase & {
+  kind: "range";
+  siBaseMin: number;
+  siBaseMax: number;
 };
 
-export type TaxonCharacterInGroup = {
-  id: number;
-  label: string;
-  description: string;
-  state: DisplayCharacterState | null;
-};
-
-export type TaxonCharacterDisplayGroupDTO = {
-  id: number;
-  label: string;
-  description: string;
-  characters: TaxonCharacterInGroup[];
-};
+export type TaxonCharacterStateDTO =
+  | TaxonCategoricalStateDTO
+  | TaxonNumberStateDTO
+  | TaxonRangeStateDTO;

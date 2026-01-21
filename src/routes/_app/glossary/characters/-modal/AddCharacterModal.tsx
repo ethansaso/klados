@@ -3,7 +3,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Dialog, Flex } from "@radix-ui/themes";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Form } from "radix-ui";
 import {
   FormProvider,
   SubmitHandler,
@@ -21,22 +20,24 @@ import { AddCharacterBaseForm } from "./AddCharacterBaseForm";
 import { AddNumberCharacterForm } from "./AddNumberCharacterForm";
 import { AddRangeCharacterForm } from "./AddRangeCharacterForm";
 
+const DEFAULT_VALUES = {
+  type: "categorical" as const,
+  key: "",
+  label: "",
+  groupId: undefined,
+  traitSetId: undefined,
+  description: undefined,
+  isMultiSelect: true,
+};
+
 export const AddCharacterModal = NiceModal.create(() => {
-  const { visible, hide } = NiceModal.useModal();
+  const { visible, hide, remove } = NiceModal.useModal();
   const qc = useQueryClient();
   const serverCreate = useServerFn(createCharacterFn);
 
   const methods = useForm<CreateCharacterInput>({
     resolver: zodResolver(createCharacterSchema),
-    defaultValues: {
-      type: "categorical",
-      key: "",
-      label: "",
-      groupId: undefined,
-      traitSetId: undefined,
-      description: undefined,
-      isMultiSelect: true,
-    },
+    defaultValues: DEFAULT_VALUES,
   });
 
   const {
@@ -64,7 +65,7 @@ export const AddCharacterModal = NiceModal.create(() => {
       });
 
       reset();
-      hide();
+      remove();
     } catch (error) {
       toast({
         variant: "error",
@@ -77,10 +78,10 @@ export const AddCharacterModal = NiceModal.create(() => {
   return (
     <Dialog.Root
       open={visible}
-      onOpenChange={(open) => {
+      onOpenChange={async (open) => {
         if (!open) {
           reset();
-          hide();
+          await hide();
         }
       }}
     >
@@ -114,15 +115,13 @@ export const AddCharacterModal = NiceModal.create(() => {
                   Cancel
                 </Button>
               </Dialog.Close>
-              <Form.Submit asChild>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  loading={isSubmitting}
-                >
-                  Add character
-                </Button>
-              </Form.Submit>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                loading={isSubmitting}
+              >
+                Add character
+              </Button>
             </Flex>
           </form>
         </FormProvider>
