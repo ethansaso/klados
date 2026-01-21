@@ -28,7 +28,7 @@ type GroupCardProps = {
   onRemoveState: (characterId: number) => void;
 };
 
-export const GroupCard = memo(
+export const EditingGroupCard = memo(
   ({
     groupId,
     statesForGroup,

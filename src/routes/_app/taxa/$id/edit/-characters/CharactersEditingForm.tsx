@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { TaxonEditFormValues } from "..";
 import { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
-import { GroupCard } from "./GroupCard";
+import { EditingGroupCard } from "./EditingGroupCard";
 import { GroupSearch } from "./search/GroupSearch";
 import {
   removeCategoricalTraitValue,
@@ -97,7 +97,7 @@ export function CharacterEditingForm({
       </Box>
       <div className="editor-card-grid">
         {openGroupIds.map((gId) => (
-          <GroupCard
+          <EditingGroupCard
             key={gId}
             groupId={gId}
             statesForGroup={statesByGroupId.get(gId) ?? []}

@@ -26,7 +26,7 @@ export const TraitToken = memo(
 
     const textComponent = trait.description ? (
       <Tooltip content={trait.description}>
-        <span className="has-description">{text}</span>
+        <span className="has-information">{text}</span>
       </Tooltip>
     ) : (
       text
