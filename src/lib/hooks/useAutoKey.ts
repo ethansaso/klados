@@ -8,7 +8,7 @@ import {
   useFormState,
   useWatch,
 } from "react-hook-form";
-import { snakeCase } from "../utils/casing";
+import { snakeCase } from "../utils/formatting/casing";
 
 type StringPath<T extends FieldValues> = {
   [P in FieldPath<T>]: FieldPathValue<T, P> extends string ? P : never;
@@ -22,7 +22,7 @@ export function useAutoKey<
   control: Control<T>,
   setValue: UseFormSetValue<T>,
   sourceField: S,
-  keyField: K
+  keyField: K,
 ) {
   const { isSubmitted } = useFormState({ control });
 
@@ -37,7 +37,7 @@ export function useAutoKey<
     setValue(
       keyField,
       snakeCase((sourceVal ?? "") as string) as FieldPathValue<T, K>,
-      { shouldDirty: true, shouldValidate: isSubmitted }
+      { shouldDirty: true, shouldValidate: isSubmitted },
     );
   }, [autoKey, sourceVal, setValue, keyField, isSubmitted]);
 
@@ -47,7 +47,7 @@ export function useAutoKey<
     setValue(
       keyField,
       snakeCase((keyVal ?? "") as string) as FieldPathValue<T, K>,
-      { shouldDirty: true, shouldValidate: isSubmitted }
+      { shouldDirty: true, shouldValidate: isSubmitted },
     );
   };
 

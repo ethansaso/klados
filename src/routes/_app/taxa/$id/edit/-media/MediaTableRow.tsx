@@ -3,12 +3,12 @@ import { CSS } from "@dnd-kit/utilities";
 import { IconButton, Select, Table, TextField } from "@radix-ui/themes";
 import { Controller, useFormContext } from "react-hook-form";
 import { PiDotsSixVerticalBold, PiTrash } from "react-icons/pi";
+import z from "zod";
 import { TaxonEditFormValues } from "..";
 import {
   HUMAN_CASED_MEDIA_LICENSES,
   MEDIA_LICENSES,
 } from "../../../../../../db/utils/mediaLicense";
-import { isUrl } from "../../../../../../lib/utils/isUrl";
 
 type MediaTableRowProps = {
   id: string;
@@ -60,7 +60,9 @@ export const MediaTableRow = ({ id, index, onRemove }: MediaTableRowProps) => {
         control={control}
         name={`media.${index}.url`}
         render={({ field }) => {
-          const urlValid = field.value === "" ? true : isUrl(field.value);
+          const urlValid = z
+            .union([z.url(), z.literal("")])
+            .safeParse(field.value).success;
           return (
             <>
               <Table.Cell>

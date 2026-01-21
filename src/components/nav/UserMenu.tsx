@@ -1,7 +1,7 @@
 import { Avatar, Box, DropdownMenu, Flex, Text } from "@radix-ui/themes";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { CSSProperties, useState } from "react";
-import { getInitials } from "../../lib/utils/getInitials";
+import { getInitials } from "../../lib/utils/formatting/getInitials";
 
 type UserMenuProps = {
   name: string;

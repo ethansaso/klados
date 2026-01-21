@@ -16,7 +16,7 @@ import {
   SetTaxonSourcesInput,
   TaxonSourceUpsertItem,
 } from "../../../../../../lib/domain/taxon-sources/validation";
-import { formatPublication } from "../../../../../../lib/utils/formatPublication";
+import { formatPublication } from "../../../../../../lib/utils/formatting/formatPublication";
 import { pickSource } from "./SourcePickerModal";
 
 type SourceEditorProps = {

@@ -29,7 +29,7 @@ import {
   traitSetQueryOptions,
   traitSetValuesPaginatedQueryOptions,
 } from "../../../../lib/queries/traits";
-import { snakeCase } from "../../../../lib/utils/casing";
+import { snakeCase } from "../../../../lib/utils/formatting/casing";
 import { toast } from "../../../../lib/utils/toast";
 import { DeleteTraitValueModal } from "./-DeleteTraitValueModal";
 import { EditTraitSetValueModal } from "./-EditTraitSetValueModal";
@@ -57,7 +57,7 @@ export const Route = createFileRoute("/_app/glossary/traits/$id")({
   loader: async ({ context, params, deps: { valuePage } }) => {
     await context.queryClient.ensureQueryData(traitSetQueryOptions(params.id));
     await context.queryClient.ensureQueryData(
-      traitSetValuesPaginatedQueryOptions(params.id, valuePage, PAGE_SIZE)
+      traitSetValuesPaginatedQueryOptions(params.id, valuePage, PAGE_SIZE),
     );
     return { id: params.id, valuePage };
   },
@@ -76,7 +76,7 @@ function RouteComponent() {
 
   const { data: traitSet } = useSuspenseQuery(traitSetQueryOptions(id));
   const { data: traitSetValuesPage } = useSuspenseQuery(
-    traitSetValuesPaginatedQueryOptions(id, valuePage, PAGE_SIZE)
+    traitSetValuesPaginatedQueryOptions(id, valuePage, PAGE_SIZE),
   );
   const { data: me } = useMe();
 
@@ -217,7 +217,7 @@ function RouteComponent() {
           hexCode: val.aliasTarget?.hexCode || null,
         };
       }),
-    [items]
+    [items],
   );
 
   return (

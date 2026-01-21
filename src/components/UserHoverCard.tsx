@@ -9,7 +9,7 @@ import {
 } from "@radix-ui/themes";
 import { Link as TSLink } from "@tanstack/react-router";
 import { UserRole } from "../db/schema/auth";
-import { getInitials } from "../lib/utils/getInitials";
+import { getInitials } from "../lib/utils/formatting/getInitials";
 import { RoleBadge } from "./UserBadge";
 
 type Size = "1" | "2" | "3";
