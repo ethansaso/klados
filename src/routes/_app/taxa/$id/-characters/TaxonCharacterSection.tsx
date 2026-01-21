@@ -22,7 +22,7 @@ export const TaxonCharacterSection = ({
         )}
       </Box>
       {groups.length > 0 && (
-        <div className="editor-card-grid">
+        <div className="character-group-card-grid">
           {groups.map((group) => (
             <GroupCard key={group.groupId} group={group} />
           ))}

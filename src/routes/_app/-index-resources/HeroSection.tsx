@@ -12,7 +12,7 @@ export const HeroSection = () => {
       minHeight={{ initial: "60svh", sm: "496px" }}
       width="100%"
       style={{
-        backgroundImage: "url(/about/forest-bg.jpeg)",
+        backgroundImage: "url(/about/forest-bg.webp)",
         backgroundSize: "cover",
         backgroundPosition: "0 50%",
         // darken by 50%

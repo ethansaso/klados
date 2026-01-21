@@ -5,8 +5,6 @@
 @import "vars.css";
 @import "./vendors/_index.css";
 @import "./components/_index.css";
-@import "./pages/_index.css";
-@import "./react-flow/_index.css";
 
 :root,
 .radix-themes {

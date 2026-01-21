@@ -4,6 +4,7 @@ export type RouteSeoInput = {
   title: string;
   description?: string;
   canonicalUrl?: string;
+  links?: { rel: string; href: string }[];
 };
 
 export function absoluteUrl(pathOrUrl?: string) {
@@ -15,7 +16,12 @@ export function absoluteUrl(pathOrUrl?: string) {
   }
 }
 
-export function routeSeo({ title, description, canonicalUrl }: RouteSeoInput) {
+export function routeSeo({
+  title,
+  description,
+  canonicalUrl,
+  links,
+}: RouteSeoInput) {
   const canonicalAbs = canonicalUrl ? absoluteUrl(canonicalUrl) : undefined;
 
   return {
@@ -34,6 +40,9 @@ export function routeSeo({ title, description, canonicalUrl }: RouteSeoInput) {
       | { name: string; content: string }
       | { property: string; content: string }
     )[],
-    links: canonicalAbs ? [{ rel: "canonical", href: canonicalAbs }] : [],
+    links: [
+      ...(links ?? []),
+      ...(canonicalAbs ? [{ rel: "canonical", href: canonicalAbs }] : []),
+    ],
   };
 }

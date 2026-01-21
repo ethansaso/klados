@@ -80,7 +80,7 @@ function RouteComponent() {
           </Box>
           <Box asChild flexShrink="0" height="208px" width="208px">
             <img
-              src={"/about/ethan-headshot.jpeg"}
+              src={"/about/ethan-headshot.webp"}
               alt="Ethan Saso"
               height="100%"
               width="100%"

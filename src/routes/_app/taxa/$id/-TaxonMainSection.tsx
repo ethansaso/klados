@@ -24,7 +24,11 @@ export const TaxonMainSection = ({
 }) => {
   return (
     <Flex gap="4" direction={{ initial: "column", xs: "row" }}>
-      <TaxonImageBrowser media={taxon.media} key={taxon.id} />
+      <TaxonImageBrowser
+        taxonName={taxon.acceptedName}
+        media={taxon.media}
+        key={taxon.id}
+      />
       <Flex direction="column" justify="between" gap="2">
         <Box>
           <DataList.Root mt="2" size="2">

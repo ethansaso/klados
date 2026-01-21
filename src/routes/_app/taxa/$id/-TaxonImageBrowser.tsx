@@ -6,7 +6,13 @@ import { MediaItem } from "../../../../lib/domain/taxa/validation";
 const THUMB_SIZE = 48;
 
 // TODO: Scrolling thumbnails if too many to fit
-export const TaxonImageBrowser = ({ media }: { media: MediaItem[] }) => {
+export const TaxonImageBrowser = ({
+  taxonName,
+  media,
+}: {
+  taxonName: string;
+  media: MediaItem[];
+}) => {
   const [selectedMediaIdx, setSelectedMediaIdx] = useState(0);
   const displayedMediaItem = media[selectedMediaIdx];
 
@@ -15,6 +21,7 @@ export const TaxonImageBrowser = ({ media }: { media: MediaItem[] }) => {
       <AnnotationBubbleWrap media={displayedMediaItem} spacing="2">
         <img
           src={displayedMediaItem?.url ?? "/logos/LogoDotted.svg"}
+          alt={`${taxonName}, copyright ${displayedMediaItem.owner}`}
           style={{
             display: "block",
             aspectRatio: "1/1",
@@ -34,6 +41,7 @@ export const TaxonImageBrowser = ({ media }: { media: MediaItem[] }) => {
             <li key={mediaItem.url}>
               <img
                 src={mediaItem.url}
+                alt={`${taxonName} thumbnail ${idx + 1}`}
                 onClick={() => setSelectedMediaIdx(idx)}
                 style={{
                   height: THUMB_SIZE,

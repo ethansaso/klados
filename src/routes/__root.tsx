@@ -9,11 +9,12 @@ import {
   stripSearchParams,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import appCssUrl from "../assets/styles/main.css?url";
 import { ToastHost } from "../components/ToastHost";
 import { meQueryOptions } from "../lib/queries/users";
 import { GA_ID, rootSeo } from "../lib/utils/head/rootSeo";
 import { paginationDefaults } from "../lib/validation/pagination";
+
+import appCssUrl from "../assets/styles/main.css?url";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;

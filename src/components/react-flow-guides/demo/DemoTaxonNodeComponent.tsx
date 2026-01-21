@@ -8,7 +8,7 @@ export const DemoTaxonNodeComponent = ({ data }: NodeProps<DemoTaxonNode>) => {
   const { primaryMedia, commonName, sciName } = n;
 
   return (
-    <AnnotationBubbleWrap media={primaryMedia} spacing="4">
+    <AnnotationBubbleWrap media={primaryMedia} spacing="2">
       <Card className="demo-taxon-node">
         <img
           src={primaryMedia?.url ?? "/logos/LogoDotted.svg"}
