@@ -29,15 +29,15 @@ const InatTaxaResponseSchema = z.object({
               license_code: z.string().nullable(), // iNat: null => ARR
               attribution_name: z.string().nullable(),
             }),
-          })
+          }),
         )
         .optional(),
-    })
+    }),
   ),
 });
 
 const ALLOWED_LICENSES = MEDIA_LICENSES.filter(
-  (l) => l !== "all-rights-reserved"
+  (l) => l !== "all-rights-reserved",
 ) as readonly Exclude<(typeof MEDIA_LICENSES)[number], "all-rights-reserved">[];
 
 const AllowedLicenseSchema = z.enum(ALLOWED_LICENSES);
@@ -49,7 +49,7 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
     const [error, setError] = useState<string | null>(null);
     const [allMedia, setAllMedia] = useState<MediaItem[] | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(
-      () => new Set()
+      () => new Set(),
     );
 
     useEffect(() => {
@@ -71,7 +71,7 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
           const extracted = extractTaxonPhotos(data);
           if (extracted.kind === "invalid") {
             setError(
-              "Failed to parse iNaturalist response. Please contact Klados developers."
+              "Failed to parse iNaturalist response. Please contact Klados developers.",
             );
             return;
           }
@@ -87,7 +87,7 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
                 {
                   url: p.medium_url,
                   license: lic.data,
-                  owner: p.attribution_name ?? undefined,
+                  owner: p.attribution_name ?? "",
                   source: `https://www.inaturalist.org/photos/${p.id}`,
                 } satisfies MediaItem,
               ];
@@ -101,7 +101,7 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
             setError(
               e instanceof Error
                 ? e.message
-                : "Failed to fetch iNaturalist taxon."
+                : "Failed to fetch iNaturalist taxon.",
             );
           }
         } finally {
@@ -178,7 +178,7 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
         </Dialog.Content>
       </Dialog.Root>
     );
-  }
+  },
 );
 
 export async function selectInatPhotos(inatId: number) {

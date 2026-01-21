@@ -7,7 +7,8 @@ import {
 import { MediaItem } from "../../lib/domain/taxa/validation";
 import { spacingClasses } from "./spacingClasses";
 
-const LICENSE_LINKS: Record<(typeof MEDIA_LICENSES)[number], string> = {
+const LICENSE_LINKS: Record<(typeof MEDIA_LICENSES)[number], string | null> = {
+  unknown: null,
   cc0: "https://creativecommons.org/publicdomain/zero/1.0/",
   "cc-by": "https://creativecommons.org/licenses/by/4.0/",
   "cc-by-sa": "https://creativecommons.org/licenses/by-sa/4.0/",
@@ -55,7 +56,7 @@ export const AnnotationBubbleWrap = ({
           {license && (
             <div className="license">
               <Link
-                href={LICENSE_LINKS[license]}
+                href={LICENSE_LINKS[license] || undefined}
                 target="_blank"
                 rel="noopener noreferrer"
               >
