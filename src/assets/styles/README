@@ -1,0 +1,6 @@
+Route-specific styles (e.g. those within the 'pages' directory)
+should be URL-imported and placed in the head, either with a raw
+head: () => ({ links }) array or using the 'routeSeo' helper.
+
+This is to avoid bundling page CSS in unnecessary contexts, which
+TanStack Start doesn't seem to handle well.

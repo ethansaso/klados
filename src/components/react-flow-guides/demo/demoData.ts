@@ -9,7 +9,7 @@ export const demoNodes: DemoNode[] = [
       sciName: "Amanitaceae",
       commonName: "Amanita and allies",
       primaryMedia: {
-        url: "/demo-img/amanitaceae.jpg",
+        url: "/demo-img/amanitaceae.webp",
         source: "https://www.inaturalist.org/photos/7018635",
         license: "cc-by",
         owner: "Davide Puddu",
@@ -24,7 +24,7 @@ export const demoNodes: DemoNode[] = [
       sciName: "Amanita",
       commonName: "Amanita mushrooms",
       primaryMedia: {
-        url: "/demo-img/amanita.jpg",
+        url: "/demo-img/amanita.webp",
         source: "https://www.inaturalist.org/photos/4133102",
         license: "cc-by-nc",
         owner: "Christian Schwarz",
@@ -39,7 +39,7 @@ export const demoNodes: DemoNode[] = [
       sciName: "Limacella",
       commonName: "Slimecaps",
       primaryMedia: {
-        url: "/demo-img/limacella.jpg",
+        url: "/demo-img/limacella.webp",
         source: "https://www.inaturalist.org/photos/13704939",
         license: "cc-by-nc",
         owner: "tombigelow",
@@ -54,7 +54,7 @@ export const demoNodes: DemoNode[] = [
       sciName: "Amanita muscaria",
       commonName: "Fly Agaric",
       primaryMedia: {
-        url: "/demo-img/amuscaria.jpg",
+        url: "/demo-img/amuscaria.webp",
         source: "https://www.inaturalist.org/photos/111494893",
         license: "cc-by-nc",
         owner: "Federico Calledda",
@@ -69,7 +69,7 @@ export const demoNodes: DemoNode[] = [
       sciName: "Amanita phalloides",
       commonName: "Death Cap",
       primaryMedia: {
-        url: "/demo-img/aphalloides.jpg",
+        url: "/demo-img/aphalloides.webp",
         source: "https://www.inaturalist.org/photos/111266235",
         license: "cc-by-nc",
         owner: "Federico Calledda",

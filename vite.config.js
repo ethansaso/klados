@@ -12,7 +12,16 @@ export default defineConfig({
   plugins: [
     tsConfigPaths(),
     tanstackStart({ customViteReactPlugin: true }),
-    nitro(),
+    nitro({
+      compressPublicAssets: true,
+      publicAssets: [
+        {
+          baseURL: "/",
+          dir: "public",
+          maxAge: 60 * 60 * 24 * 365, // 1 year
+        },
+      ],
+    }),
     viteReact(),
     svgr({
       svgrOptions: {
@@ -21,5 +30,4 @@ export default defineConfig({
       },
     }),
   ],
-  nitro: {},
 });

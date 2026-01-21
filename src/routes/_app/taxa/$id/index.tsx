@@ -18,6 +18,8 @@ import { LookalikesList } from "./-lookalikes/LookalikesList";
 import { NamesDataList } from "./-NameDataList";
 import { TaxonMainSection } from "./-TaxonMainSection";
 
+import taxonPageCssUrl from "../../../../assets/styles/pages/taxa/$id.css?url";
+
 const ParamsSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
@@ -40,6 +42,7 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
       title: loaderData
         ? `${loaderData.taxon.acceptedName} | Klados`
         : "Klados",
+      links: [{ rel: "stylesheet", href: taxonPageCssUrl }],
     }),
   component: TaxonPage,
 });

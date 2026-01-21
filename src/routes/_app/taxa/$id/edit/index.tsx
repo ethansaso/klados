@@ -46,6 +46,8 @@ import { NameEditingForm } from "./-names/NameEditingForm";
 import { seedTaxonEditState } from "./-seeding";
 import { SourceEditingForm } from "./-sources/SourceEditingForm";
 
+import editPageCssUrl from "../../../../../assets/styles/pages/taxa/edit.css?url";
+
 export type TaxonEditFormValues = z.infer<typeof taxonEditFormSchema>;
 
 export const taxonEditFormSchema = z.object({
@@ -124,6 +126,7 @@ export const Route = createFileRoute("/_app/taxa/$id/edit/")({
       title: loaderData
         ? `Editing ${loaderData.initialTaxon.acceptedName} | Klados`
         : "Klados",
+      links: [{ rel: "stylesheet", href: editPageCssUrl }],
     }),
   component: RouteComponent,
 });

@@ -7,13 +7,19 @@ import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { GuideEditorSidebar } from "./-GuideEditorSidebar";
 import { GuideEditorToolbar } from "./-GuideEditorToolbar";
 
+import guideEditorCssUrl from "../../../../assets/styles/pages/guides/editor.css?url";
+
 // Simple schema for initial population of taxon selection
 const CreateGuideSearchSchema = z.object({
   initialId: z.coerce.number().int().positive().optional(),
 });
 
 export const Route = createFileRoute("/_app/guides/create/")({
-  head: () => routeSeo({ title: "Create Guide | Klados" }),
+  head: () =>
+    routeSeo({
+      title: "Create Guide | Klados",
+      links: [{ rel: "stylesheet", href: guideEditorCssUrl }],
+    }),
   validateSearch: CreateGuideSearchSchema,
   component: RouteComponent,
 });

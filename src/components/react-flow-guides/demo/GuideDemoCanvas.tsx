@@ -29,6 +29,9 @@ export const GuideDemoCanvas = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onBeforeDelete={async () => false}
+        nodesDraggable={false}
+        nodesConnectable={false}
+        elementsSelectable={false}
         fitView
         minZoom={0.2}
         proOptions={{ hideAttribution: true }}

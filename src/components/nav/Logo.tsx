@@ -3,5 +3,12 @@ interface LogoProps {
 }
 
 export function Logo({ size = 20 }: LogoProps) {
-  return <img src="/logos/LogoBrand.svg" alt="" width={size} height={size} />;
+  return (
+    <img
+      src="/logos/LogoBrand.svg"
+      alt="Klados Logo"
+      width={size}
+      height={size}
+    />
+  );
 }
