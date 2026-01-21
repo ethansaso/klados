@@ -8,6 +8,7 @@ export type Trait = {
   id: number;
   canonicalId: number;
   label: string;
+  description: string;
   hexCode?: string;
 };
 

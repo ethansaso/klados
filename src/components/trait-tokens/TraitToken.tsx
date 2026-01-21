@@ -1,4 +1,4 @@
-import { Flex, Text } from "@radix-ui/themes";
+import { Flex, Text, Tooltip } from "@radix-ui/themes";
 import { memo } from "react";
 import { ColorBubble } from "./ColorBubble";
 import { UITrait } from "./types";
@@ -24,6 +24,14 @@ export const TraitToken = memo(
   }) => {
     const text = formatTraitLabel(trait.label, index);
 
+    const textComponent = trait.description ? (
+      <Tooltip content={trait.description}>
+        <span className="has-description">{text}</span>
+      </Tooltip>
+    ) : (
+      text
+    );
+
     return (
       <Flex
         display="inline-flex"
@@ -33,7 +41,7 @@ export const TraitToken = memo(
       >
         {trait.hexCode && <ColorBubble size={8} hexColor={trait.hexCode} />}
         <Text weight={trait.weight}>
-          {text}
+          {textComponent}
           {!isLast && ","}
         </Text>
       </Flex>

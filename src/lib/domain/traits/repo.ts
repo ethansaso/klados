@@ -59,7 +59,7 @@ export async function listTraitSetsQuery(args: {
       valueCount: count(valsTbl.id).as("value_count"),
       canonicalCount:
         sql<number>`COUNT(*) FILTER (WHERE ${valsTbl.isCanonical})`.as(
-          "canonical_count"
+          "canonical_count",
         ),
     })
     .from(valsTbl)
@@ -71,7 +71,7 @@ export async function listTraitSetsQuery(args: {
     .select({
       setId: catMetaTbl.traitSetId,
       usedByCharacters: countDistinct(catMetaTbl.characterId).as(
-        "used_by_characters"
+        "used_by_characters",
       ),
     })
     .from(catMetaTbl)
@@ -109,7 +109,7 @@ export async function listTraitSetsQuery(args: {
  */
 export async function insertTraitSet(
   tx: Transaction,
-  args: { key: string; label: string; description: string }
+  args: { key: string; label: string; description: string },
 ): Promise<Pick<TraitSetDTO, "id" | "key" | "label" | "description"> | null> {
   const [row] = await tx
     .insert(setsTbl)
@@ -133,7 +133,7 @@ export async function insertTraitSet(
  */
 export async function deleteTraitSetById(
   tx: Transaction,
-  id: number
+  id: number,
 ): Promise<{ id: number } | null> {
   const [deleted] = await tx
     .delete(setsTbl)
@@ -148,7 +148,7 @@ export async function deleteTraitSetById(
  */
 export async function deleteTraitValueById(
   tx: Transaction,
-  id: number
+  id: number,
 ): Promise<{ id: number } | null> {
   const [deleted] = await tx
     .delete(valsTbl)
@@ -162,7 +162,7 @@ export async function deleteTraitValueById(
  * Fetch a single trait set detail by id (with aggregates).
  */
 export async function fetchTraitSetDetailById(
-  id: number
+  id: number,
 ): Promise<TraitSetDetailDTO | null> {
   const valAgg = db
     .select({
@@ -170,7 +170,7 @@ export async function fetchTraitSetDetailById(
       valueCount: count(valsTbl.id).as("value_count"),
       canonicalCount:
         sql<number>`COUNT(*) FILTER (WHERE ${valsTbl.isCanonical})`.as(
-          "canonical_count"
+          "canonical_count",
         ),
     })
     .from(valsTbl)
@@ -181,7 +181,7 @@ export async function fetchTraitSetDetailById(
     .select({
       setId: catMetaTbl.traitSetId,
       usedByCharacters: countDistinct(catMetaTbl.characterId).as(
-        "used_by_characters"
+        "used_by_characters",
       ),
     })
     .from(catMetaTbl)
@@ -211,7 +211,7 @@ export async function fetchTraitSetDetailById(
  * Get all values for a trait set.
  */
 export async function getTraitSetValuesQuery(
-  setId: number
+  setId: number,
 ): Promise<TraitValueDTO[]> {
   const v = valsTbl;
   const canon = alias(valsTbl, "canon");
@@ -220,7 +220,7 @@ export async function getTraitSetValuesQuery(
     .select({
       traitValueId: tcsTbl.traitValueId,
       usageCount: sql<number>`CAST(COUNT(${tcsTbl.id}) AS INT)`.as(
-        "usage_count"
+        "usage_count",
       ),
     })
     .from(tcsTbl)
@@ -233,15 +233,15 @@ export async function getTraitSetValuesQuery(
     .select({
       targetId: valsTbl.canonicalValueId,
       aliasCount: sql<number>`CAST(COUNT(${valsTbl.id}) AS INT)`.as(
-        "alias_count"
+        "alias_count",
       ),
     })
     .from(valsTbl)
     .where(
       and(
         eq(valsTbl.setId, setId),
-        sql`${valsTbl.canonicalValueId} IS NOT NULL`
-      )
+        sql`${valsTbl.canonicalValueId} IS NOT NULL`,
+      ),
     )
     .groupBy(valsTbl.canonicalValueId)
     .as("alias_agg");
@@ -258,6 +258,7 @@ export async function getTraitSetValuesQuery(
       canonId: canon.id,
       canonLabel: canon.label,
       canonHexCode: canon.hexCode,
+      canonDescription: canon.description,
       usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
       aliasCount: sql<number>`COALESCE(${aliasAgg.aliasCount}, 0)`,
     })
@@ -284,6 +285,7 @@ export async function getTraitSetValuesQuery(
             id: r.canonId,
             canonicalId: r.canonId,
             label: r.canonLabel!,
+            description: r.canonDescription!,
             hexCode: r.canonHexCode ?? undefined,
           }
         : null,
@@ -310,7 +312,7 @@ export async function listTraitSetValuesQuery(args: {
     .select({
       traitValueId: tcsTbl.traitValueId,
       usageCount: sql<number>`CAST(COUNT(${tcsTbl.id}) AS INT)`.as(
-        "usage_count"
+        "usage_count",
       ),
     })
     .from(tcsTbl)
@@ -323,15 +325,15 @@ export async function listTraitSetValuesQuery(args: {
     .select({
       targetId: valsTbl.canonicalValueId,
       aliasCount: sql<number>`CAST(COUNT(${valsTbl.id}) AS INT)`.as(
-        "alias_count"
+        "alias_count",
       ),
     })
     .from(valsTbl)
     .where(
       and(
         eq(valsTbl.setId, setId),
-        sql`${valsTbl.canonicalValueId} IS NOT NULL`
-      )
+        sql`${valsTbl.canonicalValueId} IS NOT NULL`,
+      ),
     )
     .groupBy(valsTbl.canonicalValueId)
     .as("alias_agg");
@@ -352,7 +354,7 @@ export async function listTraitSetValuesQuery(args: {
   const whereClause = and(
     eq(v.setId, setId),
     ...(kindFilter ? [kindFilter] : []),
-    ...(qFilter ? [qFilter] : [])
+    ...(qFilter ? [qFilter] : []),
   );
 
   const items = await db
@@ -366,6 +368,7 @@ export async function listTraitSetValuesQuery(args: {
       isCanonical: v.isCanonical,
       canonId: canon.id,
       canonLabel: canon.label,
+      canonDescription: canon.description,
       canonHexCode: canon.hexCode,
       usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
       aliasCount: sql<number>`COALESCE(${aliasAgg.aliasCount}, 0)`,
@@ -400,6 +403,7 @@ export async function listTraitSetValuesQuery(args: {
             id: r.canonId,
             canonicalId: r.canonId,
             label: r.canonLabel!,
+            description: r.canonDescription!,
             hexCode: r.canonHexCode ?? undefined,
           }
         : null,
@@ -413,7 +417,7 @@ export async function listTraitSetValuesQuery(args: {
  */
 export async function selectTraitValueRowById(
   tx: Transaction,
-  id: number
+  id: number,
 ): Promise<Pick<
   TraitValueRow,
   "id" | "setId" | "isCanonical" | "label"
@@ -443,7 +447,7 @@ export async function insertTraitValueRow(
     label: string;
     isCanonical: boolean;
     canonicalValueId: number | null;
-  }
+  },
 ): Promise<TraitValueRow | null> {
   const [inserted] = await tx
     .insert(valsTbl)
@@ -471,7 +475,7 @@ export async function insertTraitValueRow(
  */
 export async function selectTraitValueDtoById(
   tx: Transaction,
-  id: number
+  id: number,
 ): Promise<TraitValueDTO | null> {
   const v = valsTbl;
   const canon = alias(valsTbl, "canon");
@@ -480,7 +484,7 @@ export async function selectTraitValueDtoById(
     .select({
       traitValueId: tcsTbl.traitValueId,
       usageCount: sql<number>`CAST(COUNT(${tcsTbl.id}) AS INT)`.as(
-        "usage_count"
+        "usage_count",
       ),
     })
     .from(tcsTbl)
@@ -492,15 +496,15 @@ export async function selectTraitValueDtoById(
     .select({
       targetId: valsTbl.canonicalValueId,
       aliasCount: sql<number>`CAST(COUNT(${valsTbl.id}) AS INT)`.as(
-        "alias_count"
+        "alias_count",
       ),
     })
     .from(valsTbl)
     .where(
       and(
         eq(valsTbl.canonicalValueId, id),
-        sql`${valsTbl.canonicalValueId} IS NOT NULL`
-      )
+        sql`${valsTbl.canonicalValueId} IS NOT NULL`,
+      ),
     )
     .groupBy(valsTbl.canonicalValueId)
     .as("alias_agg");
@@ -517,6 +521,7 @@ export async function selectTraitValueDtoById(
       canonId: canon.id,
       canonLabel: canon.label,
       canonHexCode: canon.hexCode,
+      canonDescription: canon.description,
       usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
       aliasCount: sql<number>`COALESCE(${aliasAgg.aliasCount}, 0)`,
     })
@@ -546,6 +551,7 @@ export async function selectTraitValueDtoById(
             id: row.canonId,
             canonicalId: row.canonId,
             label: row.canonLabel!,
+            description: row.canonDescription!,
             hexCode: row.canonHexCode ?? undefined,
           }
         : null,
@@ -557,7 +563,7 @@ export async function selectTraitValueDtoById(
  */
 export async function selectTraitValueDtosByIds(
   tx: Transaction,
-  ids: number[]
+  ids: number[],
 ): Promise<TraitValueDTO[]> {
   if (!ids.length) {
     return [];
@@ -570,7 +576,7 @@ export async function selectTraitValueDtosByIds(
     .select({
       traitValueId: tcsTbl.traitValueId,
       usageCount: sql<number>`CAST(COUNT(${tcsTbl.id}) AS INT)`.as(
-        "usage_count"
+        "usage_count",
       ),
     })
     .from(tcsTbl)
@@ -582,15 +588,15 @@ export async function selectTraitValueDtosByIds(
     .select({
       targetId: valsTbl.canonicalValueId,
       aliasCount: sql<number>`CAST(COUNT(${valsTbl.id}) AS INT)`.as(
-        "alias_count"
+        "alias_count",
       ),
     })
     .from(valsTbl)
     .where(
       and(
         inArray(valsTbl.canonicalValueId, ids),
-        sql`${valsTbl.canonicalValueId} IS NOT NULL`
-      )
+        sql`${valsTbl.canonicalValueId} IS NOT NULL`,
+      ),
     )
     .groupBy(valsTbl.canonicalValueId)
     .as("alias_agg");
@@ -607,6 +613,7 @@ export async function selectTraitValueDtosByIds(
       canonId: canon.id,
       canonLabel: canon.label,
       canonHexCode: canon.hexCode,
+      canonDescription: canon.description,
       usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
       aliasCount: sql<number>`COALESCE(${aliasAgg.aliasCount}, 0)`,
     })
@@ -633,6 +640,7 @@ export async function selectTraitValueDtosByIds(
             id: row.canonId,
             canonicalId: row.canonId,
             label: row.canonLabel!,
+            description: row.canonDescription!,
             hexCode: row.canonHexCode ?? undefined,
           }
         : null,
@@ -650,7 +658,7 @@ export async function updateTraitValueRow(
     hexCode?: string | null;
     description?: string;
     aliasTargetId?: number | null;
-  }
+  },
 ): Promise<{ id: number } | null> {
   const patch: Record<string, unknown> = {};
 
