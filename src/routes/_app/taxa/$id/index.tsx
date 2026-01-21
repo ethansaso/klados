@@ -5,9 +5,10 @@ import { useMemo } from "react";
 import z from "zod";
 import { Breadcrumb, Breadcrumbs } from "../../../../components/Breadcrumbs";
 import { ContentContainer } from "../../../../components/ContentContainer";
+import { groupStatesByGroup } from "../../../../lib/domain/character-states/utils";
 import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
-import { taxonCharacterDisplayGroupsQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
+import { taxonCharacterStatesQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
 import { sourceForTaxonQueryOptions } from "../../../../lib/queries/taxonSources";
 import { formatPublicationForTaxon } from "../../../../lib/utils/formatPublication";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
@@ -27,9 +28,7 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
 
     const [taxon] = await Promise.all([
       context.queryClient.ensureQueryData(taxonQueryOptions(id)),
-      context.queryClient.ensureQueryData(
-        taxonCharacterDisplayGroupsQueryOptions(id)
-      ),
+      context.queryClient.ensureQueryData(taxonCharacterStatesQueryOptions(id)),
       context.queryClient.ensureQueryData(lookalikesQueryOptions(id)),
       context.queryClient.ensureQueryData(sourceForTaxonQueryOptions(id)),
     ]);
@@ -49,11 +48,16 @@ function TaxonPage() {
   const { id } = Route.useLoaderData();
   const navigate = useNavigate();
   const { data: taxon } = useSuspenseQuery(taxonQueryOptions(id));
-  const { data: displayGroups } = useSuspenseQuery(
-    taxonCharacterDisplayGroupsQueryOptions(id)
+  const { data: characterStates } = useSuspenseQuery(
+    taxonCharacterStatesQueryOptions(id),
   );
   const { data: lookalikes } = useSuspenseQuery(lookalikesQueryOptions(id));
   const { data: sources } = useSuspenseQuery(sourceForTaxonQueryOptions(id));
+
+  const groupedStates = useMemo(
+    () => groupStatesByGroup(characterStates),
+    [characterStates],
+  );
 
   const breadcrumbItems: Breadcrumb[] = useMemo(() => {
     const items: Breadcrumb[] = taxon.ancestors.map((ancestor) => ({
@@ -103,7 +107,7 @@ function TaxonPage() {
             <Tabs.Trigger value="sources">Sources</Tabs.Trigger>
           </Tabs.List>
           <Tabs.Content value="states" mt="4">
-            <TaxonCharacterSection groups={displayGroups} />
+            <TaxonCharacterSection groups={groupedStates} />
           </Tabs.Content>
           <Tabs.Content value="lookalikes" mt="4">
             <LookalikesList

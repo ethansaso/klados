@@ -14,7 +14,7 @@ import {
   type EdgeProps,
 } from "@xyflow/react";
 import { memo, useCallback, useRef, useState } from "react";
-import { TraitTokenList } from "../../trait-tokens/TraitTokenList";
+import { CharacterStateDisplay } from "../../trait-tokens/CharacterStateDisplay";
 import { RFCharacterBranchEdge } from "../data/types";
 import { useGuideEditorStore } from "../data/useGuideEditorStore";
 
@@ -35,12 +35,12 @@ const CharacterBranchEdgeComponent = memo(
 
     const { deleteElements } = useReactFlow();
     const updateBranchAnnotation = useGuideEditorStore(
-      (s) => s.updateBranchAnnotation
+      (s) => s.updateBranchAnnotation,
     );
 
     // null = not editing; string = current draft text
     const [editingAnnotation, setEditingAnnotation] = useState<string | null>(
-      null
+      null,
     );
     // Ref for the textarea to focus when editing starts
     const taRef = useRef<HTMLTextAreaElement>(null);
@@ -110,7 +110,7 @@ const CharacterBranchEdgeComponent = memo(
         handleDelete,
         startEditing,
         updateBranchAnnotation,
-      ]
+      ],
     );
 
     return (
@@ -145,7 +145,12 @@ const CharacterBranchEdgeComponent = memo(
                         {meta.inverted ? (
                           "Other"
                         ) : (
-                          <TraitTokenList traits={meta.traits} />
+                          <CharacterStateDisplay
+                            state={{
+                              kind: "categorical",
+                              traitValues: meta.traits,
+                            }}
+                          />
                         )}
                       </DataList.Value>
                     </DataList.Item>
@@ -185,7 +190,7 @@ const CharacterBranchEdgeComponent = memo(
         </EdgeLabelRenderer>
       </>
     );
-  }
+  },
 );
 
 export default CharacterBranchEdgeComponent;

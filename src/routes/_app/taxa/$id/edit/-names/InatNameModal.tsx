@@ -88,8 +88,6 @@ export const InatNamesModal = NiceModal.create<Props>(
       hide();
     };
 
-    console.log(names);
-
     return (
       <Dialog.Root open={visible} onOpenChange={(open) => !open && hide()}>
         <Dialog.Content maxWidth="400px" aria-describedby={undefined}>
@@ -122,7 +120,7 @@ export const InatNamesModal = NiceModal.create<Props>(
         </Dialog.Content>
       </Dialog.Root>
     );
-  }
+  },
 );
 
 /** Simple helper which aids in acquiring common names for a given taxon. */

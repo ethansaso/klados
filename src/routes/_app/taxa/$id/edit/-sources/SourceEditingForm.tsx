@@ -151,7 +151,7 @@ export const SourceEditingForm = ({
           onClick={async () => {
             const picked = await pickSource();
             if (!picked) return;
-            if (sourcesById.has(picked.id)) return;
+            if (value.some((item) => item.sourceId === picked.id)) return;
 
             setSourcesById((prev) => new Map(prev).set(picked.id, picked));
             onChange([

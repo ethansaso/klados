@@ -31,19 +31,11 @@ import { getTaxonFn } from "../../../../../lib/api/taxa/getTaxonFn";
 import { publishTaxonFn } from "../../../../../lib/api/taxa/publishFn";
 import { updateTaxonFn } from "../../../../../lib/api/taxa/updateTaxonFn";
 import { getSourcesForTaxonFn } from "../../../../../lib/api/taxon-sources/getSourcesForTaxonFn";
-import { TaxonCharacterStateDTO } from "../../../../../lib/domain/character-states/types";
+import { CharacterUpdate } from "../../../../../lib/domain/character-states/validation";
 import { SourceDTO } from "../../../../../lib/domain/sources/types";
-import { TaxonDetailDTO } from "../../../../../lib/domain/taxa/types";
-import {
-  CharacterUpdate,
-  mediaItemSchema,
-} from "../../../../../lib/domain/taxa/validation";
+import { mediaItemSchema } from "../../../../../lib/domain/taxa/validation";
 import { nameItemSchema } from "../../../../../lib/domain/taxon-names/validation";
-import { TaxonSourceDTO } from "../../../../../lib/domain/taxon-sources/types";
-import {
-  setTaxonSourcesSchema,
-  TaxonSourceUpsertItem,
-} from "../../../../../lib/domain/taxon-sources/validation";
+import { setTaxonSourcesSchema } from "../../../../../lib/domain/taxon-sources/validation";
 import { routeSeo } from "../../../../../lib/utils/head/routeSeo";
 import { toast } from "../../../../../lib/utils/toast";
 import { CharacterEditingForm } from "./-characters/CharactersEditingForm";
@@ -51,6 +43,7 @@ import { characterStateFormSchema } from "./-characters/validation";
 import { MediaEditingForm } from "./-media/MediaEditingForm";
 import { MetaForm } from "./-meta/MetaForm";
 import { NameEditingForm } from "./-names/NameEditingForm";
+import { seedTaxonEditState } from "./-seeding";
 import { SourceEditingForm } from "./-sources/SourceEditingForm";
 
 export type TaxonEditFormValues = z.infer<typeof taxonEditFormSchema>;
@@ -67,32 +60,8 @@ export const taxonEditFormSchema = z.object({
   sources: setTaxonSourcesSchema,
 });
 
-const seedSources = (rows: TaxonSourceDTO[]): TaxonSourceUpsertItem[] =>
-  rows.map((r) => ({
-    sourceId: r.sourceId,
-    accessedAt: new Date(r.accessedAt),
-    locator: r.locator ?? "",
-    note: r.note ?? "",
-  }));
-
-const seedEditState = (
-  taxon: TaxonDetailDTO,
-  characterValues: TaxonCharacterStateDTO[],
-  sources: TaxonSourceDTO[]
-): TaxonEditFormValues => ({
-  parentId: taxon.ancestors?.[taxon.ancestors.length - 1]?.id ?? null,
-  rank: taxon.rank,
-  sourceGbifId: taxon.sourceGbifId,
-  sourceInatId: taxon.sourceInatId,
-  media: taxon.media,
-  notes: taxon.notes,
-  names: taxon.names,
-  characters: characterValues,
-  sources: seedSources(sources),
-});
-
 const convertToServerCharacterValues = (
-  values: TaxonEditFormValues["characters"]
+  values: TaxonEditFormValues["characters"],
 ): CharacterUpdate[] => {
   return values.map((v) => {
     switch (v.kind) {
@@ -102,8 +71,21 @@ const convertToServerCharacterValues = (
           characterId: v.characterId,
           traitValueIds: v.traitValues.map((tv) => tv.id),
         };
-      default:
-        throw new Error(`Unsupported character state kind: ${v.kind}`);
+      case "number":
+        return {
+          kind: "number",
+          characterId: v.characterId,
+          unitId: v.unit?.id,
+          siBaseValue: v.siBaseValue,
+        };
+      case "range":
+        return {
+          kind: "range",
+          characterId: v.characterId,
+          unitId: v.unit?.id,
+          siBaseMin: v.siBaseMin,
+          siBaseMax: v.siBaseMax,
+        };
     }
   });
 };
@@ -159,10 +141,10 @@ function RouteComponent() {
     resolver: zodResolver(taxonEditFormSchema),
     mode: "onSubmit",
     reValidateMode: "onChange",
-    defaultValues: seedEditState(
+    defaultValues: seedTaxonEditState(
       initialTaxon,
       initialCharacterValues,
-      initialSources
+      initialSources,
     ),
   });
   const {
@@ -222,9 +204,12 @@ function RouteComponent() {
   const handleDiscard = () => {
     if (!isDirty) return;
     if (!confirm("Discard unsaved changes?")) return;
-    reset(seedEditState(initialTaxon, initialCharacterValues, initialSources), {
-      keepDirty: false,
-    });
+    reset(
+      seedTaxonEditState(initialTaxon, initialCharacterValues, initialSources),
+      {
+        keepDirty: false,
+      },
+    );
   };
 
   const onSave = handleSubmit(async (data) => {
@@ -276,7 +261,7 @@ function RouteComponent() {
     if (!isDraft || isDeleting || isSubmitting) return;
 
     const ok = window.confirm(
-      "Delete this taxon draft? This cannot be undone."
+      "Delete this taxon draft? This cannot be undone.",
     );
     if (!ok) return;
 

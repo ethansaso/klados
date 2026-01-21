@@ -10,35 +10,55 @@ import {
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { TraitTokenList } from "../../../../../components/trait-tokens/TraitTokenList";
-import { UITokenTrait } from "../../../../../components/trait-tokens/types";
+import { CharacterStateDisplay } from "../../../../../components/trait-tokens/CharacterStateDisplay";
+import { UICharacterState } from "../../../../../components/trait-tokens/types";
 import {
-  LookalikeComparisonAnnotatedCharacterStates,
+  LookalikeComparisonAnnotatedState,
+  LookalikeComparisonCharacter,
   LookalikeComparisonDetailDTO,
 } from "../../../../../lib/domain/lookalikes/types";
 import { TaxonDTO } from "../../../../../lib/domain/taxa/types";
 import { lookalikeDetailsQueryOptions } from "../../../../../lib/queries/lookalikes";
 
-function GroupDataList({
-  items,
-}: {
-  items: LookalikeComparisonAnnotatedCharacterStates[];
-}) {
+function toUIState(
+  annotated: LookalikeComparisonAnnotatedState,
+): UICharacterState {
+  switch (annotated.kind) {
+    case "categorical":
+      return {
+        ...annotated,
+        traitValues: annotated.traits.map((t) => ({
+          ...t,
+          weight: t.isOverlapping ? undefined : "bold",
+        })),
+      };
+
+    case "number":
+    case "range":
+      return {
+        ...annotated,
+        unit: annotated.unit
+          ? {
+              symbol: annotated.unit.symbol,
+              scale: annotated.unit.scale,
+            }
+          : null,
+        weight: annotated.isOverlapping ? undefined : "bold",
+      };
+  }
+}
+
+function GroupDataList({ items }: { items: LookalikeComparisonCharacter[] }) {
   return (
     <DataList.Root size="2" orientation="vertical">
       {items.map((it) => {
-        if (it.traits.length === 0) return null;
-
-        const weightedTraits: UITokenTrait[] = it.traits.map((trait) => ({
-          ...trait,
-          weight: trait.isShared ? "regular" : "bold",
-        }));
+        if (!it.state) return null;
 
         return (
           <DataList.Item key={it.characterId}>
             <DataList.Label>{it.characterLabel}</DataList.Label>
             <DataList.Value>
-              <TraitTokenList traits={weightedTraits} />
+              <CharacterStateDisplay state={toUIState(it.state)} />
             </DataList.Value>
           </DataList.Item>
         );
@@ -126,7 +146,7 @@ export const LookalikeModal = NiceModal.create<{
 }>(({ taxonId, lookalikeId }) => {
   const { visible, hide } = useModal();
   const { data, isLoading, isError } = useQuery(
-    lookalikeDetailsQueryOptions(taxonId, lookalikeId)
+    lookalikeDetailsQueryOptions(taxonId, lookalikeId),
   );
 
   const content = useMemo(() => {

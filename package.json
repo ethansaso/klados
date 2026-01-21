@@ -43,6 +43,7 @@
     "@xyflow/react": "^12.10.0",
     "axios": "^1.13.2",
     "better-auth": "1.4.6",
+    "decimal.js": "^10.6.0",
     "drizzle-orm": "^1.0.0-beta.11-fc31a5f",
     "nitro": "^3.0.1-alpha.1",
     "pg": "^8.16.3",

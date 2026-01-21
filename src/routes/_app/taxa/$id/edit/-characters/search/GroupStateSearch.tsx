@@ -1,10 +1,10 @@
 import { Box, Flex } from "@radix-ui/themes";
 import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
-import { InputCombobox } from "../../../../../../components/inputs/combobox/InputCombobox";
-import { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
-import { searchGroupTraitSuggestionsFn } from "../../../../../../lib/api/character-suggestions/fns";
-import { TraitSuggestion } from "../../../../../../lib/api/character-suggestions/types";
+import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
+import { ComboboxOption } from "../../../../../../../components/inputs/combobox/types";
+import { searchGroupTraitSuggestionsFn } from "../../../../../../../lib/api/character-suggestions/fns";
+import { TraitSuggestion } from "../../../../../../../lib/api/character-suggestions/types";
 
 type GroupTraitSearchProps = {
   groupId: number;
@@ -14,7 +14,7 @@ type GroupTraitSearchProps = {
   placeholder?: string;
 };
 
-export function GroupTraitSearch({
+export function GroupStateSearch({
   groupId,
   onSelect,
   placeholder = "Type a value or trait…",
@@ -75,7 +75,7 @@ export function GroupTraitSearch({
         }
       }
     },
-    [groupId, serverSearch]
+    [groupId, serverSearch],
   );
 
   const handleValueChange = React.useCallback(
@@ -95,7 +95,7 @@ export function GroupTraitSearch({
         setSelectedOption(null);
       }, 0);
     },
-    [suggestions, onSelect]
+    [suggestions, onSelect],
   );
 
   const rootId = React.useId();

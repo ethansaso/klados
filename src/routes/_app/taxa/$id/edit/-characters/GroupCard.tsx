@@ -8,121 +8,140 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
+import { useFormContext } from "react-hook-form";
 import { PiCheck, PiTrash, PiX } from "react-icons/pi";
+import { TaxonEditFormValues } from "..";
 import { CategoricalValueSuggestion } from "../../../../../../lib/api/character-suggestions/types";
 import { characterGroupQueryOptions } from "../../../../../../lib/queries/characterGroups";
 import { CharacterStateRow } from "./CharacterStateRow";
-import { GroupTraitSearch } from "./GroupTraitSearch";
-import { addCategoricalStateFromSuggestion } from "./stateUtils";
+import { GroupStateSearch } from "./search/GroupStateSearch";
+import { addStateFromSuggestion } from "./stateUtils";
 import { CharacterStateFormValue } from "./validation";
 
 type GroupCardProps = {
   groupId: number;
-  value: CharacterStateFormValue[];
-  stateByCharacterId: Map<number, CharacterStateFormValue[]>;
+  statesForGroup: CharacterStateFormValue[];
   onChange: (next: CharacterStateFormValue[]) => void;
   onDelete: (groupId: number, characterIds: number[]) => void;
+  onRemoveCategoricalValue: (characterId: number, traitValueId: number) => void;
+  onRemoveState: (characterId: number) => void;
 };
 
-export function GroupCard({
-  groupId,
-  value,
-  stateByCharacterId,
-  onChange,
-  onDelete,
-}: GroupCardProps) {
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const { data, isLoading, isError } = useQuery(
-    characterGroupQueryOptions(groupId)
-  );
+export const GroupCard = memo(
+  ({
+    groupId,
+    statesForGroup,
+    onChange,
+    onDelete,
+    onRemoveCategoricalValue,
+    onRemoveState,
+  }: GroupCardProps) => {
+    const { getValues } = useFormContext<TaxonEditFormValues>();
+    const [confirmingDelete, setConfirmingDelete] = useState(false);
+    const { data, isLoading, isError } = useQuery(
+      characterGroupQueryOptions(groupId),
+    );
 
-  const label = data?.label;
+    const label = data?.label;
 
-  const handleSuggestionSelect = (s: CategoricalValueSuggestion) => {
-    const next = addCategoricalStateFromSuggestion(value, s);
-    if (next !== value) {
-      onChange(next);
-    }
-  };
+    // Build a map from statesForGroup for efficient lookup
+    const stateByCharacterId = useMemo(() => {
+      const map = new Map<number, CharacterStateFormValue>();
+      for (const state of statesForGroup) {
+        map.set(state.characterId, state);
+      }
+      return map;
+    }, [statesForGroup]);
 
-  // TODO: Immediately delete if no characters exist in group
-  const handleTrashClick = () => {
-    setConfirmingDelete(true);
-  };
+    const handleSuggestionSelect = useCallback(
+      (s: CategoricalValueSuggestion) => {
+        const current = getValues("characters");
+        const next = addStateFromSuggestion(current, s);
+        if (next !== current) {
+          onChange(next);
+        }
+      },
+      [getValues, onChange],
+    );
 
-  return (
-    <Card>
-      <Flex mb="2" align="center" justify="between">
-        <Heading size="2" weight="medium">
-          {label}
-        </Heading>
-        {confirmingDelete ? (
-          <Flex mr="1" gap="2">
+    // TODO: Immediately delete if no characters exist in group
+    const handleTrashClick = () => {
+      setConfirmingDelete(true);
+    };
+
+    return (
+      <Card>
+        <Flex mb="2" align="center" justify="between">
+          <Heading size="2" weight="medium">
+            {label}
+          </Heading>
+          {confirmingDelete ? (
+            <Flex mr="1" gap="2">
+              <IconButton
+                type="button"
+                size="1"
+                variant="ghost"
+                color="tomato"
+                onClick={() =>
+                  onDelete(groupId, data?.characters.map((c) => c.id) ?? [])
+                }
+              >
+                <PiCheck size={12} />
+              </IconButton>
+              <IconButton
+                type="button"
+                size="1"
+                variant="ghost"
+                color="gray"
+                onClick={() => setConfirmingDelete(false)}
+              >
+                <PiX size={12} />
+              </IconButton>
+            </Flex>
+          ) : (
             <IconButton
               type="button"
               size="1"
               variant="ghost"
               color="tomato"
-              onClick={() =>
-                onDelete(groupId, data?.characters.map((c) => c.id) ?? [])
-              }
+              mr="1"
+              onClick={handleTrashClick}
             >
-              <PiCheck size={12} />
+              <PiTrash size={12} />
             </IconButton>
-            <IconButton
-              type="button"
-              size="1"
-              variant="ghost"
-              color="gray"
-              onClick={() => setConfirmingDelete(false)}
-            >
-              <PiX size={12} />
-            </IconButton>
-          </Flex>
-        ) : (
-          <IconButton
-            type="button"
-            size="1"
-            variant="ghost"
-            color="tomato"
-            mr="1"
-            onClick={handleTrashClick}
-          >
-            <PiTrash size={12} />
-          </IconButton>
+          )}
+        </Flex>
+
+        {/* Add states via search */}
+        <Box mt="2" mb="3">
+          <GroupStateSearch
+            groupId={groupId}
+            onSelect={handleSuggestionSelect}
+          />
+        </Box>
+
+        {isLoading && <Text size="1">Loading characters…</Text>}
+        {isError && (
+          <Text size="1" color="red">
+            Failed to load group.
+          </Text>
         )}
-      </Flex>
 
-      {/* Add categorical (and later numeric) states via search */}
-      <Box mt="2" mb="3">
-        <GroupTraitSearch groupId={groupId} onSelect={handleSuggestionSelect} />
-      </Box>
-
-      {isLoading && <Text size="1">Loading characters…</Text>}
-      {isError && (
-        <Text size="1" color="red">
-          Failed to load group.
-        </Text>
-      )}
-
-      {data && (
-        <DataList.Root size="1">
-          {data.characters.map((c) => {
-            const statesForChar = stateByCharacterId.get(c.id) ?? [];
-
-            return (
+        {data && (
+          <DataList.Root size="1">
+            {data.characters.map((c) => (
               <CharacterStateRow
                 key={c.id}
                 character={c}
-                states={statesForChar}
-                allStates={value}
-                onChangeAllStates={onChange}
+                state={stateByCharacterId.get(c.id)}
+                onRemoveCategoricalValue={onRemoveCategoricalValue}
+                onRemoveState={onRemoveState}
               />
-            );
-          })}
-        </DataList.Root>
-      )}
-    </Card>
-  );
-}
+            ))}
+          </DataList.Root>
+        )}
+      </Card>
+    );
+  },
+);

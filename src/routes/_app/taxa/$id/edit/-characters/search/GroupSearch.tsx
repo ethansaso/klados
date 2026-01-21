@@ -2,9 +2,9 @@ import { Box } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { Label } from "radix-ui";
 import * as React from "react";
-import { InputCombobox } from "../../../../../../components/inputs/combobox/InputCombobox";
-import { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
-import { characterGroupsQueryOptions } from "../../../../../../lib/queries/characterGroups";
+import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
+import { ComboboxOption } from "../../../../../../../components/inputs/combobox/types";
+import { characterGroupsQueryOptions } from "../../../../../../../lib/queries/characterGroups";
 
 interface GroupSearchProps {
   onSelect: (group: ComboboxOption) => void;
@@ -15,7 +15,7 @@ export const GroupSearch = ({ onSelect }: GroupSearchProps) => {
 
   // First page of groups, filtered by q.
   const { data, isLoading } = useQuery(
-    characterGroupsQueryOptions(1, 20, searchQ ? { q: searchQ } : undefined)
+    characterGroupsQueryOptions(1, 20, searchQ ? { q: searchQ } : undefined),
   );
   const groupQueryResults = data?.items ?? [];
   const options: ComboboxOption[] = groupQueryResults.map((g) => ({

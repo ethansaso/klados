@@ -1,4 +1,4 @@
-import { and, eq, ilike, or, sql } from "drizzle-orm";
+import { aliasedTable, and, eq, ilike, inArray, or, sql } from "drizzle-orm";
 
 import { db } from "../../../db/client";
 import { unit, unitFamily } from "../../../db/schema/characters/units";
@@ -34,7 +34,7 @@ async function resolveUnitFromToken(token: string): Promise<UnitDTO | null> {
     })
     .from(unit)
     .where(
-      or(eq(sql`lower(${unit.key})`, t), eq(sql`lower(${unit.symbol})`, t))
+      or(eq(sql`lower(${unit.key})`, t), eq(sql`lower(${unit.symbol})`, t)),
     )
     .limit(2);
 
@@ -74,6 +74,9 @@ export async function searchCategoricalSuggestions(opts: {
   // Pull back more than limit so JS can rank
   const sqlLimit = limit * 4;
 
+  // Alias for self-join to canonical value
+  const canonicalValue = aliasedTable(categoricalTraitValue, "canonical_value");
+
   const rows = await db
     .select({
       characterId: character.id,
@@ -82,6 +85,8 @@ export async function searchCategoricalSuggestions(opts: {
       groupLabel: characterGroup.label,
       traitValueId: categoricalTraitValue.id,
       traitValueLabel: categoricalTraitValue.label,
+      // Get hexCode from canonical value (or self if already canonical)
+      traitValueHexCode: canonicalValue.hexCode,
       similarityScore: sql<number>`
         similarity(
           lower(${categoricalTraitValue.label}),
@@ -92,17 +97,22 @@ export async function searchCategoricalSuggestions(opts: {
     .from(categoricalTraitValue)
     .innerJoin(
       categoricalTraitSet,
-      eq(categoricalTraitSet.id, categoricalTraitValue.setId)
+      eq(categoricalTraitSet.id, categoricalTraitValue.setId),
     )
     .innerJoin(
       categoricalCharacterMeta,
-      eq(categoricalCharacterMeta.traitSetId, categoricalTraitSet.id)
+      eq(categoricalCharacterMeta.traitSetId, categoricalTraitSet.id),
     )
     .innerJoin(
       character,
-      eq(character.id, categoricalCharacterMeta.characterId)
+      eq(character.id, categoricalCharacterMeta.characterId),
     )
     .innerJoin(characterGroup, eq(characterGroup.id, character.groupId))
+    // Self-join: if canonical, join to self; if alias, join to canonical
+    .innerJoin(
+      canonicalValue,
+      sql`${canonicalValue.id} = COALESCE(${categoricalTraitValue.canonicalValueId}, ${categoricalTraitValue.id})`,
+    )
     .where(
       and(
         eq(character.groupId, groupId),
@@ -121,9 +131,9 @@ export async function searchCategoricalSuggestions(opts: {
           `,
           // 3) Raw substring fallback
           ilike(categoricalTraitValue.label, likeNeedle),
-          ilike(categoricalTraitValue.key, likeNeedle)
-        )
-      )
+          ilike(categoricalTraitValue.key, likeNeedle),
+        ),
+      ),
     )
     // Just a stable default order; real ranking is in JS:
     .orderBy(character.label, categoricalTraitValue.label)
@@ -178,9 +188,7 @@ export async function searchCategoricalSuggestions(opts: {
 
     // 7) Small bump if character label matches
     const charLabelLower = row.characterLabel.toLowerCase();
-    if (charLabelLower.includes(qLower)) {
-      score += 5;
-    }
+    if (charLabelLower.includes(qLower)) score += 5;
 
     scored.push({ row, score });
   }
@@ -198,21 +206,44 @@ export async function searchCategoricalSuggestions(opts: {
     return aVal.localeCompare(bVal);
   });
 
-  const suggestions: CategoricalValueSuggestion[] = [];
+  return scored.slice(0, limit).map(({ row }) => ({
+    kind: "categorical-value",
+    characterId: row.characterId,
+    characterLabel: row.characterLabel,
+    groupId: row.groupId,
+    groupLabel: row.groupLabel,
+    traitValueId: row.traitValueId,
+    traitValueLabel: row.traitValueLabel,
+    traitValueHexCode: row.traitValueHexCode,
+  }));
+}
 
-  for (const { row } of scored.slice(0, limit)) {
-    suggestions.push({
-      kind: "categorical-value",
-      characterId: row.characterId,
-      characterLabel: row.characterLabel,
-      groupId: row.groupId,
-      groupLabel: row.groupLabel,
-      traitValueId: row.traitValueId,
-      traitValueLabel: row.traitValueLabel,
-    });
+/**
+ * Fetch all units for given family IDs.
+ */
+async function getUnitsForFamilies(
+  familyIds: number[],
+): Promise<Map<number, UnitDTO[]>> {
+  if (familyIds.length === 0) return new Map();
+
+  const rows = await db
+    .select({
+      id: unit.id,
+      familyId: unit.familyId,
+      key: unit.key,
+      symbol: unit.symbol,
+      scale: unit.scale,
+    })
+    .from(unit)
+    .where(inArray(unit.familyId, familyIds));
+
+  const byFamily = new Map<number, UnitDTO[]>();
+  for (const row of rows) {
+    const list = byFamily.get(row.familyId) ?? [];
+    list.push(row);
+    byFamily.set(row.familyId, list);
   }
-
-  return suggestions;
+  return byFamily;
 }
 
 /**
@@ -245,39 +276,81 @@ export async function buildNumericSingleSuggestions(opts: {
     .where(
       and(
         eq(character.groupId, groupId),
-        eq(numericCharacterMeta.kind, "single")
-      )
+        eq(numericCharacterMeta.kind, "single"),
+      ),
     )
     .limit(limit * 4);
 
-  // If token exists but cannot resolve (e.g. "micr"), do NOT block suggestions.
-  // Treat as "no unit specified yet".
+  // Pre-fetch units for all families (needed for fallback when unit doesn't match)
+  const unitsByFamily = await getUnitsForFamilies([
+    ...new Set(metas.map((m) => m.unitFamilyId)),
+  ]);
+
   const suggestions: NumericSingleSuggestion[] = [];
 
   for (const row of metas) {
-    // If unit resolved, only suggest compatible families.
-    if (resolvedUnit && resolvedUnit.familyId !== row.unitFamilyId) continue;
-
     const value = parsedNumeric.value;
 
-    const unitLabel = resolvedUnit ? resolvedUnit.symbol : null;
-    const displayValue = unitLabel ? `${value} ${unitLabel}` : `${value}`;
+    // Check if resolved unit matches this character's family
+    const unitMatchesFamily =
+      resolvedUnit && resolvedUnit.familyId === row.unitFamilyId;
 
-    suggestions.push({
-      kind: "numeric-single",
-      characterId: row.characterId,
-      characterLabel: row.characterLabel,
-      groupId: row.groupId,
-      groupLabel: row.groupLabel,
-      value,
+    if (unitMatchesFamily) {
+      // User provided a valid unit that matches - single suggestion
+      suggestions.push({
+        kind: "numeric-single",
+        characterId: row.characterId,
+        characterLabel: row.characterLabel,
+        groupId: row.groupId,
+        groupLabel: row.groupLabel,
+        value,
+        unitFamilyId: row.unitFamilyId,
+        displayUnitId: resolvedUnit.id,
+        unitKey: resolvedUnit.key,
+        unitScale: resolvedUnit.scale,
+        unitLabel: resolvedUnit.symbol,
+        displayValue: `${value} ${resolvedUnit.symbol}`,
+      });
+    } else {
+      // No unit, or unit doesn't match family - expand into all units for this family
+      const familyUnits = unitsByFamily.get(row.unitFamilyId) ?? [];
 
-      unitFamilyId: row.unitFamilyId,
-      displayUnitId: resolvedUnit?.id ?? null,
-      unitKey: resolvedUnit?.key ?? null,
-
-      unitLabel,
-      displayValue,
-    });
+      if (familyUnits.length === 0) {
+        // Dimensionless/unitless family - create suggestion without unit
+        suggestions.push({
+          kind: "numeric-single",
+          characterId: row.characterId,
+          characterLabel: row.characterLabel,
+          groupId: row.groupId,
+          groupLabel: row.groupLabel,
+          value,
+          unitFamilyId: row.unitFamilyId,
+          displayUnitId: null,
+          unitKey: null,
+          unitScale: null,
+          unitLabel: null,
+          displayValue: `${value}`,
+        });
+      } else {
+        // Has units - expand into one suggestion per unit
+        for (const u of familyUnits) {
+          suggestions.push({
+            kind: "numeric-single",
+            characterId: row.characterId,
+            characterLabel: row.characterLabel,
+            groupId: row.groupId,
+            groupLabel: row.groupLabel,
+            value,
+            unitFamilyId: row.unitFamilyId,
+            displayUnitId: u.id,
+            unitKey: u.key,
+            unitScale: u.scale,
+            unitLabel: u.symbol,
+            displayValue: `${value} ${u.symbol}`,
+          });
+        }
+      }
+    }
   }
 
   return suggestions.slice(0, limit);
@@ -313,39 +386,84 @@ export async function buildNumericRangeSuggestions(opts: {
     .where(
       and(
         eq(character.groupId, groupId),
-        eq(numericCharacterMeta.kind, "range")
-      )
+        eq(numericCharacterMeta.kind, "range"),
+      ),
     )
     .limit(limit * 4);
+
+  // Pre-fetch units for all families (needed for fallback when unit doesn't match)
+  const unitsByFamily = await getUnitsForFamilies([
+    ...new Set(metas.map((m) => m.unitFamilyId)),
+  ]);
 
   const suggestions: NumericRangeSuggestion[] = [];
 
   for (const row of metas) {
-    if (resolvedUnit && resolvedUnit.familyId !== row.unitFamilyId) continue;
-
     const { min, max } = parsedNumeric;
 
-    const unitLabel = resolvedUnit ? resolvedUnit.symbol : null;
-    const displayValue = unitLabel
-      ? `${min}–${max} ${unitLabel}`
-      : `${min}–${max}`;
+    // Check if resolved unit matches this character's family
+    const unitMatchesFamily =
+      resolvedUnit && resolvedUnit.familyId === row.unitFamilyId;
 
-    suggestions.push({
-      kind: "numeric-range",
-      characterId: row.characterId,
-      characterLabel: row.characterLabel,
-      groupId: row.groupId,
-      groupLabel: row.groupLabel,
-      min,
-      max,
+    if (unitMatchesFamily) {
+      // User provided a valid unit that matches - single suggestion
+      suggestions.push({
+        kind: "numeric-range",
+        characterId: row.characterId,
+        characterLabel: row.characterLabel,
+        groupId: row.groupId,
+        groupLabel: row.groupLabel,
+        min,
+        max,
+        unitFamilyId: row.unitFamilyId,
+        displayUnitId: resolvedUnit.id,
+        unitKey: resolvedUnit.key,
+        unitScale: resolvedUnit.scale,
+        unitLabel: resolvedUnit.symbol,
+        displayValue: `${min}–${max} ${resolvedUnit.symbol}`,
+      });
+    } else {
+      // No unit, or unit doesn't match family - expand into all units for this family
+      const familyUnits = unitsByFamily.get(row.unitFamilyId) ?? [];
 
-      unitFamilyId: row.unitFamilyId,
-      displayUnitId: resolvedUnit?.id ?? null,
-      unitKey: resolvedUnit?.key ?? null,
-
-      unitLabel,
-      displayValue,
-    });
+      if (familyUnits.length === 0) {
+        // Dimensionless/unitless family - create suggestion without unit
+        suggestions.push({
+          kind: "numeric-range",
+          characterId: row.characterId,
+          characterLabel: row.characterLabel,
+          groupId: row.groupId,
+          groupLabel: row.groupLabel,
+          min,
+          max,
+          unitFamilyId: row.unitFamilyId,
+          displayUnitId: null,
+          unitKey: null,
+          unitScale: null,
+          unitLabel: null,
+          displayValue: `${min}–${max}`,
+        });
+      } else {
+        // Has units - expand into one suggestion per unit
+        for (const u of familyUnits) {
+          suggestions.push({
+            kind: "numeric-range",
+            characterId: row.characterId,
+            characterLabel: row.characterLabel,
+            groupId: row.groupId,
+            groupLabel: row.groupLabel,
+            min,
+            max,
+            unitFamilyId: row.unitFamilyId,
+            displayUnitId: u.id,
+            unitKey: u.key,
+            unitScale: u.scale,
+            unitLabel: u.symbol,
+            displayValue: `${min}–${max} ${u.symbol}`,
+          });
+        }
+      }
+    }
   }
 
   return suggestions.slice(0, limit);
