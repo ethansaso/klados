@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { TaxonEditFormValues } from "..";
 import { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
-import { EditingGroupCard } from "./GroupCard";
+import { EditingGroupCard } from "./EditingGroupCard";
 import { GroupSearch } from "./search/GroupSearch";
 import {
   removeCategoricalTraitValue,
