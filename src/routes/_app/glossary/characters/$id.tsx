@@ -11,7 +11,7 @@ import { deleteCharacterFn } from "../../../../lib/api/characters/deleteCharacte
 import { CharacterDetailDTO } from "../../../../lib/domain/characters/types";
 import { characterGroupQueryOptions } from "../../../../lib/queries/characterGroups";
 import { characterQueryOptions } from "../../../../lib/queries/characters";
-import { capitalizeFirstLetter } from "../../../../lib/utils/casing";
+import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
 import { toast } from "../../../../lib/utils/toast";
 import { Route as CharactersLayoutRoute } from "./route";
 

@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { PiFunnelFill } from "react-icons/pi";
 import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
 import type { TaxonSearchParams } from "../../../lib/domain/taxa/search";
-import { capitalizeFirstLetter } from "../../../lib/utils/casing";
+import { capitalizeFirstLetter } from "../../../lib/utils/formatting/casing";
 
 type Props = {
   search: TaxonSearchParams;
@@ -15,7 +15,7 @@ export function TaxaFilterPopover({ search, setSearch }: Props) {
   const activeFilterCount = useMemo(
     () =>
       [search.highRank, search.lowRank, search.hasMedia].filter(Boolean).length,
-    [search.highRank, search.lowRank, search.hasMedia]
+    [search.highRank, search.lowRank, search.hasMedia],
   );
 
   return (

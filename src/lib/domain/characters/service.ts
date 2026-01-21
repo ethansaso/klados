@@ -1,5 +1,5 @@
 import { db } from "../../../db/client";
-import { snakeCase } from "../../utils/casing";
+import { snakeCase } from "../../utils/formatting/casing";
 import { selectUnitFamilyById } from "../units/repo";
 import {
   countUsageForCharacter,
@@ -36,7 +36,7 @@ export async function getCharacter(args: {
  * Currently categorical-only, returns CharacterDTO[].
  */
 export async function getCharactersByIds(
-  ids: number[]
+  ids: number[],
 ): Promise<CharacterDTO[]> {
   if (!ids.length) {
     return [];
@@ -64,7 +64,7 @@ export async function listCharacters(args: {
  * TODO: add more than categorical
  */
 export async function createCharacter(
-  args: CreateCharacterInput
+  args: CreateCharacterInput,
 ): Promise<CharacterDTO | null> {
   const normalizedKey = snakeCase(args.key.trim());
   const normalizedLabel = args.label.trim();

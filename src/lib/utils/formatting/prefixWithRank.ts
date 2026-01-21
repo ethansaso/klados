@@ -1,4 +1,4 @@
-import { TAXON_RANKS_DESCENDING } from "../../db/schema/schema";
+import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
 import { capitalizeFirstLetter } from "./casing";
 
 /**
@@ -6,11 +6,11 @@ import { capitalizeFirstLetter } from "./casing";
  */
 export function prefixWithRank(
   rank: (typeof TAXON_RANKS_DESCENDING)[number],
-  name: string
+  name: string,
 ): string {
   const ranksToPrefix = TAXON_RANKS_DESCENDING.slice(
     0,
-    TAXON_RANKS_DESCENDING.indexOf("species")
+    TAXON_RANKS_DESCENDING.indexOf("species"),
   );
   if (ranksToPrefix.includes(rank)) {
     return `${capitalizeFirstLetter(rank)} ${name}`;

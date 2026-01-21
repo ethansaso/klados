@@ -8,7 +8,7 @@ import {
   meQueryOptions,
   userQueryOptions,
 } from "../../../../lib/queries/users";
-import { getInitials } from "../../../../lib/utils/getInitials";
+import { getInitials } from "../../../../lib/utils/formatting/getInitials";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 
 export const Route = createFileRoute("/_app/users/$username/")({
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_app/users/$username/")({
     if (me?.username === effectiveUsername) isMe = true;
 
     await context.queryClient.ensureQueryData(
-      userQueryOptions(effectiveUsername)
+      userQueryOptions(effectiveUsername),
     );
 
     return { effectiveUsername, isMe };

@@ -26,7 +26,7 @@ import {
 } from "../../../../keygen/ioTypes";
 import { generateGuideFn } from "../../../../lib/api/guides/generateGuide";
 import { taxaQueryOptions } from "../../../../lib/queries/taxa";
-import { capitalizeFirstLetter } from "../../../../lib/utils/casing";
+import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
 import { toast } from "../../../../lib/utils/toast";
 import { Route } from "./index";
 
@@ -55,12 +55,12 @@ export const GuideEditorSidebar = () => {
 
   // editor store hooks
   const initFromGeneratedGuide = useGuideEditorStore(
-    (s) => s.initFromGeneratedGuide
+    (s) => s.initFromGeneratedGuide,
   );
   const updateMeta = useGuideEditorStore((s) => s.updateMeta);
 
   const { data: taxaResp } = useQuery(
-    taxaQueryOptions(1, 10, { q: taxonQ, status: "active" })
+    taxaQueryOptions(1, 10, { q: taxonQ, status: "active" }),
   );
   const taxaOptions = useMemo<ComboboxOption[]>(() => {
     const items = taxaResp?.items ?? [];
@@ -80,7 +80,7 @@ export const GuideEditorSidebar = () => {
   }, [taxonIdVal, taxaOptions]);
 
   const handleGenerateGuide: SubmitHandler<KeyGenerationInput> = async (
-    data
+    data,
   ) => {
     if (!taxonIdVal) return;
 
@@ -215,7 +215,7 @@ export const GuideEditorSidebar = () => {
                     max={10}
                     {...a11yProps(
                       "options.maxBranches-error",
-                      !!errors.options?.maxBranches
+                      !!errors.options?.maxBranches,
                     )}
                   />
                 )}
