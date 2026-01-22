@@ -1,4 +1,4 @@
-import { Box, Callout, Flex, Heading, Tabs, Text } from "@radix-ui/themes";
+import { Box, Flex, Heading, Tabs, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -19,6 +19,7 @@ import { NamesDataList } from "./-NameDataList";
 import { TaxonMainSection } from "./-TaxonMainSection";
 
 import taxonPageCssUrl from "../../../../assets/styles/pages/taxa/$id.css?url";
+import { StatusCallout } from "./-StatusCallout";
 
 const ParamsSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -74,19 +75,7 @@ function TaxonPage() {
 
   return (
     <ContentContainer align="start">
-      {taxon.status !== "active" && (
-        <Callout.Root
-          color={taxon.status === "deprecated" ? "tomato" : undefined}
-        >
-          <Callout.Text>
-            Heads up! This taxon is{" "}
-            {taxon.status === "draft"
-              ? "currently under review."
-              : "not active."}
-          </Callout.Text>
-        </Callout.Root>
-      )}
-
+      <StatusCallout status={taxon.status} />
       <Box mb="4">
         <Breadcrumbs items={breadcrumbItems} size="2" />
         <Flex align="baseline" wrap="wrap" gapX="2" gapY="0">

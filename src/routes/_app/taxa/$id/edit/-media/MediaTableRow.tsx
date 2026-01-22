@@ -68,7 +68,7 @@ export const MediaTableRow = ({ id, index, onRemove }: MediaTableRowProps) => {
               <Table.Cell>
                 <div
                   style={{
-                    width: 64,
+                    width: 48,
                     aspectRatio: "1/1",
                     borderRadius: 6,
                     border: "1px solid var(--gray-6)",
@@ -85,6 +85,7 @@ export const MediaTableRow = ({ id, index, onRemove }: MediaTableRowProps) => {
               <Table.Cell>
                 <TextField.Root
                   color={urlValid ? undefined : "red"}
+                  size="1"
                   placeholder="https://example.com/image.jpg"
                   value={field.value}
                   onChange={(e) => field.onChange(e.currentTarget.value)}
@@ -101,6 +102,7 @@ export const MediaTableRow = ({ id, index, onRemove }: MediaTableRowProps) => {
           name={`media.${index}.license`}
           render={({ field }) => (
             <Select.Root
+              size="1"
               value={field.value}
               onValueChange={(v) => field.onChange(v)}
             >
@@ -129,6 +131,7 @@ export const MediaTableRow = ({ id, index, onRemove }: MediaTableRowProps) => {
           name={`media.${index}.owner`}
           render={({ field }) => (
             <TextField.Root
+              size="1"
               placeholder="Owner / photographer"
               value={field.value}
               onChange={(e) => field.onChange(e.currentTarget.value)}
@@ -144,6 +147,7 @@ export const MediaTableRow = ({ id, index, onRemove }: MediaTableRowProps) => {
           render={({ field }) => (
             <TextField.Root
               placeholder="Source or link"
+              size="1"
               value={field.value}
               onChange={(e) => field.onChange(e.currentTarget.value)}
             />
@@ -154,6 +158,7 @@ export const MediaTableRow = ({ id, index, onRemove }: MediaTableRowProps) => {
       <Table.Cell>
         <IconButton
           type="button"
+          size="1"
           color="tomato"
           aria-label="Remove"
           onClick={() => onRemove(index)}

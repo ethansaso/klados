@@ -53,7 +53,7 @@ const InatResultSchema = z.object({
     .object({
       medium_url: z.string().url(),
     })
-    .optional(),
+    .nullable(),
 });
 
 const InatIdModal = NiceModal.create<Props>(
@@ -181,7 +181,7 @@ const InatIdModal = NiceModal.create<Props>(
                   ? () =>
                       setIndex(
                         (i) =>
-                          (i - 1 + taxonResults.length) % taxonResults.length
+                          (i - 1 + taxonResults.length) % taxonResults.length,
                       )
                   : undefined
               }
@@ -215,7 +215,7 @@ const InatIdModal = NiceModal.create<Props>(
         </Dialog.Content>
       </Dialog.Root>
     );
-  }
+  },
 );
 
 // Helper to await a result

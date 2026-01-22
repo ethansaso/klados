@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   Flex,
   IconButton,
@@ -11,6 +10,7 @@ import {
 } from "@radix-ui/themes";
 import React, { Dispatch } from "react";
 import { PiClockClockwise, PiPlus, PiTrash } from "react-icons/pi";
+import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import { SourceDTO } from "../../../../../../lib/domain/sources/types";
 import {
   SetTaxonSourcesInput,
@@ -51,36 +51,58 @@ export const SourceEditingForm = ({
   };
 
   return (
-    <Box mb="5">
-      <Table.Root variant="surface">
-        <Table.Header>
-          <Table.Row>
-            <Table.ColumnHeaderCell>Publication</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell>Locator</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell>Accessed</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell>Notes</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell />
-          </Table.Row>
-        </Table.Header>
+    <FormDescriptor
+      title="Sources"
+      description="Add or select from existing sources. Use the clock button to update a source's access date."
+      actions={
+        <Button
+          type="button"
+          radius="full"
+          size="1"
+          onClick={async () => {
+            const picked = await pickSource();
+            if (!picked) return;
+            if (value.some((item) => item.sourceId === picked.id)) return;
 
-        <Table.Body>
-          {value.length === 0 ? (
+            setSourcesById((prev) => new Map(prev).set(picked.id, picked));
+            onChange([
+              ...value,
+              {
+                sourceId: picked.id,
+                accessedAt: new Date(),
+                locator: "",
+                note: "",
+              },
+            ]);
+          }}
+        >
+          <PiPlus size="16" />
+          Add Source
+        </Button>
+      }
+      orientation="vertical"
+    >
+      {value.length === 0 ? null : (
+        <Table.Root variant="surface" size="1">
+          <Table.Header>
             <Table.Row>
-              <Table.Cell colSpan={5}>
-                <Text color="gray">
-                  No sources yet. Add one using the plus button above.
-                </Text>
-              </Table.Cell>
+              <Table.ColumnHeaderCell>Publication</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Locator</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Accessed</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Notes</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell />
             </Table.Row>
-          ) : (
-            value.map((item, i) => {
+          </Table.Header>
+
+          <Table.Body>
+            {value.map((item, i) => {
               const src = sourcesById.get(item.sourceId);
 
               return (
                 <Table.Row key={`${item.sourceId}`}>
                   <Table.Cell>
                     {src ? (
-                      <Text>{formatPublication(src)}</Text>
+                      <Text size="1">{formatPublication(src)}</Text>
                     ) : (
                       <Text color="tomato">
                         Error: Source not found for ID {item.sourceId}
@@ -90,6 +112,7 @@ export const SourceEditingForm = ({
 
                   <Table.Cell>
                     <TextField.Root
+                      size="1"
                       placeholder='e.g. "Vol. 1, pp. 79-82"'
                       value={item.locator}
                       onChange={(e) =>
@@ -116,6 +139,7 @@ export const SourceEditingForm = ({
 
                   <Table.Cell>
                     <TextArea
+                      size="1"
                       value={item.note}
                       onChange={(e) =>
                         setItem(i, { note: e.currentTarget.value })
@@ -139,36 +163,10 @@ export const SourceEditingForm = ({
                   </Table.Cell>
                 </Table.Row>
               );
-            })
-          )}
-        </Table.Body>
-      </Table.Root>
-      <Flex mt="3" gap="1" align="center">
-        <Button
-          type="button"
-          radius="full"
-          size="1"
-          onClick={async () => {
-            const picked = await pickSource();
-            if (!picked) return;
-            if (value.some((item) => item.sourceId === picked.id)) return;
-
-            setSourcesById((prev) => new Map(prev).set(picked.id, picked));
-            onChange([
-              ...value,
-              {
-                sourceId: picked.id,
-                accessedAt: new Date(),
-                locator: "",
-                note: "",
-              },
-            ]);
-          }}
-        >
-          <PiPlus size="16" />
-          Add Source
-        </Button>
-      </Flex>
-    </Box>
+            })}
+          </Table.Body>
+        </Table.Root>
+      )}
+    </FormDescriptor>
   );
 };

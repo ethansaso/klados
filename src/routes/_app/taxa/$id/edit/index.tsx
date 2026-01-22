@@ -23,7 +23,6 @@ import { MouseEventHandler, useState } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import z from "zod";
 import { ContentContainer } from "../../../../../components/ContentContainer";
-import { FormDescriptor } from "../../../../../components/FormDescriptor";
 import { TAXON_RANKS_DESCENDING } from "../../../../../db/schema/schema";
 import { getTaxonCharacterStatesFn } from "../../../../../lib/api/character-states/getTaxonCharacterStates";
 import { deleteTaxonFn } from "../../../../../lib/api/taxa/deleteTaxonFn";
@@ -131,6 +130,7 @@ export const Route = createFileRoute("/_app/taxa/$id/edit/")({
   component: RouteComponent,
 });
 
+// TODO: Validation error displays
 function RouteComponent() {
   const { id, initialTaxon, initialCharacterValues, initialSources } =
     Route.useLoaderData();
@@ -305,87 +305,60 @@ function RouteComponent() {
           <Separator size="4" my="4" />
           {/* TODO: sync accepted name */}
           {/* Basic meta (rank, parent, source IDs) */}
-          <FormDescriptor
-            title="Basic Information"
-            description="Edit the basic information for this taxon. Use the import buttons to search external services for IDs."
-          >
-            <MetaForm id={id} acceptedName={initialTaxon.acceptedName} />
-          </FormDescriptor>
+          <MetaForm id={id} acceptedName={initialTaxon.acceptedName} />
 
           <Separator size="4" my="4" />
 
           {/* Characters */}
-          <FormDescriptor
-            title="Characters"
-            description="To add a character, first use the group search to add a character group. Once added, you can select trait values for the characters in that group."
-          >
-            <Controller
-              name="characters"
-              control={control}
-              render={({ field }) => (
-                <CharacterEditingForm
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              )}
-            />
-          </FormDescriptor>
+          <Controller
+            name="characters"
+            control={control}
+            render={({ field }) => (
+              <CharacterEditingForm
+                value={field.value}
+                onChange={field.onChange}
+              />
+            )}
+          />
 
           <Separator size="4" my="4" />
 
           {/* Names */}
-          <FormDescriptor
-            title="Names"
-            description="Add names or import from iNaturalist. Select the preferred name using the buttons to the left of each group."
-          >
-            <Controller
-              control={control}
-              name="names"
-              render={({ field: { value, onChange } }) => (
-                <NameEditingForm
-                  value={value}
-                  inatId={inatId}
-                  onChange={onChange}
-                />
-              )}
-            />
-          </FormDescriptor>
+          <Controller
+            control={control}
+            name="names"
+            render={({ field: { value, onChange } }) => (
+              <NameEditingForm
+                value={value}
+                inatId={inatId}
+                onChange={onChange}
+              />
+            )}
+          />
 
           <Separator size="4" my="4" />
 
           {/* Media */}
-          <FormDescriptor
-            title="Media"
-            description="Media can be added manually or imported using the iNaturalist button. Remember to properly attribute media sources, and only use media you have rights to use."
-            orientation="vertical"
-          >
-            <MediaEditingForm inatId={inatId} />
-          </FormDescriptor>
+          <MediaEditingForm inatId={inatId} />
 
           <Separator size="4" my="4" />
 
-          <FormDescriptor
-            title="Sources"
-            description="Add or select from existing sources. Use the clock button to update a source's access date."
-            orientation="vertical"
-          >
-            {/* Sources */}
-            <Controller
-              control={control}
-              name="sources"
-              render={({ field: { value, onChange } }) => (
-                <SourceEditingForm
-                  value={value}
-                  sourcesById={sourcesById}
-                  setSourcesById={setSourcesById}
-                  onChange={onChange}
-                />
-              )}
-            />
-          </FormDescriptor>
+          {/* Sources */}
+          <Controller
+            control={control}
+            name="sources"
+            render={({ field: { value, onChange } }) => (
+              <SourceEditingForm
+                value={value}
+                sourcesById={sourcesById}
+                setSourcesById={setSourcesById}
+                onChange={onChange}
+              />
+            )}
+          />
 
-          {/* TODO: fix spacing, also figure out client discriminated rendering */}
-          <Flex gap="2" justify="between">
+          {/* TODO: clean spacing + client discriminated rendering */}
+          <Flex gap="2" justify="between" mt="5">
             <Flex gap="2" justify="end">
               <Button
                 type="button"

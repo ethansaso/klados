@@ -2,6 +2,7 @@ import { Box } from "@radix-ui/themes";
 import { useCallback, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { TaxonEditFormValues } from "..";
+import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
 import { EditingGroupCard } from "./EditingGroupCard";
 import { GroupSearch } from "./search/GroupSearch";
@@ -91,23 +92,28 @@ export function CharacterEditingForm({
   );
 
   return (
-    <Box>
-      <Box mb="4">
-        <GroupSearch onSelect={handleGroupSelect} />
+    <FormDescriptor
+      title="Characters"
+      description="To add a character, first use the group search to add a character group. Once added, you can select trait values for the characters in that group."
+    >
+      <Box>
+        <Box mb="4">
+          <GroupSearch onSelect={handleGroupSelect} />
+        </Box>
+        <div className="character-group-card-grid">
+          {openGroupIds.map((gId) => (
+            <EditingGroupCard
+              key={gId}
+              groupId={gId}
+              statesForGroup={statesByGroupId.get(gId) ?? []}
+              onChange={onChange}
+              onDelete={handleDeleteGroup}
+              onRemoveCategoricalValue={handleRemoveCategoricalValue}
+              onRemoveState={handleRemoveState}
+            />
+          ))}
+        </div>
       </Box>
-      <div className="character-group-card-grid">
-        {openGroupIds.map((gId) => (
-          <EditingGroupCard
-            key={gId}
-            groupId={gId}
-            statesForGroup={statesByGroupId.get(gId) ?? []}
-            onChange={onChange}
-            onDelete={handleDeleteGroup}
-            onRemoveCategoricalValue={handleRemoveCategoricalValue}
-            onRemoveState={handleRemoveState}
-          />
-        ))}
-      </div>
-    </Box>
+    </FormDescriptor>
   );
 }

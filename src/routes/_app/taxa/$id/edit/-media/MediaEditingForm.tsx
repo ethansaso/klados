@@ -12,11 +12,12 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Box, Button, Flex, Table, Text } from "@radix-ui/themes";
+import { Button, Table } from "@radix-ui/themes";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { FaDove } from "react-icons/fa";
 import { PiPlus } from "react-icons/pi";
 import { TaxonEditFormValues } from "..";
+import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import { toast } from "../../../../../../lib/utils/toast";
 import { selectInatPhotos } from "./InatPhotoSelectModal";
 import { MediaTableRow } from "./MediaTableRow";
@@ -72,36 +73,53 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
   };
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={onDragEnd}
+    <FormDescriptor
+      title="Media"
+      description="Media can be added manually or imported using the iNaturalist button. Remember to properly attribute media sources, and only use media you have rights to use."
+      actions={
+        <>
+          <Button type="button" radius="full" size="1" onClick={addRow}>
+            <PiPlus size="16" />
+            Add Media
+          </Button>
+          <Button
+            type="button"
+            radius="full"
+            size="1"
+            color="grass"
+            onClick={addFromInat}
+          >
+            <FaDove size="16" />
+            Import from iNaturalist
+          </Button>
+        </>
+      }
+      orientation="vertical"
     >
-      <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-        <Box>
-          <Table.Root variant="surface">
-            <Table.Header>
-              <Table.Row>
-                <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Preview</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Image URL</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>License</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Owner</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Source URL</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Delete</Table.ColumnHeaderCell>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {fields.length === 0 ? (
+      {fields.length === 0 ? null : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={onDragEnd}
+        >
+          <SortableContext
+            items={itemIds}
+            strategy={verticalListSortingStrategy}
+          >
+            <Table.Root variant="surface" size="1">
+              <Table.Header>
                 <Table.Row>
-                  <Table.Cell colSpan={7}>
-                    <Text color="gray">
-                      No media yet. Add or import some using the buttons above.
-                    </Text>
-                  </Table.Cell>
+                  <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>Preview</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>Image URL</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>License</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>Owner</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>Source URL</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>Delete</Table.ColumnHeaderCell>
                 </Table.Row>
-              ) : (
-                fields.map((row, i) => {
+              </Table.Header>
+              <Table.Body>
+                {fields.map((row, i) => {
                   return (
                     <MediaTableRow
                       key={row.id}
@@ -110,29 +128,12 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
                       onRemove={() => remove(i)}
                     />
                   );
-                })
-              )}
-            </Table.Body>
-          </Table.Root>
-
-          <Flex mt="3" gap="1">
-            <Button type="button" radius="full" size="1" onClick={addRow}>
-              <PiPlus size="16" />
-              Add Media
-            </Button>
-            <Button
-              type="button"
-              radius="full"
-              size="1"
-              color="grass"
-              onClick={addFromInat}
-            >
-              <FaDove size="16" />
-              Import from iNaturalist
-            </Button>
-          </Flex>
-        </Box>
-      </SortableContext>
-    </DndContext>
+                })}
+              </Table.Body>
+            </Table.Root>
+          </SortableContext>
+        </DndContext>
+      )}
+    </FormDescriptor>
   );
 };

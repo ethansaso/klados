@@ -24,7 +24,7 @@ import { toast } from "../../../../lib/utils/toast";
 export const Route = createFileRoute("/_app/users/$username/edit")({
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData(
-      userQueryOptions(params.username)
+      userQueryOptions(params.username),
     );
   },
   component: RouteComponent,
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/_app/users/$username/edit")({
 function RouteComponent() {
   const serverEditUser = useServerFn(editUserFn);
   const { data: user } = useSuspenseQuery(
-    userQueryOptions(Route.useParams().username)
+    userQueryOptions(Route.useParams().username),
   );
   const { data: me } = useSuspenseQuery(meQueryOptions());
   const queryClient = useQueryClient();
@@ -102,47 +102,52 @@ function RouteComponent() {
           Profile
         </NavSidebar.Item>
       </NavSidebar.Root>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Box>
-          <Flex justify="between" align="baseline" mb="1">
-            <Label.Root htmlFor="name">Display Name</Label.Root>
-            <ConditionalAlert id="name-error" message={errors.name?.message} />
-          </Flex>
-          <TextField.Root
-            id="name"
-            type="text"
-            {...register("name")}
-            {...a11yProps("name-error", !!errors.name)}
-          />
-        </Box>
-        <Box>
-          <Flex justify="between" align="baseline" mb="1" mt="4">
-            <Label.Root htmlFor="description">Description</Label.Root>
-            <ConditionalAlert
-              id="description-error"
-              message={errors.description?.message}
+      <Box asChild width="100%">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Box>
+            <Flex justify="between" align="baseline" mb="1">
+              <Label.Root htmlFor="name">Display Name</Label.Root>
+              <ConditionalAlert
+                id="name-error"
+                message={errors.name?.message}
+              />
+            </Flex>
+            <TextField.Root
+              id="name"
+              type="text"
+              {...register("name")}
+              {...a11yProps("name-error", !!errors.name)}
             />
+          </Box>
+          <Box>
+            <Flex justify="between" align="baseline" mb="1" mt="4">
+              <Label.Root htmlFor="description">Description</Label.Root>
+              <ConditionalAlert
+                id="description-error"
+                message={errors.description?.message}
+              />
+            </Flex>
+            <TextArea
+              id="description"
+              {...register("description")}
+              {...a11yProps("description-error", !!errors.description)}
+              rows={4}
+              placeholder="Tell us about yourself..."
+            />
+          </Box>
+          <Flex>
+            <Button
+              type="submit"
+              mt="6"
+              color="grass"
+              disabled={isSubmitting}
+              loading={isSubmitting}
+            >
+              Save
+            </Button>
           </Flex>
-          <TextArea
-            id="description"
-            {...register("description")}
-            {...a11yProps("description-error", !!errors.description)}
-            rows={4}
-            placeholder="Tell us about yourself..."
-          />
-        </Box>
-        <Flex>
-          <Button
-            type="submit"
-            mt="6"
-            color="grass"
-            disabled={isSubmitting}
-            loading={isSubmitting}
-          >
-            Save
-          </Button>
-        </Flex>
-      </form>
+        </form>
+      </Box>
     </Flex>
   );
 }
