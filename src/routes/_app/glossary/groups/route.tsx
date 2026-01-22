@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_app/glossary/groups")({
   }),
   loader: async ({ context, deps: { page, pageSize, q } }) => {
     await context.queryClient.ensureQueryData(
-      characterGroupsQueryOptions(page, pageSize, { q })
+      characterGroupsQueryOptions(page, pageSize, { q }),
     );
   },
   component: RouteComponent,
@@ -38,7 +38,7 @@ function RouteComponent() {
   const { data: paginatedResult } = useSuspenseQuery(
     characterGroupsQueryOptions(search.page, search.pageSize, {
       q: search.q,
-    })
+    }),
   );
 
   // const matchRoute = useMatchRoute();
@@ -48,26 +48,27 @@ function RouteComponent() {
   return (
     <GlossarySidebarLayout.Root>
       <GlossarySidebarLayout.Sidebar>
-        <DebouncedTextField
-          initialValue={search.q}
-          onDebouncedChange={(value) => setQ(value)}
-          mb="3"
-          radius="large"
-        >
-          <TextField.Slot>
-            <PiMagnifyingGlass size="16" />
-          </TextField.Slot>
-          <CuratorOnly>
+        <Box p="3">
+          <DebouncedTextField
+            initialValue={search.q}
+            onDebouncedChange={(value) => setQ(value)}
+            radius="large"
+          >
             <TextField.Slot>
-              <IconButton
-                size="1"
-                onClick={() => NiceModal.show(AddCharacterGroupModal)}
-              >
-                <PiPlusCircle />
-              </IconButton>
+              <PiMagnifyingGlass size="16" />
             </TextField.Slot>
-          </CuratorOnly>
-        </DebouncedTextField>
+            <CuratorOnly>
+              <TextField.Slot>
+                <IconButton
+                  size="1"
+                  onClick={() => NiceModal.show(AddCharacterGroupModal)}
+                >
+                  <PiPlusCircle />
+                </IconButton>
+              </TextField.Slot>
+            </CuratorOnly>
+          </DebouncedTextField>
+        </Box>
         <GlossarySidebarList.List>
           {paginatedResult.items.map((item) => (
             <GlossarySidebarList.Item
@@ -86,7 +87,7 @@ function RouteComponent() {
             </GlossarySidebarList.Item>
           ))}
         </GlossarySidebarList.List>
-        <Box mt="auto">
+        <Box mt="auto" p="3" pt="0">
           <PaginationFooter
             page={paginatedResult.page}
             pageSize={paginatedResult.pageSize}
