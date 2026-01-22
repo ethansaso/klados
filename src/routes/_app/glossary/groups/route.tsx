@@ -8,7 +8,7 @@ import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
-import { useGlossarySearch } from "../../../../lib/hooks/useGlossarySearch";
+import { usePaginatedSearch } from "../../../../lib/hooks/usePaginatedSearch";
 import { characterGroupsQueryOptions } from "../../../../lib/queries/characterGroups";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/_app/glossary/groups")({
 });
 
 function RouteComponent() {
-  const { search, setQ, next, prev } = useGlossarySearch(Route);
+  const { search, setQ, next, prev } = usePaginatedSearch();
   const { data: paginatedResult } = useSuspenseQuery(
     characterGroupsQueryOptions(search.page, search.pageSize, {
       q: search.q,
@@ -75,8 +75,9 @@ function RouteComponent() {
               key={item.id}
               keyStr={item.key}
               label={item.label}
-              to="/glossary/groups/$setId"
-              params={{ setId: String(item.id) }}
+              to="/glossary/groups/$id"
+              params={{ id: item.id }}
+              search={search}
             >
               <Flex align="center" gap="1" asChild>
                 <Text as="div" size="1">

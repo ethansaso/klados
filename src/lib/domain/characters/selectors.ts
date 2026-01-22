@@ -12,7 +12,7 @@ export const catUsageSel = db
   .select({
     characterId: valCatTbl.characterId,
     catUsageCount: sql<number>`COUNT(DISTINCT ${valCatTbl.taxonId})`.as(
-      "catUsageCount"
+      "catUsageCount",
     ),
   })
   .from(valCatTbl)
@@ -23,7 +23,7 @@ export const numUsageSel = db
   .select({
     characterId: valNumTbl.characterId,
     numUsageCount: sql<number>`COUNT(DISTINCT ${valNumTbl.taxonId})`.as(
-      "numUsageCount"
+      "numUsageCount",
     ),
   })
   .from(valNumTbl)
@@ -34,7 +34,7 @@ export const rangeUsageSel = db
   .select({
     characterId: valRangeTbl.characterId,
     rangeUsageCount: sql<number>`COUNT(DISTINCT ${valRangeTbl.taxonId})`.as(
-      "rangeUsageCount"
+      "rangeUsageCount",
     ),
   })
   .from(valRangeTbl)
@@ -43,8 +43,8 @@ export const rangeUsageSel = db
 
 // Only include characters that have a meta row (should be all of them)
 export const hasSomeMetaExpr = sql`
-  ${catMetaTbl.characterId} IS NOT NULL
-  OR ${numMetaTbl.characterId} IS NOT NULL
+  (${catMetaTbl.characterId} IS NOT NULL
+   OR ${numMetaTbl.characterId} IS NOT NULL)
 `;
 
 // Select kind of character

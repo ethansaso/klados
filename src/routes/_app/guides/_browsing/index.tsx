@@ -4,7 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PiMagnifyingGlass } from "react-icons/pi";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
-import { useGlossarySearch } from "../../../../lib/hooks/useGlossarySearch";
+import { usePaginatedSearch } from "../../../../lib/hooks/usePaginatedSearch";
 import { guidesQueryOptions } from "../../../../lib/queries/guides";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_app/guides/_browsing/")({
   }),
   loader: async ({ context, deps: { page, pageSize, q } }) => {
     await context.queryClient.ensureQueryData(
-      guidesQueryOptions(page, pageSize, { q })
+      guidesQueryOptions(page, pageSize, { q }),
     );
   },
   component: RouteComponent,
@@ -28,11 +28,11 @@ export const Route = createFileRoute("/_app/guides/_browsing/")({
 
 function RouteComponent() {
   const navigate = Route.useNavigate();
-  const { search, setQ, next, prev } = useGlossarySearch(Route);
+  const { search, setQ, next, prev } = usePaginatedSearch();
   const {
     data: { items, page: currentPage, pageSize: currentPageSize, total },
   } = useSuspenseQuery(
-    guidesQueryOptions(search.page, search.pageSize, { q: search.q })
+    guidesQueryOptions(search.page, search.pageSize, { q: search.q }),
   );
 
   const handlePrev = () => {

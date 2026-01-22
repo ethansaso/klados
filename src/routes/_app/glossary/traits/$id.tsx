@@ -12,7 +12,7 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
 import { PiPlusCircle, PiTrash } from "react-icons/pi";
@@ -51,6 +51,13 @@ export const Route = createFileRoute("/_app/glossary/traits/$id")({
   }),
   params: ParamsSchema,
   validateSearch: SearchSchema,
+  search: {
+    middlewares: [
+      stripSearchParams({
+        valuePage: 1,
+      }),
+    ],
+  },
   loaderDeps: ({ search }) => ({
     valuePage: search.valuePage,
   }),

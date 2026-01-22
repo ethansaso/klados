@@ -61,7 +61,7 @@ function toCharacterDTO(row: RawCharacterRow): CharacterDTO {
   if (row.type === "categorical") {
     if (row.traitSetId === null) {
       throw new Error(
-        `Categorical character ${row.id} is missing traitSetId in DTO conversion`
+        `Categorical character ${row.id} is missing traitSetId in DTO conversion`,
       );
     }
     return {
@@ -74,7 +74,7 @@ function toCharacterDTO(row: RawCharacterRow): CharacterDTO {
 
   if (row.unitFamilyId === null) {
     throw new Error(
-      `Number character ${row.id} is missing unitFamilyId in DTO conversion`
+      `Number character ${row.id} is missing unitFamilyId in DTO conversion`,
     );
   }
 
@@ -99,7 +99,7 @@ function toCharacterDTO(row: RawCharacterRow): CharacterDTO {
  * Fetch a single character detail by id.
  */
 export async function fetchCharacterDetailById(
-  id: number
+  id: number,
 ): Promise<CharacterDetailDTO | null> {
   // Get categorical row first
   const catRow = await db
@@ -138,7 +138,7 @@ export async function fetchCharacterDetailById(
       traitSetTbl.id,
       traitSetTbl.key,
       traitSetTbl.label,
-      traitSetTbl.description
+      traitSetTbl.description,
     )
     .limit(1)
     .then((rows) => rows[0]);
@@ -199,7 +199,7 @@ export async function fetchCharacterDetailById(
       groupsTbl.label,
       numMetaTbl.kind,
       unitFamilyTbl.id,
-      unitFamilyTbl.label
+      unitFamilyTbl.label,
     )
     .limit(1)
     .then((rows) => rows[0]);
@@ -231,7 +231,7 @@ export async function fetchCharacterDetailById(
  */
 export async function selectCharactersByIds(
   tx: Transaction,
-  ids: number[]
+  ids: number[],
 ): Promise<CharacterDTO[]> {
   if (!ids.length) return [];
 
@@ -265,7 +265,7 @@ export async function selectCharactersByIds(
     .orderBy(
       asc(groupsTbl.label),
       asc(charsTbl.label),
-      asc(charsTbl.id)
+      asc(charsTbl.id),
     )) as RawCharacterRow[];
 
   return rows.map(toCharacterDTO);
@@ -353,7 +353,7 @@ export async function insertCharacter(
     label: string;
     description: string;
     groupId: number;
-  }
+  },
 ): Promise<{
   id: number;
   key: string;
@@ -389,7 +389,7 @@ export async function insertCategoricalMeta(
     characterId: number;
     traitSetId: number;
     isMultiSelect: boolean;
-  }
+  },
 ): Promise<void> {
   await tx.insert(catMetaTbl).values({
     characterId: args.characterId,
@@ -409,7 +409,7 @@ export async function insertNumericMeta(
     characterId: number;
     unitFamilyId: number;
     kind: "single" | "range";
-  }
+  },
 ): Promise<void> {
   await tx.insert(numMetaTbl).values({
     characterId: args.characterId,
@@ -423,7 +423,7 @@ export async function insertNumericMeta(
  */
 export async function selectCharacterGroupById(
   tx: Transaction,
-  groupId: number
+  groupId: number,
 ): Promise<{ id: number; label: string } | null> {
   const [row] = await tx
     .select({ id: groupsTbl.id, label: groupsTbl.label })
@@ -440,7 +440,7 @@ export async function selectCharacterGroupById(
  */
 export async function countUsageForCharacter(
   tx: Transaction,
-  characterId: number
+  characterId: number,
 ): Promise<number | null> {
   const [row] = await tx
     .select({
@@ -472,7 +472,7 @@ export async function countUsageForCharacter(
  */
 export async function deleteCharacterById(
   tx: Transaction,
-  characterId: number
+  characterId: number,
 ): Promise<{ id: number } | null> {
   const [deleted] = await tx
     .delete(charsTbl)
