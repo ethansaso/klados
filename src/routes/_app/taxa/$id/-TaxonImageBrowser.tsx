@@ -14,14 +14,18 @@ export const TaxonImageBrowser = ({
   media: MediaItem[];
 }) => {
   const [selectedMediaIdx, setSelectedMediaIdx] = useState(0);
-  const displayedMediaItem = media[selectedMediaIdx];
+  const displayedMediaItem = media.at(selectedMediaIdx);
 
   return (
     <Box className="taxon-image-browser">
       <AnnotationBubbleWrap media={displayedMediaItem} spacing="2">
         <img
           src={displayedMediaItem?.url ?? "/logos/LogoDotted.svg"}
-          alt={`${taxonName}, copyright ${displayedMediaItem.owner}`}
+          alt={
+            displayedMediaItem
+              ? `${taxonName}, copyright ${displayedMediaItem.owner}`
+              : `Placeholder image for ${taxonName}`
+          }
           style={{
             display: "block",
             aspectRatio: "1/1",

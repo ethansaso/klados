@@ -6,12 +6,15 @@ type Props = {
   description: string;
   /** Note: at small screen sizes, orientation defaults to vertical setup */
   orientation?: "vertical" | "horizontal";
+  /** Actions which appear alongside the description */
+  actions?: React.ReactNode;
 };
 
 export const FormDescriptor = ({
   title,
   description,
   orientation = "horizontal",
+  actions,
   children,
 }: PropsWithChildren<Props>) => {
   return (
@@ -26,10 +29,39 @@ export const FormDescriptor = ({
           : "column"
       }
     >
-      <Flex>
+      <Flex
+        direction={
+          orientation === "horizontal"
+            ? "column"
+            : {
+                initial: "column",
+                md: "row",
+              }
+        }
+        align={
+          orientation === "horizontal"
+            ? "start"
+            : {
+                initial: "start",
+                md: "end",
+              }
+        }
+        gap={
+          orientation === "horizontal"
+            ? "2"
+            : {
+                initial: "2",
+                md: "9",
+              }
+        }
+      >
         <Box
-          width={orientation === "horizontal" ? { md: "350px" } : undefined}
-          flexShrink="0"
+          width={
+            orientation === "horizontal"
+              ? { initial: "100%", md: "350px" }
+              : "100%"
+          }
+          flexShrink="1"
         >
           <Heading size="3" weight="medium" mb="2">
             {title}
@@ -38,8 +70,13 @@ export const FormDescriptor = ({
             {description}
           </Text>
         </Box>
+        {actions && (
+          <Flex gap="1" flexShrink="0">
+            {actions}
+          </Flex>
+        )}
       </Flex>
-      <Box flexGrow="1">{children}</Box>
+      {children && <Box flexGrow="1">{children}</Box>}
     </Flex>
   );
 };

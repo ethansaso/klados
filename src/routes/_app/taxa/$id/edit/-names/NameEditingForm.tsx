@@ -1,14 +1,7 @@
-import {
-  Box,
-  Button,
-  DataList,
-  Flex,
-  RadioGroup,
-  Text,
-} from "@radix-ui/themes";
+import { Button, DataList, Flex, RadioGroup, Text } from "@radix-ui/themes";
 import { useCallback, useMemo } from "react";
 import { FaDove } from "react-icons/fa";
-import { PiPlus } from "react-icons/pi";
+import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import { localeDisplayValues } from "../../../../../../lib/consts/locale-display-values";
 import { NameItem } from "../../../../../../lib/domain/taxon-names/validation";
 import { toast } from "../../../../../../lib/utils/toast";
@@ -27,8 +20,8 @@ export const NameEditingForm = ({
   inatId,
   onChange,
 }: NameEditingFormProps) => {
-  const addRow = () =>
-    onChange([...value, { locale: "", value: "", isPreferred: false }]);
+  // const addRow = () =>
+  //   onChange([...value, { locale: "", value: "", isPreferred: false }]);
 
   const setFromInat = async () => {
     if (!inatId) {
@@ -51,11 +44,11 @@ export const NameEditingForm = ({
         value.map((item, index) =>
           item.locale === locale
             ? { ...item, isPreferred: index === targetIndex }
-            : item
-        )
+            : item,
+        ),
       );
     },
-    [value, onChange]
+    [value, onChange],
   );
 
   const handleNameChange = useCallback(
@@ -65,7 +58,7 @@ export const NameEditingForm = ({
       next[index] = { ...next[index], value: nextValue };
       onChange(next);
     },
-    [value, onChange]
+    [value, onChange],
   );
 
   const handleDelete = useCallback(
@@ -91,7 +84,7 @@ export const NameEditingForm = ({
 
       onChange(next);
     },
-    [value, onChange]
+    [value, onChange],
   );
 
   // Group + sort locales once per `value` change
@@ -118,14 +111,30 @@ export const NameEditingForm = ({
   }, [value]);
 
   return (
-    <Box>
+    <FormDescriptor
+      title="Names"
+      description="Add names or import from iNaturalist. Select the preferred name using the buttons to the left of each group."
+      actions={
+        <Button
+          type="button"
+          radius="full"
+          size="1"
+          color="grass"
+          onClick={setFromInat}
+          aria-label="Import names from iNaturalist"
+        >
+          <FaDove size="16" />
+          Import from iNaturalist
+        </Button>
+      }
+    >
       {localeEntries.length === 0 ? (
         <Text color="gray" size="2">
           No names added yet. Use the + button to add or import from
           iNaturalist.
         </Text>
       ) : (
-        <DataList.Root size="2">
+        <DataList.Root size="1">
           {localeEntries.map(({ code, label: localeLabel, entries }) => {
             const labelId = `taxon-names-locale-${code}`;
             const selected = entries.find((e) => e.item.isPreferred);
@@ -139,7 +148,7 @@ export const NameEditingForm = ({
                 </DataList.Label>
                 <DataList.Value>
                   <RadioGroup.Root
-                    size="2"
+                    size="1"
                     value={groupValue}
                     name={`preferred-${code}`}
                     className="taxon-names__radio-group"
@@ -170,29 +179,6 @@ export const NameEditingForm = ({
           })}
         </DataList.Root>
       )}
-      <Flex mt="3" gap="1" align="center">
-        <Button
-          type="button"
-          radius="full"
-          size="1"
-          onClick={addRow}
-          aria-label="Add name"
-        >
-          <PiPlus size="16" />
-          Add Name
-        </Button>
-        <Button
-          type="button"
-          radius="full"
-          size="1"
-          color="grass"
-          onClick={setFromInat}
-          aria-label="Import names from iNaturalist"
-        >
-          <FaDove size="16" />
-          Import from iNaturalist
-        </Button>
-      </Flex>
-    </Box>
+    </FormDescriptor>
   );
 };

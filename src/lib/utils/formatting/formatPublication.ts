@@ -2,21 +2,17 @@ import { SourceDTO } from "../../domain/sources/types";
 import { TaxonSourceDTO } from "../../domain/taxon-sources/types";
 
 export function formatPublication(source: SourceDTO): string {
-  const authors = source.authors?.trim();
-  const year = source.publicationYear
-    ? `(${source.publicationYear}).`
-    : undefined;
+  const author = source.authors?.trim();
+  const year = source.publicationYear;
+
+  const authorAndYear = author && year ? `${author} (${year})` : author;
+
   const title = source.name?.trim();
   const publisher = source.publisher?.trim();
 
-  const parts = [
-    authors,
-    year,
-    title ? `${title}.` : undefined,
-    publisher ? `${publisher}.` : undefined,
-  ].filter(Boolean);
+  const parts = [authorAndYear, title, publisher].filter(Boolean);
 
-  return parts.join(" ");
+  return parts.join(". ") + (parts.length ? "." : "");
 }
 
 export function formatPublicationForTaxon(ts: TaxonSourceDTO): string {
