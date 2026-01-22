@@ -9,7 +9,7 @@ import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { TiOutline } from "../../../../components/icons/TiOutline";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
-import { useGlossarySearch } from "../../../../lib/hooks/useGlossarySearch";
+import { usePaginatedSearch } from "../../../../lib/hooks/usePaginatedSearch";
 import { charactersQueryOptions } from "../../../../lib/queries/characters";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_app/glossary/characters")({
 });
 
 function RouteComponent() {
-  const { search, setQ, next, prev } = useGlossarySearch(Route);
+  const { search, setQ, next, prev } = usePaginatedSearch();
   const { data: paginatedResult } = useSuspenseQuery(
     charactersQueryOptions(search.page, search.pageSize, {
       q: search.q,
@@ -83,8 +83,9 @@ function RouteComponent() {
               key={item.id}
               keyStr={item.key}
               label={item.label}
-              to="/glossary/characters/$characterId"
-              params={{ characterId: item.id }}
+              to="/glossary/characters/$id"
+              params={{ id: item.id }}
+              search={search}
             >
               <Flex align="center" gap="1" asChild>
                 <Text as="div" size="1">

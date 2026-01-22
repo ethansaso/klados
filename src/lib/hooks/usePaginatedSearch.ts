@@ -1,3 +1,4 @@
+import { useMatches, useNavigate } from "@tanstack/react-router";
 import { useCallback } from "react";
 
 type SectionSearch = {
@@ -6,15 +7,13 @@ type SectionSearch = {
   q?: string;
 };
 
-type RouteLike = {
-  useSearch: () => unknown;
-  useNavigate: () => unknown;
-};
+export function usePaginatedSearch() {
+  const navigate = useNavigate();
+  const matches = useMatches();
 
-export function useGlossarySearch<TRoute extends RouteLike>(Route: TRoute) {
-  const raw = Route.useSearch() as SectionSearch;
+  const deepestMatch = matches[matches.length - 1];
 
-  const navigate = Route.useNavigate() as ReturnType<TRoute["useNavigate"]>;
+  const raw = (deepestMatch.search ?? {}) as SectionSearch;
 
   const search = {
     page: raw.page ?? 1,
@@ -24,37 +23,27 @@ export function useGlossarySearch<TRoute extends RouteLike>(Route: TRoute) {
 
   const setSearch = useCallback(
     (patch: Partial<typeof search>, replace = false) => {
-      const opts = {
+      navigate({
+        from: deepestMatch.fullPath || "/",
         to: ".",
-        search: (prev: unknown) => ({
-          ...(prev as Record<string, unknown>),
+        search: (prev) => ({
+          ...prev,
           ...patch,
         }),
         replace,
-      };
-
-      // Cast through unknown into the *actual* parameter type TanStack expects
-      return (navigate as unknown as (o: unknown) => unknown)(
-        opts as unknown as Parameters<
-          ReturnType<TRoute["useNavigate"]> extends (
-            ...args: infer A
-          ) => unknown
-            ? (...args: A) => unknown
-            : never
-        >[0]
-      );
+      });
     },
-    [navigate]
+    [navigate, deepestMatch],
   );
 
   const setQ = useCallback(
     (q: string, replace = true) => setSearch({ q, page: 1 }, replace),
-    [setSearch]
+    [setSearch],
   );
 
   const setPage = useCallback(
     (page: number, replace = false) => setSearch({ page }, replace),
-    [setSearch]
+    [setSearch],
   );
 
   const next = useCallback(
@@ -62,12 +51,12 @@ export function useGlossarySearch<TRoute extends RouteLike>(Route: TRoute) {
       const max = Math.max(1, Math.ceil(total / search.pageSize));
       setSearch({ page: Math.min(search.page + 1, max) });
     },
-    [setSearch, search.page, search.pageSize]
+    [setSearch, search.page, search.pageSize],
   );
 
   const prev = useCallback(
     () => setSearch({ page: Math.max(1, search.page - 1) }),
-    [setSearch, search.page]
+    [setSearch, search.page],
   );
 
   return { search, setQ, setPage, next, prev };

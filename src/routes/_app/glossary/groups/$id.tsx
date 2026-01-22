@@ -5,17 +5,17 @@ import z from "zod";
 import { characterGroupQueryOptions } from "../../../../lib/queries/characterGroups";
 
 const ParamsSchema = z.object({
-  groupId: z.coerce.number().int().positive(),
+  id: z.coerce.number().int().positive(),
 });
 
-export const Route = createFileRoute("/_app/glossary/groups/$groupId")({
+export const Route = createFileRoute("/_app/glossary/groups/$id")({
   head: () => ({
     meta: [{ name: "robots", content: "noindex,follow" }],
   }),
   params: ParamsSchema,
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData(
-      characterGroupQueryOptions(params.groupId)
+      characterGroupQueryOptions(params.id),
     );
     return params;
   },
@@ -24,11 +24,11 @@ export const Route = createFileRoute("/_app/glossary/groups/$groupId")({
 
 function RouteComponent() {
   // const search = CharacterGroupsLayoutRoute.useSearch();
-  const { groupId } = Route.useLoaderData();
+  const { id } = Route.useLoaderData();
   // const navigate = useNavigate();
   // const qc = useQueryClient();
 
-  const { data: group } = useSuspenseQuery(characterGroupQueryOptions(groupId));
+  const { data: group } = useSuspenseQuery(characterGroupQueryOptions(id));
 
   return (
     <Box>

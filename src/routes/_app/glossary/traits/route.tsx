@@ -8,7 +8,7 @@ import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
-import { useGlossarySearch } from "../../../../lib/hooks/useGlossarySearch";
+import { usePaginatedSearch } from "../../../../lib/hooks/usePaginatedSearch";
 import { traitSetsQueryOptions } from "../../../../lib/queries/traits";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/_app/glossary/traits")({
 });
 
 function RouteComponent() {
-  const { search, setQ, next, prev } = useGlossarySearch(Route);
+  const { search, setQ, next, prev } = usePaginatedSearch();
   const { data: paginatedResult } = useSuspenseQuery(
     traitSetsQueryOptions(search.page, search.pageSize, {
       q: search.q,
@@ -71,9 +71,9 @@ function RouteComponent() {
               key={item.id}
               keyStr={item.key}
               label={item.label}
-              to="/glossary/traits/$setId"
-              params={{ setId: String(item.id) }}
-              search={{ valuePage: 1 }}
+              to="/glossary/traits/$id"
+              params={{ id: item.id }}
+              search={{ ...search, valuePage: 1 }}
             >
               <Flex align="center" gap="1" asChild>
                 <Text as="div" size="1">

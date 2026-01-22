@@ -8,8 +8,6 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from '@tanstack/react-router'
-
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
@@ -49,18 +47,11 @@ import { Route as AppGlossaryGroupsIndexRouteImport } from './routes/_app/glossa
 import { Route as AppGlossaryCharactersIndexRouteImport } from './routes/_app/glossary/characters/index'
 import { Route as AppUsersUsernameEditRouteImport } from './routes/_app/users/$username/edit'
 import { Route as AppGlossaryTraitsIdRouteImport } from './routes/_app/glossary/traits/$id'
-import { Route as AppGlossaryGroupsGroupIdRouteImport } from './routes/_app/glossary/groups/$groupId'
+import { Route as AppGlossaryGroupsIdRouteImport } from './routes/_app/glossary/groups/$id'
 import { Route as AppGlossaryCharactersIdRouteImport } from './routes/_app/glossary/characters/$id'
 import { Route as AppTaxaIdEditRouteRouteImport } from './routes/_app/taxa/$id/edit/route'
 import { Route as AppTaxaIdEditIndexRouteImport } from './routes/_app/taxa/$id/edit/index'
 
-const ApiRouteImport = createFileRoute('/api')()
-
-const ApiRoute = ApiRouteImport.update({
-  id: '/api',
-  path: '/api',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -250,12 +241,11 @@ const AppGlossaryTraitsIdRoute = AppGlossaryTraitsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AppGlossaryTraitsRouteRoute,
 } as any)
-const AppGlossaryGroupsGroupIdRoute =
-  AppGlossaryGroupsGroupIdRouteImport.update({
-    id: '/$groupId',
-    path: '/$groupId',
-    getParentRoute: () => AppGlossaryGroupsRouteRoute,
-  } as any)
+const AppGlossaryGroupsIdRoute = AppGlossaryGroupsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppGlossaryGroupsRouteRoute,
+} as any)
 const AppGlossaryCharactersIdRoute = AppGlossaryCharactersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -301,7 +291,7 @@ export interface FileRoutesByFullPath {
   '/admin/users/': typeof AdminUsersIndexRoute
   '/taxa/$id/edit': typeof AppTaxaIdEditRouteRouteWithChildren
   '/glossary/characters/$id': typeof AppGlossaryCharactersIdRoute
-  '/glossary/groups/$groupId': typeof AppGlossaryGroupsGroupIdRoute
+  '/glossary/groups/$id': typeof AppGlossaryGroupsIdRoute
   '/glossary/traits/$id': typeof AppGlossaryTraitsIdRoute
   '/users/$username/edit': typeof AppUsersUsernameEditRoute
   '/glossary/characters/': typeof AppGlossaryCharactersIndexRoute
@@ -334,7 +324,7 @@ export interface FileRoutesByTo {
   '/users': typeof AppUsersIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
   '/glossary/characters/$id': typeof AppGlossaryCharactersIdRoute
-  '/glossary/groups/$groupId': typeof AppGlossaryGroupsGroupIdRoute
+  '/glossary/groups/$id': typeof AppGlossaryGroupsIdRoute
   '/glossary/traits/$id': typeof AppGlossaryTraitsIdRoute
   '/users/$username/edit': typeof AppUsersUsernameEditRoute
   '/glossary/characters': typeof AppGlossaryCharactersIndexRoute
@@ -354,7 +344,6 @@ export interface FileRoutesById {
   '/_app/guides': typeof AppGuidesRouteRouteWithChildren
   '/_app/users': typeof AppUsersRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
-  '/api': typeof ApiRouteWithChildren
   '/api/_unauthenticated': typeof ApiUnauthenticatedRouteRouteWithChildren
   '/_app/about': typeof AppAboutRoute
   '/_app/donate': typeof AppDonateRoute
@@ -379,7 +368,7 @@ export interface FileRoutesById {
   '/admin/users/': typeof AdminUsersIndexRoute
   '/_app/taxa/$id/edit': typeof AppTaxaIdEditRouteRouteWithChildren
   '/_app/glossary/characters/$id': typeof AppGlossaryCharactersIdRoute
-  '/_app/glossary/groups/$groupId': typeof AppGlossaryGroupsGroupIdRoute
+  '/_app/glossary/groups/$id': typeof AppGlossaryGroupsIdRoute
   '/_app/glossary/traits/$id': typeof AppGlossaryTraitsIdRoute
   '/_app/users/$username/edit': typeof AppUsersUsernameEditRoute
   '/_app/glossary/characters/': typeof AppGlossaryCharactersIndexRoute
@@ -423,7 +412,7 @@ export interface FileRouteTypes {
     | '/admin/users/'
     | '/taxa/$id/edit'
     | '/glossary/characters/$id'
-    | '/glossary/groups/$groupId'
+    | '/glossary/groups/$id'
     | '/glossary/traits/$id'
     | '/users/$username/edit'
     | '/glossary/characters/'
@@ -456,7 +445,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/admin/users'
     | '/glossary/characters/$id'
-    | '/glossary/groups/$groupId'
+    | '/glossary/groups/$id'
     | '/glossary/traits/$id'
     | '/users/$username/edit'
     | '/glossary/characters'
@@ -475,7 +464,6 @@ export interface FileRouteTypes {
     | '/_app/guides'
     | '/_app/users'
     | '/admin/users'
-    | '/api'
     | '/api/_unauthenticated'
     | '/_app/about'
     | '/_app/donate'
@@ -500,7 +488,7 @@ export interface FileRouteTypes {
     | '/admin/users/'
     | '/_app/taxa/$id/edit'
     | '/_app/glossary/characters/$id'
-    | '/_app/glossary/groups/$groupId'
+    | '/_app/glossary/groups/$id'
     | '/_app/glossary/traits/$id'
     | '/_app/users/$username/edit'
     | '/_app/glossary/characters/'
@@ -517,18 +505,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
-  ApiRoute: typeof ApiRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/api': {
-      id: '/api'
-      path: '/api'
-      fullPath: '/api'
-      preLoaderRoute: typeof ApiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -601,7 +581,7 @@ declare module '@tanstack/react-router' {
     }
     '/api/_unauthenticated': {
       id: '/api/_unauthenticated'
-      path: '/api'
+      path: ''
       fullPath: '/api'
       preLoaderRoute: typeof ApiUnauthenticatedRouteRouteImport
       parentRoute: typeof ApiRoute
@@ -795,11 +775,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGlossaryTraitsIdRouteImport
       parentRoute: typeof AppGlossaryTraitsRouteRoute
     }
-    '/_app/glossary/groups/$groupId': {
-      id: '/_app/glossary/groups/$groupId'
-      path: '/$groupId'
-      fullPath: '/glossary/groups/$groupId'
-      preLoaderRoute: typeof AppGlossaryGroupsGroupIdRouteImport
+    '/_app/glossary/groups/$id': {
+      id: '/_app/glossary/groups/$id'
+      path: '/$id'
+      fullPath: '/glossary/groups/$id'
+      preLoaderRoute: typeof AppGlossaryGroupsIdRouteImport
       parentRoute: typeof AppGlossaryGroupsRouteRoute
     }
     '/_app/glossary/characters/$id': {
@@ -843,13 +823,13 @@ const AppGlossaryCharactersRouteRouteWithChildren =
   )
 
 interface AppGlossaryGroupsRouteRouteChildren {
-  AppGlossaryGroupsGroupIdRoute: typeof AppGlossaryGroupsGroupIdRoute
+  AppGlossaryGroupsIdRoute: typeof AppGlossaryGroupsIdRoute
   AppGlossaryGroupsIndexRoute: typeof AppGlossaryGroupsIndexRoute
 }
 
 const AppGlossaryGroupsRouteRouteChildren: AppGlossaryGroupsRouteRouteChildren =
   {
-    AppGlossaryGroupsGroupIdRoute: AppGlossaryGroupsGroupIdRoute,
+    AppGlossaryGroupsIdRoute: AppGlossaryGroupsIdRoute,
     AppGlossaryGroupsIndexRoute: AppGlossaryGroupsIndexRoute,
   }
 
@@ -1026,36 +1006,9 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
   AdminRouteRouteChildren,
 )
 
-interface ApiUnauthenticatedRouteRouteChildren {
-  ApiUnauthenticatedTaxaRoute: typeof ApiUnauthenticatedTaxaRoute
-}
-
-const ApiUnauthenticatedRouteRouteChildren: ApiUnauthenticatedRouteRouteChildren =
-  {
-    ApiUnauthenticatedTaxaRoute: ApiUnauthenticatedTaxaRoute,
-  }
-
-const ApiUnauthenticatedRouteRouteWithChildren =
-  ApiUnauthenticatedRouteRoute._addFileChildren(
-    ApiUnauthenticatedRouteRouteChildren,
-  )
-
-interface ApiRouteChildren {
-  ApiUnauthenticatedRouteRoute: typeof ApiUnauthenticatedRouteRouteWithChildren
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
-}
-
-const ApiRouteChildren: ApiRouteChildren = {
-  ApiUnauthenticatedRouteRoute: ApiUnauthenticatedRouteRouteWithChildren,
-  ApiAuthSplatRoute: ApiAuthSplatRoute,
-}
-
-const ApiRouteWithChildren = ApiRoute._addFileChildren(ApiRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AdminRouteRoute: AdminRouteRouteWithChildren,
-  ApiRoute: ApiRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
