@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_app/glossary/traits")({
   }),
   loader: async ({ context, deps: { page, pageSize, q } }) => {
     await context.queryClient.ensureQueryData(
-      traitSetsQueryOptions(page, pageSize, { q })
+      traitSetsQueryOptions(page, pageSize, { q }),
     );
   },
   component: RouteComponent,
@@ -38,32 +38,33 @@ function RouteComponent() {
   const { data: paginatedResult } = useSuspenseQuery(
     traitSetsQueryOptions(search.page, search.pageSize, {
       q: search.q,
-    })
+    }),
   );
 
   return (
     <GlossarySidebarLayout.Root>
       <GlossarySidebarLayout.Sidebar>
-        <DebouncedTextField
-          initialValue={search.q}
-          onDebouncedChange={(value) => setQ(value)}
-          mb="3"
-          radius="large"
-        >
-          <TextField.Slot>
-            <PiMagnifyingGlass size="16" />
-          </TextField.Slot>
-          <CuratorOnly>
+        <Box p="3">
+          <DebouncedTextField
+            initialValue={search.q}
+            onDebouncedChange={(value) => setQ(value)}
+            radius="large"
+          >
             <TextField.Slot>
-              <IconButton
-                onClick={() => NiceModal.show(AddTraitSetModal)}
-                size="1"
-              >
-                <PiPlusCircle />
-              </IconButton>
+              <PiMagnifyingGlass size="16" />
             </TextField.Slot>
-          </CuratorOnly>
-        </DebouncedTextField>
+            <CuratorOnly>
+              <TextField.Slot>
+                <IconButton
+                  onClick={() => NiceModal.show(AddTraitSetModal)}
+                  size="1"
+                >
+                  <PiPlusCircle />
+                </IconButton>
+              </TextField.Slot>
+            </CuratorOnly>
+          </DebouncedTextField>
+        </Box>
         <GlossarySidebarList.List>
           {paginatedResult.items.map((item) => (
             <GlossarySidebarList.Item
@@ -87,7 +88,7 @@ function RouteComponent() {
             </GlossarySidebarList.Item>
           ))}
         </GlossarySidebarList.List>
-        <Box mt="auto">
+        <Box mt="auto" p="3" pt="0">
           <PaginationFooter
             page={paginatedResult.page}
             pageSize={paginatedResult.pageSize}

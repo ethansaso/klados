@@ -21,7 +21,7 @@ function Sidebar({ children }: PropsWithChildren) {
       direction="column"
       width={{ initial: "auto", sm: "275px" }}
       height="100%"
-      p="4"
+      p="1"
     >
       {children}
     </Flex>

@@ -1,15 +1,17 @@
-import { Box, Card, Flex, Text } from "@radix-ui/themes";
+import { Box, Card, Flex, ScrollArea, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import { NavigationMenu } from "radix-ui";
 import { PropsWithChildren } from "react";
 
 function List({ children }: PropsWithChildren) {
   return (
-    <NavigationMenu.Root orientation="vertical">
-      <Flex asChild p="0" m="0" direction="column" gap="1">
-        <NavigationMenu.List>{children}</NavigationMenu.List>
-      </Flex>
-    </NavigationMenu.Root>
+    <ScrollArea type="hover" size="1" scrollbars="vertical">
+      <NavigationMenu.Root orientation="vertical">
+        <Flex asChild px="3" py="1" m="0" direction="column" gap="1">
+          <NavigationMenu.List>{children}</NavigationMenu.List>
+        </Flex>
+      </NavigationMenu.Root>
+    </ScrollArea>
   );
 }
 
