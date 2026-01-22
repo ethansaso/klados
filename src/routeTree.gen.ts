@@ -8,18 +8,20 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as ApiTaxaRouteImport } from './routes/api/taxa'
 import { Route as AppSignupRouteImport } from './routes/_app/signup'
 import { Route as AppLogoutRouteImport } from './routes/_app/logout'
 import { Route as AppLoginRouteImport } from './routes/_app/login'
 import { Route as AppHealthRouteImport } from './routes/_app/health'
 import { Route as AppDonateRouteImport } from './routes/_app/donate'
 import { Route as AppAboutRouteImport } from './routes/_app/about'
+import { Route as ApiUnauthenticatedRouteRouteImport } from './routes/api/_unauthenticated/route'
 import { Route as AdminUsersRouteRouteImport } from './routes/admin/users/route'
 import { Route as AppUsersRouteRouteImport } from './routes/_app/users/route'
 import { Route as AppGuidesRouteRouteImport } from './routes/_app/guides/route'
@@ -29,6 +31,7 @@ import { Route as AppUsersIndexRouteImport } from './routes/_app/users/index'
 import { Route as AppTaxaIndexRouteImport } from './routes/_app/taxa/index'
 import { Route as AppGlossaryIndexRouteImport } from './routes/_app/glossary/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiUnauthenticatedTaxaRouteImport } from './routes/api/_unauthenticated/taxa'
 import { Route as AppTaxaNewRouteImport } from './routes/_app/taxa/new'
 import { Route as AppTaxaDraftsRouteImport } from './routes/_app/taxa/drafts'
 import { Route as AppTaxaIdRouteRouteImport } from './routes/_app/taxa/$id/route'
@@ -51,6 +54,13 @@ import { Route as AppGlossaryCharactersIdRouteImport } from './routes/_app/gloss
 import { Route as AppTaxaIdEditRouteRouteImport } from './routes/_app/taxa/$id/edit/route'
 import { Route as AppTaxaIdEditIndexRouteImport } from './routes/_app/taxa/$id/edit/index'
 
+const ApiRouteImport = createFileRoute('/api')()
+
+const ApiRoute = ApiRouteImport.update({
+  id: '/api',
+  path: '/api',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -69,11 +79,6 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRouteRoute,
-} as any)
-const ApiTaxaRoute = ApiTaxaRouteImport.update({
-  id: '/api/taxa',
-  path: '/api/taxa',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const AppSignupRoute = AppSignupRouteImport.update({
   id: '/signup',
@@ -104,6 +109,10 @@ const AppAboutRoute = AppAboutRouteImport.update({
   id: '/about',
   path: '/about',
   getParentRoute: () => AppRouteRoute,
+} as any)
+const ApiUnauthenticatedRouteRoute = ApiUnauthenticatedRouteRouteImport.update({
+  id: '/_unauthenticated',
+  getParentRoute: () => ApiRoute,
 } as any)
 const AdminUsersRouteRoute = AdminUsersRouteRouteImport.update({
   id: '/users',
@@ -146,9 +155,14 @@ const AppGlossaryIndexRoute = AppGlossaryIndexRouteImport.update({
   getParentRoute: () => AppGlossaryRouteRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
-  getParentRoute: () => rootRouteImport,
+  id: '/auth/$',
+  path: '/auth/$',
+  getParentRoute: () => ApiRoute,
+} as any)
+const ApiUnauthenticatedTaxaRoute = ApiUnauthenticatedTaxaRouteImport.update({
+  id: '/taxa',
+  path: '/taxa',
+  getParentRoute: () => ApiUnauthenticatedRouteRoute,
 } as any)
 const AppTaxaNewRoute = AppTaxaNewRouteImport.update({
   id: '/taxa/new',
@@ -264,13 +278,13 @@ export interface FileRoutesByFullPath {
   '/guides': typeof AppGuidesBrowsingRouteRouteWithChildren
   '/users': typeof AppUsersRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
+  '/api': typeof ApiUnauthenticatedRouteRouteWithChildren
   '/about': typeof AppAboutRoute
   '/donate': typeof AppDonateRoute
   '/health': typeof AppHealthRoute
   '/login': typeof AppLoginRoute
   '/logout': typeof AppLogoutRoute
   '/signup': typeof AppSignupRoute
-  '/api/taxa': typeof ApiTaxaRoute
   '/': typeof AppIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/glossary/characters': typeof AppGlossaryCharactersRouteRouteWithChildren
@@ -279,6 +293,7 @@ export interface FileRoutesByFullPath {
   '/taxa/$id': typeof AppTaxaIdRouteRouteWithChildren
   '/taxa/drafts': typeof AppTaxaDraftsRoute
   '/taxa/new': typeof AppTaxaNewRoute
+  '/api/taxa': typeof ApiUnauthenticatedTaxaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/glossary/': typeof AppGlossaryIndexRoute
   '/taxa': typeof AppTaxaIndexRoute
@@ -301,17 +316,18 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/guides': typeof AppGuidesBrowsingIndexRoute
+  '/api': typeof ApiUnauthenticatedRouteRouteWithChildren
   '/about': typeof AppAboutRoute
   '/donate': typeof AppDonateRoute
   '/health': typeof AppHealthRoute
   '/login': typeof AppLoginRoute
   '/logout': typeof AppLogoutRoute
   '/signup': typeof AppSignupRoute
-  '/api/taxa': typeof ApiTaxaRoute
   '/': typeof AppIndexRoute
   '/admin': typeof AdminIndexRoute
   '/taxa/drafts': typeof AppTaxaDraftsRoute
   '/taxa/new': typeof AppTaxaNewRoute
+  '/api/taxa': typeof ApiUnauthenticatedTaxaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/glossary': typeof AppGlossaryIndexRoute
   '/taxa': typeof AppTaxaIndexRoute
@@ -338,13 +354,14 @@ export interface FileRoutesById {
   '/_app/guides': typeof AppGuidesRouteRouteWithChildren
   '/_app/users': typeof AppUsersRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
+  '/api': typeof ApiRouteWithChildren
+  '/api/_unauthenticated': typeof ApiUnauthenticatedRouteRouteWithChildren
   '/_app/about': typeof AppAboutRoute
   '/_app/donate': typeof AppDonateRoute
   '/_app/health': typeof AppHealthRoute
   '/_app/login': typeof AppLoginRoute
   '/_app/logout': typeof AppLogoutRoute
   '/_app/signup': typeof AppSignupRoute
-  '/api/taxa': typeof ApiTaxaRoute
   '/_app/': typeof AppIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/_app/glossary/characters': typeof AppGlossaryCharactersRouteRouteWithChildren
@@ -354,6 +371,7 @@ export interface FileRoutesById {
   '/_app/taxa/$id': typeof AppTaxaIdRouteRouteWithChildren
   '/_app/taxa/drafts': typeof AppTaxaDraftsRoute
   '/_app/taxa/new': typeof AppTaxaNewRoute
+  '/api/_unauthenticated/taxa': typeof ApiUnauthenticatedTaxaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_app/glossary/': typeof AppGlossaryIndexRoute
   '/_app/taxa/': typeof AppTaxaIndexRoute
@@ -382,13 +400,13 @@ export interface FileRouteTypes {
     | '/guides'
     | '/users'
     | '/admin/users'
+    | '/api'
     | '/about'
     | '/donate'
     | '/health'
     | '/login'
     | '/logout'
     | '/signup'
-    | '/api/taxa'
     | '/'
     | '/admin/'
     | '/glossary/characters'
@@ -397,6 +415,7 @@ export interface FileRouteTypes {
     | '/taxa/$id'
     | '/taxa/drafts'
     | '/taxa/new'
+    | '/api/taxa'
     | '/api/auth/$'
     | '/glossary/'
     | '/taxa'
@@ -419,17 +438,18 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/guides'
+    | '/api'
     | '/about'
     | '/donate'
     | '/health'
     | '/login'
     | '/logout'
     | '/signup'
-    | '/api/taxa'
     | '/'
     | '/admin'
     | '/taxa/drafts'
     | '/taxa/new'
+    | '/api/taxa'
     | '/api/auth/$'
     | '/glossary'
     | '/taxa'
@@ -455,13 +475,14 @@ export interface FileRouteTypes {
     | '/_app/guides'
     | '/_app/users'
     | '/admin/users'
+    | '/api'
+    | '/api/_unauthenticated'
     | '/_app/about'
     | '/_app/donate'
     | '/_app/health'
     | '/_app/login'
     | '/_app/logout'
     | '/_app/signup'
-    | '/api/taxa'
     | '/_app/'
     | '/admin/'
     | '/_app/glossary/characters'
@@ -471,6 +492,7 @@ export interface FileRouteTypes {
     | '/_app/taxa/$id'
     | '/_app/taxa/drafts'
     | '/_app/taxa/new'
+    | '/api/_unauthenticated/taxa'
     | '/api/auth/$'
     | '/_app/glossary/'
     | '/_app/taxa/'
@@ -495,12 +517,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
-  ApiTaxaRoute: typeof ApiTaxaRoute
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiRoute: typeof ApiRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/api': {
+      id: '/api'
+      path: '/api'
+      fullPath: '/api'
+      preLoaderRoute: typeof ApiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -528,13 +556,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRouteRoute
-    }
-    '/api/taxa': {
-      id: '/api/taxa'
-      path: '/api/taxa'
-      fullPath: '/api/taxa'
-      preLoaderRoute: typeof ApiTaxaRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/_app/signup': {
       id: '/_app/signup'
@@ -577,6 +598,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/about'
       preLoaderRoute: typeof AppAboutRouteImport
       parentRoute: typeof AppRouteRoute
+    }
+    '/api/_unauthenticated': {
+      id: '/api/_unauthenticated'
+      path: '/api'
+      fullPath: '/api'
+      preLoaderRoute: typeof ApiUnauthenticatedRouteRouteImport
+      parentRoute: typeof ApiRoute
     }
     '/admin/users': {
       id: '/admin/users'
@@ -636,10 +664,17 @@ declare module '@tanstack/react-router' {
     }
     '/api/auth/$': {
       id: '/api/auth/$'
-      path: '/api/auth/$'
+      path: '/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiRoute
+    }
+    '/api/_unauthenticated/taxa': {
+      id: '/api/_unauthenticated/taxa'
+      path: '/taxa'
+      fullPath: '/api/taxa'
+      preLoaderRoute: typeof ApiUnauthenticatedTaxaRouteImport
+      parentRoute: typeof ApiUnauthenticatedRouteRoute
     }
     '/_app/taxa/new': {
       id: '/_app/taxa/new'
@@ -991,11 +1026,36 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
   AdminRouteRouteChildren,
 )
 
+interface ApiUnauthenticatedRouteRouteChildren {
+  ApiUnauthenticatedTaxaRoute: typeof ApiUnauthenticatedTaxaRoute
+}
+
+const ApiUnauthenticatedRouteRouteChildren: ApiUnauthenticatedRouteRouteChildren =
+  {
+    ApiUnauthenticatedTaxaRoute: ApiUnauthenticatedTaxaRoute,
+  }
+
+const ApiUnauthenticatedRouteRouteWithChildren =
+  ApiUnauthenticatedRouteRoute._addFileChildren(
+    ApiUnauthenticatedRouteRouteChildren,
+  )
+
+interface ApiRouteChildren {
+  ApiUnauthenticatedRouteRoute: typeof ApiUnauthenticatedRouteRouteWithChildren
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+}
+
+const ApiRouteChildren: ApiRouteChildren = {
+  ApiUnauthenticatedRouteRoute: ApiUnauthenticatedRouteRouteWithChildren,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
+}
+
+const ApiRouteWithChildren = ApiRoute._addFileChildren(ApiRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AdminRouteRoute: AdminRouteRouteWithChildren,
-  ApiTaxaRoute: ApiTaxaRoute,
-  ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiRoute: ApiRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
