@@ -11,3 +11,10 @@ export const userDtoSelection = {
   role: userTbl.role,
   description: userTbl.description,
 };
+
+export const userAdminViewDtoSelection = {
+  ...userDtoSelection,
+  email: userTbl.email,
+  banReason: userTbl.banReason,
+  banExpires: userTbl.banExpires,
+};

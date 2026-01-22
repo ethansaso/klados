@@ -1,8 +1,12 @@
 import { queryOptions } from "@tanstack/react-query";
 import { getMeFn } from "../api/users/getMe";
 import { getUserFn } from "../api/users/getUser";
-import { listUsersFn } from "../api/users/listUsers";
-import type { UserDTO, UserPaginatedResult } from "../domain/users/types";
+import { listUsersAdminViewFn, listUsersFn } from "../api/users/listUsers";
+import type {
+  UserAdminViewPaginatedResult,
+  UserDTO,
+  UserPaginatedResult,
+} from "../domain/users/types";
 
 /**
  * Query options for fetching multiple users.
@@ -12,6 +16,17 @@ export const usersQueryOptions = (page: number, pageSize: number) =>
   queryOptions<UserPaginatedResult>({
     queryKey: ["users", { page, pageSize }],
     queryFn: () => listUsersFn({ data: { page, pageSize: pageSize } }),
+    staleTime: 60_000,
+  });
+
+/**
+ * Admin-view Query options for fetching multiple users.
+ * Admin middleware enforced inside server fn.
+ */
+export const usersAdminViewQueryOptions = (page: number, pageSize: number) =>
+  queryOptions<UserAdminViewPaginatedResult>({
+    queryKey: ["adminUsers", { page, pageSize }],
+    queryFn: () => listUsersAdminViewFn({ data: { page, pageSize: pageSize } }),
     staleTime: 60_000,
   });
 

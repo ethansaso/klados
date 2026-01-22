@@ -19,3 +19,6 @@ yarn.lock
 /blob-report/
 /playwright/.cache/
 .tanstack
+
+# local convenience files
+ISSUES.md

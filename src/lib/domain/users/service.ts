@@ -1,28 +1,39 @@
 import {
   findUserByIdOrUsername,
+  listUsersAdminViewPage,
   listUsersPage,
   ListUsersParams,
   modifyUserRecord,
   setUserBanned,
   setUserUnbanned,
 } from "./repo";
-import { UserDTO, UserPaginatedResult } from "./types";
+import {
+  UserAdminViewPaginatedResult,
+  UserDTO,
+  UserPaginatedResult,
+} from "./types";
 
 export async function getUsersPage(
-  params: ListUsersParams
+  params: ListUsersParams,
 ): Promise<UserPaginatedResult> {
   return listUsersPage(params);
 }
 
+export async function getUsersAdminViewPage(
+  params: ListUsersParams,
+): Promise<UserAdminViewPaginatedResult> {
+  return listUsersAdminViewPage(params);
+}
+
 export async function getUserByIdOrUsername(
-  idOrUsername: string
+  idOrUsername: string,
 ): Promise<UserDTO | null> {
   return findUserByIdOrUsername(idOrUsername);
 }
 
 export async function editUser(
   userId: string,
-  updates: Partial<Pick<UserDTO, "displayUsername" | "name" | "description">>
+  updates: Partial<Pick<UserDTO, "displayUsername" | "name" | "description">>,
 ): Promise<void> {
   await modifyUserRecord(userId, updates);
 }
@@ -32,7 +43,7 @@ export async function banUser(
   options?: {
     banReason?: string;
     banExpires?: Date;
-  }
+  },
 ): Promise<void> {
   await setUserBanned(userId, {
     banReason: options?.banReason,
