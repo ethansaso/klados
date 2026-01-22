@@ -1,7 +1,10 @@
 import { Table } from "@radix-ui/themes";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useSearch } from "@tanstack/react-router";
-import { usersQueryOptions } from "../../../lib/queries/users";
+import {
+  usersAdminViewQueryOptions,
+  usersQueryOptions,
+} from "../../../lib/queries/users";
 import { SearchSchema } from "../../../lib/validation/search";
 
 export const Route = createFileRoute("/admin/users/")({
@@ -17,7 +20,7 @@ export const Route = createFileRoute("/admin/users/")({
   // SSR prefetch for hydration
   loader: async ({ context, deps }) => {
     await context.queryClient.ensureQueryData(
-      usersQueryOptions(deps.page, deps.pageSize)
+      usersQueryOptions(deps.page, deps.pageSize),
     );
   },
 
@@ -26,21 +29,17 @@ export const Route = createFileRoute("/admin/users/")({
 
 function RouteComponent() {
   const { page, pageSize: pageSize } = useSearch({ from: "/admin/users/" });
-  const { data, isLoading, isError, error } = useQuery(
-    usersQueryOptions(page, pageSize)
-  );
+  const {
+    data: { items },
+  } = useSuspenseQuery(usersAdminViewQueryOptions(page, pageSize));
 
-  if (isLoading) return <p>Loading…</p>;
-  if (isError) return <p>Failed to load users: {(error as Error).message}</p>;
-  if (!data) return <p>No data.</p>;
-
-  const { items } = data;
   return (
     <Table.Root>
       <Table.Header>
         <Table.Row>
           <Table.ColumnHeaderCell>ID</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Username</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Email</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Creation Date</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Banned?</Table.ColumnHeaderCell>
         </Table.Row>
@@ -50,6 +49,7 @@ function RouteComponent() {
           <Table.Row key={user.id}>
             <Table.Cell>{user.id}</Table.Cell>
             <Table.Cell>{user.username}</Table.Cell>
+            <Table.Cell>{user.email}</Table.Cell>
             <Table.Cell>
               {new Date(user.createdAt).toLocaleDateString()}
             </Table.Cell>

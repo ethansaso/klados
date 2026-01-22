@@ -1,8 +1,13 @@
 import { asc, count, eq, inArray, SQL } from "drizzle-orm";
 import { db } from "../../../db/client";
 import { user as userTbl } from "../../../db/schema/schema";
-import { userDtoSelection } from "./sqlAdapters";
-import { UserDTO, UserPaginatedResult } from "./types";
+import { userAdminViewDtoSelection, userDtoSelection } from "./sqlAdapters";
+import {
+  UserAdminViewDTO,
+  UserAdminViewPaginatedResult,
+  UserDTO,
+  UserPaginatedResult,
+} from "./types";
 
 export type ListUsersParams = {
   ids?: string[] | null;
@@ -11,7 +16,7 @@ export type ListUsersParams = {
 };
 
 export async function listUsersPage(
-  params: ListUsersParams
+  params: ListUsersParams,
 ): Promise<UserPaginatedResult> {
   const { ids, page, pageSize } = params;
   const offset = (page - 1) * pageSize;
@@ -40,8 +45,38 @@ export async function listUsersPage(
   };
 }
 
+export async function listUsersAdminViewPage(
+  params: ListUsersParams,
+): Promise<UserAdminViewPaginatedResult> {
+  const { ids, page, pageSize } = params;
+  const offset = (page - 1) * pageSize;
+
+  const predicate: SQL | undefined =
+    ids && ids.length ? inArray(userTbl.id, ids) : undefined;
+
+  const items: UserAdminViewDTO[] = await db
+    .select(userAdminViewDtoSelection)
+    .from(userTbl)
+    .where(predicate)
+    .orderBy(asc(userTbl.username))
+    .limit(pageSize)
+    .offset(offset);
+
+  const [{ total }] = await db
+    .select({ total: count() })
+    .from(userTbl)
+    .where(predicate);
+
+  return {
+    items,
+    page,
+    pageSize,
+    total,
+  };
+}
+
 export async function findUserByIdOrUsername(
-  idOrUsername: string
+  idOrUsername: string,
 ): Promise<UserDTO | null> {
   const user = await db.query.user.findFirst({
     where: {
@@ -65,7 +100,7 @@ export async function findUserByIdOrUsername(
 
 export async function modifyUserRecord(
   userId: string,
-  updates: Partial<Pick<UserDTO, "name" | "description">>
+  updates: Partial<Pick<UserDTO, "name" | "description">>,
 ): Promise<void> {
   await db.update(userTbl).set(updates).where(eq(userTbl.id, userId));
 }
@@ -79,7 +114,7 @@ export async function setUserBanned(
   options?: {
     banReason?: string;
     banExpires?: Date;
-  }
+  },
 ): Promise<void> {
   await db
     .update(userTbl)

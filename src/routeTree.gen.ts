@@ -8,6 +8,8 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
@@ -52,6 +54,13 @@ import { Route as AppGlossaryCharactersIdRouteImport } from './routes/_app/gloss
 import { Route as AppTaxaIdEditRouteRouteImport } from './routes/_app/taxa/$id/edit/route'
 import { Route as AppTaxaIdEditIndexRouteImport } from './routes/_app/taxa/$id/edit/index'
 
+const ApiRouteImport = createFileRoute('/api')()
+
+const ApiRoute = ApiRouteImport.update({
+  id: '/api',
+  path: '/api',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -344,6 +353,7 @@ export interface FileRoutesById {
   '/_app/guides': typeof AppGuidesRouteRouteWithChildren
   '/_app/users': typeof AppUsersRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
+  '/api': typeof ApiRouteWithChildren
   '/api/_unauthenticated': typeof ApiUnauthenticatedRouteRouteWithChildren
   '/_app/about': typeof AppAboutRoute
   '/_app/donate': typeof AppDonateRoute
@@ -464,6 +474,7 @@ export interface FileRouteTypes {
     | '/_app/guides'
     | '/_app/users'
     | '/admin/users'
+    | '/api'
     | '/api/_unauthenticated'
     | '/_app/about'
     | '/_app/donate'
@@ -505,10 +516,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
+  ApiRoute: typeof ApiRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/api': {
+      id: '/api'
+      path: '/api'
+      fullPath: '/api'
+      preLoaderRoute: typeof ApiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -581,7 +600,7 @@ declare module '@tanstack/react-router' {
     }
     '/api/_unauthenticated': {
       id: '/api/_unauthenticated'
-      path: ''
+      path: '/api'
       fullPath: '/api'
       preLoaderRoute: typeof ApiUnauthenticatedRouteRouteImport
       parentRoute: typeof ApiRoute
@@ -1006,9 +1025,36 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
   AdminRouteRouteChildren,
 )
 
+interface ApiUnauthenticatedRouteRouteChildren {
+  ApiUnauthenticatedTaxaRoute: typeof ApiUnauthenticatedTaxaRoute
+}
+
+const ApiUnauthenticatedRouteRouteChildren: ApiUnauthenticatedRouteRouteChildren =
+  {
+    ApiUnauthenticatedTaxaRoute: ApiUnauthenticatedTaxaRoute,
+  }
+
+const ApiUnauthenticatedRouteRouteWithChildren =
+  ApiUnauthenticatedRouteRoute._addFileChildren(
+    ApiUnauthenticatedRouteRouteChildren,
+  )
+
+interface ApiRouteChildren {
+  ApiUnauthenticatedRouteRoute: typeof ApiUnauthenticatedRouteRouteWithChildren
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+}
+
+const ApiRouteChildren: ApiRouteChildren = {
+  ApiUnauthenticatedRouteRoute: ApiUnauthenticatedRouteRouteWithChildren,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
+}
+
+const ApiRouteWithChildren = ApiRoute._addFileChildren(ApiRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AdminRouteRoute: AdminRouteRouteWithChildren,
+  ApiRoute: ApiRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
