@@ -36,7 +36,7 @@ export const COLOR_ALIASES: Record<string, string[]> = {
     "Amber-colored",
     "Marigold",
   ],
-  pale_yellow: ["Beige", "Cream-colored", "Straw-colored"],
+  pale_yellow: ["Beige", "Cream-colored", "Creamy-white", "Straw-colored"],
   yellow: ["Yellowish", "Luteous"],
   olive_brown: ["Olive", "Olivaceous"],
   yellow_green: ["Chartreuse", "Yellowish green", "Greenish yellow", "Lime"],
@@ -52,5 +52,6 @@ export const COLOR_ALIASES: Record<string, string[]> = {
   dark_red_purple: ["Burgundy", "Plum"],
   gray: ["Grey", "Grayish"],
   black: ["Jet black", "Fuliginous", "Blackish"],
+  white: ["Whitish", "Off-white"],
   colorless: ["Hyaline", "Transparent"],
 } as const;
