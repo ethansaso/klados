@@ -1,7 +1,8 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getMeFn } from "../api/users/getMe";
-import { getUserFn } from "../api/users/getUser";
-import { listUsersAdminViewFn, listUsersFn } from "../api/users/listUsers";
+import { getMeFn } from "../api/users/getMeFn";
+import { getUserFn } from "../api/users/getUserFn";
+import { listUsersAdminViewFn } from "../api/users/listUsersAdminViewFn";
+import { listUsersFn } from "../api/users/listUsersFn";
 import type {
   UserAdminViewPaginatedResult,
   UserDTO,

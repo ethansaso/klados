@@ -9,7 +9,7 @@ import {
 import { LinkComponentProps, Link as RouterLink } from "@tanstack/react-router";
 import { Dialog } from "radix-ui";
 import { PiX } from "react-icons/pi";
-import type { getMeFn } from "../../lib/api/users/getMe";
+import type { getMeFn } from "../../lib/api/users/getMeFn";
 import { roleHasCuratorRights } from "../../lib/auth/utils";
 
 type Props = {

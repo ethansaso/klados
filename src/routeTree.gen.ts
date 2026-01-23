@@ -15,6 +15,7 @@ import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppVerifyEmailRouteImport } from './routes/_app/verify-email'
 import { Route as AppSignupRouteImport } from './routes/_app/signup'
 import { Route as AppLogoutRouteImport } from './routes/_app/logout'
 import { Route as AppLoginRouteImport } from './routes/_app/login'
@@ -78,6 +79,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppVerifyEmailRoute = AppVerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSignupRoute = AppSignupRouteImport.update({
@@ -284,6 +290,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof AppLoginRoute
   '/logout': typeof AppLogoutRoute
   '/signup': typeof AppSignupRoute
+  '/verify-email': typeof AppVerifyEmailRoute
   '/': typeof AppIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/glossary/characters': typeof AppGlossaryCharactersRouteRouteWithChildren
@@ -322,6 +329,7 @@ export interface FileRoutesByTo {
   '/login': typeof AppLoginRoute
   '/logout': typeof AppLogoutRoute
   '/signup': typeof AppSignupRoute
+  '/verify-email': typeof AppVerifyEmailRoute
   '/': typeof AppIndexRoute
   '/admin': typeof AdminIndexRoute
   '/taxa/drafts': typeof AppTaxaDraftsRoute
@@ -361,6 +369,7 @@ export interface FileRoutesById {
   '/_app/login': typeof AppLoginRoute
   '/_app/logout': typeof AppLogoutRoute
   '/_app/signup': typeof AppSignupRoute
+  '/_app/verify-email': typeof AppVerifyEmailRoute
   '/_app/': typeof AppIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/_app/glossary/characters': typeof AppGlossaryCharactersRouteRouteWithChildren
@@ -406,6 +415,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/logout'
     | '/signup'
+    | '/verify-email'
     | '/'
     | '/admin/'
     | '/glossary/characters'
@@ -444,6 +454,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/logout'
     | '/signup'
+    | '/verify-email'
     | '/'
     | '/admin'
     | '/taxa/drafts'
@@ -482,6 +493,7 @@ export interface FileRouteTypes {
     | '/_app/login'
     | '/_app/logout'
     | '/_app/signup'
+    | '/_app/verify-email'
     | '/_app/'
     | '/admin/'
     | '/_app/glossary/characters'
@@ -554,6 +566,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/verify-email': {
+      id: '/_app/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof AppVerifyEmailRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/signup': {
@@ -971,6 +990,7 @@ interface AppRouteRouteChildren {
   AppLoginRoute: typeof AppLoginRoute
   AppLogoutRoute: typeof AppLogoutRoute
   AppSignupRoute: typeof AppSignupRoute
+  AppVerifyEmailRoute: typeof AppVerifyEmailRoute
   AppIndexRoute: typeof AppIndexRoute
   AppTaxaIdRouteRoute: typeof AppTaxaIdRouteRouteWithChildren
   AppTaxaDraftsRoute: typeof AppTaxaDraftsRoute
@@ -988,6 +1008,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppLoginRoute: AppLoginRoute,
   AppLogoutRoute: AppLogoutRoute,
   AppSignupRoute: AppSignupRoute,
+  AppVerifyEmailRoute: AppVerifyEmailRoute,
   AppIndexRoute: AppIndexRoute,
   AppTaxaIdRouteRoute: AppTaxaIdRouteRouteWithChildren,
   AppTaxaDraftsRoute: AppTaxaDraftsRoute,
