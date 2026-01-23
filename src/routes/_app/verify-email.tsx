@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_app/verify-email")({
     }),
   beforeLoad: async ({ context }) => {
     const user = context.user;
-    if (user) {
+    if (user && user.emailVerified) {
       throw redirect({ to: "/" });
     }
   },
