@@ -85,23 +85,25 @@ function RouteComponent() {
     }
 
     if (res.error) {
-      if (res.error.code === "EMAIL_NOT_VERIFIED") {
-        navigate({
-          to: "/verify-email",
-        });
-      } else if (res.error.code === "INVALID_USERNAME_OR_PASSWORD") {
-        toast({
-          variant: "error",
-          description: "Invalid username or password",
-        });
-        return;
-      } else {
-        toast({
-          variant: "error",
-          description: "Failed to sign in. Please try again later.",
-        });
-        return;
+      switch (res.error.code) {
+        case "EMAIL_NOT_VERIFIED":
+          navigate({
+            to: "/verify-email",
+          });
+          break;
+        case "INVALID_USERNAME_OR_PASSWORD":
+          toast({
+            variant: "error",
+            description: "Invalid username or password",
+          });
+          break;
+        default:
+          toast({
+            variant: "error",
+            description: "Failed to sign in. Please try again later.",
+          });
       }
+      return;
     }
 
     await queryClient.invalidateQueries({
