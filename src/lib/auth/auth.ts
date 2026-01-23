@@ -10,15 +10,51 @@ import {
   curator as curatorRole,
   user as userRole,
 } from "./permissions";
+import { resend } from "./resend";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg" }),
   emailAndPassword: {
     enabled: true,
 
-    // TODO: email verification/reset
-    // requireEmailVerification: true,
+    // TODO: password reset
+    requireEmailVerification:
+      process.env.NODE_ENV === "production" ||
+      process.env.ENABLE_VERIFICATION_IN_DEV === "true",
     // sendResetPassword: async ({ user, url, token }, req) => { await sendEmail({ to: user.email, subject: "Reset your password", text: url }); },
+  },
+  emailVerification: {
+    sendVerificationEmail: async ({ user, url, token }) => {
+      if (
+        process.env.NODE_ENV === "development" &&
+        process.env.ENABLE_VERIFICATION_IN_DEV !== "true"
+      ) {
+        // DEV: skip sending email, just log the verification URL
+        console.log(
+          `[DEV] Verification URL for ${user.email}: ${url}?token=${token}`,
+        );
+        return;
+      }
+
+      if (!resend) {
+        console.error(
+          "Resend client not configured. Cannot send verification email.",
+        );
+        return;
+      }
+
+      // PRODUCTION: send verification email via Resend
+      await resend.emails.send({
+        from: "no-reply@klados.bio",
+        to: user.email,
+        subject: "Verify your email address",
+        text: `Click this link to verify your email: ${url}`,
+        html: `<p>Click <a href="${url}">here</a> to verify your email.</p>`,
+      });
+    },
+    sendOnSignUp: true,
+    sendOnSignIn: false,
+    autoSignInAfterVerification: true,
   },
   plugins: [
     username({

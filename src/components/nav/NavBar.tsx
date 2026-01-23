@@ -2,7 +2,7 @@ import { Button, Dialog, Flex, IconButton, TabNav } from "@radix-ui/themes";
 import { Link as RouterLink } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PiCaretDown, PiList } from "react-icons/pi";
-import { getMeFn } from "../../lib/api/users/getMe";
+import { getMeFn } from "../../lib/api/users/getMeFn";
 import { roleHasCuratorRights } from "../../lib/auth/utils";
 import { useIsActive } from "../../lib/hooks/useIsActive";
 import { useMediaQuery } from "../../lib/hooks/useMediaQuery";

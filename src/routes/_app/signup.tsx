@@ -85,10 +85,27 @@ function RouteComponent() {
     });
 
     if (error) {
-      toast({
-        description: error.message ?? "Sign up failed. Please try again later.",
-        variant: "error",
-      });
+      switch (error.code) {
+        case "EMAIL_ALREADY_EXISTS":
+          toast({
+            description: "This email is already registered. Try logging in.",
+            variant: "error",
+          });
+          break;
+        case "USERNAME_ALREADY_EXISTS":
+          toast({
+            description:
+              "This username is already taken. Please choose another.",
+            variant: "error",
+          });
+          break;
+        default:
+          toast({
+            description:
+              error.message ?? "Sign up failed. Please try again later.",
+            variant: "error",
+          });
+      }
       return;
     }
 
@@ -96,7 +113,10 @@ function RouteComponent() {
       queryKey: meQueryOptions().queryKey,
     });
     await queryClient.refetchQueries({ queryKey: meQueryOptions().queryKey });
-    navigate({ to: "/" });
+
+    navigate({
+      to: "/verify-email",
+    });
   };
 
   return (

@@ -15,7 +15,7 @@ export type UserDTO = Pick<
   | "description"
 >;
 export type UserAdminViewDTO = UserDTO &
-  Pick<UserRow, "email" | "banReason" | "banExpires">;
+  Pick<UserRow, "email" | "emailVerified" | "banReason" | "banExpires">;
 
 export type UserPaginatedResult = PaginatedResult<UserDTO>;
 export type UserAdminViewPaginatedResult = PaginatedResult<UserAdminViewDTO>;

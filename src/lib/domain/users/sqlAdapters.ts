@@ -17,4 +17,5 @@ export const userAdminViewDtoSelection = {
   email: userTbl.email,
   banReason: userTbl.banReason,
   banExpires: userTbl.banExpires,
+  emailVerified: userTbl.emailVerified,
 };

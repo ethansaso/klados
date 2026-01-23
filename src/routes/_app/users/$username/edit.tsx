@@ -10,7 +10,7 @@ import {
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
 import NavSidebar from "../../../../components/nav/NavSidebar";
-import { editUserFn } from "../../../../lib/api/users/editUser";
+import { editUserFn } from "../../../../lib/api/users/editUserFn";
 import {
   UserPatch,
   userPatchSchema,
