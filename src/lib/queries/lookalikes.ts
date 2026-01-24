@@ -1,8 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
-import {
-  getLookalikeDetailsForTaxaFn,
-  getLookalikesForTaxonFn,
-} from "../api/lookalikes/computeLookalikes";
+import { getLookalikeDetailsForTaxaFn } from "../api/lookalikes/getLookalikeDetailsForTaxaFn";
+import { getLookalikesForTaxonFn } from "../api/lookalikes/getLookalikesForTaxonFn";
 
 export const lookalikesQueryOptions = (id: number) =>
   queryOptions({
@@ -13,7 +11,7 @@ export const lookalikesQueryOptions = (id: number) =>
 
 export const lookalikeDetailsQueryOptions = (
   taxonId: number,
-  lookalikeId: number
+  lookalikeId: number,
 ) =>
   queryOptions({
     queryKey: ["lookalikeDetails", taxonId, lookalikeId],

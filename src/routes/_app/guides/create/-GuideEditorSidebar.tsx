@@ -24,7 +24,7 @@ import {
   KeyGenerationInput,
   KeyGenerationInputSchema,
 } from "../../../../keygen/ioTypes";
-import { generateGuideFn } from "../../../../lib/api/guides/generateGuide";
+import { generateGuideFn } from "../../../../lib/api/guides/generateGuideFn";
 import { taxaQueryOptions } from "../../../../lib/queries/taxa";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
 import { toast } from "../../../../lib/utils/toast";

@@ -9,7 +9,7 @@ import {
   useForm,
   useWatch,
 } from "react-hook-form";
-import { createCharacterFn } from "../../../../../lib/api/characters/createCharacter";
+import { createCharacterFn } from "../../../../../lib/api/characters/createCharacterFn";
 import {
   CreateCharacterInput,
   createCharacterSchema,

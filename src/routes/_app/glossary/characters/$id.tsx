@@ -7,7 +7,7 @@ import { PiTrash } from "react-icons/pi";
 import z from "zod";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../components/dialogs/ConfirmDeleteModal";
-import { deleteCharacterFn } from "../../../../lib/api/characters/deleteCharacter";
+import { deleteCharacterFn } from "../../../../lib/api/characters/deleteCharacterFn";
 import { CharacterDetailDTO } from "../../../../lib/domain/characters/types";
 import { characterGroupQueryOptions } from "../../../../lib/queries/characterGroups";
 import { characterQueryOptions } from "../../../../lib/queries/characters";

@@ -9,17 +9,7 @@ export const createSourceFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
   .inputValidator(sourceItemSchema)
   .handler(async ({ data }): Promise<SourceDTO> => {
-    const dto = await createSource({
-      source: {
-        name: data.name,
-        authors: data.authors,
-        publisher: data.publisher,
-        note: data.note,
-        isbn: data.isbn,
-        url: data.url,
-        publicationYear: data.publicationYear,
-      },
-    });
+    const dto = await createSource(data);
 
     if (!dto) {
       throw notFound();

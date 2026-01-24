@@ -13,18 +13,16 @@ import { SourceItem } from "./validation";
 /**
  * Create a source.
  */
-export async function createSource(args: {
-  source: SourceItem;
-}): Promise<SourceDTO> {
+export async function createSource(args: SourceItem): Promise<SourceDTO> {
   return db.transaction(async (tx) => {
-    const isbn = args.source.isbn ?? null;
-    const url = args.source.url ?? null;
+    const isbn = args.isbn ?? null;
+    const url = args.url ?? null;
 
     // Return existing source if one exists with same unique keys.
     const existing = await selectSourceByUniqueKeys(tx, { isbn, url });
     if (existing) return existing;
 
-    const created = await insertSource(tx, args.source);
+    const created = await insertSource(tx, args);
     return created;
   });
 }
@@ -45,7 +43,7 @@ export async function getSource(args: {
  * List sources with optional search + ordering, paginated.
  */
 export async function listSources(
-  args: SourceSearchParams
+  args: SourceSearchParams,
 ): Promise<SourcePaginatedResult> {
   return listSourcesQuery(args);
 }
