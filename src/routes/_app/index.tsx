@@ -34,14 +34,6 @@ function Home() {
 
   return (
     <Flex direction="column" align="center">
-      <button
-        type="button"
-        onClick={() => {
-          throw new Error("Sentry Test Error");
-        }}
-      >
-        Break the world
-      </button>
       <HeroSection />
       <GuideDemo />
       <Separator size="4" />
