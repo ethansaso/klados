@@ -9,8 +9,9 @@ export const Route = createFileRoute("/_app/glossary")({
 // TODO: fix needing search on nav (here it should probably remain to reset, though)
 function RouteComponent() {
   const charactersActive = useIsActive("/glossary/characters", true);
-  const traitsActive = useIsActive("/glossary/traits", true);
   const groupsActive = useIsActive("/glossary/groups", true);
+  const traitsActive = useIsActive("/glossary/traits", true);
+  const modifiersActive = useIsActive("/glossary/modifiers", true);
 
   return (
     <Flex direction="column" flexGrow="1">
@@ -27,7 +28,12 @@ function RouteComponent() {
         </TabNav.Link>
         <TabNav.Link asChild active={traitsActive}>
           <Link to="/glossary/traits" preload="intent">
-            Trait Sets
+            Traits
+          </Link>
+        </TabNav.Link>
+        <TabNav.Link asChild active={modifiersActive}>
+          <Link to="/glossary/modifiers" preload="intent">
+            Modifiers
           </Link>
         </TabNav.Link>
       </TabNav.Root>

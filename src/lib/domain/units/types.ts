@@ -1,13 +1,13 @@
-export type UnitDTO = {
-  id: number;
-  familyId: number;
-  key: string;
-  symbol: string;
-  scale: string;
-};
+import { unit, unitFamily } from "../../../db/schema/schema";
 
-export type UnitFamilyDTO = {
-  id: number;
-  label: string;
+export type UnitRow = typeof unit.$inferSelect;
+export type UnitFamily = typeof unitFamily.$inferSelect;
+
+export type UnitDTO = Pick<
+  UnitRow,
+  "id" | "familyId" | "key" | "symbol" | "scale"
+>;
+
+export type UnitFamilyDTO = Pick<UnitFamily, "id" | "label"> & {
   units: UnitDTO[];
 };

@@ -231,7 +231,7 @@ function RouteComponent() {
     <Box flexGrow="1">
       <Flex justify="between" gap="2">
         <Box mb="4">
-          <Heading size="6">Trait Set: {traitSet.label}</Heading>
+          <Heading size="6">{traitSet.label}</Heading>
           <Text>{traitSet.description}</Text>
         </Box>
         <CuratorOnly>

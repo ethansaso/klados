@@ -1,0 +1,1 @@
+ALTER TABLE "categorical_modifier_group" RENAME COLUMN "type" TO "class";

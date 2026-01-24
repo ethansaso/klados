@@ -32,7 +32,7 @@ function rowsToUnitFamilies(rows: UnitFamilyJoinRow[]): UnitFamilyDTO[] {
 
 export async function selectUnitFamilyById(
   tx: Transaction,
-  unitFamilyId: number
+  unitFamilyId: number,
 ): Promise<UnitFamilyDTO | null> {
   const rows = await tx
     .select({
@@ -57,7 +57,7 @@ export async function selectUnitFamilyById(
 
 export async function listUnitFamiliesQuery(
   tx: Transaction,
-  q?: string
+  q?: string,
 ): Promise<UnitFamilyDTO[]> {
   const like = likeAnywhere(q);
 

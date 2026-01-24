@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_app/")({
       ],
     }),
   loader: async ({ context }) => {
-    context.queryClient.ensureQueryData(summaryStatsQueryOptions());
+    await context.queryClient.ensureQueryData(summaryStatsQueryOptions());
   },
   component: Home,
 });

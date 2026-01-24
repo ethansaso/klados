@@ -31,7 +31,7 @@ export const categoricalModifierGroup = pgTable(
     key: text("key").notNull(),
     label: text("label").notNull(),
     description: text("description").notNull().default(""),
-    type: modifierClassEnum("type").notNull(),
+    class: modifierClassEnum("class").notNull(),
   }),
   (t) => [uniqueIndex("categorical_modifier_groups_key_uq").on(t.key)],
 );
