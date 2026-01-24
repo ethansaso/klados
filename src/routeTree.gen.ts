@@ -17,6 +17,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppVerifyEmailRouteImport } from './routes/_app/verify-email'
 import { Route as AppSignupRouteImport } from './routes/_app/signup'
+import { Route as AppMonitoringRouteImport } from './routes/_app/monitoring'
 import { Route as AppLogoutRouteImport } from './routes/_app/logout'
 import { Route as AppLoginRouteImport } from './routes/_app/login'
 import { Route as AppHealthRouteImport } from './routes/_app/health'
@@ -89,6 +90,11 @@ const AppVerifyEmailRoute = AppVerifyEmailRouteImport.update({
 const AppSignupRoute = AppSignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMonitoringRoute = AppMonitoringRouteImport.update({
+  id: '/monitoring',
+  path: '/monitoring',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppLogoutRoute = AppLogoutRouteImport.update({
@@ -289,6 +295,7 @@ export interface FileRoutesByFullPath {
   '/health': typeof AppHealthRoute
   '/login': typeof AppLoginRoute
   '/logout': typeof AppLogoutRoute
+  '/monitoring': typeof AppMonitoringRoute
   '/signup': typeof AppSignupRoute
   '/verify-email': typeof AppVerifyEmailRoute
   '/': typeof AppIndexRoute
@@ -328,6 +335,7 @@ export interface FileRoutesByTo {
   '/health': typeof AppHealthRoute
   '/login': typeof AppLoginRoute
   '/logout': typeof AppLogoutRoute
+  '/monitoring': typeof AppMonitoringRoute
   '/signup': typeof AppSignupRoute
   '/verify-email': typeof AppVerifyEmailRoute
   '/': typeof AppIndexRoute
@@ -368,6 +376,7 @@ export interface FileRoutesById {
   '/_app/health': typeof AppHealthRoute
   '/_app/login': typeof AppLoginRoute
   '/_app/logout': typeof AppLogoutRoute
+  '/_app/monitoring': typeof AppMonitoringRoute
   '/_app/signup': typeof AppSignupRoute
   '/_app/verify-email': typeof AppVerifyEmailRoute
   '/_app/': typeof AppIndexRoute
@@ -414,6 +423,7 @@ export interface FileRouteTypes {
     | '/health'
     | '/login'
     | '/logout'
+    | '/monitoring'
     | '/signup'
     | '/verify-email'
     | '/'
@@ -453,6 +463,7 @@ export interface FileRouteTypes {
     | '/health'
     | '/login'
     | '/logout'
+    | '/monitoring'
     | '/signup'
     | '/verify-email'
     | '/'
@@ -492,6 +503,7 @@ export interface FileRouteTypes {
     | '/_app/health'
     | '/_app/login'
     | '/_app/logout'
+    | '/_app/monitoring'
     | '/_app/signup'
     | '/_app/verify-email'
     | '/_app/'
@@ -580,6 +592,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof AppSignupRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/monitoring': {
+      id: '/_app/monitoring'
+      path: '/monitoring'
+      fullPath: '/monitoring'
+      preLoaderRoute: typeof AppMonitoringRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/logout': {
@@ -989,6 +1008,7 @@ interface AppRouteRouteChildren {
   AppHealthRoute: typeof AppHealthRoute
   AppLoginRoute: typeof AppLoginRoute
   AppLogoutRoute: typeof AppLogoutRoute
+  AppMonitoringRoute: typeof AppMonitoringRoute
   AppSignupRoute: typeof AppSignupRoute
   AppVerifyEmailRoute: typeof AppVerifyEmailRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -1007,6 +1027,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppHealthRoute: AppHealthRoute,
   AppLoginRoute: AppLoginRoute,
   AppLogoutRoute: AppLogoutRoute,
+  AppMonitoringRoute: AppMonitoringRoute,
   AppSignupRoute: AppSignupRoute,
   AppVerifyEmailRoute: AppVerifyEmailRoute,
   AppIndexRoute: AppIndexRoute,

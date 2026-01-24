@@ -1,3 +1,4 @@
+import { sentryTanstackStart } from "@sentry/tanstackstart-react";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
@@ -12,6 +13,11 @@ export default defineConfig({
   plugins: [
     tsConfigPaths(),
     tanstackStart({ customViteReactPlugin: true }),
+    sentryTanstackStart({
+      org: "klados",
+      project: "javascript-tanstackstart-react",
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+    }),
     nitro({
       compressPublicAssets: true,
       publicAssets: [
