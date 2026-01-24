@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getGuideFn } from "../api/guides/getGuide";
-import { listGuidesFn } from "../api/guides/listGuides";
+import { getGuideFn } from "../api/guides/getGuideFn";
+import { listGuidesFn } from "../api/guides/listGuidesFn";
 import { GuidePaginatedResult } from "../domain/guides/types";
 
 export function guideQueryOptions(id: number) {
@@ -16,7 +16,7 @@ export function guideQueryOptions(id: number) {
 export const guidesQueryOptions = (
   page: number,
   pageSize: number,
-  opts?: { q?: string }
+  opts?: { q?: string },
 ) =>
   queryOptions<GuidePaginatedResult>({
     queryKey: ["guides", { page, pageSize, q: opts?.q ?? null }],

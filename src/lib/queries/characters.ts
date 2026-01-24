@@ -1,12 +1,12 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getCharacterFn } from "../api/characters/getCharacter";
-import { listCharactersFn } from "../api/characters/listCharacters";
+import { getCharacterFn } from "../api/characters/getCharacterFn";
+import { listCharactersFn } from "../api/characters/listCharactersFn";
 import { CharacterPaginatedResult } from "../domain/characters/types";
 
 export const charactersQueryOptions = (
   page: number,
   pageSize: number,
-  opts?: { q?: string }
+  opts?: { q?: string },
 ) =>
   queryOptions<CharacterPaginatedResult>({
     queryKey: ["characters", { page, pageSize, q: opts?.q ?? null }],

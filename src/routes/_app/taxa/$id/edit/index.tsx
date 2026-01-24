@@ -24,7 +24,7 @@ import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import z from "zod";
 import { ContentContainer } from "../../../../../components/ContentContainer";
 import { TAXON_RANKS_DESCENDING } from "../../../../../db/schema/schema";
-import { getTaxonCharacterStatesFn } from "../../../../../lib/api/character-states/getTaxonCharacterStates";
+import { getTaxonCharacterStatesFn } from "../../../../../lib/api/character-states/getTaxonCharacterStatesFn";
 import { deleteTaxonFn } from "../../../../../lib/api/taxa/deleteTaxonFn";
 import { getTaxonFn } from "../../../../../lib/api/taxa/getTaxonFn";
 import { publishTaxonFn } from "../../../../../lib/api/taxa/publishFn";
