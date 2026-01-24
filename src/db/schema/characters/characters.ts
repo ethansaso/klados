@@ -9,8 +9,8 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
-import { categoricalTraitSet } from "./categoricalTrait";
-import { characterGroup } from "./characterGroup";
+import { characterGroup } from "./groups";
+import { categoricalTraitSet } from "./traits";
 import { unitFamily } from "./units";
 
 export const character = pgTable(
@@ -27,7 +27,7 @@ export const character = pgTable(
   (t) => [
     uniqueIndex("characters_key_uq").on(t.key),
     index("characters_group_idx").on(t.groupId),
-  ]
+  ],
 );
 
 /**
@@ -44,7 +44,7 @@ export const categoricalCharacterMeta = pgTable(
       .notNull()
       .references(() => categoricalTraitSet.id, { onDelete: "restrict" }),
     isMultiSelect: boolean("is_multi_select").notNull(),
-  })
+  }),
 );
 
 /**
@@ -74,5 +74,5 @@ export const numericCharacterMeta = pgTable(
       .notNull()
       .references(() => unitFamily.id, { onDelete: "restrict" }),
   }),
-  (t) => [index("numeric_meta_unit_family_idx").on(t.unitFamilyId)]
+  (t) => [index("numeric_meta_unit_family_idx").on(t.unitFamilyId)],
 );

@@ -6,7 +6,7 @@ import {
   text,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { categoricalTraitSet, categoricalTraitValue } from "./categoricalTrait";
+import { categoricalTraitSet, categoricalTraitValue } from "./traits";
 
 /**
  * Curator-defined families of related canonical values within a trait set.
@@ -23,7 +23,7 @@ export const affinityGroup = pgTable(
   (t) => [
     uniqueIndex("affinity_groups_trait_label_uq").on(t.traitSetId, t.label),
     index("affinity_groups_trait_idx").on(t.traitSetId),
-  ]
+  ],
 );
 
 /**
@@ -44,5 +44,5 @@ export const affinityGroupMember = pgTable(
     uniqueIndex("affinity_group_members_uq").on(t.groupId, t.canonicalValueId),
     index("affinity_group_members_group_idx").on(t.groupId),
     index("affinity_group_members_value_idx").on(t.canonicalValueId),
-  ]
+  ],
 );
