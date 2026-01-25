@@ -54,7 +54,7 @@ async function getOrCreateColorTraitSetTx(tx: Transaction) {
 async function upsertCanonicalColorsTx(
   tx: Transaction,
   setId: number,
-  colors: ColorDef[]
+  colors: ColorDef[],
 ) {
   for (const color of colors) {
     await tx
@@ -91,12 +91,12 @@ async function syncColorAliasesTx(tx: Transaction, setId: number) {
     .where(
       and(
         eq(categoricalTraitValue.setId, setId),
-        eq(categoricalTraitValue.isCanonical, true)
-      )
+        eq(categoricalTraitValue.isCanonical, true),
+      ),
     );
 
   const canonicalByKey = new Map<string, (typeof canonicalRows)[number]>(
-    canonicalRows.map((row) => [row.key, row])
+    canonicalRows.map((row) => [row.key, row]),
   );
   const canonicalKeys = new Set(canonicalByKey.keys());
 
@@ -110,13 +110,13 @@ async function syncColorAliasesTx(tx: Transaction, setId: number) {
 
     if (!canonicalByKey.has(canonicalKey)) {
       errors.push(
-        `Alias "${aliasLabel}" uses canonicalKey "${canonicalKey}", but no canonical color with that key exists.`
+        `Alias "${aliasLabel}" uses canonicalKey "${canonicalKey}", but no canonical color with that key exists.`,
       );
     }
 
     if (canonicalKeys.has(aliasKey)) {
       errors.push(
-        `Alias "${aliasLabel}" uses aliasKey "${aliasKey}", which collides with an existing canonical key.`
+        `Alias "${aliasLabel}" uses aliasKey "${aliasKey}", which collides with an existing canonical key.`,
       );
     }
 
@@ -126,7 +126,7 @@ async function syncColorAliasesTx(tx: Transaction, setId: number) {
       existingCanonicalForAlias !== canonicalKey
     ) {
       errors.push(
-        `Alias key "${aliasKey}" is mapped to multiple canonical keys: "${existingCanonicalForAlias}" and "${canonicalKey}".`
+        `Alias key "${aliasKey}" is mapped to multiple canonical keys: "${existingCanonicalForAlias}" and "${canonicalKey}".`,
       );
     } else if (!existingCanonicalForAlias) {
       aliasKeyToCanonical.set(aliasKey, canonicalKey);
@@ -135,7 +135,7 @@ async function syncColorAliasesTx(tx: Transaction, setId: number) {
 
   if (errors.length > 0) {
     throw new Error(
-      `Alias configuration errors:\n${errors.map((e) => `  - ${e}`).join("\n")}`
+      `Alias configuration errors:\n${errors.map((e) => `  - ${e}`).join("\n")}`,
     );
   }
 
@@ -175,7 +175,7 @@ export async function run() {
   for (const c of colors) {
     if (c.hexCode) {
       console.log(
-        `${c.label.padEnd(32)} ${ansiBlock(c.hexCode)}  ${c.hexCode}`
+        `${c.label.padEnd(32)} ${ansiBlock(c.hexCode)}  ${c.hexCode}`,
       );
     } else {
       console.log(`${c.label.padEnd(32)} [no swatch / no hex]`);
@@ -184,7 +184,7 @@ export async function run() {
 
   console.log();
   const shouldProceed = await askYesNo(
-    "Proceed with upserting these colors into the database? (y/N) "
+    "Proceed with upserting these colors into the database? (y/N) ",
   );
 
   if (!shouldProceed) {
@@ -202,7 +202,7 @@ export async function run() {
   });
 
   console.log(
-    `\nDone. Seeded canonical colors and aliases into set "${COLOR_TRAIT_SET_KEY}".\n`
+    `\nDone. Seeded canonical colors and aliases into set "${COLOR_TRAIT_SET_KEY}".\n`,
   );
   process.exit(0);
 }

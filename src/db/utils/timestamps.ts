@@ -2,14 +2,15 @@ import { sql } from "drizzle-orm";
 import { PgColumnBuilder, timestamp } from "drizzle-orm/pg-core";
 
 export function withTimestamps<T extends Record<string, PgColumnBuilder>>(
-  cols: T
+  cols: T,
 ) {
   const createdAt = timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull();
   const updatedAt = timestamp("updated_at", { withTimezone: true })
     .defaultNow()
-    .notNull();
+    .notNull()
+    .$onUpdate(() => sql`NOW()`);
 
   return {
     ...cols,
@@ -19,10 +20,4 @@ export function withTimestamps<T extends Record<string, PgColumnBuilder>>(
     createdAt: typeof createdAt;
     updatedAt: typeof updatedAt;
   };
-}
-
-export function withTouch<T extends Record<string, unknown>>(
-  changes: T
-): T & { updatedAt: unknown } {
-  return { ...changes, updatedAt: sql`NOW()` };
 }
