@@ -14,12 +14,14 @@ import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppVerifyEmailRouteImport } from './routes/_app/verify-email'
+import { Route as AppTosRouteImport } from './routes/_app/tos'
 import { Route as AppSignupRouteImport } from './routes/_app/signup'
 import { Route as AppMonitoringRouteImport } from './routes/_app/monitoring'
 import { Route as AppLogoutRouteImport } from './routes/_app/logout'
 import { Route as AppLoginRouteImport } from './routes/_app/login'
 import { Route as AppHealthRouteImport } from './routes/_app/health'
 import { Route as AppDonateRouteImport } from './routes/_app/donate'
+import { Route as AppDmcaRouteImport } from './routes/_app/dmca'
 import { Route as AppAboutRouteImport } from './routes/_app/about'
 import { Route as ApiUnauthenticatedRouteRouteImport } from './routes/api/_unauthenticated/route'
 import { Route as AdminUsersRouteRouteImport } from './routes/admin/users/route'
@@ -81,6 +83,11 @@ const AppVerifyEmailRoute = AppVerifyEmailRouteImport.update({
   path: '/verify-email',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppTosRoute = AppTosRouteImport.update({
+  id: '/tos',
+  path: '/tos',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppSignupRoute = AppSignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -109,6 +116,11 @@ const AppHealthRoute = AppHealthRouteImport.update({
 const AppDonateRoute = AppDonateRouteImport.update({
   id: '/donate',
   path: '/donate',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDmcaRoute = AppDmcaRouteImport.update({
+  id: '/dmca',
+  path: '/dmca',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppAboutRoute = AppAboutRouteImport.update({
@@ -304,12 +316,14 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
   '/api': typeof ApiUnauthenticatedRouteRouteWithChildren
   '/about': typeof AppAboutRoute
+  '/dmca': typeof AppDmcaRoute
   '/donate': typeof AppDonateRoute
   '/health': typeof AppHealthRoute
   '/login': typeof AppLoginRoute
   '/logout': typeof AppLogoutRoute
   '/monitoring': typeof AppMonitoringRoute
   '/signup': typeof AppSignupRoute
+  '/tos': typeof AppTosRoute
   '/verify-email': typeof AppVerifyEmailRoute
   '/admin/': typeof AdminIndexRoute
   '/glossary/characters': typeof AppGlossaryCharactersRouteRouteWithChildren
@@ -346,12 +360,14 @@ export interface FileRoutesByTo {
   '/guides': typeof AppGuidesBrowsingIndexRoute
   '/api': typeof ApiUnauthenticatedRouteRouteWithChildren
   '/about': typeof AppAboutRoute
+  '/dmca': typeof AppDmcaRoute
   '/donate': typeof AppDonateRoute
   '/health': typeof AppHealthRoute
   '/login': typeof AppLoginRoute
   '/logout': typeof AppLogoutRoute
   '/monitoring': typeof AppMonitoringRoute
   '/signup': typeof AppSignupRoute
+  '/tos': typeof AppTosRoute
   '/verify-email': typeof AppVerifyEmailRoute
   '/': typeof AppIndexRoute
   '/admin': typeof AdminIndexRoute
@@ -388,12 +404,14 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
   '/api/_unauthenticated': typeof ApiUnauthenticatedRouteRouteWithChildren
   '/_app/about': typeof AppAboutRoute
+  '/_app/dmca': typeof AppDmcaRoute
   '/_app/donate': typeof AppDonateRoute
   '/_app/health': typeof AppHealthRoute
   '/_app/login': typeof AppLoginRoute
   '/_app/logout': typeof AppLogoutRoute
   '/_app/monitoring': typeof AppMonitoringRoute
   '/_app/signup': typeof AppSignupRoute
+  '/_app/tos': typeof AppTosRoute
   '/_app/verify-email': typeof AppVerifyEmailRoute
   '/_app/': typeof AppIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -439,12 +457,14 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/api'
     | '/about'
+    | '/dmca'
     | '/donate'
     | '/health'
     | '/login'
     | '/logout'
     | '/monitoring'
     | '/signup'
+    | '/tos'
     | '/verify-email'
     | '/admin/'
     | '/glossary/characters'
@@ -481,12 +501,14 @@ export interface FileRouteTypes {
     | '/guides'
     | '/api'
     | '/about'
+    | '/dmca'
     | '/donate'
     | '/health'
     | '/login'
     | '/logout'
     | '/monitoring'
     | '/signup'
+    | '/tos'
     | '/verify-email'
     | '/'
     | '/admin'
@@ -522,12 +544,14 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/api/_unauthenticated'
     | '/_app/about'
+    | '/_app/dmca'
     | '/_app/donate'
     | '/_app/health'
     | '/_app/login'
     | '/_app/logout'
     | '/_app/monitoring'
     | '/_app/signup'
+    | '/_app/tos'
     | '/_app/verify-email'
     | '/_app/'
     | '/admin/'
@@ -607,6 +631,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppVerifyEmailRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/tos': {
+      id: '/_app/tos'
+      path: '/tos'
+      fullPath: '/tos'
+      preLoaderRoute: typeof AppTosRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/signup': {
       id: '/_app/signup'
       path: '/signup'
@@ -647,6 +678,13 @@ declare module '@tanstack/react-router' {
       path: '/donate'
       fullPath: '/donate'
       preLoaderRoute: typeof AppDonateRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/dmca': {
+      id: '/_app/dmca'
+      path: '/dmca'
+      fullPath: '/dmca'
+      preLoaderRoute: typeof AppDmcaRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/about': {
@@ -1063,12 +1101,14 @@ interface AppRouteRouteChildren {
   AppGuidesRouteRoute: typeof AppGuidesRouteRouteWithChildren
   AppUsersRouteRoute: typeof AppUsersRouteRouteWithChildren
   AppAboutRoute: typeof AppAboutRoute
+  AppDmcaRoute: typeof AppDmcaRoute
   AppDonateRoute: typeof AppDonateRoute
   AppHealthRoute: typeof AppHealthRoute
   AppLoginRoute: typeof AppLoginRoute
   AppLogoutRoute: typeof AppLogoutRoute
   AppMonitoringRoute: typeof AppMonitoringRoute
   AppSignupRoute: typeof AppSignupRoute
+  AppTosRoute: typeof AppTosRoute
   AppVerifyEmailRoute: typeof AppVerifyEmailRoute
   AppIndexRoute: typeof AppIndexRoute
   AppTaxaIdRouteRoute: typeof AppTaxaIdRouteRouteWithChildren
@@ -1082,12 +1122,14 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppGuidesRouteRoute: AppGuidesRouteRouteWithChildren,
   AppUsersRouteRoute: AppUsersRouteRouteWithChildren,
   AppAboutRoute: AppAboutRoute,
+  AppDmcaRoute: AppDmcaRoute,
   AppDonateRoute: AppDonateRoute,
   AppHealthRoute: AppHealthRoute,
   AppLoginRoute: AppLoginRoute,
   AppLogoutRoute: AppLogoutRoute,
   AppMonitoringRoute: AppMonitoringRoute,
   AppSignupRoute: AppSignupRoute,
+  AppTosRoute: AppTosRoute,
   AppVerifyEmailRoute: AppVerifyEmailRoute,
   AppIndexRoute: AppIndexRoute,
   AppTaxaIdRouteRoute: AppTaxaIdRouteRouteWithChildren,
