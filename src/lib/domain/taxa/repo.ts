@@ -40,7 +40,7 @@ import { TaxonPatch } from "./validation";
  */
 export async function insertDraftTaxon(
   tx: Transaction,
-  args: { parentId: number | null; rank: TaxonRow["rank"] }
+  args: { parentId: number | null; rank: TaxonRow["rank"] },
 ): Promise<{ id: number }> {
   const [row] = await tx
     .insert(taxaTbl)
@@ -55,7 +55,7 @@ export async function insertDraftTaxon(
  */
 export async function insertAcceptedSciName(
   tx: Transaction,
-  args: { taxonId: number; value: string }
+  args: { taxonId: number; value: string },
 ): Promise<void> {
   await tx.insert(namesTbl).values({
     value: args.value,
@@ -70,7 +70,7 @@ export async function insertAcceptedSciName(
  */
 export async function selectTaxonDtoById(
   tx: Transaction,
-  id: number
+  id: number,
 ): Promise<TaxonDTO | null> {
   const [dto] = await tx
     .select(taxonSelector)
@@ -88,7 +88,7 @@ export async function selectTaxonDtoById(
  */
 export async function selectTaxonDtosByIds(
   tx: Transaction,
-  ids: number[]
+  ids: number[],
 ): Promise<TaxonDTO[]> {
   const dtos = await tx
     .select(taxonSelector)
@@ -106,7 +106,7 @@ export async function selectTaxonDtosByIds(
  * Primarily useful for guide generation during BFS collection phase.
  */
 export async function getTaxonHierarchyMetaForParents(
-  parentIds: number[]
+  parentIds: number[],
 ): Promise<TaxonHierarchyDTO[]> {
   if (!parentIds.length) return [];
 
@@ -123,8 +123,8 @@ export async function getTaxonHierarchyMetaForParents(
       and(
         eq(namesTbl.taxonId, taxaTbl.id),
         eq(namesTbl.locale, "sci"),
-        eq(namesTbl.isPreferred, true)
-      )
+        eq(namesTbl.isPreferred, true),
+      ),
     )
     .where(inArray(taxaTbl.id, parentIds))
     .orderBy(asc(taxaTbl.id));
@@ -148,7 +148,7 @@ export async function getTaxonHierarchyMetaForParents(
     })
     .from(taxaTbl)
     .where(
-      and(inArray(taxaTbl.parentId, parentIds), eq(taxaTbl.status, "active"))
+      and(inArray(taxaTbl.parentId, parentIds), eq(taxaTbl.status, "active")),
     )
     .orderBy(asc(taxaTbl.parentId), asc(taxaTbl.id));
 
@@ -167,7 +167,7 @@ export async function getTaxonHierarchyMetaForParents(
  */
 export async function deleteTaxonById(
   tx: Transaction,
-  id: number
+  id: number,
 ): Promise<{ id: number } | null> {
   const deleted = await tx
     .delete(taxaTbl)
@@ -182,7 +182,11 @@ export async function deleteTaxonById(
  */
 export async function updateTaxonStatusAndReplacement(
   tx: Transaction,
-  args: { id: number; status: TaxonRow["status"]; replacedById?: number | null }
+  args: {
+    id: number;
+    status: TaxonRow["status"];
+    replacedById?: number | null;
+  },
 ): Promise<TaxonDTO | null> {
   await tx
     .update(taxaTbl)
@@ -201,7 +205,7 @@ export async function updateTaxonStatusAndReplacement(
 export async function updateTaxonRow(
   tx: Transaction,
   id: number,
-  patch: TaxonPatch
+  patch: TaxonPatch,
 ): Promise<boolean> {
   if (Object.keys(patch).length === 0) return true;
 
@@ -218,7 +222,7 @@ export async function updateTaxonRow(
  * Fetch a taxon detail view (base + ancestors + names) by id.
  */
 export async function fetchTaxonDetailById(
-  id: number
+  id: number,
 ): Promise<TaxonDetailDTO | null> {
   // Base taxon row
   const baseRows = await db
@@ -327,8 +331,8 @@ export async function fetchTaxonDetailById(
       and(
         eq(childSci.taxonId, taxaTbl.id),
         eq(childSci.locale, "sci"),
-        eq(childSci.isPreferred, true)
-      )
+        eq(childSci.isPreferred, true),
+      ),
     )
     .where(and(eq(taxaTbl.parentId, id), eq(taxaTbl.status, "active")))
     .orderBy(asc(taxaTbl.rank), asc(taxaTbl.id));
@@ -356,7 +360,7 @@ export async function fetchTaxonDetailById(
  * List taxa with optional search + filters, paginated.
  */
 export async function listTaxaQuery(
-  args: TaxonSearchParams
+  args: TaxonSearchParams,
 ): Promise<TaxonPaginatedResult> {
   const { q, page, pageSize, status, highRank, lowRank, hasMedia } = args;
 
@@ -407,7 +411,7 @@ export async function listTaxaQuery(
         taxaTbl.sourceInatId,
         taxaTbl.status,
         sci.value,
-        common.value
+        common.value,
       )
       .orderBy(asc(taxaTbl.rank), asc(taxaTbl.id))
       .limit(pageSize)
@@ -451,7 +455,7 @@ export async function listTaxaQuery(
 
 export async function markTaxonActive(
   tx: Transaction,
-  id: number
+  id: number,
 ): Promise<boolean> {
   const updated = await tx
     .update(taxaTbl)
@@ -460,4 +464,15 @@ export async function markTaxonActive(
     .returning({ id: taxaTbl.id });
 
   return updated.length > 0;
+}
+
+export async function selectIndexableTaxa() {
+  return db
+    .select({
+      id: taxaTbl.id,
+      updatedAt: taxaTbl.updatedAt,
+    })
+    .from(taxaTbl)
+    .where(eq(taxaTbl.status, "active"))
+    .orderBy(taxaTbl.id);
 }

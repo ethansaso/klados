@@ -13,6 +13,7 @@ import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as SitemapsSitemapTaxaDotxmlRouteImport } from './routes/_sitemaps/sitemap-taxa[.]xml'
 import { Route as AppVerifyEmailRouteImport } from './routes/_app/verify-email'
 import { Route as AppTosRouteImport } from './routes/_app/tos'
 import { Route as AppSignupRouteImport } from './routes/_app/signup'
@@ -78,6 +79,12 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const SitemapsSitemapTaxaDotxmlRoute =
+  SitemapsSitemapTaxaDotxmlRouteImport.update({
+    id: '/_sitemaps/sitemap-taxa.xml',
+    path: '/sitemap-taxa.xml',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AppVerifyEmailRoute = AppVerifyEmailRouteImport.update({
   id: '/verify-email',
   path: '/verify-email',
@@ -325,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof AppSignupRoute
   '/tos': typeof AppTosRoute
   '/verify-email': typeof AppVerifyEmailRoute
+  '/sitemap-taxa.xml': typeof SitemapsSitemapTaxaDotxmlRoute
   '/admin/': typeof AdminIndexRoute
   '/glossary/characters': typeof AppGlossaryCharactersRouteRouteWithChildren
   '/glossary/groups': typeof AppGlossaryGroupsRouteRouteWithChildren
@@ -369,6 +377,7 @@ export interface FileRoutesByTo {
   '/signup': typeof AppSignupRoute
   '/tos': typeof AppTosRoute
   '/verify-email': typeof AppVerifyEmailRoute
+  '/sitemap-taxa.xml': typeof SitemapsSitemapTaxaDotxmlRoute
   '/': typeof AppIndexRoute
   '/admin': typeof AdminIndexRoute
   '/taxa/drafts': typeof AppTaxaDraftsRoute
@@ -413,6 +422,7 @@ export interface FileRoutesById {
   '/_app/signup': typeof AppSignupRoute
   '/_app/tos': typeof AppTosRoute
   '/_app/verify-email': typeof AppVerifyEmailRoute
+  '/_sitemaps/sitemap-taxa.xml': typeof SitemapsSitemapTaxaDotxmlRoute
   '/_app/': typeof AppIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/_app/glossary/characters': typeof AppGlossaryCharactersRouteRouteWithChildren
@@ -466,6 +476,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/tos'
     | '/verify-email'
+    | '/sitemap-taxa.xml'
     | '/admin/'
     | '/glossary/characters'
     | '/glossary/groups'
@@ -510,6 +521,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/tos'
     | '/verify-email'
+    | '/sitemap-taxa.xml'
     | '/'
     | '/admin'
     | '/taxa/drafts'
@@ -553,6 +565,7 @@ export interface FileRouteTypes {
     | '/_app/signup'
     | '/_app/tos'
     | '/_app/verify-email'
+    | '/_sitemaps/sitemap-taxa.xml'
     | '/_app/'
     | '/admin/'
     | '/_app/glossary/characters'
@@ -591,6 +604,7 @@ export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
   ApiUnauthenticatedRouteRoute: typeof ApiUnauthenticatedRouteRouteWithChildren
+  SitemapsSitemapTaxaDotxmlRoute: typeof SitemapsSitemapTaxaDotxmlRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -623,6 +637,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRouteRoute
+    }
+    '/_sitemaps/sitemap-taxa.xml': {
+      id: '/_sitemaps/sitemap-taxa.xml'
+      path: '/sitemap-taxa.xml'
+      fullPath: '/sitemap-taxa.xml'
+      preLoaderRoute: typeof SitemapsSitemapTaxaDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/verify-email': {
       id: '/_app/verify-email'
@@ -1186,6 +1207,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AdminRouteRoute: AdminRouteRouteWithChildren,
   ApiUnauthenticatedRouteRoute: ApiUnauthenticatedRouteRouteWithChildren,
+  SitemapsSitemapTaxaDotxmlRoute: SitemapsSitemapTaxaDotxmlRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

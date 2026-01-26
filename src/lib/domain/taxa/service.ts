@@ -24,6 +24,7 @@ import {
   insertDraftTaxon,
   listTaxaQuery,
   markTaxonActive,
+  selectIndexableTaxa,
   selectTaxonDtoById,
   selectTaxonDtosByIds,
   updateTaxonRow,
@@ -182,7 +183,7 @@ export async function getTaxaByIds(ids: number[]): Promise<TaxonDTO[]> {
  * List taxa with optional search, status filter and IDs, paginated.
  */
 export async function listTaxa(
-  args: TaxonSearchParams
+  args: TaxonSearchParams,
 ): Promise<TaxonPaginatedResult> {
   return listTaxaQuery(args);
 }
@@ -228,11 +229,11 @@ export async function publishTaxon(args: {
 
 function assertNamesPayloadInvariant(names: NameItem[]) {
   const sciPreferredCount = names.filter(
-    (n) => n.locale === "sci" && n.isPreferred
+    (n) => n.locale === "sci" && n.isPreferred,
   ).length;
   if (sciPreferredCount !== 1) {
     throw new Error(
-      "Exactly one preferred scientific name (locale 'sci') is required."
+      "Exactly one preferred scientific name (locale 'sci') is required.",
     );
   }
 
@@ -242,7 +243,7 @@ function assertNamesPayloadInvariant(names: NameItem[]) {
     const prev = preferredPerLocale.get(n.locale) ?? 0;
     if (prev >= 1)
       throw new Error(
-        `At most one preferred common name per locale; duplicate for "${n.locale}".`
+        `At most one preferred common name per locale; duplicate for "${n.locale}".`,
       );
     preferredPerLocale.set(n.locale, prev + 1);
   }
@@ -300,13 +301,13 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
       const characters = (updates.characters ?? []) as CharacterUpdate[];
 
       const categorical = characters.filter(
-        (c): c is CategoricalCharacterUpdate => c.kind === "categorical"
+        (c): c is CategoricalCharacterUpdate => c.kind === "categorical",
       );
       const number = characters.filter(
-        (c): c is NumberCharacterUpdate => c.kind === "number"
+        (c): c is NumberCharacterUpdate => c.kind === "number",
       );
       const range = characters.filter(
-        (c): c is RangeCharacterUpdate => c.kind === "range"
+        (c): c is RangeCharacterUpdate => c.kind === "range",
       );
 
       await replaceCategoricalStatesForTaxon(tx, id, categorical);
@@ -323,4 +324,18 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
     if (!dto) throw notFound();
     return dto;
   });
+}
+
+export async function getTaxaSitemapEntries(): Promise<
+  {
+    loc: string;
+    lastmod: string;
+  }[]
+> {
+  const taxa = await selectIndexableTaxa();
+
+  return taxa.map((t) => ({
+    loc: `https://klados.bio/taxa/${t.id}`,
+    lastmod: t.updatedAt.toISOString().slice(0, 10),
+  }));
 }
