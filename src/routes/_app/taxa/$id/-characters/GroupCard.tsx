@@ -15,7 +15,7 @@ export const GroupCard = ({ group }: { group: GroupedCharacterStates }) => {
     <Card size="2">
       <Heading size="2">{cardHeaderComponent}</Heading>
       <Separator size="4" mt="1" mb="3" />
-      <DataList.Root size="2">
+      <DataList.Root size={{ initial: "1", sm: "2" }}>
         {group.states.map((state) => {
           const dlLabel = state.characterDescription ? (
             <Tooltip content={state.characterDescription}>

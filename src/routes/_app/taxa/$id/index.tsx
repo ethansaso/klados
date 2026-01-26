@@ -80,12 +80,24 @@ function TaxonPage() {
   return (
     <ContentContainer align="start">
       <StatusCallout status={taxon.status} />
-      <Box mb="4">
-        <Breadcrumbs items={breadcrumbItems} size="2" />
-        <Flex align="baseline" wrap="wrap" gapX="2" gapY="0">
-          <Heading size="7">{taxon.acceptedName}</Heading>
+      <Box mb={{ initial: "3", xs: "4" }}>
+        <Breadcrumbs items={breadcrumbItems} size={{ initial: "1", xs: "2" }} />
+        <Flex
+          align="baseline"
+          wrap="wrap"
+          gapX="2"
+          gapY="0"
+          mt={{ initial: "1", xs: "0" }}
+        >
+          <Heading size={{ initial: "4", xs: "7" }}>
+            {taxon.acceptedName}
+          </Heading>
           {taxon.preferredCommonName && (
-            <Text size="3" weight="regular" color="gray">
+            <Text
+              size={{ initial: "2", xs: "3" }}
+              weight="regular"
+              color="gray"
+            >
               ({taxon.preferredCommonName})
             </Text>
           )}
@@ -113,13 +125,15 @@ function TaxonPage() {
             />
           </Tabs.Content>
           <Tabs.Content value="names" mt="4">
-            <Heading size="4" mb="2">
+            <Heading size={{ initial: "3", sm: "4" }} mb="3">
               Names
             </Heading>
             <NamesDataList names={taxon.names} />
           </Tabs.Content>
           <Tabs.Content value="sources" mt="4">
-            <Heading size="4">Sources</Heading>
+            <Heading size={{ initial: "3", sm: "4" }} mb="1">
+              Sources
+            </Heading>
             {sources.length > 0 ? (
               sources.map((s) => (
                 <Text key={s.id} mb="2">

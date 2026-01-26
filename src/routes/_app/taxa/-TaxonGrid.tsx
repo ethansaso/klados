@@ -8,7 +8,7 @@ export const TaxonGrid = ({ results }: { results: TaxonPaginatedResult }) => {
   return (
     <Grid
       columns={{ initial: "3", md: "5" }}
-      gap={{ initial: "2", md: "4" }}
+      gap={{ initial: "1", sm: "2", md: "4" }}
       className="taxon-grid"
     >
       {results.items.map((t) => (
@@ -22,7 +22,8 @@ export const TaxonGrid = ({ results }: { results: TaxonPaginatedResult }) => {
           serveAsLink
         >
           <Flex
-            mt={{ sm: "1" }}
+            display={{ initial: "none", sm: "flex" }}
+            mt={{ sm: "2" }}
             align="center"
             gap="1"
             className="summary"

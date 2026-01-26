@@ -1,6 +1,7 @@
 import { Link as RadixLink, Text } from "@radix-ui/themes";
 import { createLink, type LinkComponent } from "@tanstack/react-router";
 import { PiCaretRight } from "react-icons/pi";
+import type { ResponsiveSize, Size } from "../lib/utils/responsiveSize";
 
 export interface Breadcrumb {
   label: string;
@@ -10,7 +11,7 @@ export interface Breadcrumb {
 
 export interface BreadcrumbsProps {
   items: Breadcrumb[];
-  size?: "1" | "2" | "3";
+  size?: Size | ResponsiveSize;
 }
 
 // https://tanstack.com/router/latest/docs/framework/react/guide/custom-link

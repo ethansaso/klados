@@ -19,18 +19,26 @@ export const LookalikesList = ({
 }: LookalikesListProps) => {
   return (
     <Box>
-      <Box mb="3">
-        <Heading size="4">Similar Taxa</Heading>
+      <Box mb="4">
+        <Heading size={{ initial: "3", sm: "4" }} mb="1">
+          Similar Taxa
+        </Heading>
         {lookalikes.length ? (
-          <Text as="p">
+          <Text as="p" size={{ initial: "2", sm: "3" }}>
             These taxa share similar characteristics with {taxonAcceptedName}.
             Click on any taxon to compare side-by-side.
           </Text>
         ) : (
-          <Text>We couldn't determine any lookalikes for this taxon.</Text>
+          <Text size={{ initial: "2", sm: "3" }}>
+            We couldn't determine any lookalikes for this taxon.
+          </Text>
         )}
       </Box>
-      <Grid columns={{ initial: "3", md: "5" }} gap="4" className="taxon-grid">
+      <Grid
+        columns={{ initial: "2", xs: "3", md: "5" }}
+        gap="4"
+        className="taxon-grid"
+      >
         {lookalikes.map((l) => (
           <TaxonCard
             key={l.id}

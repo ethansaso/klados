@@ -48,8 +48,8 @@ function RouteComponent() {
         <Text as="p">
           <Strong>
             Klados should not be used to host or digitize copyrighted materials,
-            including descriptions and dichotomous keys, without explicit
-            permission from the original author(s).
+            including verbatim descriptions and dichotomous keys, without
+            explicit permission from the original author(s).
           </Strong>
         </Text>
       </Box>

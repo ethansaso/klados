@@ -1,6 +1,11 @@
 .taxon-card {
-  --card-padding: var(--space-2);
-  --card-gap: var(--space-1);
+  --card-padding: 6px;
+  --card-gap: 2px;
+
+  @media (min-width: 520px) {
+    --card-padding: var(--space-2);
+    --card-gap: var(--space-1);
+  }
 
   @media (min-width: 768px) {
     --card-padding: var(--space-3);
@@ -19,7 +24,8 @@
     width: calc(100% + var(--card-padding) * 2);
     aspect-ratio: 1/1;
     object-fit: cover;
-    border-radius: var(--radius-4);
+    border-top-left-radius: var(--radius-4);
+    border-top-right-radius: var(--radius-4);
     border: 1px solid var(--gray-5);
 
     margin: calc(-1 * var(--card-padding));
@@ -28,6 +34,8 @@
     @media (min-width: 768px) {
       width: 100%;
       margin: 0;
+      border-bottom-left-radius: var(--radius-4);
+      border-bottom-right-radius: var(--radius-4);
     }
   }
 

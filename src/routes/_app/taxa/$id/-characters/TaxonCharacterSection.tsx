@@ -9,16 +9,20 @@ export const TaxonCharacterSection = ({
 }) => {
   return (
     <Box>
-      <Box mb="3">
-        <Heading size="4">Morphological Description</Heading>
+      <Box mb="4">
+        <Heading size={{ initial: "3", sm: "4" }} mb="1">
+          Morphological Description
+        </Heading>
         {groups.length ? (
-          <Text as="p">
+          <Text as="p" size={{ initial: "2", sm: "3" }}>
             Some traits may have additional information from the glossary,
             indicated by an underline. Hover over these terms to view these
             definitions.
           </Text>
         ) : (
-          <Text>No morphological data available for this taxon.</Text>
+          <Text size={{ initial: "2", sm: "3" }}>
+            No morphological data available for this taxon.
+          </Text>
         )}
       </Box>
       {groups.length > 0 && (

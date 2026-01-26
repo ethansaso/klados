@@ -23,7 +23,7 @@ export const TaxonMainSection = ({
   navigate: UseNavigateResult<"string">;
 }) => {
   return (
-    <Flex gap="4" direction={{ initial: "column", xs: "row" }}>
+    <Flex direction={{ initial: "column", xs: "row" }} gap={{ xs: "4" }}>
       <TaxonImageBrowser
         taxonName={taxon.acceptedName}
         media={taxon.media}
@@ -31,7 +31,7 @@ export const TaxonMainSection = ({
       />
       <Flex direction="column" justify="between" gap="2">
         <Box>
-          <DataList.Root mt="2" size="2">
+          <DataList.Root mt="3" size={{ initial: "1", sm: "2" }}>
             <DataList.Item>
               <DataList.Label minWidth="88px">Rank</DataList.Label>
               <DataList.Value>{taxon.rank}</DataList.Value>
