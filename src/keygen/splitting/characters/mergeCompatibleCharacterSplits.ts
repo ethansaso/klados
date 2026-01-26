@@ -1,6 +1,6 @@
-import { HierarchyTaxonNode } from "../../hierarchy/types";
-import { KeyGenOptions } from "../../options";
-import {
+import type { HierarchyTaxonNode } from "../../hierarchy/types";
+import type { KeyGenOptions } from "../../options";
+import type {
   CharacterDefinitionSplitBranch,
   CharacterDefinitionSplitResult,
 } from "../types";
@@ -22,20 +22,20 @@ function keyPartition(split: CharacterDefinitionSplitResult): string {
 /** Merges post-resolution splits' clauses within a single partition and rescores them. */
 function mergeSplitsForPartition(
   splits: CharacterDefinitionSplitResult[],
-  options: KeyGenOptions
+  options: KeyGenOptions,
 ): CharacterDefinitionSplitResult {
-  if (splits.length === 1) {
+  const [first, ...rest] = splits;
+
+  if (rest.length === 0) {
     // Nothing to merge; return as-is
-    return splits[0];
+    return first!;
   }
 
   // Build taxonKey -> merged branch
   const mergedByKey = new Map<string, CharacterDefinitionSplitBranch>();
 
-  const [first, ...rest] = splits;
-
   // Seed from first split
-  for (const branch of first.branches) {
+  for (const branch of first!.branches) {
     const key = keyTaxonGroup(branch.taxa);
     // Defensive copy so we don't mutate original
     mergedByKey.set(key, {
@@ -52,7 +52,7 @@ function mergeSplitsForPartition(
       if (!existing) {
         // Shouldn't happen -- if observed, means partitions weren't actually identical
         throw new Error(
-          "Inconsistent partition: branch taxa not found in merged map"
+          "Inconsistent partition: branch taxa not found in merged map",
         );
       }
       existing.clauses.push(...branch.clauses);
@@ -73,7 +73,7 @@ function mergeSplitsForPartition(
 /** Merge compatible character-definition splits into single splits and rescore them. */
 export function mergeCharacterDefinitionSplits(
   splits: CharacterDefinitionSplitResult[],
-  options: KeyGenOptions
+  options: KeyGenOptions,
 ): CharacterDefinitionSplitResult[] {
   if (splits.length === 0) return [];
 

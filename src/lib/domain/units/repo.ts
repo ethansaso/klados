@@ -2,7 +2,7 @@ import { asc, eq, ilike } from "drizzle-orm";
 import {
   unitFamily as unitFamilyTbl,
   unit as unitTbl,
-} from "../../../db/schema/characters/units";
+} from "../../../../db/schema/characters/units";
 import { likeAnywhere } from "../../utils/likeAnywhere";
 import type { Transaction } from "../../utils/transactionType";
 import type { UnitDTO, UnitFamilyDTO } from "./types";

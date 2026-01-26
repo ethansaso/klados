@@ -1,4 +1,4 @@
-import { db } from "../../../db/client";
+import { db } from "../../../../db/client";
 import { snakeCase } from "../../utils/formatting/casing";
 import { selectUnitFamilyById } from "../units/repo";
 import {
@@ -20,7 +20,7 @@ import type {
   NumberCharacterDTO,
   RangeCharacterDTO,
 } from "./types";
-import { CreateCharacterInput } from "./validation";
+import type { CreateCharacterInput } from "./validation";
 
 /**
  * Get a character by id.

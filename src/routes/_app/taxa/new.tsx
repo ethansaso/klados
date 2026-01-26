@@ -12,25 +12,31 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
-import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
+import {
+  Controller,
+  type SubmitHandler,
+  useForm,
+  useWatch,
+} from "react-hook-form";
+import { TAXON_RANKS_DESCENDING } from "../../../../db/schema/schema";
 import { ContentContainer } from "../../../components/ContentContainer";
 import { SelectCombobox } from "../../../components/inputs/combobox/SelectCombobox";
-import { ComboboxOption } from "../../../components/inputs/combobox/types";
+import type { ComboboxOption } from "../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../components/inputs/ConditionalAlert";
-import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
 import { createTaxonDraftFn } from "../../../lib/api/taxa/createTaxonDraftFn";
 import {
   generateLoginRedirectFromLocation,
   roleHasCuratorRights,
 } from "../../../lib/auth/utils";
 import {
-  CreateTaxonInput,
+  type CreateTaxonInput,
   createTaxonSchema,
 } from "../../../lib/domain/taxa/validation";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
+import { getErrorMessage } from "../../../lib/utils/getErrorMessage";
 import { routeSeo } from "../../../lib/utils/head/routeSeo";
 import { toast } from "../../../lib/utils/toast";
 
@@ -110,10 +116,9 @@ function RouteComponent() {
         description: `Successfully created draft for taxon ${res.acceptedName}`,
         variant: "success",
       });
-    } catch (e) {
+    } catch (error) {
       toast({
-        description:
-          e instanceof Error ? e.message : "An unknown error occurred.",
+        description: getErrorMessage(error),
         variant: "error",
       });
     }

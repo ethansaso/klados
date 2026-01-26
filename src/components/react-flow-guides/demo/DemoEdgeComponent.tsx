@@ -8,7 +8,7 @@ import {
 } from "@xyflow/react";
 import { memo } from "react";
 import { ColorBubble } from "../../trait-tokens/ColorBubble";
-import { DemoEdge } from "./demoTypes";
+import type { DemoEdge } from "./demoTypes";
 
 const DemoEdgeComponent = memo((props: EdgeProps<DemoEdge>) => {
   const {

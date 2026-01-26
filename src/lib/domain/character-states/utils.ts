@@ -1,4 +1,4 @@
-import { TaxonCharacterStateDTO } from "./types";
+import { type TaxonCharacterStateDTO } from "./types";
 
 export type GroupedCharacterStates = {
   groupId: number;

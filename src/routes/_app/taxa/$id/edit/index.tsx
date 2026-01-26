@@ -19,19 +19,19 @@ import {
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Form } from "radix-ui";
-import { MouseEventHandler, useState } from "react";
+import { type MouseEventHandler, useState } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import z from "zod";
+import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
 import { ContentContainer } from "../../../../../components/ContentContainer";
-import { TAXON_RANKS_DESCENDING } from "../../../../../db/schema/schema";
 import { getTaxonCharacterStatesFn } from "../../../../../lib/api/character-states/getTaxonCharacterStatesFn";
 import { deleteTaxonFn } from "../../../../../lib/api/taxa/deleteTaxonFn";
 import { getTaxonFn } from "../../../../../lib/api/taxa/getTaxonFn";
 import { publishTaxonFn } from "../../../../../lib/api/taxa/publishFn";
 import { updateTaxonFn } from "../../../../../lib/api/taxa/updateTaxonFn";
 import { getSourcesForTaxonFn } from "../../../../../lib/api/taxon-sources/getSourcesForTaxonFn";
-import { CharacterUpdate } from "../../../../../lib/domain/character-states/validation";
-import { SourceDTO } from "../../../../../lib/domain/sources/types";
+import type { CharacterUpdate } from "../../../../../lib/domain/character-states/validation";
+import type { SourceDTO } from "../../../../../lib/domain/sources/types";
 import { mediaItemSchema } from "../../../../../lib/domain/taxa/validation";
 import { nameItemSchema } from "../../../../../lib/domain/taxon-names/validation";
 import { setTaxonSourcesSchema } from "../../../../../lib/domain/taxon-sources/validation";
@@ -46,6 +46,7 @@ import { seedTaxonEditState } from "./-seeding";
 import { SourceEditingForm } from "./-sources/SourceEditingForm";
 
 import editPageCssUrl from "../../../../../assets/styles/pages/taxa/edit.css?url";
+import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 
 export type TaxonEditFormValues = z.infer<typeof taxonEditFormSchema>;
 
@@ -229,9 +230,9 @@ function RouteComponent() {
       reset(data, { keepDirty: false }); // keep RHF dirty tracking in sync
       await invalidateTaxon(id);
       toast({ description: "Taxon saved.", variant: "success" });
-    } catch (err) {
+    } catch (error) {
       toast({
-        description: err?.message ?? "Failed to save changes.",
+        description: getErrorMessage(error),
         variant: "error",
       });
     }
@@ -252,9 +253,9 @@ function RouteComponent() {
       await invalidateTaxon(id);
       toast({ description: "Taxon published.", variant: "success" });
       navigate({ to: ".." });
-    } catch (err) {
+    } catch (error) {
       toast({
-        description: err?.message ?? "Failed to publish taxon.",
+        description: getErrorMessage(error),
         variant: "error",
       });
     }
@@ -278,9 +279,9 @@ function RouteComponent() {
         variant: "success",
       });
       navigate({ to: "/taxa/drafts" });
-    } catch (err) {
+    } catch (error) {
       toast({
-        description: err?.message ?? "Failed to delete taxon.",
+        description: getErrorMessage(error),
         variant: "error",
       });
     } finally {

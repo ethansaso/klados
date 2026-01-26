@@ -14,15 +14,15 @@ import {
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
-import { db } from "../../../db/client";
+import { db } from "../../../../db/client";
 import {
   categoricalCharacterMeta as catMetaTbl,
   categoricalTraitSet as setsTbl,
   taxonCharacterStateCategorical as tcsTbl,
   categoricalTraitValue as valsTbl,
-} from "../../../db/schema/schema";
+} from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/likeAnywhere";
-import { Transaction } from "../../utils/transactionType";
+import type { Transaction } from "../../utils/transactionType";
 import type {
   TraitSetDTO,
   TraitSetDetailDTO,
@@ -96,10 +96,8 @@ export async function listTraitSetsQuery(args: {
     .limit(pageSize)
     .offset(offset);
 
-  const [{ total }] = await db
-    .select({ total: count() })
-    .from(setsTbl)
-    .where(where);
+  const totals = await db.select({ total: count() }).from(setsTbl).where(where);
+  const total = totals[0]?.total ?? 0;
 
   return { items, page, pageSize, total };
 }
@@ -382,10 +380,8 @@ export async function listTraitSetValuesQuery(args: {
     .limit(pageSize)
     .offset(offset);
 
-  const [{ total }] = await db
-    .select({ total: count() })
-    .from(v)
-    .where(whereClause);
+  const totals = await db.select({ total: count() }).from(v).where(whereClause);
+  const total = totals[0]?.total ?? 0;
 
   const dtos: TraitValueDTO[] = items.map((r) => ({
     id: r.id,

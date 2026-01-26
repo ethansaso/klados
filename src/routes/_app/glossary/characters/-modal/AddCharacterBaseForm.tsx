@@ -8,7 +8,7 @@ import {
   TextField,
 } from "@radix-ui/themes";
 import { Label } from "radix-ui";
-import { PropsWithChildren } from "react";
+import { type PropsWithChildren } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import {
   a11yProps,
@@ -29,7 +29,7 @@ export function AddCharacterBaseForm({ children }: PropsWithChildren) {
     control,
     setValue,
     "label",
-    "key"
+    "key",
   );
 
   return (

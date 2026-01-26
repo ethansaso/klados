@@ -1,4 +1,4 @@
-import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
+import { TAXON_RANKS_DESCENDING } from "../../../../db/schema/schema";
 import { capitalizeFirstLetter } from "./casing";
 
 /**

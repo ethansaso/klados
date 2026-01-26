@@ -8,7 +8,6 @@ import {
   text,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { KeyTaxonNode } from "../../../keygen/key-building/types";
 import { withTimestamps } from "../../utils/timestamps";
 import { taxon } from "../taxa/taxon";
 
@@ -34,11 +33,11 @@ export const guide = pgTable(
     status: guideStatusEnum("status").notNull().default("unapproved"),
 
     // Actual tree
-    tree: jsonb("tree").$type<KeyTaxonNode>().notNull(),
+    tree: jsonb("tree").$type().notNull(),
   }),
   (t) => [
     index("guide_root_taxon_idx").on(t.rootTaxonId),
     // Prevent duplicate names for the same root taxon
     uniqueIndex("guide_root_name_uq").on(t.rootTaxonId, t.name),
-  ]
+  ],
 );

@@ -10,12 +10,12 @@ import {
 } from "@radix-ui/themes";
 import classNames from "classnames";
 import {
-  ComponentProps,
+  type ComponentProps,
   createContext,
-  CSSProperties,
-  Dispatch,
-  ReactNode,
-  SetStateAction,
+  type CSSProperties,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
   use,
   useState,
 } from "react";
@@ -26,7 +26,7 @@ import {
   PiX,
 } from "react-icons/pi";
 import { DebouncedTextField } from "../DebouncedTextField";
-import { ComboboxOption } from "./types";
+import type { ComboboxOption } from "./types";
 
 /* =============================== Context =============================== */
 

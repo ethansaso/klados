@@ -7,7 +7,7 @@ import {
   buildNumericSingleSuggestions,
   searchCategoricalSuggestions,
 } from "./suggestions";
-import { TraitSuggestion } from "./types";
+import type { TraitSuggestion } from "./types";
 
 /**
  * Search for trait suggestions (categorical values + numeric single/range)
@@ -19,7 +19,7 @@ export const searchGroupTraitSuggestionsFn = createServerFn({ method: "GET" })
       groupId: z.number().int().nonnegative(),
       q: z.string().trim(),
       limit: z.number().int().min(1).max(50).optional(),
-    })
+    }),
   )
   .handler(async ({ data }): Promise<TraitSuggestion[]> => {
     const { groupId, q } = data;

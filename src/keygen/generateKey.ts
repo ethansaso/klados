@@ -1,7 +1,7 @@
 import { discoverTaxonHierarchyFromRoot } from "./hierarchy/discoverHierarchy";
 import { buildKeySubtreeForTaxon } from "./key-building/buildKeyForChildren";
-import { KeyTaxonNode } from "./key-building/types";
-import { KeyGenOptions } from "./options";
+import type { KeyTaxonNode } from "./key-building/types";
+import type { KeyGenOptions } from "./options";
 
 /**
  * Given a taxon id (and options), generates a full key
@@ -9,7 +9,7 @@ import { KeyGenOptions } from "./options";
  */
 export async function generateKeyForTaxon(
   taxonId: number,
-  options: KeyGenOptions
+  options: KeyGenOptions,
 ): Promise<{ rootNode: KeyTaxonNode }> {
   const hierarchy = await discoverTaxonHierarchyFromRoot(taxonId, options);
 

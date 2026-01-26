@@ -2,7 +2,7 @@
  * Low-level ID-based types.
  */
 
-import { UnitDTO } from "../units/types";
+import { type UnitDTO } from "../units/types";
 
 export type Trait = {
   id: number;

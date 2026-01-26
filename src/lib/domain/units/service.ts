@@ -1,7 +1,7 @@
-import { db } from "../../../db/client";
-import { Transaction } from "../../utils/transactionType";
+import { db } from "../../../../db/client";
+import type { Transaction } from "../../utils/transactionType";
 import { listUnitFamiliesQuery, selectUnitFamilyById } from "./repo";
-import { UnitFamilyDTO } from "./types";
+import type { UnitFamilyDTO } from "./types";
 
 export async function getUnitFamily(args: {
   id: number;

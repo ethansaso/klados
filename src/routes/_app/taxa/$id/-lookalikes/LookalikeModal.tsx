@@ -11,13 +11,13 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { CharacterStateDisplay } from "../../../../../components/trait-tokens/CharacterStateDisplay";
-import { UICharacterState } from "../../../../../components/trait-tokens/types";
-import {
+import type { UICharacterState } from "../../../../../components/trait-tokens/types";
+import type {
   LookalikeComparisonAnnotatedState,
   LookalikeComparisonCharacter,
   LookalikeComparisonDetailDTO,
 } from "../../../../../lib/domain/lookalikes/types";
-import { TaxonDTO } from "../../../../../lib/domain/taxa/types";
+import type { TaxonDTO } from "../../../../../lib/domain/taxa/types";
 import { lookalikeDetailsQueryOptions } from "../../../../../lib/queries/lookalikes";
 
 function toUIState(

@@ -1,5 +1,5 @@
 import { Badge, Flex, IconButton } from "@radix-ui/themes";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { PiX } from "react-icons/pi";
 
 type StateTagWrapperProps = {

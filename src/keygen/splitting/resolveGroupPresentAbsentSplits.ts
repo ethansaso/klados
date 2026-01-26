@@ -1,5 +1,5 @@
-import { HierarchyTaxonNode } from "../hierarchy/types";
-import { GroupPresentAbsentSplitResult } from "./types";
+import type { HierarchyTaxonNode } from "../hierarchy/types";
+import type { GroupPresentAbsentSplitResult } from "./types";
 
 /**
  * Try to split taxa into two groups based on "has any character in groupId G"
@@ -8,7 +8,7 @@ import { GroupPresentAbsentSplitResult } from "./types";
  * Returns all possible splits along with their scores.
  */
 export function resolveGroupPresentAbsentSplits(
-  taxa: HierarchyTaxonNode[]
+  taxa: HierarchyTaxonNode[],
 ): GroupPresentAbsentSplitResult[] {
   if (taxa.length < 2) return [];
 

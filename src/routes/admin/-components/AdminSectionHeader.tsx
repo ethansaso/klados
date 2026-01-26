@@ -1,6 +1,6 @@
 import { Heading } from "@radix-ui/themes";
-import { ComponentPropsWithoutRef } from "react";
 import classNames from "classnames";
+import type { ComponentPropsWithoutRef } from "react";
 
 type AdminSectionHeaderProps = ComponentPropsWithoutRef<typeof Heading>;
 

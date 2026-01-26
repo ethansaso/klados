@@ -11,7 +11,7 @@ import {
   layoutGuideTree,
 } from "../layout/computeGuideTreeLayout";
 import { buildReactFlowFromGraph } from "../rf-adapters/buildReactFlow";
-import { RFEdge, RFNode } from "./types";
+import type { RFEdge, RFNode } from "./types";
 
 type GuideEditorState = {
   // Minimal structural metadata

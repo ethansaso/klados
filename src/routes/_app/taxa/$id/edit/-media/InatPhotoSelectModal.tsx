@@ -9,8 +9,8 @@ import {
 } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
 import z from "zod";
-import { MEDIA_LICENSES } from "../../../../../../db/utils/mediaLicense";
-import { MediaItem } from "../../../../../../lib/domain/taxa/validation";
+import { MEDIA_LICENSES } from "../../../../../../../db/utils/mediaLicense";
+import type { MediaItem } from "../../../../../../lib/domain/taxa/validation";
 
 type Props = {
   inatId: number;

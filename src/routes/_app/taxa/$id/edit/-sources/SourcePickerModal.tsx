@@ -11,9 +11,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { SelectCombobox } from "../../../../../../components/inputs/combobox/SelectCombobox";
-import { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
+import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
 import { createSourceFn } from "../../../../../../lib/api/sources/createSourceFn";
-import { SourceDTO } from "../../../../../../lib/domain/sources/types";
+import type { SourceDTO } from "../../../../../../lib/domain/sources/types";
 import { sourcesQueryOptions } from "../../../../../../lib/queries/sources";
 import { formatPublication } from "../../../../../../lib/utils/formatting/formatPublication";
 

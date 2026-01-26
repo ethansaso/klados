@@ -1,11 +1,11 @@
-import {
+import type {
   CategoricalValueSuggestion,
   NumericRangeSuggestion,
   NumericSingleSuggestion,
   TraitSuggestion,
 } from "../../../../../../lib/api/character-suggestions/types";
 import { convertToSI } from "../../../../../../lib/domain/units/conversion";
-import { CharacterStateFormValue } from "./validation";
+import type { CharacterStateFormValue } from "./validation";
 
 export function addCategoricalStateFromSuggestion(
   current: CharacterStateFormValue[],

@@ -1,6 +1,6 @@
 import z from "zod";
-import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
-import { MEDIA_LICENSES } from "../../../db/utils/mediaLicense";
+import { TAXON_RANKS_DESCENDING } from "../../../../db/schema/schema";
+import { MEDIA_LICENSES } from "../../../../db/utils/mediaLicense";
 import { characterUpdateSchema } from "../character-states/validation";
 import { nameItemSchema } from "../taxon-names/validation";
 import { setTaxonSourcesSchema } from "../taxon-sources/validation";

@@ -1,6 +1,6 @@
-import { Trait } from "../../lib/domain/character-states/types";
-import { MediaItem } from "../../lib/domain/taxa/validation";
-import {
+import type { Trait } from "../../lib/domain/character-states/types";
+import type { MediaItem } from "../../lib/domain/taxa/validation";
+import type {
   KeyCharRationale,
   KeyDiffNode,
   KeyPAGroupRationale,

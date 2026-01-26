@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
-import { PgColumnBuilder, timestamp } from "drizzle-orm/pg-core";
+import { timestamp, type AnyPgColumnBuilder } from "drizzle-orm/pg-core";
 
-export function withTimestamps<T extends Record<string, PgColumnBuilder>>(
+export function withTimestamps<T extends Record<string, AnyPgColumnBuilder>>(
   cols: T,
 ) {
   const createdAt = timestamp("created_at", { withTimezone: true })

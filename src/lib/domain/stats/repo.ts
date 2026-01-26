@@ -1,10 +1,10 @@
 import { count, eq } from "drizzle-orm";
-import { db } from "../../../db/client";
+import { db } from "../../../../db/client";
 import {
   guide as guideTbl,
   taxon as taxonTbl,
   user as userTbl,
-} from "../../../db/schema/schema";
+} from "../../../../db/schema/schema";
 import type { SummaryStatsDTO } from "./types";
 
 export async function fetchSummaryStats(): Promise<SummaryStatsDTO> {

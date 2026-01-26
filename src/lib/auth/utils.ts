@@ -1,4 +1,4 @@
-import { ParsedLocation, redirect } from "@tanstack/react-router";
+import { type ParsedLocation, redirect } from "@tanstack/react-router";
 
 const LOGIN_PATH = "/login";
 

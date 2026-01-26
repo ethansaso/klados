@@ -3,7 +3,7 @@ import { Button, Dialog, Flex } from "@radix-ui/themes";
 import { useLayoutEffect, useState } from "react";
 import z from "zod";
 import { ExternalResultSummary } from "../-ExternalResultSummary";
-import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
+import { TAXON_RANKS_DESCENDING } from "../../../../../../../db/schema/schema";
 
 type InatTaxon = {
   id: number;
@@ -132,8 +132,13 @@ const InatIdModal = NiceModal.create<Props>(
             setIndex(0);
           }
         } catch (e) {
-          if (e.name !== "AbortError" && !controller.signal.aborted) {
-            setError(e.message ?? "Failed to fetch iNaturalist taxon.");
+          if (e instanceof DOMException && e.name === "AbortError") return;
+          if (!controller.signal.aborted) {
+            setError(
+              e instanceof Error
+                ? e.message
+                : "Failed to fetch iNaturalist taxon.",
+            );
           }
         } finally {
           if (!controller.signal.aborted) {

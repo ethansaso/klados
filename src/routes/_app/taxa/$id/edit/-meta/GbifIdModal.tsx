@@ -3,7 +3,7 @@ import { Button, Dialog, Flex } from "@radix-ui/themes";
 import { useLayoutEffect, useState } from "react";
 import z from "zod";
 import { ExternalResultSummary } from "../-ExternalResultSummary";
-import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
+import { TAXON_RANKS_DESCENDING } from "../../../../../../../db/schema/schema";
 
 const GbifSuggestItemSchema = z.object({
   key: z.number(),
@@ -108,7 +108,7 @@ const GbifIdModal = NiceModal.create<Props>(
 
               try {
                 const occ = new URL(
-                  "https://api.gbif.org/v1/occurrence/search"
+                  "https://api.gbif.org/v1/occurrence/search",
                 );
                 occ.searchParams.set("taxonKey", String(taxon.key));
                 occ.searchParams.set("mediaType", "StillImage");
@@ -135,7 +135,7 @@ const GbifIdModal = NiceModal.create<Props>(
                 scientificName: taxon.scientificName,
                 srcImage: mediumSrc,
               } satisfies NormalizedGbifTaxon;
-            })
+            }),
           );
 
           if (!controller.signal.aborted) {
@@ -143,8 +143,13 @@ const GbifIdModal = NiceModal.create<Props>(
             setIndex(0);
           }
         } catch (e) {
-          if (e.name !== "AbortError" && !controller.signal.aborted) {
-            setError(e.message ?? "Failed to fetch GBIF taxon.");
+          if (e instanceof DOMException && e.name === "AbortError") return;
+          if (!controller.signal.aborted) {
+            setError(
+              e instanceof Error
+                ? e.message
+                : "Failed to fetch iNaturalist taxon.",
+            );
           }
         } finally {
           if (!controller.signal.aborted) {
@@ -191,7 +196,7 @@ const GbifIdModal = NiceModal.create<Props>(
                   ? () =>
                       setIndex(
                         (i) =>
-                          (i - 1 + taxonResults.length) % taxonResults.length
+                          (i - 1 + taxonResults.length) % taxonResults.length,
                       )
                   : undefined
               }
@@ -225,7 +230,7 @@ const GbifIdModal = NiceModal.create<Props>(
         </Dialog.Content>
       </Dialog.Root>
     );
-  }
+  },
 );
 
 // Helper to await a result

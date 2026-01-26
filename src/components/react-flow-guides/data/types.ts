@@ -1,5 +1,5 @@
-import { Node, NodeTypes } from "@xyflow/react";
-import {
+import type { Node, NodeTypes } from "@xyflow/react";
+import type {
   HydratedBranchRationale,
   HydratedCharRationale,
   HydratedDiffNode,
@@ -10,7 +10,7 @@ import DiffNodeComponent from "../components/DiffNodeComponent";
 import GroupBranchEdgeComponent from "../components/GroupBranchEdgeComponent";
 import NullBranchEdgeComponent from "../components/NullBranchEdgeComponent";
 import TaxonNodeComponent from "../components/TaxonNodeComponent";
-import { AssertedEdge } from "../util/assertedEdge";
+import type { AssertedEdge } from "../util/assertedEdge";
 
 export type GuideEditorTaxonNodeData = HydratedTaxonNode;
 export type GuideEditorDiffNodeData = HydratedDiffNode;

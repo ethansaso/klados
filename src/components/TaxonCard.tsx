@@ -1,7 +1,7 @@
 import { Box, Card, Flex, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
-import { memo, PropsWithChildren } from "react";
-import { MediaItem } from "../lib/domain/taxa/validation";
+import { memo, type PropsWithChildren } from "react";
+import type { MediaItem } from "../lib/domain/taxa/validation";
 import { capitalizeFirstLetter } from "../lib/utils/formatting/casing";
 import { AnnotationBubbleWrap } from "./annotations/AnnotationBubbleWrap";
 

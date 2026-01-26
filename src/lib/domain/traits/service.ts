@@ -1,4 +1,4 @@
-import { db } from "../../../db/client";
+import { db } from "../../../../db/client";
 import {
   deleteTraitSetById,
   deleteTraitValueById,
@@ -20,7 +20,7 @@ import type {
   TraitValueDTO,
   TraitValuePaginatedResult,
 } from "./types";
-import { UpdateTraitValueInput } from "./validation";
+import type { UpdateTraitValueInput } from "./validation";
 
 /**
  * List trait sets with optional search, status filter and IDs, paginated.
@@ -102,14 +102,14 @@ export async function deleteTraitValue(args: {
     // Block delete if referenced by a state(s)
     if (dto.usageCount > 0) {
       throw new Error(
-        `Cannot delete "${dto.label}" because it is used by ${dto.usageCount} taxon character state(s).`
+        `Cannot delete "${dto.label}" because it is used by ${dto.usageCount} taxon character state(s).`,
       );
     }
 
     // Block delete if has dependent aliases
     if (!dto.aliasTarget && (dto.aliasCount ?? 0) > 0) {
       throw new Error(
-        `Cannot delete "${dto.label}" because ${dto.aliasCount} alias value(s) depend on it. Remove or reassign those aliases first.`
+        `Cannot delete "${dto.label}" because ${dto.aliasCount} alias value(s) depend on it. Remove or reassign those aliases first.`,
       );
     }
 
@@ -144,7 +144,7 @@ export async function listTraitSetValues(args: {
  * Bulk fetch trait values by ID.
  */
 export async function getTraitValuesByIds(
-  ids: number[]
+  ids: number[],
 ): Promise<TraitValueDTO[]> {
   if (!ids.length) {
     return [];
@@ -213,7 +213,7 @@ export async function createTraitValue(args: {
 }
 
 export async function updateTraitValue(
-  args: UpdateTraitValueInput
+  args: UpdateTraitValueInput,
 ): Promise<TraitValueDTO> {
   return db.transaction(async (tx) => {
     const cur = await selectTraitValueDtoById(tx, args.id);
@@ -234,7 +234,7 @@ export async function updateTraitValue(
       cur.aliasCount > 0
     ) {
       throw new Error(
-        `Cannot make "${cur.label}" an alias because ${cur.aliasCount} alias value(s) depend on it.`
+        `Cannot make "${cur.label}" an alias because ${cur.aliasCount} alias value(s) depend on it.`,
       );
     }
 

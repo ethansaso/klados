@@ -1,7 +1,7 @@
 import { Button, Flex, Popover, Select, Switch, Text } from "@radix-ui/themes";
 import { useMemo } from "react";
 import { PiFunnelFill } from "react-icons/pi";
-import { TAXON_RANKS_DESCENDING } from "../../../db/schema/schema";
+import { TAXON_RANKS_DESCENDING } from "../../../../db/schema/schema";
 import type { TaxonSearchParams } from "../../../lib/domain/taxa/search";
 import { capitalizeFirstLetter } from "../../../lib/utils/formatting/casing";
 

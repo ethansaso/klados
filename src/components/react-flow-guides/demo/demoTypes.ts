@@ -1,6 +1,6 @@
-import { Node, NodeTypes } from "@xyflow/react";
-import { MediaItem } from "../../../lib/domain/taxa/validation";
-import { AssertedEdge } from "../util/assertedEdge";
+import type { Node, NodeTypes } from "@xyflow/react";
+import type { MediaItem } from "../../../lib/domain/taxa/validation";
+import type { AssertedEdge } from "../util/assertedEdge";
 import DemoDiffNodeComponent from "./DemoDiffNodeComponent";
 import DemoEdgeComponent from "./DemoEdgeComponent";
 import { DemoTaxonNodeComponent } from "./DemoTaxonNodeComponent";

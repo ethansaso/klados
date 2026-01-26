@@ -9,7 +9,7 @@ import {
   sql,
   type SQL,
 } from "drizzle-orm";
-import { db } from "../../../db/client";
+import { db } from "../../../../db/client";
 import {
   categoricalCharacterMeta as catMetaTbl,
   character as charsTbl,
@@ -20,9 +20,9 @@ import {
   taxonCharacterStateCategorical as valCatTbl,
   taxonCharacterStateNumber as valNumTbl,
   taxonCharacterStateRange as valRangeTbl,
-} from "../../../db/schema/schema";
+} from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/likeAnywhere";
-import { Transaction } from "../../utils/transactionType";
+import type { Transaction } from "../../utils/transactionType";
 import {
   catUsageSel,
   characterTypeExpr,
@@ -327,13 +327,11 @@ export async function listCharactersQuery(args: {
 
   const items = itemsRaw.map(toCharacterDTO);
 
-  // Total (same predicate; all types)
-  const [{ total }] = await db
+  const totals = await db
     .select({ total: count() })
-    .from(charsTbl)
-    .leftJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
-    .leftJoin(numMetaTbl, eq(numMetaTbl.characterId, charsTbl.id))
+    .from(groupsTbl)
     .where(where);
+  const total = totals[0]?.total ?? 0;
 
   return {
     items,

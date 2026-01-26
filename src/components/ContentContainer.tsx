@@ -1,6 +1,6 @@
 import { Container, Flex } from "@radix-ui/themes";
 import { Outlet } from "@tanstack/react-router";
-import { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 
 const pPerSize = {
   "0": { px: "1", py: "2" },

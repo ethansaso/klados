@@ -2,7 +2,7 @@ import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
 import { createSource } from "../../domain/sources/service";
-import { SourceDTO } from "../../domain/sources/types";
+import type { SourceDTO } from "../../domain/sources/types";
 import { sourceItemSchema } from "../../domain/sources/validation";
 
 export const createSourceFn = createServerFn({ method: "POST" })

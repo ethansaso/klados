@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { listModifierGroupsFn } from "../api/modifiers/listModifierGroupsFn";
-import { ModifierGroupPaginatedResult } from "../domain/modifiers/types";
+import type { ModifierGroupPaginatedResult } from "../domain/modifiers/types";
 
 export const modifierGroupsQueryOptions = (
   page: number,

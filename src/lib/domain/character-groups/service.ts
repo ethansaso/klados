@@ -1,4 +1,4 @@
-import { db } from "../../../db/client";
+import { db } from "../../../../db/client";
 import {
   fetchCharacterGroupDetailById,
   insertCharacterGroup,
@@ -15,7 +15,7 @@ import type {
  * Bulk fetch character groups by ID (non-paginated).
  */
 export async function getCharacterGroupsByIds(
-  ids: number[]
+  ids: number[],
 ): Promise<CharacterGroupDTO[]> {
   if (!ids.length) {
     return [];

@@ -1,16 +1,16 @@
 import { and, asc, count, desc, eq, ilike, or, SQL } from "drizzle-orm";
-import { db } from "../../../db/client";
-import { source as sourceTbl } from "../../../db/schema/sources/source";
+import { db } from "../../../../db/client";
+import { source as sourceTbl } from "../../../../db/schema/sources/source";
 import { likeAnywhere } from "../../utils/likeAnywhere";
-import { Transaction } from "../../utils/transactionType";
-import { SourceSearchParams } from "./search";
+import type { Transaction } from "../../utils/transactionType";
+import type { SourceSearchParams } from "./search";
 import { sourceSelectDto } from "./sqlAdapters";
-import { SourceDTO, SourcePaginatedResult } from "./types";
-import { SourceItem } from "./validation";
+import type { SourceDTO, SourcePaginatedResult } from "./types";
+import type { SourceItem } from "./validation";
 
 export async function insertSource(
   tx: Transaction,
-  source: SourceItem
+  source: SourceItem,
 ): Promise<SourceDTO> {
   const [inserted] = await tx
     .insert(sourceTbl)
@@ -43,7 +43,7 @@ export async function insertSource(
 
 export async function selectSourceById(
   tx: Transaction,
-  id: number
+  id: number,
 ): Promise<SourceDTO | null> {
   const [source] = await tx
     .select(sourceSelectDto)
@@ -60,7 +60,7 @@ export async function selectSourceById(
  */
 export async function selectSourceByUniqueKeys(
   tx: Transaction,
-  keys: { isbn?: string | null; url?: string | null }
+  keys: { isbn?: string | null; url?: string | null },
 ): Promise<SourceDTO | null> {
   const preds: SQL[] = [];
 
@@ -80,7 +80,7 @@ export async function selectSourceByUniqueKeys(
 
 export async function deleteSourceById(
   tx: Transaction,
-  id: number
+  id: number,
 ): Promise<{ id: number } | null> {
   const [deleted] = await tx
     .delete(sourceTbl)
@@ -94,7 +94,7 @@ export async function deleteSourceById(
  * List sources with optional search, paginated.
  */
 export async function listSourcesQuery(
-  args: SourceSearchParams
+  args: SourceSearchParams,
 ): Promise<SourcePaginatedResult> {
   const { q, page, pageSize } = args;
   const offset = (page - 1) * pageSize;
@@ -108,8 +108,8 @@ export async function listSourcesQuery(
       or(
         ilike(sourceTbl.name, like),
         ilike(sourceTbl.authors, like),
-        ilike(sourceTbl.publisher, like)
-      )
+        ilike(sourceTbl.publisher, like),
+      ),
     );
   }
 
@@ -138,10 +138,11 @@ export async function listSourcesQuery(
     .limit(pageSize)
     .offset(offset);
 
-  const [{ total }] = await db
+  const totals = await db
     .select({ total: count() })
     .from(sourceTbl)
     .where(where);
+  const total = totals[0]?.total ?? 0;
 
   return { items, page, pageSize, total: Number(total) };
 }

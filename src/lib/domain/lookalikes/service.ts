@@ -1,8 +1,8 @@
-import { db } from "../../../db/client";
+import { db } from "../../../../db/client";
 import { selectTaxonCharacterStatesByTaxonIds } from "../character-states/repo";
 import { selectTaxonDtoById } from "../taxa/repo";
 import { computeTaxonLookalikesByCategoricalOverlap } from "./repo";
-import { LookalikeComparisonDetailDTO, TaxonLookalikeDTO } from "./types";
+import type { LookalikeComparisonDetailDTO, TaxonLookalikeDTO } from "./types";
 import { buildGroupedLookalikeStates } from "./util";
 
 export const getLookalikesForTaxon = async (

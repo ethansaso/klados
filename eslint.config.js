@@ -1,34 +1,81 @@
 import eslintReact from "@eslint-react/eslint-plugin";
 import eslintJs from "@eslint/js";
+import boundaries from "eslint-plugin-boundaries";
 import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 
-export default defineConfig({
-  files: ["**/*.ts", "**/*.tsx"],
-
-  // Extend recommended rule sets from:
-  // 1. ESLint JS's recommended rules
-  // 2. TypeScript ESLint recommended rules
-  // 3. ESLint React's recommended-typescript rules
-  extends: [
-    eslintJs.configs.recommended,
-    tseslint.configs.recommended,
-    eslintReact.configs["recommended-typescript"],
-  ],
-
-  // Configure language/parsing options
-  languageOptions: {
-    // Use TypeScript ESLint parser for TypeScript files
-    parser: tseslint.parser,
-    parserOptions: {
-      // Enable project service for better TypeScript integration
-      projectService: true,
-      tsconfigRootDir: import.meta.dirname,
+export default defineConfig([
+  //
+  // Global boundaries setup
+  //
+  {
+    plugins: { boundaries },
+    languageOptions: {
+      parser: tseslint.parser,
+    },
+    extends: [eslintJs.configs.recommended, tseslint.configs.recommended],
+    settings: {
+      "boundaries/elements": [
+        { type: "db", pattern: "db/**" },
+        { type: "scripts", pattern: "scripts/**" },
+        { type: "src", pattern: "src/**" },
+      ],
     },
   },
 
-  // Custom rule overrides (modify rule levels or disable rules)
-  rules: {
-    "@eslint-react/no-missing-key": "warn",
+  //
+  // SRC: TS + React
+  //
+  {
+    files: ["src/**/*.ts", "src/**/*.tsx"],
+    extends: [eslintReact.configs["recommended-typescript"]],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      "@eslint-react/no-missing-key": "warn",
+      "boundaries/element-types": [
+        "error",
+        {
+          default: "disallow",
+          rules: [{ from: "src", allow: ["src", "db"] }],
+        },
+      ],
+    },
   },
-});
+
+  //
+  // SCRIPTS: boundaries only
+  //
+  {
+    files: ["scripts/**/*.ts"],
+    rules: {
+      "boundaries/element-types": [
+        "error",
+        {
+          default: "disallow",
+          rules: [{ from: "scripts", allow: ["scripts", "db"] }],
+        },
+      ],
+    },
+  },
+
+  //
+  // DB: leaf module
+  //
+  {
+    files: ["db/**/*.ts"],
+    rules: {
+      "boundaries/element-types": [
+        "error",
+        {
+          default: "disallow",
+          rules: [{ from: "db", allow: ["db"] }],
+        },
+      ],
+    },
+  },
+]);

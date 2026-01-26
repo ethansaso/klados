@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
 import { createModifierGroup } from "../../domain/modifiers/service";
-import { ModifierGroupDTO } from "../../domain/modifiers/types";
+import { type ModifierGroupDTO } from "../../domain/modifiers/types";
 import { createModifierGroupSchema } from "../../domain/modifiers/validation";
 
 export const createModifierGroupFn = createServerFn({ method: "POST" })

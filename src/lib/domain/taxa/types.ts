@@ -1,6 +1,6 @@
-import { taxon, TaxonRank } from "../../../db/schema/schema";
-import { PaginatedResult } from "../../validation/pagination";
-import { NameItem } from "../taxon-names/validation";
+import { taxon, type TaxonRank } from "../../../../db/schema/schema";
+import type { PaginatedResult } from "../../validation/pagination";
+import type { NameItem } from "../taxon-names/validation";
 
 export type LeanTaxonDTO = {
   id: number;

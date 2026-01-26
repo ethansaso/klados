@@ -1,16 +1,16 @@
 import { v4 as uuidv4 } from "uuid";
-import { HierarchyTaxonNode } from "../hierarchy/types";
-import { KeyGenOptions } from "../options";
+import type { HierarchyTaxonNode } from "../hierarchy/types";
+import type { KeyGenOptions } from "../options";
 import { mergeCharacterDefinitionSplits } from "../splitting/characters/mergeCompatibleCharacterSplits";
 import { resolveCharacterSplits } from "../splitting/characters/resolveCharacterSplits";
 import { resolveGroupPresentAbsentSplits } from "../splitting/resolveGroupPresentAbsentSplits";
-import {
+import type {
   CharacterDefinitionSplitResult,
   GroupPresentAbsentSplitResult,
   SplitResult,
   TaxonGroup,
 } from "../splitting/types";
-import {
+import type {
   KeyBranch,
   KeyBranchRationale,
   KeyCharRationale,
@@ -58,7 +58,7 @@ function makeBranch(rationale: KeyBranchRationale, child: KeyNode): KeyBranch {
 
 function getChildrenForTaxonId(
   taxonId: number,
-  hierarchy: Map<number, HierarchyTaxonNode>
+  hierarchy: Map<number, HierarchyTaxonNode>,
 ): TaxonGroup {
   const meta = hierarchy.get(taxonId);
   if (!meta) return [];
@@ -75,7 +75,7 @@ function getChildrenForTaxonId(
  */
 function getChildrenForTaxonNode(
   taxonNode: KeyTaxonNode,
-  hierarchy: Map<number, HierarchyTaxonNode>
+  hierarchy: Map<number, HierarchyTaxonNode>,
 ): TaxonGroup {
   const taxonId = getNumericTaxonId(taxonNode);
   return getChildrenForTaxonId(taxonId, hierarchy);
@@ -86,9 +86,13 @@ function getChildrenForTaxonNode(
  */
 function buildCharacterDefinitionRationale(
   split: CharacterDefinitionSplitResult,
-  branchIndex: number
+  branchIndex: number,
 ): KeyCharRationale {
   const branch = split.branches[branchIndex];
+  if (!branch)
+    throw new Error(
+      `Invalid branchIndex ${branchIndex} for split with ${split.branches.length} branches`,
+    );
 
   const characters: KeyCharRationale["characters"] = {};
 
@@ -113,9 +117,13 @@ function buildCharacterDefinitionRationale(
  */
 function buildGroupPresentAbsentRationale(
   split: GroupPresentAbsentSplitResult,
-  branchIndex: number
+  branchIndex: number,
 ): KeyBranchRationale {
   const branch = split.branches[branchIndex];
+  if (!branch)
+    throw new Error(
+      `Invalid branchIndex ${branchIndex} for split with ${split.branches.length} branches`,
+    );
 
   return {
     kind: "group-present-absent",
@@ -131,18 +139,18 @@ function buildGroupPresentAbsentRationale(
 
 function buildRationaleForBranch(
   split: SplitResult,
-  branchIndex: number
+  branchIndex: number,
 ): KeyBranchRationale {
   if (split.kind === "character-definition") {
     return buildCharacterDefinitionRationale(
       split as CharacterDefinitionSplitResult,
-      branchIndex
+      branchIndex,
     );
   }
 
   return buildGroupPresentAbsentRationale(
     split as GroupPresentAbsentSplitResult,
-    branchIndex
+    branchIndex,
   );
 }
 
@@ -156,14 +164,14 @@ function buildKeyForSiblings(
   parent: KeyNode,
   siblings: TaxonGroup,
   hierarchy: Map<number, HierarchyTaxonNode>,
-  options: KeyGenOptions
+  options: KeyGenOptions,
 ): void {
   if (siblings.length === 0) return;
 
   // Single sibling: attach as taxon leaf with null rationale, then descend
   // hierarchically beneath it.
   if (siblings.length === 1) {
-    const only = siblings[0];
+    const only = siblings[0]!;
     const childNode = makeTaxonNode(only.id);
     const branch = makeBranch(null, childNode);
     parent.branches.push(branch);
@@ -176,7 +184,7 @@ function buildKeyForSiblings(
   const rawCharacterSplits = resolveCharacterSplits(siblings, options);
   const characterSplits = mergeCharacterDefinitionSplits(
     rawCharacterSplits,
-    options
+    options,
   );
   const groupSplits = resolveGroupPresentAbsentSplits(siblings);
   const candidates: SplitResult[] = [...characterSplits, ...groupSplits];
@@ -196,7 +204,7 @@ function buildKeyForSiblings(
 
   // Otherwise, select best split by score
   candidates.sort((a, b) => b.score - a.score);
-  const best = candidates[0];
+  const best = candidates[0]!;
 
   // For each split branch, attach a KeyBranch with rationale and either:
   // - a taxon node (size 1)
@@ -208,7 +216,7 @@ function buildKeyForSiblings(
     const rationale = buildRationaleForBranch(best, idx);
 
     if (taxaInBranch.length === 1) {
-      const only = taxaInBranch[0];
+      const only = taxaInBranch[0]!;
       const childTaxonNode = makeTaxonNode(only.id);
       const branch = makeBranch(rationale, childTaxonNode);
       parent.branches.push(branch);
@@ -236,7 +244,7 @@ function buildKeyForSiblings(
 export function buildKeySubtreeForTaxon(
   taxonNode: KeyTaxonNode,
   hierarchy: Map<number, HierarchyTaxonNode>,
-  options: KeyGenOptions
+  options: KeyGenOptions,
 ): void {
   const children: TaxonGroup = getChildrenForTaxonNode(taxonNode, hierarchy);
 
@@ -247,7 +255,7 @@ export function buildKeySubtreeForTaxon(
 
   if (children.length === 1) {
     // Single child: attach with null rationale, then continue down hierarchy.
-    const only = children[0];
+    const only = children[0]!;
     const childTaxonNode = makeTaxonNode(only.id);
     const branch = makeBranch(null, childTaxonNode);
     taxonNode.branches.push(branch);

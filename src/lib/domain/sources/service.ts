@@ -1,4 +1,4 @@
-import { db } from "../../../db/client";
+import { db } from "../../../../db/client";
 import {
   deleteSourceById,
   insertSource,
@@ -6,9 +6,9 @@ import {
   selectSourceById,
   selectSourceByUniqueKeys,
 } from "./repo";
-import { SourceSearchParams } from "./search";
+import type { SourceSearchParams } from "./search";
 import type { SourceDTO, SourcePaginatedResult } from "./types";
-import { SourceItem } from "./validation";
+import type { SourceItem } from "./validation";
 
 /**
  * Create a source.

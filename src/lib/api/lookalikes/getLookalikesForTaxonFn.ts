@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
 import { getLookalikesForTaxon } from "../../domain/lookalikes/service";
-import { TaxonLookalikeDTO } from "../../domain/lookalikes/types";
+import { type TaxonLookalikeDTO } from "../../domain/lookalikes/types";
 
 export const getLookalikesForTaxonFn = createServerFn({
   method: "POST",

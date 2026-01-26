@@ -1,12 +1,12 @@
 import { and, count, eq } from "drizzle-orm";
-import { taxonName as namesTbl } from "../../../db/schema/schema";
+import { taxonName as namesTbl } from "../../../../db/schema/schema";
 import {
   taxon as taxaTbl,
   TAXON_RANKS_DESCENDING,
-  TaxonRank,
-} from "../../../db/schema/taxa/taxon";
-import { Transaction } from "../../utils/transactionType";
-import { TaxonRow } from "./types";
+  type TaxonRank,
+} from "../../../../db/schema/taxa/taxon";
+import type { Transaction } from "../../utils/transactionType";
+import type { TaxonRow } from "./types";
 
 /** Precomputed rank: index map to avoid repeated indexOf calls. */
 const RANK_INDEX: Record<TaxonRank, number> = TAXON_RANKS_DESCENDING.reduce(
@@ -14,35 +14,36 @@ const RANK_INDEX: Record<TaxonRank, number> = TAXON_RANKS_DESCENDING.reduce(
     acc[rank] = idx;
     return acc;
   },
-  {} as Record<TaxonRank, number>
+  {} as Record<TaxonRank, number>,
 );
 
 export async function assertExactlyOneAcceptedScientificName(
   tx: Transaction,
-  taxonId: number
+  taxonId: number,
 ): Promise<void> {
-  const [{ cnt }] = await tx
+  const counts = await tx
     .select({ cnt: count() })
     .from(namesTbl)
     .where(
       and(
         eq(namesTbl.taxonId, taxonId),
         eq(namesTbl.locale, "sci"),
-        eq(namesTbl.isPreferred, true)
-      )
+        eq(namesTbl.isPreferred, true),
+      ),
     );
+  const cnt = counts[0]?.cnt ?? 0;
 
   const countVal = Number(cnt);
   if (countVal !== 1) {
     throw new Error(
-      `Taxon ${taxonId} must have exactly one accepted scientific name, found ${countVal}.`
+      `Taxon ${taxonId} must have exactly one accepted scientific name, found ${countVal}.`,
     );
   }
 }
 
 export async function getCurrentTaxonMinimal(
   tx: Transaction,
-  id: number
+  id: number,
 ): Promise<Pick<TaxonRow, "id" | "parentId" | "rank" | "status"> | null> {
   const [row] = await tx
     .select({
@@ -61,14 +62,14 @@ export async function getCurrentTaxonMinimal(
 /** Quick child-count check. */
 export async function getChildCount(
   tx: Transaction,
-  id: number
+  id: number,
 ): Promise<number> {
-  const [{ cnt }] = await tx
+  const counts = await tx
     .select({ cnt: count() })
     .from(taxaTbl)
     .where(eq(taxaTbl.parentId, id))
     .limit(1);
-  return Number(cnt);
+  return Number(counts[0]?.cnt ?? 0);
 }
 
 /**
@@ -77,7 +78,7 @@ export async function getChildCount(
  */
 export function computeRankBand(
   highRank?: TaxonRank,
-  lowRank?: TaxonRank
+  lowRank?: TaxonRank,
 ): TaxonRank[] | undefined {
   if (!highRank && !lowRank) return undefined;
 

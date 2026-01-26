@@ -67,8 +67,13 @@ export const InatNamesModal = NiceModal.create<Props>(
             setSelected(new Set(mapped.map((_, idx) => idx)));
           }
         } catch (e) {
-          if (e.name !== "AbortError" && !controller.signal.aborted) {
-            setError(e.message ?? "Failed to fetch iNaturalist names.");
+          if (e instanceof DOMException && e.name === "AbortError") return;
+          if (!controller.signal.aborted) {
+            setError(
+              e instanceof Error
+                ? e.message
+                : "Failed to fetch iNaturalist taxon.",
+            );
           }
         } finally {
           if (!controller.signal.aborted) {

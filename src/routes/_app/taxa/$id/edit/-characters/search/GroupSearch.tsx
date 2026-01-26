@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Label } from "radix-ui";
 import * as React from "react";
 import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
-import { ComboboxOption } from "../../../../../../../components/inputs/combobox/types";
+import type { ComboboxOption } from "../../../../../../../components/inputs/combobox/types";
 import { characterGroupsQueryOptions } from "../../../../../../../lib/queries/characterGroups";
 
 interface GroupSearchProps {

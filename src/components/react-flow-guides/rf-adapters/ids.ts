@@ -1,4 +1,4 @@
-import { HydratedKeyNode } from "../../../keygen/hydration/types";
+import type { HydratedKeyNode } from "../../../keygen/hydration/types";
 
 export const guideNodeToRfId = (node: HydratedKeyNode): string =>
   node.kind === "taxon" ? `taxon:${node.id}` : `diff:${node.id}`;

@@ -1,7 +1,7 @@
-import { db } from "../../../db/client";
+import { db } from "../../../../db/client";
 import { insertModifierGroup, listModifierGroupsQuery } from "./repo";
-import { ModifierGroupDTO, ModifierGroupPaginatedResult } from "./types";
-import { CreateModifierGroupInput } from "./validation";
+import type { ModifierGroupDTO, ModifierGroupPaginatedResult } from "./types";
+import type { CreateModifierGroupInput } from "./validation";
 
 export async function listModifierGroups(args: {
   page: number;

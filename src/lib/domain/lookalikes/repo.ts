@@ -1,12 +1,12 @@
 import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
-import { db } from "../../../db/client";
-import { taxonCharacterStateCategorical as tcsCatTbl } from "../../../db/schema/characters/states";
-import { categoricalTraitValue as traitValTbl } from "../../../db/schema/characters/traits";
-import { taxonName as namesTbl } from "../../../db/schema/taxa/name";
-import { taxon as taxaTbl } from "../../../db/schema/taxa/taxon";
-import { TaxonLookalikeDTO } from "./types";
+import { db } from "../../../../db/client";
+import { taxonCharacterStateCategorical as tcsCatTbl } from "../../../../db/schema/characters/states";
+import { categoricalTraitValue as traitValTbl } from "../../../../db/schema/characters/traits";
+import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
+import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
+import type { TaxonLookalikeDTO } from "./types";
 
 export async function computeTaxonLookalikesByCategoricalOverlap(args: {
   taxonId: number;

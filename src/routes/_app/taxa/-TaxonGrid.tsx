@@ -1,7 +1,7 @@
 import { Flex, Grid, Text } from "@radix-ui/themes";
 import { PiTreeStructure } from "react-icons/pi";
 import { TaxonCard } from "../../../components/TaxonCard";
-import { TaxonPaginatedResult } from "../../../lib/domain/taxa/types";
+import { type TaxonPaginatedResult } from "../../../lib/domain/taxa/types";
 
 export const TaxonGrid = ({ results }: { results: TaxonPaginatedResult }) => {
   if (!results.items.length) return <Text>No taxa found.</Text>;

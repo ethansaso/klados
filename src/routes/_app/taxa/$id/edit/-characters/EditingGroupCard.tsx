@@ -11,13 +11,13 @@ import { useQuery } from "@tanstack/react-query";
 import { memo, useCallback, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { PiCheck, PiTrash, PiX } from "react-icons/pi";
-import { TaxonEditFormValues } from "..";
-import { CategoricalValueSuggestion } from "../../../../../../lib/api/character-suggestions/types";
+import type { TaxonEditFormValues } from "..";
+import type { TraitSuggestion } from "../../../../../../lib/api/character-suggestions/types";
 import { characterGroupQueryOptions } from "../../../../../../lib/queries/characterGroups";
 import { CharacterStateRow } from "./CharacterStateRow";
 import { GroupStateSearch } from "./search/GroupStateSearch";
 import { addStateFromSuggestion } from "./stateUtils";
-import { CharacterStateFormValue } from "./validation";
+import type { CharacterStateFormValue } from "./validation";
 
 type GroupCardProps = {
   groupId: number;
@@ -55,7 +55,7 @@ export const EditingGroupCard = memo(
     }, [statesForGroup]);
 
     const handleSuggestionSelect = useCallback(
-      (s: CategoricalValueSuggestion) => {
+      (s: TraitSuggestion) => {
         const current = getValues("characters");
         const next = addStateFromSuggestion(current, s);
         if (next !== current) {

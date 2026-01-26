@@ -1,14 +1,14 @@
 import { notFound } from "@tanstack/react-router";
 import { and, count, eq } from "drizzle-orm";
-import { db } from "../../../db/client";
-import { taxon as taxaTbl } from "../../../db/schema/taxa/taxon";
+import { db } from "../../../../db/client";
+import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import { assertHierarchyInvariant } from "../../utils/assertHierarchyInvariant";
 import {
   replaceCategoricalStatesForTaxon,
   replaceNumberStatesForTaxon,
   replaceRangeStatesForTaxon,
 } from "../character-states/repo";
-import {
+import type {
   CategoricalCharacterUpdate,
   CharacterUpdate,
   NumberCharacterUpdate,
@@ -30,7 +30,7 @@ import {
   updateTaxonRow,
   updateTaxonStatusAndReplacement,
 } from "./repo";
-import { TaxonSearchParams } from "./search";
+import type { TaxonSearchParams } from "./search";
 import type {
   TaxonDetailDTO,
   TaxonDTO,
@@ -42,7 +42,7 @@ import {
   getChildCount,
   getCurrentTaxonMinimal,
 } from "./utils";
-import { UpdateTaxonInput } from "./validation";
+import type { UpdateTaxonInput } from "./validation";
 
 /**
  * Create a new draft taxon with an accepted scientific name.
@@ -125,10 +125,11 @@ export async function deprecateTaxon(args: {
     }
 
     // Don't allow deprecating with active children
-    const [{ activeChildren }] = await tx
+    const activeChildrenRows = await tx
       .select({ activeChildren: count() })
       .from(taxaTbl)
       .where(and(eq(taxaTbl.parentId, id), eq(taxaTbl.status, "active")));
+    const activeChildren = activeChildrenRows[0]?.activeChildren ?? 0;
 
     if (Number(activeChildren) > 0) {
       throw new Error("Cannot deprecate a taxon that has active children.");

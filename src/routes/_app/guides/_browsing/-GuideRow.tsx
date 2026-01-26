@@ -7,10 +7,10 @@ import {
 } from "@radix-ui/themes";
 import { Link as NavLink } from "@tanstack/react-router";
 import { PiSealCheckFill, PiSealQuestionFill } from "react-icons/pi";
+import type { GuideStatus } from "../../../../../db/schema/schema";
 import { RoleBadge } from "../../../../components/UserBadge";
 import { UserHoverCard } from "../../../../components/UserHoverCard";
-import { GuideStatus } from "../../../../db/schema/schema";
-import { GuideDTO } from "../../../../lib/domain/guides/types";
+import type { GuideDTO } from "../../../../lib/domain/guides/types";
 
 export type GuideRowProps = {
   rowData: GuideDTO;

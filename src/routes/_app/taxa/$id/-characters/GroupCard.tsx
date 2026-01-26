@@ -1,6 +1,6 @@
 import { Card, DataList, Heading, Separator, Tooltip } from "@radix-ui/themes";
 import { CharacterStateDisplay } from "../../../../../components/trait-tokens/CharacterStateDisplay";
-import { GroupedCharacterStates } from "../../../../../lib/domain/character-states/utils";
+import type { GroupedCharacterStates } from "../../../../../lib/domain/character-states/utils";
 
 export const GroupCard = ({ group }: { group: GroupedCharacterStates }) => {
   const cardHeaderComponent = group.groupDescription ? (

@@ -1,12 +1,12 @@
 import { sql } from "drizzle-orm";
-import { db } from "../../../db/client";
+import { db } from "../../../../db/client";
 import {
   categoricalCharacterMeta as catMetaTbl,
   numericCharacterMeta as numMetaTbl,
   taxonCharacterStateCategorical as valCatTbl,
   taxonCharacterStateNumber as valNumTbl,
   taxonCharacterStateRange as valRangeTbl,
-} from "../../../db/schema/schema";
+} from "../../../../db/schema/schema";
 
 export const catUsageSel = db
   .select({

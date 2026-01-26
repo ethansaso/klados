@@ -2,12 +2,12 @@ import {
   getTaxaCharacterStates,
   getTaxonCharacterStates,
 } from "../../lib/domain/character-states/service";
-import { TaxonCharacterStateDTO } from "../../lib/domain/character-states/types";
+import type { TaxonCharacterStateDTO } from "../../lib/domain/character-states/types";
 import { getTaxonHierarchyMetaForParents } from "../../lib/domain/taxa/repo";
 import { getTaxon } from "../../lib/domain/taxa/service";
-import { TaxonHierarchyDTO } from "../../lib/domain/taxa/types";
-import { KeyGenOptions } from "../options";
-import { HierarchyTaxonNode } from "./types";
+import type { TaxonHierarchyDTO } from "../../lib/domain/taxa/types";
+import type { KeyGenOptions } from "../options";
+import type { HierarchyTaxonNode } from "./types";
 
 type QueueItem = { id: number; depth: number };
 
@@ -16,7 +16,7 @@ type QueueItem = { id: number; depth: number };
  * Uses per-taxon character state fetch; fine for one-offs, not for bulk traversal.
  */
 export const fetchAndAssembleTaxonNode = async (
-  taxonId: number
+  taxonId: number,
 ): Promise<HierarchyTaxonNode | null> => {
   const taxon = await getTaxon({ id: taxonId });
   if (!taxon) {
@@ -48,7 +48,7 @@ export const fetchAndAssembleTaxonNode = async (
  */
 export const discoverTaxonMetaHierarchyBFS = async (
   rootTaxonId: number,
-  options: KeyGenOptions
+  options: KeyGenOptions,
 ): Promise<Map<number, TaxonHierarchyDTO>> => {
   const { taxonLimit, maxDepthFromRoot } = options;
 
@@ -88,7 +88,7 @@ export const discoverTaxonMetaHierarchyBFS = async (
 
       if (typeof taxonLimit === "number" && metaById.size >= taxonLimit) {
         console.warn(
-          `Taxon limit ${taxonLimit} reached; truncating traversal.`
+          `Taxon limit ${taxonLimit} reached; truncating traversal.`,
         );
         break;
       }
@@ -113,7 +113,7 @@ export const discoverTaxonMetaHierarchyBFS = async (
  * Bulk-load character states for all taxa in a discovered tree.
  */
 async function loadStatesForHierarchy(
-  metaById: Map<number, TaxonHierarchyDTO>
+  metaById: Map<number, TaxonHierarchyDTO>,
 ): Promise<Record<number, TaxonCharacterStateDTO[]>> {
   const allIds = Array.from(metaById.keys());
   if (allIds.length === 0) {
@@ -127,7 +127,7 @@ async function loadStatesForHierarchy(
  */
 function assembleHierarchyNodes(
   metaById: Map<number, TaxonHierarchyDTO>,
-  statesByTaxonId: Record<number, TaxonCharacterStateDTO[]>
+  statesByTaxonId: Record<number, TaxonCharacterStateDTO[]>,
 ): Map<number, HierarchyTaxonNode> {
   const tree = new Map<number, HierarchyTaxonNode>();
 
@@ -156,7 +156,7 @@ function assembleHierarchyNodes(
  */
 export const discoverTaxonHierarchyFromRoot = async (
   rootTaxonId: number,
-  options: KeyGenOptions
+  options: KeyGenOptions,
 ): Promise<Map<number, HierarchyTaxonNode>> => {
   const metaById = await discoverTaxonMetaHierarchyBFS(rootTaxonId, options);
   if (!metaById.size) {

@@ -1,5 +1,5 @@
 import z from "zod";
-import { MODIFIER_CLASSES } from "../../../db/schema/schema";
+import { MODIFIER_CLASSES } from "../../../../db/schema/schema";
 
 export const createModifierGroupSchema = z.object({
   key: z

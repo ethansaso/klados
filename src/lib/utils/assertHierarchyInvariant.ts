@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm";
-import { db } from "../../db/client";
+import { db } from "../../../db/client";
 import {
   taxon as taxaTbl,
   TAXON_RANKS_DESCENDING,
-} from "../../db/schema/schema";
-import { Transaction } from "./transactionType";
+} from "../../../db/schema/schema";
+import { type Transaction } from "./transactionType";
 
 type Rank = (typeof TAXON_RANKS_DESCENDING)[number];
 type DbOrTx = typeof db | Transaction;
@@ -49,7 +49,7 @@ export async function assertHierarchyInvariant(params: {
   const childIdx = rankIndex(nextRank);
   if (parentIdx >= childIdx) {
     throw new Error(
-      "Parent rank must be coarser than child rank (e.g., genus > species)."
+      "Parent rank must be coarser than child rank (e.g., genus > species).",
     );
   }
 }

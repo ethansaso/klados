@@ -4,11 +4,11 @@ import { IconButton, Select, Table, TextField } from "@radix-ui/themes";
 import { Controller, useFormContext } from "react-hook-form";
 import { PiDotsSixVerticalBold, PiTrash } from "react-icons/pi";
 import z from "zod";
-import { TaxonEditFormValues } from "..";
+import type { TaxonEditFormValues } from "..";
 import {
   HUMAN_CASED_MEDIA_LICENSES,
   MEDIA_LICENSES,
-} from "../../../../../../db/utils/mediaLicense";
+} from "../../../../../../../db/utils/mediaLicense";
 
 type MediaTableRowProps = {
   id: string;

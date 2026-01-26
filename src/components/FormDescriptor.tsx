@@ -1,5 +1,5 @@
 import { Box, Flex, Heading, Text } from "@radix-ui/themes";
-import { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 
 type Props = {
   title: string;

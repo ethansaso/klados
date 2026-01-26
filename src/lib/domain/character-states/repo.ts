@@ -9,15 +9,15 @@ import {
   taxonCharacterStateNumber as numStateTbl,
   taxonCharacterStateRange as rangeStateTbl,
   unit as unitsTbl,
-} from "../../../db/schema/schema";
-import { Transaction } from "../../utils/transactionType";
-import {
+} from "../../../../db/schema/schema";
+import type { Transaction } from "../../utils/transactionType";
+import type {
   TaxonCategoricalStateDTO,
   TaxonCharacterStateDTO,
   TaxonNumberStateDTO,
   TaxonRangeStateDTO,
 } from "./types";
-import {
+import type {
   CategoricalCharacterUpdate,
   NumberCharacterUpdate,
   RangeCharacterUpdate,

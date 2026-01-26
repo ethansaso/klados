@@ -5,15 +5,16 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   FormProvider,
-  SubmitHandler,
+  type SubmitHandler,
   useForm,
   useWatch,
 } from "react-hook-form";
 import { createCharacterFn } from "../../../../../lib/api/characters/createCharacterFn";
 import {
-  CreateCharacterInput,
+  type CreateCharacterInput,
   createCharacterSchema,
 } from "../../../../../lib/domain/characters/validation";
+import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../../lib/utils/toast";
 import { AddCategoricalCharacterForm } from "./AddCategoricalCharacterForm";
 import { AddCharacterBaseForm } from "./AddCharacterBaseForm";
@@ -69,8 +70,7 @@ export const AddCharacterModal = NiceModal.create(() => {
     } catch (error) {
       toast({
         variant: "error",
-        description:
-          error instanceof Error ? error.message : "An unknown error occurred.",
+        description: getErrorMessage(error),
       });
     }
   };

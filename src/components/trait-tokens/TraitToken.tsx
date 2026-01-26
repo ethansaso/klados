@@ -1,14 +1,15 @@
 import { Flex, Text, Tooltip } from "@radix-ui/themes";
 import { memo } from "react";
 import { ColorBubble } from "./ColorBubble";
-import { UITrait } from "./types";
+import type { UITrait } from "./types";
 
 function formatTraitLabel(label: string, index: number) {
   const lower = label.toLowerCase();
+
   if (index === 0) {
-    // Only the first token: capitalize first letter
-    return lower[0].toUpperCase() + lower.slice(1);
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
   }
+
   return lower;
 }
 

@@ -2,7 +2,7 @@ import { Flex, Separator, Text, Link as ThemeLink } from "@radix-ui/themes";
 import { createLink, type LinkComponent } from "@tanstack/react-router";
 import classNames from "classnames";
 import { NavigationMenu } from "radix-ui";
-import {
+import type {
   ComponentProps,
   ComponentPropsWithRef,
   CSSProperties,
@@ -44,7 +44,7 @@ const TriggerAnchor = ({
     asChild
     className={classNames(
       "rt-reset rt-BaseTabListTrigger rt-TabNavLink",
-      className
+      className,
     )}
     style={style}
   >
@@ -127,7 +127,7 @@ const Trigger = (props: TriggerProps) => {
       asChild
       className={classNames(
         "rt-reset rt-BaseTabListTrigger rt-TabNavLink",
-        className
+        className,
       )}
       style={style}
     >

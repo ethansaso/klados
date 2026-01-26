@@ -1,5 +1,5 @@
-import { Trait } from "../../lib/domain/character-states/types";
-import { HierarchyTaxonNode } from "../hierarchy/types";
+import type { Trait } from "../../lib/domain/character-states/types";
+import type { HierarchyTaxonNode } from "../hierarchy/types";
 
 export type TaxonGroup = HierarchyTaxonNode[];
 

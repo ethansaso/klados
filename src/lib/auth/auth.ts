@@ -1,15 +1,9 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, username } from "better-auth/plugins";
+import { username } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import { db } from "../../db/client";
+import { db } from "../../../db/client";
 import { requireAccountPolicyMiddleware } from "./enforcement";
-import {
-  ac,
-  admin as adminRole,
-  curator as curatorRole,
-  user as userRole,
-} from "./permissions";
 import { resend } from "./resend";
 
 export const auth = betterAuth({
@@ -62,18 +56,13 @@ export const auth = betterAuth({
       usernameValidator: (u) => /^[A-Za-z0-9_-]+$/.test(u),
       validationOrder: { username: "post-normalization" },
     }),
-    admin({
-      defaultRole: "user",
-      adminRoles: ["admin"],
-      ac,
-      roles: { user: userRole, curator: curatorRole, admin: adminRole },
-    }),
     tanstackStartCookies(),
   ],
   user: {
     additionalFields: {
       username: { type: "string", required: true, unique: true },
       description: { type: "string", required: false },
+      role: { type: "string", required: true },
     },
   },
   hooks: {

@@ -15,7 +15,7 @@ import {
 } from "@xyflow/react";
 import { memo, useCallback, useRef, useState } from "react";
 import { CharacterStateDisplay } from "../../trait-tokens/CharacterStateDisplay";
-import { RFCharacterBranchEdge } from "../data/types";
+import type { RFCharacterBranchEdge } from "../data/types";
 import { useGuideEditorStore } from "../data/useGuideEditorStore";
 
 const CharacterBranchEdgeComponent = memo(

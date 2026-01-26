@@ -68,6 +68,7 @@
     "@vitejs/plugin-react": "^5.1.2",
     "dotenv": "^17.2.3",
     "drizzle-kit": "^1.0.0-beta.11-fc31a5f",
+    "eslint-plugin-boundaries": "^5.3.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.50.0",

@@ -1,9 +1,9 @@
-import { db } from "../../../db/client";
+import { db } from "../../../../db/client";
 import {
   selectTaxonCharacterStatesByTaxonIds,
-  TaxonCharacterStatesByTaxonId,
+  type TaxonCharacterStatesByTaxonId,
 } from "./repo";
-import { TaxonCharacterStateDTO } from "./types";
+import type { TaxonCharacterStateDTO } from "./types";
 
 /**
  * Fetch all character states for a taxon.

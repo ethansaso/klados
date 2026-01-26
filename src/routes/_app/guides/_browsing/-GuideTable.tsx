@@ -1,5 +1,5 @@
 import { Table } from "@radix-ui/themes";
-import { GuideDTO } from "../../../../lib/domain/guides/types";
+import type { GuideDTO } from "../../../../lib/domain/guides/types";
 import { GuideRow } from "./-GuideRow";
 
 // const keyRows: KeyRowProps[] = [

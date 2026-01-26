@@ -1,4 +1,4 @@
-import { unit, unitFamily } from "../../../db/schema/schema";
+import { unit, unitFamily } from "../../../../db/schema/schema";
 
 export type UnitRow = typeof unit.$inferSelect;
 export type UnitFamily = typeof unitFamily.$inferSelect;

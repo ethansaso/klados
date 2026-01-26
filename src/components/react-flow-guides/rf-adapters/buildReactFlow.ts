@@ -1,9 +1,9 @@
-import {
+import type {
   HydratedKeyBranch,
   HydratedKeyGraphDTO,
   HydratedKeyNode,
 } from "../../../keygen/hydration/types";
-import {
+import type {
   RFCharacterBranchEdge,
   RFDiffNode,
   RFEdge,
@@ -17,7 +17,7 @@ import { branchToEdgeId, guideNodeToRfId } from "./ids";
 function buildEdge(
   parentRfId: string,
   childRfId: string,
-  viaBranch: HydratedKeyBranch
+  viaBranch: HydratedKeyBranch,
 ): RFEdge {
   const rationale = viaBranch.rationale;
 
@@ -71,7 +71,7 @@ function buildEdge(
 
 function buildNode(
   node: HydratedKeyNode,
-  position: { x: number; y: number }
+  position: { x: number; y: number },
 ): RFNode {
   const rfId = guideNodeToRfId(node);
 
@@ -104,7 +104,7 @@ export function buildReactFlowFromGraph(graph: HydratedKeyGraphDTO): {
   rootRfId: string;
 } {
   const nodeById = new Map<string, HydratedKeyNode>(
-    graph.nodes.map((n) => [n.id, n])
+    graph.nodes.map((n) => [n.id, n]),
   );
 
   const rootDomainNode = nodeById.get(graph.rootNodeId);

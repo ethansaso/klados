@@ -1,6 +1,6 @@
 import { PgColumn } from "drizzle-orm/pg-core";
-import { source as sourceTbl } from "../../../db/schema/sources/source";
-import { SourceDTO } from "./types";
+import { source as sourceTbl } from "../../../../db/schema/sources/source";
+import type { SourceDTO } from "./types";
 
 export const sourceSelectDto = {
   id: sourceTbl.id,

@@ -1,4 +1,4 @@
-import { user as userTbl } from "../../../db/schema/schema";
+import { user as userTbl } from "../../../../db/schema/schema";
 
 export const userDtoSelection = {
   id: userTbl.id,

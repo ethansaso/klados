@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getUsersPage } from "../../domain/users/service";
-import { UserPaginatedResult } from "../../domain/users/types";
+import { type UserPaginatedResult } from "../../domain/users/types";
 import { PaginationSchema } from "../../validation/pagination";
 
 /**

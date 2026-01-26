@@ -1,7 +1,7 @@
 import { Box, Card, Flex, Text } from "@radix-ui/themes";
-import { Handle, NodeProps, Position } from "@xyflow/react";
+import { Handle, type NodeProps, Position } from "@xyflow/react";
 import { AnnotationBubbleWrap } from "../../annotations/AnnotationBubbleWrap";
-import { DemoTaxonNode } from "./demoTypes";
+import type { DemoTaxonNode } from "./demoTypes";
 
 export const DemoTaxonNodeComponent = ({ data }: NodeProps<DemoTaxonNode>) => {
   const n = data;

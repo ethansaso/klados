@@ -4,18 +4,22 @@
     "skipLibCheck": true,
     "target": "ES2022",
     "verbatimModuleSyntax": true,
+    "allowJs": true,
     "resolveJsonModule": true,
     "moduleDetection": "force",
 
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "strictNullChecks": true,
 
     "moduleResolution": "Bundler",
     "module": "ESNext",
     "noEmit": true,
 
-    "jsx": "react-jsx",
+    "lib": ["es2022"],
+
+    "declaration": true,
+    "composite": true,
+    "declarationMap": true,
   },
-  "include": ["src", "vite-env.d.ts"]
+  "include": ["**/*.ts"]
 }
