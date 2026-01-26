@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
 import { createModifierGroup } from "../../domain/modifiers/service";
 import { ModifierGroupDTO } from "../../domain/modifiers/types";
