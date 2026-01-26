@@ -1,7 +1,7 @@
 import {
   and,
   asc,
-  count,
+  countDistinct,
   eq,
   ilike,
   inArray,
@@ -327,10 +327,14 @@ export async function listCharactersQuery(args: {
 
   const items = itemsRaw.map(toCharacterDTO);
 
+  // Total (same predicate; all types)
   const totals = await db
-    .select({ total: count() })
-    .from(groupsTbl)
+    .select({ total: countDistinct(charsTbl.id) })
+    .from(charsTbl)
+    .leftJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
+    .leftJoin(numMetaTbl, eq(numMetaTbl.characterId, charsTbl.id))
     .where(where);
+
   const total = totals[0]?.total ?? 0;
 
   return {
