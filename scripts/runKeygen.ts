@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 import "dotenv/config";
-import { closeDb } from "../src/db/client";
+import { closeDb } from "../db/client";
 import { generateKeyForTaxon } from "../src/keygen/generateKey";
 import { KeyGenOptionsSchema } from "../src/keygen/options";
 
@@ -54,8 +54,8 @@ Examples:
   if (positional.length > 1) {
     console.warn(
       `Multiple IDs provided (${positional.join(
-        ", "
-      )}); using the first (${positional[0]}) as root.`
+        ", ",
+      )}); using the first (${positional[0]}) as root.`,
     );
   }
 
