@@ -9,6 +9,12 @@ import tsConfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   server: {
     port: 3000,
+    fs: {
+      deny: ["scripts"],
+    },
+  },
+  optimizeDeps: {
+    exclude: ["./scripts"],
   },
   plugins: [
     tsConfigPaths(),
