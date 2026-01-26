@@ -10,6 +10,7 @@ export const StatsFeatureGrid = ({ summaryStats }: StatsFeatureGridProps) => {
   return (
     <Flex direction="column" align="center" py="8" px="6" width="100%">
       <Heading
+        as="h2"
         mb="5"
         size={{ initial: "7", sm: "8" }}
         align={{ initial: "center", sm: "left" }}
@@ -21,14 +22,16 @@ export const StatsFeatureGrid = ({ summaryStats }: StatsFeatureGridProps) => {
           <Box className="feature-icon__container">
             <PiDna className="feature-icon" />
           </Box>
-          <Heading size="6">{summaryStats.taxaCount.toLocaleString()}</Heading>
+          <Heading as="h3" size="6">
+            {summaryStats.taxaCount.toLocaleString()}
+          </Heading>
           <Text>Taxa in Database</Text>
         </Box>
         <Box className="feature-grid__item">
           <Box className="feature-icon__container">
             <PiUsersThree className="feature-icon" />
           </Box>
-          <Heading size="6">
+          <Heading as="h3" size="6">
             {summaryStats.memberCount.toLocaleString()}
           </Heading>
           <Text>Community Members</Text>
@@ -37,7 +40,7 @@ export const StatsFeatureGrid = ({ summaryStats }: StatsFeatureGridProps) => {
           <Box className="feature-icon__container">
             <PiTreeStructure className="feature-icon" />
           </Box>
-          <Heading size="6">
+          <Heading as="h3" size="6">
             {summaryStats.guidesCount.toLocaleString()}
           </Heading>
           <Text>Guides Published</Text>
