@@ -15,7 +15,7 @@ export const PurposeSection = () => {
       px="6"
       className="purpose-section"
     >
-      <Heading mb="5" size={{ initial: "7", sm: "8" }} align="center">
+      <Heading as="h2" mb="5" size={{ initial: "7", sm: "8" }} align="center">
         How Klados Helps You Learn
       </Heading>
       <Grid
@@ -29,7 +29,7 @@ export const PurposeSection = () => {
           <li>
             <PiBookOpenUser />
             <Box>
-              <Heading size="5" mb="2">
+              <Heading as="h3" size="5" mb="2">
                 Browse Species
               </Heading>
               <Text size="4">
@@ -41,7 +41,7 @@ export const PurposeSection = () => {
           <li>
             <PiGraphFill />
             <Box>
-              <Heading size="5" mb="2">
+              <Heading as="h3" size="5" mb="2">
                 Follow Visual Guides
               </Heading>
               <Text size="4">
@@ -53,7 +53,7 @@ export const PurposeSection = () => {
           <li>
             <PiBrowsers />
             <Box>
-              <Heading size="5" mb="2">
+              <Heading as="h3" size="5" mb="2">
                 Compare Lookalikes
               </Heading>
               <Text size="4">
@@ -65,7 +65,7 @@ export const PurposeSection = () => {
           <li>
             <PiBrain />
             <Box>
-              <Heading size="5" mb="2">
+              <Heading as="h3" size="5" mb="2">
                 Contribute to Biodiversity Knowledge
               </Heading>
               <Text size="4">

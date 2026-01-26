@@ -19,7 +19,7 @@ export const GuideDemo = () => {
           align="center"
         >
           <Box maxWidth={{ sm: "380px" }}>
-            <Heading size={{ initial: "7", sm: "8" }} mb="4">
+            <Heading as="h2" size={{ initial: "7", sm: "8" }} mb="4">
               A Clearer Way to Navigate Biodiversity
             </Heading>
             <Text as="p" mb="3" size="4">

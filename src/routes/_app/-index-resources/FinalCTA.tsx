@@ -12,7 +12,9 @@ export const FinalCTA = () => {
       gap={{ initial: "4", xs: "6" }}
       className="final-cta"
     >
-      <Heading size="7">Ready to get involved?</Heading>
+      <Heading as="h2" size="7">
+        Ready to get involved?
+      </Heading>
       <Box asChild width={{ initial: "100%", xs: "auto" }}>
         <Button type="button" size="4" radius="full" asChild>
           <Text weight="bold" asChild>
