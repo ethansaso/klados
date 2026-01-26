@@ -120,12 +120,13 @@ export const Route = createFileRoute("/_app/taxa/$id/edit/")({
       context;
     return { id, initialTaxon, initialCharacterValues, initialSources };
   },
-  head: ({ loaderData }) =>
+  head: ({ loaderData, match }) =>
     routeSeo({
       title: loaderData
         ? `Editing ${loaderData.initialTaxon.acceptedName} | Klados`
         : "Klados",
       links: [{ rel: "stylesheet", href: editPageCssUrl }],
+      canonicalUrl: match.pathname,
     }),
   component: RouteComponent,
 });

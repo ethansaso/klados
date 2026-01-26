@@ -1,4 +1,4 @@
-import { SITE_URL } from "./rootSeo";
+import { absoluteUrl } from "./absoluteUrl";
 
 export type RouteSeoInput = {
   title: string;
@@ -7,22 +7,18 @@ export type RouteSeoInput = {
   links?: { rel: string; href: string }[];
 };
 
-export function absoluteUrl(pathOrUrl?: string) {
-  if (!pathOrUrl) return undefined;
-  try {
-    return new URL(pathOrUrl, SITE_URL).toString();
-  } catch {
-    return undefined;
-  }
-}
-
+/**
+ * Generates SEO metadata and link elements for a route.
+ *
+ * ! Important: When used in a route.tsx, the canonicalUrl will be applied to all routes nested under such a route.
+ */
 export function routeSeo({
   title,
   description,
   canonicalUrl,
   links,
 }: RouteSeoInput) {
-  const canonicalAbs = canonicalUrl ? absoluteUrl(canonicalUrl) : undefined;
+  const canonicalAbs = absoluteUrl(canonicalUrl);
 
   return {
     meta: [

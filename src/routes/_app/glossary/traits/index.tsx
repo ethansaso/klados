@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { matchCanonicalHead } from "../../../../lib/utils/head/matchCanonicalHead";
 
 export const Route = createFileRoute("/_app/glossary/traits/")({
+  head: ({ match }) => matchCanonicalHead(match),
   component: RouteComponent,
 });
 

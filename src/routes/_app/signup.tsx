@@ -39,16 +39,17 @@ const schema = z.object({
 type FormFields = z.infer<typeof schema>;
 
 export const Route = createFileRoute("/_app/signup")({
-  head: () =>
-    routeSeo({
-      title: "Signup | Klados",
-    }),
   beforeLoad: async ({ context }) => {
     const { user } = context;
     if (user) {
       throw redirect({ to: "/" });
     }
   },
+  head: ({ match }) =>
+    routeSeo({
+      title: "Signup | Klados",
+      canonicalUrl: match.pathname,
+    }),
   component: RouteComponent,
 });
 

@@ -1,3 +1,4 @@
+import NiceModal from "@ebay/nice-modal-react";
 import { Box, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -11,12 +12,9 @@ import { usePaginatedSearch } from "../../../../lib/hooks/usePaginatedSearch";
 import { modifierGroupsQueryOptions } from "../../../../lib/queries/modifiers";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
+import { AddModifierGroupModal } from "./-AddModifierGroupModal";
 
 export const Route = createFileRoute("/_app/glossary/modifiers")({
-  head: () =>
-    routeSeo({
-      title: "Browse Modifiers | Klados",
-    }),
   validateSearch: SearchWithQuerySchema,
   loaderDeps: ({ search: { page, pageSize: pageSize, q } }) => ({
     page,
@@ -28,6 +26,10 @@ export const Route = createFileRoute("/_app/glossary/modifiers")({
       modifierGroupsQueryOptions(page, pageSize, { q }),
     );
   },
+  head: () =>
+    routeSeo({
+      title: "Browse Modifiers | Klados",
+    }),
   component: RouteComponent,
 });
 
@@ -53,7 +55,10 @@ function RouteComponent() {
             </TextField.Slot>
             <CuratorOnly>
               <TextField.Slot>
-                <IconButton onClick={() => alert("TODO")} size="1">
+                <IconButton
+                  onClick={() => NiceModal.show(AddModifierGroupModal)}
+                  size="1"
+                >
                   <PiPlusCircle />
                 </IconButton>
               </TextField.Slot>

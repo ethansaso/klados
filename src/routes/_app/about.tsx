@@ -4,9 +4,10 @@ import { ContentContainer } from "../../components/ContentContainer";
 import { routeSeo } from "../../lib/utils/head/routeSeo";
 
 export const Route = createFileRoute("/_app/about")({
-  head: () =>
+  head: ({ match }) =>
     routeSeo({
       title: "About | Klados",
+      canonicalUrl: match.pathname,
     }),
   component: RouteComponent,
 });

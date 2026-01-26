@@ -35,16 +35,17 @@ type FormFields = z.infer<typeof schema>;
 
 // TODO: use loading state on signup/signin
 export const Route = createFileRoute("/_app/login")({
-  head: () =>
-    routeSeo({
-      title: "Login | Klados",
-    }),
   beforeLoad: async ({ context }) => {
     const user = context.user;
     if (user) {
       throw redirect({ to: "/" });
     }
   },
+  head: ({ match }) =>
+    routeSeo({
+      title: "Login | Klados",
+      canonicalUrl: match.pathname,
+    }),
   component: RouteComponent,
 });
 

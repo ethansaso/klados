@@ -32,9 +32,10 @@ export const Route = createFileRoute("/_app/users/$username/")({
 
     return { effectiveUsername, isMe };
   },
-  head: ({ loaderData }) =>
+  head: ({ loaderData, match }) =>
     routeSeo({
       title: loaderData ? `${loaderData.effectiveUsername} | Klados` : "Klados",
+      canonicalUrl: match.pathname,
     }),
 
   component: UserProfilePage,

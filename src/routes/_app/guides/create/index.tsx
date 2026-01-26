@@ -15,12 +15,13 @@ const CreateGuideSearchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_app/guides/create/")({
-  head: () =>
+  validateSearch: CreateGuideSearchSchema,
+  head: ({ match }) =>
     routeSeo({
       title: "Create Guide | Klados",
+      canonicalUrl: match.pathname,
       links: [{ rel: "stylesheet", href: guideEditorCssUrl }],
     }),
-  validateSearch: CreateGuideSearchSchema,
   component: RouteComponent,
 });
 

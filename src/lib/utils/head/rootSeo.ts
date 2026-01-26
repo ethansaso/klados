@@ -1,25 +1,20 @@
+import { absoluteUrl } from "./absoluteUrl";
+
 export type SeoInput = {
   title: string;
+  canonicalUrl: string;
   description?: string;
   image?: string;
   keywords?: string;
 };
 
-export const SITE_URL =
-  import.meta.env.VITE_SITE_URL ||
-  (typeof window !== "undefined" ? window.location.origin : undefined);
-export const GA_ID = import.meta.env.VITE_GA_ID;
-
-export function absoluteUrl(pathOrUrl?: string) {
-  if (!pathOrUrl) return undefined;
-  try {
-    return new URL(pathOrUrl, SITE_URL).toString();
-  } catch {
-    return undefined;
-  }
-}
-
-export function rootSeo({ title, description, keywords, image }: SeoInput) {
+export function rootSeo({
+  title,
+  description,
+  keywords,
+  image,
+  canonicalUrl,
+}: SeoInput) {
   const imageAbs = absoluteUrl(image);
 
   return {
@@ -48,5 +43,6 @@ export function rootSeo({ title, description, keywords, image }: SeoInput) {
       | { name: string; content?: string }
       | { property: string; content?: string }
     )[],
+    links: [{ rel: "canonical", href: absoluteUrl(canonicalUrl) }],
   };
 }

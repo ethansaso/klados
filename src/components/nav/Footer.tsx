@@ -1,5 +1,5 @@
 import { Flex, Link, Text } from "@radix-ui/themes";
-import { ContentContainer } from "./ContentContainer";
+import { ContentContainer } from "../ContentContainer";
 
 export const Footer = () => {
   return (

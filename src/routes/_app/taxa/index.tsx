@@ -16,10 +16,6 @@ import { TaxonGrid } from "./-TaxonGrid";
 import { useTaxonSearchControls } from "./-useTaxonSearchControls";
 
 export const Route = createFileRoute("/_app/taxa/")({
-  head: () =>
-    routeSeo({
-      title: "Taxa | Klados",
-    }),
   validateSearch: TaxonSearchSchema,
   loaderDeps: ({ search }) => search,
   loader: async ({ context, deps }) => {
@@ -33,9 +29,14 @@ export const Route = createFileRoute("/_app/taxa/")({
         highRank,
         lowRank,
         hasMedia,
-      })
+      }),
     );
   },
+  head: ({ match }) =>
+    routeSeo({
+      title: "Taxa | Klados",
+      canonicalUrl: match.pathname,
+    }),
   component: TaxaListPage,
 });
 
@@ -49,7 +50,7 @@ function TaxaListPage() {
       highRank: search.highRank,
       lowRank: search.lowRank,
       hasMedia: search.hasMedia,
-    })
+    }),
   );
 
   // Debounced into search, and synced from search for external changes

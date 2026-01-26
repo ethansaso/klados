@@ -5,9 +5,10 @@ import { KoFiWidget } from "../../components/KoFiWidget";
 import { routeSeo } from "../../lib/utils/head/routeSeo";
 
 export const Route = createFileRoute("/_app/donate")({
-  head: () =>
+  head: ({ match }) =>
     routeSeo({
       title: "Donate | Klados",
+      canonicalUrl: match.pathname,
     }),
   component: RouteComponent,
 });

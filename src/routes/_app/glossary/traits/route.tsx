@@ -15,10 +15,6 @@ import { SearchWithQuerySchema } from "../../../../lib/validation/search";
 import { AddTraitSetModal } from "./-AddTraitSetModal";
 
 export const Route = createFileRoute("/_app/glossary/traits")({
-  head: () =>
-    routeSeo({
-      title: "Browse Trait Sets | Klados",
-    }),
   validateSearch: SearchWithQuerySchema,
   loaderDeps: ({ search: { page, pageSize: pageSize, q } }) => ({
     page,
@@ -30,6 +26,10 @@ export const Route = createFileRoute("/_app/glossary/traits")({
       traitSetsQueryOptions(page, pageSize, { q }),
     );
   },
+  head: () =>
+    routeSeo({
+      title: "Browse Trait Sets | Klados",
+    }),
   component: RouteComponent,
 });
 

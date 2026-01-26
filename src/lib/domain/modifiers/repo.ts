@@ -5,7 +5,9 @@ import {
   categoricalModifierValue as modifierValueTbl,
 } from "../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/likeAnywhere";
-import { ModifierGroupPaginatedResult } from "./types";
+import { Transaction } from "../../utils/transactionType";
+import { ModifierGroupDTO, ModifierGroupPaginatedResult } from "./types";
+import { CreateModifierGroupInput } from "./validation";
 
 export async function listModifierGroupsQuery(args: {
   page: number;
@@ -51,4 +53,32 @@ export async function listModifierGroupsQuery(args: {
     .where(filters);
 
   return { items, total, page, pageSize };
+}
+
+/**
+ * Insert a modifier group row.
+ */
+export async function insertModifierGroup(
+  tx: Transaction,
+  args: CreateModifierGroupInput,
+): Promise<ModifierGroupDTO | null> {
+  const [group] = await tx
+    .insert(modifierGroupTbl)
+    .values({
+      key: args.key,
+      label: args.label,
+      description: args.description,
+      class: args.class,
+    })
+    .returning({
+      id: modifierGroupTbl.id,
+      key: modifierGroupTbl.key,
+      label: modifierGroupTbl.label,
+      description: modifierGroupTbl.description,
+      class: modifierGroupTbl.class,
+    });
+
+  if (!group) return null;
+
+  return { ...group, valueCount: 0 };
 }
