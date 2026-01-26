@@ -12,17 +12,18 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Form, Label } from "radix-ui";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { type SubmitHandler, useForm } from "react-hook-form";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
 import { createCharacterGroupFn } from "../../../../lib/api/character-groups/createCharacterGroupFn";
 import {
-  CreateCharacterGroupInput,
+  type CreateCharacterGroupInput,
   createCharacterGroupSchema,
 } from "../../../../lib/domain/character-groups/validation";
 import { useAutoKey } from "../../../../lib/hooks/useAutoKey";
+import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../lib/utils/toast";
 
 export const AddCharacterGroupModal = NiceModal.create(() => {
@@ -52,7 +53,7 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
     control,
     setValue,
     "label",
-    "key"
+    "key",
   );
 
   const onSubmit: SubmitHandler<CreateCharacterGroupInput> = async ({
@@ -80,8 +81,7 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
     } catch (error) {
       toast({
         variant: "error",
-        description:
-          error instanceof Error ? error.message : "An unknown error occurred.",
+        description: getErrorMessage(error),
       });
     }
   };
@@ -176,7 +176,7 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
                 {...register("description")}
                 {...a11yProps(
                   "character-group-description-error",
-                  !!errors.description
+                  !!errors.description,
                 )}
               />
             </Box>

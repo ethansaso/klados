@@ -1,5 +1,5 @@
 import dagre from "@dagrejs/dagre";
-import { RFDiffNode, RFEdge, RFNode } from "../data/types";
+import type { RFDiffNode, RFEdge, RFNode } from "../data/types";
 
 // Approximate visual sizes
 const NODE_WIDTH = 192;
@@ -43,7 +43,7 @@ function getActualNodeSize(node: RFNode): { width: number; height: number } {
  */
 export function computeGuideTreeLayout(
   nodes: RFNode[],
-  edges: RFEdge[]
+  edges: RFEdge[],
 ): Map<string, { x: number; y: number }> {
   const positions = new Map<string, { x: number; y: number }>();
   if (!nodes.length) return positions;

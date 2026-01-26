@@ -1,6 +1,6 @@
 import { Box, Flex, Heading, Text } from "@radix-ui/themes";
 import { PiDna, PiTreeStructure, PiUsersThree } from "react-icons/pi";
-import { SummaryStatsDTO } from "../../../lib/domain/stats/types";
+import { type SummaryStatsDTO } from "../../../lib/domain/stats/types";
 
 interface StatsFeatureGridProps {
   summaryStats: SummaryStatsDTO;

@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
 import { publishTaxon } from "../../domain/taxa/service";
-import { TaxonDTO } from "../../domain/taxa/types";
+import { type TaxonDTO } from "../../domain/taxa/types";
 
 export const publishTaxonFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])

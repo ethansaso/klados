@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  Control,
-  FieldPath,
-  FieldPathValue,
-  FieldValues,
-  UseFormSetValue,
+  type Control,
+  type FieldPath,
+  type FieldPathValue,
+  type FieldValues,
+  type UseFormSetValue,
   useFormState,
   useWatch,
 } from "react-hook-form";

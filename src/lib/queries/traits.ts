@@ -3,7 +3,7 @@ import { getTraitSetFn } from "../api/traits/getTraitSetFn";
 import { getTraitSetValuesFn } from "../api/traits/getTraitSetValuesFn";
 import { listTraitSetsFn } from "../api/traits/listTraitSetsFn";
 import { listTraitSetValuesFn } from "../api/traits/listTraitSetValuesFn";
-import {
+import type {
   TraitSetDetailDTO,
   TraitSetPaginatedResult,
   TraitValueDTO,
@@ -13,7 +13,7 @@ import {
 export const traitSetsQueryOptions = (
   page: number,
   pageSize: number,
-  opts?: { q?: string }
+  opts?: { q?: string },
 ) =>
   queryOptions({
     queryKey: ["traitSets", { page, pageSize, q: opts?.q ?? null }] as const,
@@ -44,7 +44,7 @@ export const traitSetValuesPaginatedQueryOptions = (
   setId: number,
   page: number,
   pageSize: number,
-  opts?: { q?: string; kind?: "canonical" | "alias" }
+  opts?: { q?: string; kind?: "canonical" | "alias" },
 ) =>
   queryOptions({
     queryKey: [

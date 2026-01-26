@@ -1,16 +1,16 @@
 import { getCharacterGroupsByIds } from "../../lib/domain/character-groups/service";
-import { Trait } from "../../lib/domain/character-states/types";
+import type { Trait } from "../../lib/domain/character-states/types";
 import { getCharactersByIds } from "../../lib/domain/characters/service";
 import { getTaxaByIds } from "../../lib/domain/taxa/service";
-import { MediaItem } from "../../lib/domain/taxa/validation";
+import type { MediaItem } from "../../lib/domain/taxa/validation";
 import { getTraitValuesByIds } from "../../lib/domain/traits/service";
-import {
+import type {
   KeyBranch,
   KeyBranchRationale,
   KeyNode,
   KeyTaxonNode,
 } from "../key-building/types";
-import {
+import type {
   HydratedBranchRationale,
   HydratedCharRationale,
   HydratedKeyBranch,

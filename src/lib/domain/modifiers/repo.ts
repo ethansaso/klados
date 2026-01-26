@@ -1,13 +1,13 @@
 import { asc, count, eq, ilike } from "drizzle-orm";
-import { db } from "../../../db/client";
+import { db } from "../../../../db/client";
 import {
   categoricalModifierGroup as modifierGroupTbl,
   categoricalModifierValue as modifierValueTbl,
-} from "../../../db/schema/schema";
+} from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/likeAnywhere";
-import { Transaction } from "../../utils/transactionType";
-import { ModifierGroupDTO, ModifierGroupPaginatedResult } from "./types";
-import { CreateModifierGroupInput } from "./validation";
+import type { Transaction } from "../../utils/transactionType";
+import type { ModifierGroupDTO, ModifierGroupPaginatedResult } from "./types";
+import type { CreateModifierGroupInput } from "./validation";
 
 export async function listModifierGroupsQuery(args: {
   page: number;
@@ -47,10 +47,11 @@ export async function listModifierGroupsQuery(args: {
     .limit(pageSize)
     .offset(offset);
 
-  const [{ total }] = await db
+  const totals = await db
     .select({ total: count() })
     .from(modifierGroupTbl)
     .where(filters);
+  const total = totals[0]?.total ?? 0;
 
   return { items, total, page, pageSize };
 }

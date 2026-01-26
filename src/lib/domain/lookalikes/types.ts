@@ -1,12 +1,12 @@
-import { TaxonRank } from "../../../db/schema/schema";
-import {
+import type { TaxonRank } from "../../../../db/schema/schema";
+import type {
   TaxonCategoricalStateDTO,
   TaxonNumberStateDTO,
   TaxonRangeStateDTO,
   Trait,
 } from "../character-states/types";
-import { TaxonDTO } from "../taxa/types";
-import { MediaItem } from "../taxa/validation";
+import type { TaxonDTO } from "../taxa/types";
+import type { MediaItem } from "../taxa/validation";
 
 export type TaxonLookalikeDTO = {
   id: number;

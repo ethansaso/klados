@@ -14,7 +14,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Label } from "radix-ui";
 import { useState } from "react";
-import { SubmitHandler, useForm, useWatch } from "react-hook-form";
+import { type SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { PiCheck, PiEye, PiEyeSlash, PiX } from "react-icons/pi";
 import z from "zod";
 import {

@@ -1,8 +1,8 @@
 import { asc, count, eq, inArray, SQL } from "drizzle-orm";
-import { db } from "../../../db/client";
-import { user as userTbl } from "../../../db/schema/schema";
+import { db } from "../../../../db/client";
+import { user as userTbl } from "../../../../db/schema/schema";
 import { userAdminViewDtoSelection, userDtoSelection } from "./sqlAdapters";
-import {
+import type {
   UserAdminViewDTO,
   UserAdminViewPaginatedResult,
   UserDTO,
@@ -32,10 +32,11 @@ export async function listUsersPage(
     .limit(pageSize)
     .offset(offset);
 
-  const [{ total }] = await db
+  const totals = await db
     .select({ total: count() })
     .from(userTbl)
     .where(predicate);
+  const total = totals[0]?.total ?? 0;
 
   return {
     items,
@@ -62,10 +63,11 @@ export async function listUsersAdminViewPage(
     .limit(pageSize)
     .offset(offset);
 
-  const [{ total }] = await db
+  const totals = await db
     .select({ total: count() })
     .from(userTbl)
     .where(predicate);
+  const total = totals[0]?.total ?? 0;
 
   return {
     items,

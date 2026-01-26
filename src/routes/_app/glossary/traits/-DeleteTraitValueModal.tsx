@@ -2,7 +2,8 @@ import NiceModal, { useModal } from "@ebay/nice-modal-react";
 import { AlertDialog, Button, Flex, Text } from "@radix-ui/themes";
 import { useServerFn } from "@tanstack/react-start";
 import { deleteTraitValueFn } from "../../../../lib/api/traits/deleteTraitValueFn";
-import { TraitValueDTO } from "../../../../lib/domain/traits/types";
+import type { TraitValueDTO } from "../../../../lib/domain/traits/types";
+import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../lib/utils/toast";
 
 type Props = {
@@ -34,13 +35,10 @@ export const DeleteTraitValueModal = NiceModal.create<Props>(
         });
 
         close();
-      } catch (err) {
+      } catch (error) {
         toast({
           variant: "error",
-          description:
-            err instanceof Error
-              ? err.message
-              : "Failed to delete trait value.",
+          description: getErrorMessage(error),
         });
       }
     };
@@ -94,5 +92,5 @@ export const DeleteTraitValueModal = NiceModal.create<Props>(
         </AlertDialog.Content>
       </AlertDialog.Root>
     );
-  }
+  },
 );

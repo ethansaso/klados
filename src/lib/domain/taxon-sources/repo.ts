@@ -1,13 +1,13 @@
 import { and, asc, eq, notInArray, sql } from "drizzle-orm";
-import { source as sourceTbl } from "../../../db/schema/sources/source";
-import { taxonSource as taxonSourceTbl } from "../../../db/schema/sources/taxonSource";
-import { Transaction } from "../../utils/transactionType";
-import { TaxonSourceDTO } from "./types";
-import { TaxonSourceUpsertItem } from "./validation";
+import { source as sourceTbl } from "../../../../db/schema/sources/source";
+import { taxonSource as taxonSourceTbl } from "../../../../db/schema/sources/taxonSource";
+import type { Transaction } from "../../utils/transactionType";
+import type { TaxonSourceDTO } from "./types";
+import type { TaxonSourceUpsertItem } from "./validation";
 
 export const selectSourcesForTaxon = async (
   tx: Transaction,
-  taxonId: number
+  taxonId: number,
 ): Promise<TaxonSourceDTO[]> => {
   const rows = await tx
     .select({
@@ -42,7 +42,7 @@ export const selectSourcesForTaxon = async (
 export async function setSourcesForTaxon(
   tx: Transaction,
   taxonId: number,
-  items: TaxonSourceUpsertItem[]
+  items: TaxonSourceUpsertItem[],
 ): Promise<void> {
   // Delete all if no links
   if (items.length === 0) {
@@ -58,8 +58,8 @@ export async function setSourcesForTaxon(
     .where(
       and(
         eq(taxonSourceTbl.taxonId, taxonId),
-        notInArray(taxonSourceTbl.sourceId, nextSourceIds)
-      )
+        notInArray(taxonSourceTbl.sourceId, nextSourceIds),
+      ),
     );
 
   // Upsert everything else (insert new + update existing metadata)
@@ -72,7 +72,7 @@ export async function setSourcesForTaxon(
         accessedAt: i.accessedAt,
         locator: i.locator,
         note: i.note,
-      }))
+      })),
     )
     .onConflictDoUpdate({
       target: [taxonSourceTbl.taxonId, taxonSourceTbl.sourceId],

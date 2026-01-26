@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { TaxonSearchParams } from "../../../lib/domain/taxa/search";
+import { type TaxonSearchParams } from "../../../lib/domain/taxa/search";
 import { Route } from "./index";
 
 export function useTaxonSearchControls() {
@@ -22,7 +22,7 @@ export function useTaxonSearchControls() {
         replace: true,
       });
     },
-    [navigate]
+    [navigate],
   );
 
   return { search, setSearch };

@@ -1,6 +1,6 @@
-import { GuideStatus } from "../../../db/schema/schema";
-import { PaginatedResult } from "../../validation/pagination";
-import { UserDTO } from "../users/types";
+import type { GuideStatus } from "../../../../db/schema/schema";
+import type { PaginatedResult } from "../../validation/pagination";
+import type { UserDTO } from "../users/types";
 
 export type GuideDTO = {
   id: number;

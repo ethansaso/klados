@@ -4,7 +4,7 @@ import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
-import { ComboboxOption } from "../../../../../components/inputs/combobox/types";
+import { type ComboboxOption } from "../../../../../components/inputs/combobox/types";
 import { ConditionalAlert } from "../../../../../components/inputs/ConditionalAlert";
 import type { CreateCharacterInput } from "../../../../../lib/domain/characters/validation";
 import { characterGroupsQueryOptions } from "../../../../../lib/queries/characterGroups";
@@ -25,10 +25,10 @@ export function AddCategoricalCharacterForm() {
   const [groupQuery, setGroupQuery] = useState("");
 
   const { data: traitSetResp } = useQuery(
-    traitSetsQueryOptions(1, 10, { q: traitSetQuery })
+    traitSetsQueryOptions(1, 10, { q: traitSetQuery }),
   );
   const { data: groupResp } = useQuery(
-    characterGroupsQueryOptions(1, 10, { q: groupQuery })
+    characterGroupsQueryOptions(1, 10, { q: groupQuery }),
   );
 
   const traitSetOptions = (traitSetResp?.items.map((i) => ({

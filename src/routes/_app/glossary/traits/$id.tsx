@@ -24,7 +24,7 @@ import { createTraitValueFn } from "../../../../lib/api/traits/createTraitValueF
 import { deleteTraitSetFn } from "../../../../lib/api/traits/deleteTraitSetFn";
 import { useMe } from "../../../../lib/auth/useMe";
 import { roleHasCuratorRights } from "../../../../lib/auth/utils";
-import { TraitSetDTO } from "../../../../lib/domain/traits/types";
+import type { TraitSetDTO } from "../../../../lib/domain/traits/types";
 import {
   traitSetQueryOptions,
   traitSetValuesPaginatedQueryOptions,

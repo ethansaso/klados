@@ -3,10 +3,10 @@ import {
   character,
   numericCharacterMeta,
   unitFamily,
-} from "../../../db/schema/schema";
-import { PaginatedResult } from "../../validation/pagination";
-import { CharacterGroupRow } from "../character-groups/types";
-import { TraitSetRow } from "../traits/types";
+} from "../../../../db/schema/schema";
+import type { PaginatedResult } from "../../validation/pagination";
+import type { CharacterGroupRow } from "../character-groups/types";
+import type { TraitSetRow } from "../traits/types";
 
 export type CharacterRow = typeof character.$inferSelect;
 export type CategoricalMetaRow = typeof categoricalCharacterMeta.$inferSelect;

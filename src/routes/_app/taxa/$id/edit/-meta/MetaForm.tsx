@@ -12,15 +12,15 @@ import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { FaDove, FaLeaf } from "react-icons/fa";
-import { TaxonEditFormValues } from "..";
+import type { TaxonEditFormValues } from "..";
+import { TAXON_RANKS_DESCENDING } from "../../../../../../../db/schema/schema";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import { SelectCombobox } from "../../../../../../components/inputs/combobox/SelectCombobox";
-import { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
+import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../../../components/inputs/ConditionalAlert";
-import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
 import { taxaQueryOptions } from "../../../../../../lib/queries/taxa";
 import { pickGBIFTaxon } from "./GbifIdModal";
 import { pickInatTaxon } from "./InatIdModal";

@@ -10,15 +10,15 @@ import {
   type SQL,
 } from "drizzle-orm";
 
-import { db } from "../../../db/client";
+import { db } from "../../../../db/client";
 import {
   categoricalCharacterMeta as catMetaTbl,
   character as charsTbl,
   characterGroup as groupsTbl,
   numericCharacterMeta as numMetaTbl,
-} from "../../../db/schema/schema";
+} from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/likeAnywhere";
-import { Transaction } from "../../utils/transactionType";
+import { type Transaction } from "../../utils/transactionType";
 import type {
   CharacterGroupDTO,
   CharacterGroupDetailDTO,
@@ -31,7 +31,7 @@ import type {
  */
 export async function selectCharacterGroupsByIds(
   tx: Transaction,
-  ids: number[]
+  ids: number[],
 ): Promise<CharacterGroupDTO[]> {
   if (!ids.length) {
     return [];
@@ -52,7 +52,7 @@ export async function selectCharacterGroupsByIds(
       groupsTbl.id,
       groupsTbl.key,
       groupsTbl.label,
-      groupsTbl.description
+      groupsTbl.description,
     )
     .orderBy(asc(groupsTbl.key), asc(groupsTbl.id));
 
@@ -96,16 +96,17 @@ export async function listCharacterGroupsQuery(args: {
       groupsTbl.id,
       groupsTbl.key,
       groupsTbl.label,
-      groupsTbl.description
+      groupsTbl.description,
     )
     .orderBy(asc(groupsTbl.key), asc(groupsTbl.id))
     .limit(pageSize)
     .offset(offset);
 
-  const [{ total }] = await db
+  const totals = await db
     .select({ total: count() })
     .from(groupsTbl)
     .where(where);
+  const total = totals[0]?.total ?? 0;
 
   return { items, page, pageSize, total };
 }
@@ -114,7 +115,7 @@ export async function listCharacterGroupsQuery(args: {
  * Fetch a single character group detail by id.
  */
 export async function fetchCharacterGroupDetailById(
-  id: number
+  id: number,
 ): Promise<CharacterGroupDetailDTO | null> {
   // Group itself
   const [groupRow] = await db
@@ -157,9 +158,9 @@ export async function fetchCharacterGroupDetailById(
         // Only return characters that have some meta (all should, but defensive)
         or(
           sql`${catMetaTbl.characterId} IS NOT NULL`,
-          sql`${numMetaTbl.characterId} IS NOT NULL`
-        )
-      )
+          sql`${numMetaTbl.characterId} IS NOT NULL`,
+        ),
+      ),
     )
     .orderBy(asc(charsTbl.key), asc(charsTbl.id));
 
@@ -174,7 +175,7 @@ export async function fetchCharacterGroupDetailById(
     if (row.type === "categorical") {
       if (row.traitSetId == null) {
         throw new Error(
-          `Categorical character ${row.id} is missing traitSetId in group detail`
+          `Categorical character ${row.id} is missing traitSetId in group detail`,
         );
       }
       return { ...base, type: "categorical", traitSetId: row.traitSetId };
@@ -182,7 +183,7 @@ export async function fetchCharacterGroupDetailById(
 
     if (row.unitFamilyId == null) {
       throw new Error(
-        `Numeric character ${row.id} is missing unitFamilyId in group detail (type=${row.type})`
+        `Numeric character ${row.id} is missing unitFamilyId in group detail (type=${row.type})`,
       );
     }
 
@@ -208,7 +209,7 @@ export async function fetchCharacterGroupDetailById(
  */
 export async function insertCharacterGroup(
   tx: Transaction,
-  args: { key: string; label: string; description: string }
+  args: { key: string; label: string; description: string },
 ): Promise<Pick<
   CharacterGroupDTO,
   "id" | "key" | "label" | "description"

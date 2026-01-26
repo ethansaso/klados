@@ -12,21 +12,27 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
-import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
+import {
+  Controller,
+  type SubmitHandler,
+  useForm,
+  useWatch,
+} from "react-hook-form";
 import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
-import { ComboboxOption } from "../../../../components/inputs/combobox/types";
+import type { ComboboxOption } from "../../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
 import { useGuideEditorStore } from "../../../../components/react-flow-guides/data/useGuideEditorStore";
 import {
-  KeyGenerationInput,
+  type KeyGenerationInput,
   KeyGenerationInputSchema,
 } from "../../../../keygen/ioTypes";
 import { generateGuideFn } from "../../../../lib/api/guides/generateGuideFn";
 import { taxaQueryOptions } from "../../../../lib/queries/taxa";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
+import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../lib/utils/toast";
 import { Route } from "./index";
 
@@ -100,11 +106,10 @@ export const GuideEditorSidebar = () => {
 
       // 2) set default metadata for new guides
       updateMeta({ name: "Untitled", description: "" });
-    } catch (err) {
+    } catch (error) {
       toast({
         variant: "error",
-        description:
-          err?.message ?? "Something went wrong while generating the guide.",
+        description: getErrorMessage(error),
       });
     } finally {
       setIsSubmitting(false);

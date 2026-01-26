@@ -1,7 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import { taxonName as namesTbl } from "../../../db/schema/taxa/name";
-import { taxon as taxaTbl } from "../../../db/schema/taxa/taxon";
+import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
+import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 
 /** Alias for accepted scientific name. */
 export const sci = alias(namesTbl, "sci");
@@ -11,13 +11,13 @@ export const common = alias(namesTbl, "common");
 export const sciJoinPred = and(
   eq(sci.taxonId, taxaTbl.id),
   eq(sci.locale, "sci"),
-  eq(sci.isPreferred, true)
+  eq(sci.isPreferred, true),
 );
 /** Join predicate for preferred English common name. */
 export const commonJoinPred = and(
   eq(common.taxonId, taxaTbl.id),
   eq(common.locale, "en"),
-  eq(common.isPreferred, true)
+  eq(common.isPreferred, true),
 );
 
 /** Reusable selection shape for a TaxonDTO. */

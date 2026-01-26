@@ -1,6 +1,6 @@
 import { use } from "react";
 import { IconContext } from "react-icons";
-import { IconProps } from "./types";
+import type { IconProps } from "./types";
 
 type TiFillProps = React.ComponentPropsWithRef<"svg"> & IconProps;
 

@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAdminMiddleware } from "../../auth/serverFnMiddleware";
 import { getUsersAdminViewPage } from "../../domain/users/service";
-import { UserAdminViewPaginatedResult } from "../../domain/users/types";
+import type { UserAdminViewPaginatedResult } from "../../domain/users/types";
 import { PaginationSchema } from "../../validation/pagination";
 
 export const listUsersAdminViewFn = createServerFn({ method: "GET" })

@@ -10,19 +10,19 @@ import * as RadixPopover from "@radix-ui/react-popover";
 import { Box, Flex, ScrollArea, Text, Theme } from "@radix-ui/themes";
 import classNames from "classnames";
 import {
-  ComponentProps,
+  type ComponentProps,
   createContext,
-  CSSProperties,
-  LabelHTMLAttributes,
-  ReactNode,
-  RefObject,
+  type CSSProperties,
+  type LabelHTMLAttributes,
+  type ReactNode,
+  type RefObject,
   use,
   useCallback,
   useEffect,
   useRef,
   useState,
 } from "react";
-import { ComboboxOption } from "./types";
+import type { ComboboxOption } from "./types";
 
 type RootProps = {
   id?: string;
@@ -95,7 +95,7 @@ const DEBOUNCE_MS = 200;
 function useDebouncedEffect(
   value: string,
   delay: number,
-  effect?: (v: string) => void
+  effect?: (v: string) => void,
 ) {
   useEffect(() => {
     if (!effect) return;
@@ -256,7 +256,7 @@ function Popover({
           className={classNames(
             "input-combobox__content",
             `size-${size ?? 2}`,
-            className
+            className,
           )}
           {...props}
         >

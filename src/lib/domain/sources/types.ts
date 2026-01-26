@@ -1,5 +1,5 @@
-import { source } from "../../../db/schema/sources/source";
-import { PaginatedResult } from "../../validation/pagination";
+import { source } from "../../../../db/schema/sources/source";
+import type { PaginatedResult } from "../../validation/pagination";
 
 export type SourceRow = typeof source.$inferSelect;
 export type SourceDTO = Pick<

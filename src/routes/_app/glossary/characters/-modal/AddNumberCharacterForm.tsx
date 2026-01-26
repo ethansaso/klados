@@ -5,8 +5,8 @@ import { useMemo, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { ConditionalAlert } from "../../../../../components/inputs/ConditionalAlert";
 import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
-import { ComboboxOption } from "../../../../../components/inputs/combobox/types";
-import { CreateCharacterInput } from "../../../../../lib/domain/characters/validation";
+import type { ComboboxOption } from "../../../../../components/inputs/combobox/types";
+import type { CreateCharacterInput } from "../../../../../lib/domain/characters/validation";
 import { characterGroupsQueryOptions } from "../../../../../lib/queries/characterGroups";
 import { unitFamiliesQueryOptions } from "../../../../../lib/queries/units";
 
@@ -25,10 +25,10 @@ export const AddNumberCharacterForm = () => {
   const [groupQuery, setGroupQuery] = useState("");
 
   const { data: unitFamilyResp } = useQuery(
-    unitFamiliesQueryOptions(unitFamilyQuery)
+    unitFamiliesQueryOptions(unitFamilyQuery),
   );
   const { data: groupResp } = useQuery(
-    characterGroupsQueryOptions(1, 10, { q: groupQuery })
+    characterGroupsQueryOptions(1, 10, { q: groupQuery }),
   );
 
   const unitFamilyOptions = (unitFamilyResp?.map((i) => ({

@@ -1,10 +1,10 @@
-import {
+import type {
   TaxonCategoricalStateDTO,
   Trait,
 } from "../../../lib/domain/character-states/types";
-import { HierarchyTaxonNode } from "../../hierarchy/types";
-import { KeyGenOptions } from "../../options";
-import {
+import type { HierarchyTaxonNode } from "../../hierarchy/types";
+import type { KeyGenOptions } from "../../options";
+import type {
   CharacterDefinitionSplitBranch,
   CharacterDefinitionSplitResult,
 } from "../types";
@@ -65,7 +65,7 @@ function buildCharacterIndex(taxa: HierarchyTaxonNode[]): ByCharacter {
  */
 function normalizeTraitSetsForCharacter(
   taxa: HierarchyTaxonNode[],
-  byTaxon: Map<number, CharEntry>
+  byTaxon: Map<number, CharEntry>,
 ): NormalizedCharacterTraitSets | null {
   const traitSetsByTaxon = new Map<number, Trait[]>();
 
@@ -122,7 +122,7 @@ function hasIntersection(a: Set<number>, b: Set<number>): boolean {
  */
 function buildGroupsWithDeadTags(
   taxa: HierarchyTaxonNode[],
-  normalized: NormalizedCharacterTraitSets
+  normalized: NormalizedCharacterTraitSets,
 ): GroupsResult | null {
   const { traitSetsByTaxon, groupId } = normalized;
 
@@ -184,7 +184,7 @@ function buildGroupsWithDeadTags(
         ? 0
         : a.canonicalId < b.canonicalId
           ? -1
-          : 1
+          : 1,
     );
     const key = sortedTraits.map((t) => t.canonicalId).join("|");
 
@@ -254,7 +254,7 @@ function buildGroupsWithDeadTags(
 function enforceBranchLimit(
   groups: SharedTraitGroup[],
   notTaxa: Set<HierarchyTaxonNode>,
-  maxBranches: number
+  maxBranches: number,
 ): { groups: SharedTraitGroup[]; notTaxa: Set<HierarchyTaxonNode> } {
   const hasNotTaxaInitially = notTaxa.size > 0;
 
@@ -288,7 +288,7 @@ function createBranches(
   characterId: number,
   groupId: number,
   groups: SharedTraitGroup[],
-  notTaxa: Set<HierarchyTaxonNode>
+  notTaxa: Set<HierarchyTaxonNode>,
 ): { branches: CharacterDefinitionSplitBranch[]; hasInvertedBranch: boolean } {
   const branches: CharacterDefinitionSplitBranch[] = [];
 
@@ -343,7 +343,7 @@ function createBranches(
  */
 export function resolveCharacterSplits(
   taxa: HierarchyTaxonNode[],
-  options: KeyGenOptions
+  options: KeyGenOptions,
 ): CharacterDefinitionSplitResult[] {
   const { maxBranches } = options;
   if (taxa.length < 2 || maxBranches < 2) return [];
@@ -364,7 +364,7 @@ export function resolveCharacterSplits(
     const limited = enforceBranchLimit(
       groupsResult.groups,
       groupsResult.notTaxa,
-      maxBranches
+      maxBranches,
     );
     if (!limited) continue;
 
@@ -375,7 +375,7 @@ export function resolveCharacterSplits(
       characterId,
       groupsResult.groupId,
       groups,
-      notTaxa
+      notTaxa,
     );
 
     // 5) score based on keyShape + inverted penalty

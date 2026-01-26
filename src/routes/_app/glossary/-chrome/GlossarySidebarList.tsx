@@ -1,7 +1,7 @@
 import { Box, Card, Flex, ScrollArea, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import { NavigationMenu } from "radix-ui";
-import { PropsWithChildren } from "react";
+import { type PropsWithChildren } from "react";
 
 function List({ children }: PropsWithChildren) {
   return (

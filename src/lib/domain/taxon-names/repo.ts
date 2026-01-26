@@ -1,12 +1,12 @@
 import { eq } from "drizzle-orm";
-import { taxonName as namesTbl } from "../../../db/schema/taxa/name";
-import { Transaction } from "../../utils/transactionType";
-import { NameItem } from "./validation";
+import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
+import type { Transaction } from "../../utils/transactionType";
+import type { NameItem } from "./validation";
 
 export async function replaceNamesForTaxon(
   tx: Transaction,
   taxonId: number,
-  names: NameItem[]
+  names: NameItem[],
 ): Promise<void> {
   await tx.delete(namesTbl).where(eq(namesTbl.taxonId, taxonId));
 
@@ -18,6 +18,6 @@ export async function replaceNamesForTaxon(
       value: n.value.trim(),
       locale: n.locale,
       isPreferred: n.isPreferred,
-    }))
+    })),
   );
 }

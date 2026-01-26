@@ -40,8 +40,9 @@ export function parseNumericQuery(raw: string): ParsedNumeric {
   let unitText: string | undefined;
   let numericPart = normalized;
 
-  const last = parts[parts.length - 1];
-  if (parts.length > 1 && /[a-zA-Zµμ%]+/.test(last)) {
+  // Check both that there are multiple parts and that the last part looks like a unit
+  const last = parts.at(-1);
+  if (parts.length > 1 && last && /[a-zA-Zµμ%]+/.test(last)) {
     unitText = last;
     numericPart = parts.slice(0, -1).join(" ");
   }

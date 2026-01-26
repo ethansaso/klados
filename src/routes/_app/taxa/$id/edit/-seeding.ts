@@ -1,9 +1,9 @@
-import { TaxonEditFormValues } from ".";
-import { TaxonCharacterStateDTO } from "../../../../../lib/domain/character-states/types";
-import { TaxonDetailDTO } from "../../../../../lib/domain/taxa/types";
-import { TaxonSourceDTO } from "../../../../../lib/domain/taxon-sources/types";
-import { TaxonSourceUpsertItem } from "../../../../../lib/domain/taxon-sources/validation";
-import { CharacterStateFormValue } from "./-characters/validation";
+import type { TaxonEditFormValues } from ".";
+import type { TaxonCharacterStateDTO } from "../../../../../lib/domain/character-states/types";
+import type { TaxonDetailDTO } from "../../../../../lib/domain/taxa/types";
+import type { TaxonSourceDTO } from "../../../../../lib/domain/taxon-sources/types";
+import type { TaxonSourceUpsertItem } from "../../../../../lib/domain/taxon-sources/validation";
+import type { CharacterStateFormValue } from "./-characters/validation";
 
 const seedSources = (rows: TaxonSourceDTO[]): TaxonSourceUpsertItem[] =>
   rows.map((r) => ({

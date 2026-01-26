@@ -1,4 +1,4 @@
-import {
+import type {
   KeyBranch,
   KeyBranchRationale,
   KeyCharRationale,
@@ -7,7 +7,7 @@ import {
   KeyPAGroupRationale,
   KeyTaxonNode,
 } from "../key-building/types";
-import {
+import type {
   HydratedBranchRationale,
   HydratedKeyBranch,
   HydratedKeyGraphDTO,
@@ -15,7 +15,7 @@ import {
 } from "./types";
 
 function dehydrateBranchRationale(
-  rationale: HydratedBranchRationale
+  rationale: HydratedBranchRationale,
 ): KeyBranchRationale {
   if (!rationale) return null;
 
@@ -63,7 +63,7 @@ function dehydrateBranchRationale(
 
 export function dehydrateKeyGraph(dto: HydratedKeyGraphDTO): KeyTaxonNode {
   const nodesById = new Map<string, HydratedKeyNode>(
-    dto.nodes.map((n) => [n.id, n])
+    dto.nodes.map((n) => [n.id, n]),
   );
 
   const branchesBySource = new Map<string, HydratedKeyBranch[]>();

@@ -1,14 +1,14 @@
 import { and, asc, count, eq, ilike, inArray, or, SQL } from "drizzle-orm";
-import { db } from "../../../db/client";
+import { db } from "../../../../db/client";
 import {
   guide as guideTbl,
   taxonName as nameTbl,
   taxon as taxonTbl,
   user as userTbl,
-} from "../../../db/schema/schema";
+} from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/likeAnywhere";
 import { userDtoSelection } from "../users/sqlAdapters";
-import { GuideDTO, GuidePaginatedResult } from "./types";
+import type { GuideDTO, GuidePaginatedResult } from "./types";
 
 export async function listGuidesQuery(args: {
   q?: string;
@@ -27,7 +27,7 @@ export async function listGuidesQuery(args: {
     like
       ? or(
           ilike(guideTbl.name, like),
-          ilike(nameTbl.value, like) // accepted scientific name
+          ilike(nameTbl.value, like), // accepted scientific name
         )
       : undefined,
   ];
@@ -57,8 +57,8 @@ export async function listGuidesQuery(args: {
       and(
         eq(nameTbl.taxonId, taxonTbl.id),
         eq(nameTbl.locale, "sci"),
-        eq(nameTbl.isPreferred, true)
-      )
+        eq(nameTbl.isPreferred, true),
+      ),
     )
     .where(where)
     .orderBy(asc(nameTbl.value), asc(guideTbl.name), asc(guideTbl.id))
@@ -66,7 +66,7 @@ export async function listGuidesQuery(args: {
     .offset(offset);
 
   // Total (same predicate & joins for filtering)
-  const [{ total }] = await db
+  const totals = await db
     .select({ total: count() })
     .from(guideTbl)
     .innerJoin(userTbl, eq(userTbl.id, guideTbl.authorId))
@@ -76,10 +76,11 @@ export async function listGuidesQuery(args: {
       and(
         eq(nameTbl.taxonId, taxonTbl.id),
         eq(nameTbl.locale, "sci"),
-        eq(nameTbl.isPreferred, true)
-      )
+        eq(nameTbl.isPreferred, true),
+      ),
     )
     .where(where);
+  const total = totals[0]?.total ?? 0;
 
   return {
     items,

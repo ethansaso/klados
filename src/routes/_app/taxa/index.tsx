@@ -6,7 +6,7 @@ import { PiMagnifyingGlass } from "react-icons/pi";
 import { useDebounce } from "use-debounce";
 import { ContentContainer } from "../../../components/ContentContainer";
 import {
-  TaxonSearchParams,
+  type TaxonSearchParams,
   TaxonSearchSchema,
 } from "../../../lib/domain/taxa/search";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";

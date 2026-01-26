@@ -2,7 +2,7 @@ import NiceModal from "@ebay/nice-modal-react";
 import { Box, Grid, Heading, Text } from "@radix-ui/themes";
 import { LookalikePercentBadge } from "../../../../../components/LookalikeBadge";
 import { TaxonCard } from "../../../../../components/TaxonCard";
-import { TaxonLookalikeDTO } from "../../../../../lib/domain/lookalikes/types";
+import type { TaxonLookalikeDTO } from "../../../../../lib/domain/lookalikes/types";
 import { LookalikeModal } from "./LookalikeModal";
 
 interface LookalikesListProps {

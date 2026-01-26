@@ -1,5 +1,5 @@
-import { user as userTbl } from "../../../db/schema/auth";
-import { PaginatedResult } from "../../validation/pagination";
+import { user as userTbl } from "../../../../db/schema/auth";
+import type { PaginatedResult } from "../../validation/pagination";
 
 type UserRow = typeof userTbl.$inferSelect;
 export type UserDTO = Pick<

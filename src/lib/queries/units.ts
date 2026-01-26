@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { listUnitFamiliesFn } from "../api/units/listUnitFamiliesFn";
-import { UnitFamilyDTO } from "../domain/units/types";
+import type { UnitFamilyDTO } from "../domain/units/types";
 
 export const unitFamiliesQueryOptions = (q?: string) =>
   queryOptions<UnitFamilyDTO[]>({

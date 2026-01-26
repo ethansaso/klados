@@ -11,12 +11,12 @@ import {
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
-import { db } from "../../../db/client";
-import { taxonName as namesTbl } from "../../../db/schema/taxa/name";
-import { taxon as taxaTbl } from "../../../db/schema/taxa/taxon";
+import { db } from "../../../../db/client";
+import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
+import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import { likeAnywhere } from "../../utils/likeAnywhere";
-import { Transaction } from "../../utils/transactionType";
-import { TaxonSearchParams } from "./search";
+import type { Transaction } from "../../utils/transactionType";
+import type { TaxonSearchParams } from "./search";
 import {
   common,
   commonJoinPred,
@@ -33,7 +33,7 @@ import type {
   TaxonRow,
 } from "./types";
 import { computeRankBand } from "./utils";
-import { TaxonPatch } from "./validation";
+import type { TaxonPatch } from "./validation";
 
 /**
  * Insert a draft taxon row and return its id.
@@ -46,6 +46,10 @@ export async function insertDraftTaxon(
     .insert(taxaTbl)
     .values({ parentId: args.parentId, rank: args.rank })
     .returning({ id: taxaTbl.id });
+
+  if (!row) {
+    throw new Error("Failed to insert draft taxon");
+  }
 
   return row;
 }
@@ -418,11 +422,12 @@ export async function listTaxaQuery(
       .offset(offset);
 
     // Total count with same predicate (distinct taxa)
-    const [{ total }] = await db
+    const totals = await db
       .select({ total: countDistinct(taxaTbl.id) })
       .from(taxaTbl)
       .innerJoin(searchNames, eq(searchNames.taxonId, taxaTbl.id))
       .where(where);
+    const total = totals[0]?.total ?? 0;
 
     return { items, page, pageSize, total };
   }
@@ -445,10 +450,8 @@ export async function listTaxaQuery(
     .limit(pageSize)
     .offset(offset);
 
-  const [{ total }] = await db
-    .select({ total: count() })
-    .from(taxaTbl)
-    .where(where);
+  const totals = await db.select({ total: count() }).from(taxaTbl).where(where);
+  const total = totals[0]?.total ?? 0;
 
   return { items, page, pageSize, total };
 }

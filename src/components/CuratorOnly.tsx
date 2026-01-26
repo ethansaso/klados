@@ -1,4 +1,4 @@
-import { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 import { useMe } from "../lib/auth/useMe";
 import { roleHasCuratorRights } from "../lib/auth/utils";
 

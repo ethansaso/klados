@@ -8,11 +8,11 @@ import {
   TextField,
   Tooltip,
 } from "@radix-ui/themes";
-import React, { Dispatch } from "react";
+import React, { type Dispatch } from "react";
 import { PiClockClockwise, PiPlus, PiTrash } from "react-icons/pi";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
-import { SourceDTO } from "../../../../../../lib/domain/sources/types";
-import {
+import type { SourceDTO } from "../../../../../../lib/domain/sources/types";
+import type {
   SetTaxonSourcesInput,
   TaxonSourceUpsertItem,
 } from "../../../../../../lib/domain/taxon-sources/validation";
@@ -46,7 +46,13 @@ export const SourceEditingForm = ({
 
   const setItem = (i: number, patch: Partial<TaxonSourceUpsertItem>) => {
     const next = [...value];
-    next[i] = { ...next[i], ...patch };
+    const current = next[i];
+
+    if (!current) {
+      throw new Error(`Invariant violation: no source at index ${i}`);
+    }
+
+    next[i] = { ...current, ...patch };
     onChange(next);
   };
 

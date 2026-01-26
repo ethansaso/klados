@@ -1,5 +1,5 @@
 import { Box, Callout } from "@radix-ui/themes";
-import { TaxonStatus } from "../../../../db/schema/schema";
+import type { TaxonStatus } from "../../../../../db/schema/schema";
 
 export const StatusCallout = ({ status }: { status: TaxonStatus }) => {
   if (status === "active") return null;

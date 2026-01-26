@@ -1,5 +1,5 @@
 import { Box, Heading, Text } from "@radix-ui/themes";
-import { GroupedCharacterStates } from "../../../../../lib/domain/character-states/utils";
+import type { GroupedCharacterStates } from "../../../../../lib/domain/character-states/utils";
 import { GroupCard } from "./GroupCard";
 
 export const TaxonCharacterSection = ({

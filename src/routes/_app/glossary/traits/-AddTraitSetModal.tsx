@@ -12,7 +12,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Form, Label } from "radix-ui";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { type SubmitHandler, useForm } from "react-hook-form";
 import z from "zod";
 import {
   a11yProps,
@@ -21,6 +21,7 @@ import {
 import { createTraitSetFn } from "../../../../lib/api/traits/createTraitSetFn";
 import { createTraitSetSchema } from "../../../../lib/domain/traits/validation";
 import { useAutoKey } from "../../../../lib/hooks/useAutoKey";
+import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../lib/utils/toast";
 import { trimmed } from "../../../../lib/validation/trimmedOptional";
 
@@ -57,7 +58,7 @@ export const AddTraitSetModal = NiceModal.create(() => {
     control,
     setValue,
     "label",
-    "key"
+    "key",
   );
 
   const onSubmit: SubmitHandler<CreateTraitSetFormInput> = async ({
@@ -79,8 +80,7 @@ export const AddTraitSetModal = NiceModal.create(() => {
     } catch (error) {
       toast({
         variant: "error",
-        description:
-          error instanceof Error ? error.message : "An unknown error occurred.",
+        description: getErrorMessage(error),
       });
     }
   };
@@ -175,7 +175,7 @@ export const AddTraitSetModal = NiceModal.create(() => {
                 {...register("description")}
                 {...a11yProps(
                   "trait-set-description-error",
-                  !!errors.description
+                  !!errors.description,
                 )}
               />
             </Box>

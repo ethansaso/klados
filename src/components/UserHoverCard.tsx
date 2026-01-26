@@ -8,7 +8,7 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { Link as TSLink } from "@tanstack/react-router";
-import { UserRole } from "../db/schema/auth";
+import { type UserRole } from "../../db/schema/auth";
 import { getInitials } from "../lib/utils/formatting/getInitials";
 import { RoleBadge } from "./UserBadge";
 

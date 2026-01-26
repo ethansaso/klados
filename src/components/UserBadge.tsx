@@ -1,6 +1,6 @@
 import { Badge } from "@radix-ui/themes";
-import { ComponentProps } from "react";
-import { UserDTO } from "../lib/domain/users/types";
+import type { ComponentProps } from "react";
+import type { UserDTO } from "../lib/domain/users/types";
 import { capitalizeFirstLetter } from "../lib/utils/formatting/casing";
 
 interface UserBadgeProps extends ComponentProps<typeof Badge> {

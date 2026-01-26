@@ -3,11 +3,11 @@ import { useCallback, useMemo } from "react";
 import { FaDove } from "react-icons/fa";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import { localeDisplayValues } from "../../../../../../lib/consts/locale-display-values";
-import { NameItem } from "../../../../../../lib/domain/taxon-names/validation";
+import type { NameItem } from "../../../../../../lib/domain/taxon-names/validation";
 import { toast } from "../../../../../../lib/utils/toast";
 import { selectInatNames } from "./InatNameModal";
 import { NameRow } from "./NameRow";
-import { LocaleEntry } from "./types";
+import type { LocaleEntry } from "./types";
 
 type NameEditingFormProps = {
   value: NameItem[];
@@ -76,8 +76,9 @@ export const NameEditingForm = ({
           .map((item, i) => ({ item, i }))
           .filter(({ item }) => item.locale === locale);
 
-        if (sameLocale.length > 0) {
-          const [{ item, i }] = sameLocale;
+        const firstInLocale = sameLocale[0];
+        if (firstInLocale) {
+          const { item, i } = firstInLocale;
           next[i] = { ...item, isPreferred: true };
         }
       }

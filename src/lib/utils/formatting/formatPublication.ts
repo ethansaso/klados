@@ -1,5 +1,5 @@
-import { SourceDTO } from "../../domain/sources/types";
-import { TaxonSourceDTO } from "../../domain/taxon-sources/types";
+import { type SourceDTO } from "../../domain/sources/types";
+import { type TaxonSourceDTO } from "../../domain/taxon-sources/types";
 
 export function formatPublication(source: SourceDTO): string {
   const author = source.authors?.trim();

@@ -17,22 +17,22 @@ import { Label } from "radix-ui";
 import { useEffect, useMemo, useState } from "react";
 import {
   Controller,
-  FieldErrors,
+  type FieldErrors,
   FormProvider,
-  SubmitHandler,
+  type SubmitHandler,
   useForm,
   useWatch,
 } from "react-hook-form";
 import z from "zod";
 import { ClearableColorField } from "../../../../components/inputs/ClearableColorField";
 import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
-import { ComboboxOption } from "../../../../components/inputs/combobox/types";
+import type { ComboboxOption } from "../../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
 import { updateTraitValueFn } from "../../../../lib/api/traits/updateTraitValueFn";
-import { TraitValueDTO } from "../../../../lib/domain/traits/types";
+import type { TraitValueDTO } from "../../../../lib/domain/traits/types";
 import { useAutoKey } from "../../../../lib/hooks/useAutoKey";
 import { traitSetValuesPaginatedQueryOptions } from "../../../../lib/queries/traits";
 import { toast } from "../../../../lib/utils/toast";

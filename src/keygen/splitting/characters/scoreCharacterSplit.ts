@@ -1,5 +1,5 @@
-import { KeyGenOptions } from "../../options";
-import { CharacterDefinitionSplitBranch } from "../types";
+import type { KeyGenOptions } from "../../options";
+import type { CharacterDefinitionSplitBranch } from "../types";
 
 /** Small positive boost for extra clauses */
 const CLAUSE_BONUS = 10;
@@ -20,7 +20,7 @@ const MIN_STRUCTURAL_MULTIPLIER = 0.2;
 /** Compute the structural score for the given branch sizes. */
 function computeStructuralScore(
   sizes: number[],
-  keyShape: KeyGenOptions["keyShape"]
+  keyShape: KeyGenOptions["keyShape"],
 ): number {
   const total = sizes.reduce((acc, n) => acc + n, 0);
   const k = sizes.length;
@@ -77,7 +77,7 @@ function computeClauseEffects(branches: CharacterDefinitionSplitBranch[]) {
  */
 export function scoreCharacterSplit(
   branches: CharacterDefinitionSplitBranch[],
-  options: KeyGenOptions
+  options: KeyGenOptions,
 ): number {
   const sizes = branches.map((b) => b.taxa.length);
 

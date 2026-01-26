@@ -1,5 +1,5 @@
 import z from "zod";
-import { HydratedKeyGraphDTO } from "./hydration/types";
+import type { HydratedKeyGraphDTO } from "./hydration/types";
 import { KeyGenOptionsInputSchema } from "./options";
 
 export const KeyGenerationInputSchema = z.object({

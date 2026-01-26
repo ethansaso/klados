@@ -1,4 +1,4 @@
-import { DemoEdge, DemoNode } from "./demoTypes";
+import type { DemoEdge, DemoNode } from "./demoTypes";
 
 export const demoNodes: DemoNode[] = [
   {

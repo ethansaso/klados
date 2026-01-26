@@ -1,5 +1,5 @@
 import { listGuidesQuery } from "./repo";
-import { GuidePaginatedResult } from "./types";
+import type { GuidePaginatedResult } from "./types";
 
 export async function listGuides(args: {
   q?: string;

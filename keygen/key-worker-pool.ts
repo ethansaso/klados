@@ -1,7 +1,10 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Worker } from "node:worker_threads";
-import { KeyGenerationInput, KeyGenerationResult } from "../src/keygen/ioTypes";
+import type {
+  KeyGenerationInput,
+  KeyGenerationResult,
+} from "../src/keygen/ioTypes";
 
 type KeygenJob = {
   type: "generateKey";
@@ -34,7 +37,7 @@ for (let i = 0; i < WORKER_COUNT; i += 1) {
 }
 
 export function generateKeyInWorker(
-  input: KeyGenerationInput
+  input: KeyGenerationInput,
 ): Promise<KeyGenerationResult> {
   return new Promise((resolve, reject) => {
     const worker = workers[nextWorkerIndex];

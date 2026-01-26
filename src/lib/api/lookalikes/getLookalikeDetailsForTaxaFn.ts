@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
 import { getLookalikeComparisonDetailForTaxa } from "../../domain/lookalikes/service";
-import { LookalikeComparisonDetailDTO } from "../../domain/lookalikes/types";
+import { type LookalikeComparisonDetailDTO } from "../../domain/lookalikes/types";
 
 export const getLookalikeDetailsForTaxaFn = createServerFn({
   method: "POST",

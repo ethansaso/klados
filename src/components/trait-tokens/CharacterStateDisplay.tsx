@@ -2,7 +2,7 @@ import { Flex, Text } from "@radix-ui/themes";
 import { memo } from "react";
 import { convertFromSI } from "../../lib/domain/units/conversion";
 import { TraitToken } from "./TraitToken";
-import { UICharacterState, UIUnit } from "./types";
+import type { UICharacterState, UIUnit } from "./types";
 
 type Props = {
   state: UICharacterState;

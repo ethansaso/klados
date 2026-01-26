@@ -3,8 +3,8 @@ import { PiCopyright } from "react-icons/pi";
 import {
   HUMAN_CASED_MEDIA_LICENSES,
   MEDIA_LICENSES,
-} from "../../db/utils/mediaLicense";
-import { MediaItem } from "../../lib/domain/taxa/validation";
+} from "../../../db/utils/mediaLicense";
+import type { MediaItem } from "../../lib/domain/taxa/validation";
 import { spacingClasses } from "./spacingClasses";
 
 const LICENSE_LINKS: Record<(typeof MEDIA_LICENSES)[number], string | null> = {

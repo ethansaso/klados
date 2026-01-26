@@ -1,16 +1,16 @@
 import { Box } from "@radix-ui/themes";
 import { useCallback, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { TaxonEditFormValues } from "..";
+import type { TaxonEditFormValues } from "..";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
-import { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
+import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
 import { EditingGroupCard } from "./EditingGroupCard";
 import { GroupSearch } from "./search/GroupSearch";
 import {
   removeCategoricalTraitValue,
   removeCharacterState,
 } from "./stateUtils";
-import { CharacterStateFormValue } from "./validation";
+import type { CharacterStateFormValue } from "./validation";
 
 type CharacterEditingFormProps = {
   value: CharacterStateFormValue[];

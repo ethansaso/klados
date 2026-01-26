@@ -4,7 +4,7 @@ import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { type SubmitHandler, useForm } from "react-hook-form";
 import {
   a11yProps,
   ConditionalAlert,
@@ -12,7 +12,7 @@ import {
 import NavSidebar from "../../../../components/nav/NavSidebar";
 import { editUserFn } from "../../../../lib/api/users/editUserFn";
 import {
-  UserPatch,
+  type UserPatch,
   userPatchSchema,
 } from "../../../../lib/domain/users/validation";
 import {

@@ -1,8 +1,8 @@
-import {
+import type {
   TaxonCharacterStateDTO,
   Trait,
 } from "../../lib/domain/character-states/types";
-import { UnitDTO } from "../../lib/domain/units/types";
+import type { UnitDTO } from "../../lib/domain/units/types";
 
 // UI-focused types with optional weight styling.
 // Exclude metadata like characterId and groupId.

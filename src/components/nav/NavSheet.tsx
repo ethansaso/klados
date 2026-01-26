@@ -6,7 +6,10 @@ import {
   IconButton,
   Theme,
 } from "@radix-ui/themes";
-import { LinkComponentProps, Link as RouterLink } from "@tanstack/react-router";
+import {
+  type LinkComponentProps,
+  Link as RouterLink,
+} from "@tanstack/react-router";
 import { Dialog } from "radix-ui";
 import { PiX } from "react-icons/pi";
 import type { getMeFn } from "../../lib/api/users/getMeFn";

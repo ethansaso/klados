@@ -13,18 +13,19 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Form, Label } from "radix-ui";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import { Controller, type SubmitHandler, useForm } from "react-hook-form";
+import { MODIFIER_CLASSES } from "../../../../../db/schema/schema";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
-import { MODIFIER_CLASSES } from "../../../../db/schema/schema";
 import { createModifierGroupFn } from "../../../../lib/api/modifiers/createModifierGroupFn";
 import {
-  CreateModifierGroupInput,
+  type CreateModifierGroupInput,
   createModifierGroupSchema,
 } from "../../../../lib/domain/modifiers/validation";
 import { useAutoKey } from "../../../../lib/hooks/useAutoKey";
+import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../lib/utils/toast";
 
 export const AddModifierGroupModal = NiceModal.create(() => {
@@ -85,8 +86,7 @@ export const AddModifierGroupModal = NiceModal.create(() => {
     } catch (error) {
       toast({
         variant: "error",
-        description:
-          error instanceof Error ? error.message : "An unknown error occurred.",
+        description: getErrorMessage(error),
       });
     }
   };

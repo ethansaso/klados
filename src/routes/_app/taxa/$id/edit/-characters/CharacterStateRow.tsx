@@ -1,9 +1,9 @@
 import { DataList, Flex } from "@radix-ui/themes";
 import { memo, useMemo } from "react";
 import { CharacterStateDisplay } from "../../../../../../components/trait-tokens/CharacterStateDisplay";
-import { CharacterGroupDetailDTO } from "../../../../../../lib/domain/character-groups/types";
+import type { CharacterGroupDetailDTO } from "../../../../../../lib/domain/character-groups/types";
 import { StateTagWrapper } from "./StateTagWrapper";
-import { CharacterStateFormValue } from "./validation";
+import type { CharacterStateFormValue } from "./validation";
 
 type CharacterStateRowProps = {
   character: CharacterGroupDetailDTO["characters"][number];

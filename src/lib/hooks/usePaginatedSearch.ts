@@ -12,6 +12,11 @@ export function usePaginatedSearch() {
   const matches = useMatches();
 
   const deepestMatch = matches[matches.length - 1];
+  if (!deepestMatch) {
+    throw new Error(
+      "usePaginatedSearch must be used within a routing context.",
+    );
+  }
 
   const raw = (deepestMatch.search ?? {}) as SectionSearch;
 

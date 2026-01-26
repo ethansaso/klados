@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
 import { listUnitFamilies } from "../../domain/units/service";
-import { UnitFamilyDTO } from "../../domain/units/types";
+import { type UnitFamilyDTO } from "../../domain/units/types";
 
 export const listUnitFamiliesFn = createServerFn({ method: "GET" })
   .inputValidator(z.object({ q: z.string().optional() }))

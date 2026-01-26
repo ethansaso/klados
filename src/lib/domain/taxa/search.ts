@@ -2,7 +2,7 @@ import z from "zod";
 import {
   TAXON_RANKS_DESCENDING,
   TAXON_STATUSES,
-} from "../../../db/schema/schema";
+} from "../../../../db/schema/schema";
 import { PaginationSchema } from "../../validation/pagination";
 
 const TaxonStatusEnum = z.enum(TAXON_STATUSES);
@@ -16,7 +16,7 @@ export const TaxonFilterSchema = z.object({
 });
 
 export const TaxonSearchSchema = PaginationSchema.extend(
-  TaxonFilterSchema.shape
+  TaxonFilterSchema.shape,
 );
 
 export type TaxonFilters = z.infer<typeof TaxonFilterSchema>;

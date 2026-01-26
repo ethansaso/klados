@@ -1,7 +1,7 @@
 import {
   closestCenter,
   DndContext,
-  DragEndEvent,
+  type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -16,7 +16,7 @@ import { Button, Table } from "@radix-ui/themes";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { FaDove } from "react-icons/fa";
 import { PiPlus } from "react-icons/pi";
-import { TaxonEditFormValues } from "..";
+import type { TaxonEditFormValues } from "..";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import { toast } from "../../../../../../lib/utils/toast";
 import { selectInatPhotos } from "./InatPhotoSelectModal";

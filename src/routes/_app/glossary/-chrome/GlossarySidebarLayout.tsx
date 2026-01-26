@@ -1,6 +1,6 @@
 import { Flex, Separator as RadixSeparator } from "@radix-ui/themes";
 import { Outlet } from "@tanstack/react-router";
-import { PropsWithChildren } from "react";
+import { type PropsWithChildren } from "react";
 import { ContentContainer } from "../../../../components/ContentContainer";
 
 function Root({ children }: PropsWithChildren) {

@@ -2,12 +2,12 @@ import {
   findUserByIdOrUsername,
   listUsersAdminViewPage,
   listUsersPage,
-  ListUsersParams,
+  type ListUsersParams,
   modifyUserRecord,
   setUserBanned,
   setUserUnbanned,
 } from "./repo";
-import {
+import type {
   UserAdminViewPaginatedResult,
   UserDTO,
   UserPaginatedResult,

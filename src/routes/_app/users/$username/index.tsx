@@ -3,7 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { RoleBadge } from "../../../../components/UserBadge";
 import { generateLoginRedirectFromLocation } from "../../../../lib/auth/utils";
-import { UserDTO } from "../../../../lib/domain/users/types";
+import type { UserDTO } from "../../../../lib/domain/users/types";
 import {
   meQueryOptions,
   userQueryOptions,

@@ -1,6 +1,6 @@
 import { Button } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
-import { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 
 interface ItemProps {
   to: string;

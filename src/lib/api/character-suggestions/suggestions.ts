@@ -1,7 +1,7 @@
 import { aliasedTable, and, eq, ilike, inArray, or, sql } from "drizzle-orm";
 
-import { db } from "../../../db/client";
-import { unit, unitFamily } from "../../../db/schema/characters/units";
+import { db } from "../../../../db/client";
+import { unit, unitFamily } from "../../../../db/schema/characters/units";
 import {
   categoricalCharacterMeta,
   categoricalTraitSet,
@@ -9,10 +9,10 @@ import {
   character,
   characterGroup,
   numericCharacterMeta,
-} from "../../../db/schema/schema";
-import { UnitDTO } from "../../domain/units/types";
-import { normalizeUnitToken, ParsedNumeric } from "./numericParsing";
-import {
+} from "../../../../db/schema/schema";
+import { type UnitDTO } from "../../domain/units/types";
+import { normalizeUnitToken, type ParsedNumeric } from "./numericParsing";
+import type {
   CategoricalValueSuggestion,
   NumericRangeSuggestion,
   NumericSingleSuggestion,
@@ -41,7 +41,7 @@ async function resolveUnitFromToken(token: string): Promise<UnitDTO | null> {
   if (rows.length === 0) return null;
 
   const keyMatch = rows.find((r) => r.key.toLowerCase() === t);
-  return keyMatch ?? rows[0];
+  return keyMatch ?? rows[0] ?? null;
 }
 
 /**

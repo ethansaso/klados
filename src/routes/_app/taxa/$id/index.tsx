@@ -3,7 +3,10 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 import z from "zod";
-import { Breadcrumb, Breadcrumbs } from "../../../../components/Breadcrumbs";
+import {
+  type Breadcrumb,
+  Breadcrumbs,
+} from "../../../../components/Breadcrumbs";
 import { ContentContainer } from "../../../../components/ContentContainer";
 import { groupStatesByGroup } from "../../../../lib/domain/character-states/utils";
 import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
