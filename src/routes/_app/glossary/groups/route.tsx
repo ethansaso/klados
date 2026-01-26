@@ -15,10 +15,6 @@ import { SearchWithQuerySchema } from "../../../../lib/validation/search";
 import { AddCharacterGroupModal } from "./-AddCharacterGroupModal";
 
 export const Route = createFileRoute("/_app/glossary/groups")({
-  head: () =>
-    routeSeo({
-      title: "Browse Character Groups | Klados",
-    }),
   validateSearch: SearchWithQuerySchema,
   loaderDeps: ({ search: { page, pageSize: pageSize, q } }) => ({
     page,
@@ -30,6 +26,10 @@ export const Route = createFileRoute("/_app/glossary/groups")({
       characterGroupsQueryOptions(page, pageSize, { q }),
     );
   },
+  head: () =>
+    routeSeo({
+      title: "Browse Character Groups | Klados",
+    }),
   component: RouteComponent,
 });
 

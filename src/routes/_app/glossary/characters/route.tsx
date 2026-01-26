@@ -16,10 +16,6 @@ import { SearchWithQuerySchema } from "../../../../lib/validation/search";
 import { AddCharacterModal } from "./-modal/AddCharacterModal";
 
 export const Route = createFileRoute("/_app/glossary/characters")({
-  head: () =>
-    routeSeo({
-      title: "Browse Characters | Klados",
-    }),
   validateSearch: SearchWithQuerySchema,
   loaderDeps: ({ search: { page, pageSize: pageSize, q } }) => ({
     page,
@@ -31,6 +27,10 @@ export const Route = createFileRoute("/_app/glossary/characters")({
       charactersQueryOptions(page, pageSize, { q }),
     );
   },
+  head: () =>
+    routeSeo({
+      title: "Browse Characters | Klados",
+    }),
   component: RouteComponent,
 });
 

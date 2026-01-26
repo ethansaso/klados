@@ -3,9 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { routeSeo } from "../../../lib/utils/head/routeSeo";
 
 export const Route = createFileRoute("/_app/users/")({
-  head: () =>
+  head: ({ match }) =>
     routeSeo({
       title: "Users | Klados",
+      canonicalUrl: match.pathname,
     }),
   component: RouteComponent,
 });

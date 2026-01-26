@@ -38,12 +38,13 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
 
     return { id, taxon };
   },
-  head: ({ loaderData }) =>
+  head: ({ loaderData, match }) =>
     routeSeo({
       title: loaderData
         ? `${loaderData.taxon.acceptedName} | Klados`
         : "Klados",
       links: [{ rel: "stylesheet", href: taxonPageCssUrl }],
+      canonicalUrl: match.pathname,
     }),
   component: TaxonPage,
 });

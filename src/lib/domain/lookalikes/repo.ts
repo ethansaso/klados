@@ -2,8 +2,8 @@ import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "../../../db/client";
-import { categoricalTraitValue as traitValTbl } from "../../../db/schema/characters/categoricalTrait";
-import { taxonCharacterStateCategorical as tcsCatTbl } from "../../../db/schema/characters/taxonCharacterState";
+import { taxonCharacterStateCategorical as tcsCatTbl } from "../../../db/schema/characters/states";
+import { categoricalTraitValue as traitValTbl } from "../../../db/schema/characters/traits";
 import { taxonName as namesTbl } from "../../../db/schema/taxa/name";
 import { taxon as taxaTbl } from "../../../db/schema/taxa/taxon";
 import { TaxonLookalikeDTO } from "./types";
@@ -65,8 +65,8 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
       tv2,
       and(
         eq(tv2.id, tcsCatTbl.traitValueId),
-        eq(canonTraitId2, target.canonTraitValueId)
-      )
+        eq(canonTraitId2, target.canonTraitValueId),
+      ),
     )
     .where(ne(tcsCatTbl.taxonId, args.taxonId))
     .groupBy(tcsCatTbl.taxonId)
@@ -127,16 +127,16 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
       and(
         eq(sci.taxonId, taxaTbl.id),
         eq(sci.locale, "sci"),
-        eq(sci.isPreferred, true)
-      )
+        eq(sci.isPreferred, true),
+      ),
     )
     .leftJoin(
       common,
       and(
         eq(common.taxonId, taxaTbl.id),
         eq(common.locale, "en"),
-        eq(common.isPreferred, true)
-      )
+        eq(common.isPreferred, true),
+      ),
     )
     .where(eq(taxaTbl.status, "active"))
     .orderBy(desc(jaccardExpr), desc(shared.sharedCnt), taxaTbl.id)

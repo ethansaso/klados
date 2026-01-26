@@ -13,7 +13,10 @@ import homeCssUrl from "../../assets/styles/pages/home.css?url";
 import rfDemoCssUrl from "../../assets/styles/react-flow/demo.css?url";
 
 export const Route = createFileRoute("/_app/")({
-  head: () =>
+  beforeLoad: async ({ context }) => {
+    await context.queryClient.ensureQueryData(summaryStatsQueryOptions());
+  },
+  head: ({ match }) =>
     routeSeo({
       title: "Klados | Visual Tools to Identify Organisms",
       description:
@@ -22,10 +25,8 @@ export const Route = createFileRoute("/_app/")({
         { rel: "stylesheet", href: homeCssUrl },
         { rel: "stylesheet", href: rfDemoCssUrl },
       ],
+      canonicalUrl: match.pathname,
     }),
-  loader: async ({ context }) => {
-    context.queryClient.ensureQueryData(summaryStatsQueryOptions());
-  },
   component: Home,
 });
 

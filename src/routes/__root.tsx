@@ -11,19 +11,26 @@ import {
 import type { ReactNode } from "react";
 import { ToastHost } from "../components/ToastHost";
 import { meQueryOptions } from "../lib/queries/users";
-import { GA_ID, rootSeo } from "../lib/utils/head/rootSeo";
+import { rootSeo } from "../lib/utils/head/rootSeo";
 import { paginationDefaults } from "../lib/validation/pagination";
 
 import appCssUrl from "../assets/styles/main.css?url";
+import { GA_ID } from "../lib/utils/head/const";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
-  head: () => {
+  beforeLoad: async ({ context }) => {
+    const user = await context.queryClient.ensureQueryData(meQueryOptions());
+
+    return { user };
+  },
+  head: ({ match }) => {
     const { meta } = rootSeo({
       title: "Klados",
       description: "Twenty-first century identification.",
       image: "/logos/LogoBrand.png",
+      canonicalUrl: match.pathname,
     });
 
     const baseLinks = [
@@ -72,11 +79,6 @@ export const Route = createRootRouteWithContext<{
       links: baseLinks,
       scripts,
     };
-  },
-  beforeLoad: async ({ context }) => {
-    const user = await context.queryClient.ensureQueryData(meQueryOptions());
-
-    return { user };
   },
   search: {
     middlewares: [

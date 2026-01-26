@@ -35,16 +35,17 @@ import { routeSeo } from "../../../lib/utils/head/routeSeo";
 import { toast } from "../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/taxa/new")({
-  head: () =>
-    routeSeo({
-      title: "Create Taxon | Klados",
-    }),
   beforeLoad: async ({ context, location }) => {
     const { user } = context;
     if (!roleHasCuratorRights(user?.role)) {
       throw generateLoginRedirectFromLocation(location);
     }
   },
+  head: ({ match }) =>
+    routeSeo({
+      title: "Create Taxon | Klados",
+      canonicalUrl: match.pathname,
+    }),
   component: RouteComponent,
 });
 
@@ -57,7 +58,7 @@ function RouteComponent() {
     taxaQueryOptions(1, 10, {
       q: parentQ,
       status: "active",
-    })
+    }),
   );
 
   const {
@@ -82,7 +83,7 @@ function RouteComponent() {
         id: taxon.id,
         label: taxon.acceptedName,
       })) ?? [],
-    [parentPaginatedResults]
+    [parentPaginatedResults],
   );
 
   const parentSelected = useMemo<ComboboxOption | null>(() => {

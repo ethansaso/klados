@@ -10,8 +10,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
 import { taxon } from "../taxa/taxon";
-import { categoricalTraitValue } from "./categoricalTrait";
-import { character, numericCharacterMeta } from "./character";
+import { character, numericCharacterMeta } from "./characters";
+import { categoricalTraitValue } from "./traits";
 import { unit } from "./units";
 
 /**
@@ -45,7 +45,7 @@ export const taxonCharacterStateCategorical = pgTable(
     index("tcs_cat_trait_idx").on(t.traitValueId),
     // Index for joins when fetching taxa with a given character state
     index("tcs_cat_character_trait_idx").on(t.characterId, t.traitValueId),
-  ]
+  ],
 );
 
 /**
@@ -86,7 +86,7 @@ export const taxonCharacterStateNumber = pgTable(
     index("tcn_taxon_idx").on(t.taxonId),
     index("tcn_char_idx").on(t.characterId),
     index("tcn_display_unit_idx").on(t.displayUnitId),
-  ]
+  ],
 );
 
 /**
@@ -123,5 +123,5 @@ export const taxonCharacterStateRange = pgTable(
     index("tcnr_taxon_idx").on(t.taxonId),
     index("tcnr_char_idx").on(t.characterId),
     index("tcnr_display_unit_idx").on(t.displayUnitId),
-  ]
+  ],
 );

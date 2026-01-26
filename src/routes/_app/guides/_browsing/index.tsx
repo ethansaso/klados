@@ -11,7 +11,6 @@ import { SearchWithQuerySchema } from "../../../../lib/validation/search";
 import { GuideTable } from "./-GuideTable";
 
 export const Route = createFileRoute("/_app/guides/_browsing/")({
-  head: () => routeSeo({ title: "Browse Guides | Klados" }),
   validateSearch: SearchWithQuerySchema,
   loaderDeps: ({ search: { page, pageSize: pageSize, q } }) => ({
     page,
@@ -23,6 +22,8 @@ export const Route = createFileRoute("/_app/guides/_browsing/")({
       guidesQueryOptions(page, pageSize, { q }),
     );
   },
+  head: ({ match }) =>
+    routeSeo({ title: "Browse Guides | Klados", canonicalUrl: match.pathname }),
   component: RouteComponent,
 });
 

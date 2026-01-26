@@ -138,7 +138,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
       control,
       setValue,
       "label",
-      "key"
+      "key",
     );
 
     const mutation = useMutation({
@@ -192,7 +192,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
       traitSetValuesPaginatedQueryOptions(traitValue.setId, 1, 20, {
         kind: "canonical",
         q: aliasQuery,
-      })
+      }),
     );
     const canonicalOptions: ComboboxOption[] = useMemo(() => {
       const items = canonicalResp?.items ?? [];
@@ -271,7 +271,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
                   </Flex>
                   <TextField.Root
                     id="label"
-                    placeholder="e.g. cap, stem, leaf"
+                    placeholder="e.g. colors, shapes"
                     {...register("label")}
                     {...a11yProps("label-error", !!errors.label)}
                   />
@@ -368,7 +368,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
                             field.onChange(
                               opt
                                 ? { id: Number(opt.id), label: opt.label }
-                                : null
+                                : null,
                             )
                           }
                           onQueryChange={setAliasQuery}
@@ -421,7 +421,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
                         {...register("description")}
                         {...a11yProps(
                           "description-error",
-                          !!canonErrors.description
+                          !!canonErrors.description,
                         )}
                       />
                     </Box>
@@ -453,12 +453,12 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
         </Dialog.Content>
       </Dialog.Root>
     );
-  }
+  },
 );
 
 function getErrorsByKind<K extends FormValues["kind"]>(
   errors: FieldErrors<FormValues>,
-  _kind: K
+  _kind: K,
 ): FieldErrors<Extract<FormValues, { kind: K }>> {
   void _kind;
   return errors as FieldErrors<Extract<FormValues, { kind: K }>>;

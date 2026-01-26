@@ -11,16 +11,17 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { routeSeo } from "../../lib/utils/head/routeSeo";
 
 export const Route = createFileRoute("/_app/verify-email")({
-  head: () =>
-    routeSeo({
-      title: "Verify Your Email | Klados",
-    }),
   beforeLoad: async ({ context }) => {
     const user = context.user;
     if (user && user.emailVerified) {
       throw redirect({ to: "/" });
     }
   },
+  head: ({ match }) =>
+    routeSeo({
+      title: "Verify Your Email | Klados",
+      canonicalUrl: match.pathname,
+    }),
   component: RouteComponent,
 });
 

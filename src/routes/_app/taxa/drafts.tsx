@@ -7,10 +7,6 @@ import { SearchSchema } from "../../../lib/validation/search";
 import { TaxonGrid } from "./-TaxonGrid";
 
 export const Route = createFileRoute("/_app/taxa/drafts")({
-  head: () =>
-    routeSeo({
-      title: "Taxon Drafts | Klados",
-    }),
   validateSearch: SearchSchema,
   loaderDeps: ({ search: { page, pageSize: pageSize } }) => ({
     page,
@@ -18,9 +14,14 @@ export const Route = createFileRoute("/_app/taxa/drafts")({
   }),
   loader: async ({ context, deps: { page, pageSize } }) => {
     await context.queryClient.ensureQueryData(
-      taxaQueryOptions(page, pageSize, { status: "draft" })
+      taxaQueryOptions(page, pageSize, { status: "draft" }),
     );
   },
+  head: ({ match }) =>
+    routeSeo({
+      title: "Taxon Drafts | Klados",
+      canonicalUrl: match.pathname,
+    }),
   component: TaxaDraftsPage,
 });
 
@@ -29,7 +30,7 @@ function TaxaDraftsPage() {
   const { data: paginatedResult } = useSuspenseQuery(
     taxaQueryOptions(search.page, search.pageSize, {
       status: "draft",
-    })
+    }),
   );
 
   return (

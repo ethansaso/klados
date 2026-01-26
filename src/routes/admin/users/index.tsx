@@ -1,10 +1,7 @@
 import { Table } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useSearch } from "@tanstack/react-router";
-import {
-  usersAdminViewQueryOptions,
-  usersQueryOptions,
-} from "../../../lib/queries/users";
+import { usersAdminViewQueryOptions } from "../../../lib/queries/users";
 import { SearchSchema } from "../../../lib/validation/search";
 
 export const Route = createFileRoute("/admin/users/")({
@@ -20,7 +17,7 @@ export const Route = createFileRoute("/admin/users/")({
   // SSR prefetch for hydration
   loader: async ({ context, deps }) => {
     await context.queryClient.ensureQueryData(
-      usersQueryOptions(deps.page, deps.pageSize),
+      usersAdminViewQueryOptions(deps.page, deps.pageSize),
     );
   },
 

@@ -19,11 +19,10 @@ export function NavBar({ user }: NavBarProps) {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [expanded, setExpanded] = useState(false);
 
-  const homeActive = useIsActive("/");
   const taxaActive = useIsActive("/taxa", true);
   const glossaryActive = useIsActive("/glossary", true);
   const guidesActive = useIsActive("/guides", true);
-  const moreActive = useIsActive(["/users", "/about"], true);
+  const moreActive = useIsActive(["/users", "/about", "/donate", "/tos"], true);
 
   const TaxaItem = useMemo(() => {
     if (roleHasCuratorRights(user?.role)) {
@@ -63,12 +62,6 @@ export function NavBar({ user }: NavBarProps) {
         className="navbar__navlinks"
         display={{ initial: "none", sm: "flex" }}
       >
-        <TabNav.Link asChild active={homeActive}>
-          <RouterLink to="/" preload="intent">
-            Home
-          </RouterLink>
-        </TabNav.Link>
-
         {TaxaItem}
 
         <TabNav.Link asChild active={guidesActive}>
@@ -94,6 +87,8 @@ export function NavBar({ user }: NavBarProps) {
             <NavDropdown.Link to="/users">Users</NavDropdown.Link>
             <NavDropdown.Link to="/about">About</NavDropdown.Link>
             <NavDropdown.Link to="/donate">Donate</NavDropdown.Link>
+            <NavDropdown.Separator />
+            <NavDropdown.Link to="/tos">Terms of Service</NavDropdown.Link>
           </NavDropdown.Content>
         </NavDropdown.Root>
       </Flex>
