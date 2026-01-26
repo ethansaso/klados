@@ -5,6 +5,7 @@ import {
   MEDIA_LICENSES,
 } from "../../../db/utils/mediaLicense";
 import type { MediaItem } from "../../lib/domain/taxa/validation";
+import type { ResponsiveSize, Size } from "../../lib/utils/responsiveSize";
 import { spacingClasses } from "./spacingClasses";
 
 const LICENSE_LINKS: Record<(typeof MEDIA_LICENSES)[number], string | null> = {
@@ -17,16 +18,6 @@ const LICENSE_LINKS: Record<(typeof MEDIA_LICENSES)[number], string | null> = {
   "cc-by-nd": "https://creativecommons.org/licenses/by-nd/4.0/",
   "cc-by-nc-nd": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
   "all-rights-reserved": "",
-};
-
-type Size = "1" | "2" | "3" | "4";
-type ResponsiveSize = {
-  initial?: Size;
-  xs?: Size;
-  sm?: Size;
-  md?: Size;
-  lg?: Size;
-  xl?: Size;
 };
 
 type AnnotationBubbleWrapProps = {

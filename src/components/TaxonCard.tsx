@@ -38,14 +38,14 @@ export const TaxonCard = memo(
           }}
         />
         <Flex direction="column" flexGrow="1" justify="between">
-          <Box mb="1">
+          <Box>
             <Text as="div" size="1" weight="bold" color="gray">
               {capitalizeFirstLetter(rank)}
             </Text>
             <Text
               as="div"
               weight="bold"
-              size={{ initial: "2", sm: "3" }}
+              size={{ initial: "1", xs: "2", sm: "3" }}
               truncate
             >
               {acceptedName}
