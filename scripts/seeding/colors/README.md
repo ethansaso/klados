@@ -1,4 +1,4 @@
-# Colors
+# Color Seeding
 
 This is the documentation for the color seeding process, a standardized
 system of colors inferred from numerous standards and user needs.

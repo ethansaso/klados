@@ -1,4 +1,4 @@
-import { Box, Em, Flex, Heading, Link, Text } from "@radix-ui/themes";
+import { Box, Em, Flex, Heading, Link, Strong, Text } from "@radix-ui/themes";
 import { createFileRoute } from "@tanstack/react-router";
 import { ContentContainer } from "../../components/ContentContainer";
 import { routeSeo } from "../../lib/utils/head/routeSeo";
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_app/about")({
 
 function RouteComponent() {
   return (
-    <ContentContainer>
+    <ContentContainer align="start">
       <Box mb="5">
         <Heading mb="3">What is Klados?</Heading>
         <Text as="p" mb="2">
@@ -32,8 +32,30 @@ function RouteComponent() {
         </Text>
       </Box>
       <Box mb="5">
-        <Heading mb="3">Our Mission</Heading>
+        <Heading mb="3">What *isn't* Klados?</Heading>
         <Text as="p" mb="2">
+          Klados is not an observational platform like iNaturalist, nor is it a
+          formal taxonomic database like ITIS or GBIF. Its primary focus is on
+          providing tools for identification and learning, rather than data
+          collection or taxonomic authority.
+        </Text>
+        <Text as="p" mb="2">
+          Furthermore, Klados is not intended to replace traditional dichotomous
+          keys, or other established identification resources. Instead, Klados
+          provides a community-driven alternative that emphasizes collaboration,
+          accessibility, and ease of use.
+        </Text>
+        <Text as="p">
+          <Strong>
+            Klados should not be used to host or digitize copyrighted materials,
+            including descriptions and dichotomous keys, without explicit
+            permission from the original author(s).
+          </Strong>
+        </Text>
+      </Box>
+      <Box mb="5">
+        <Heading mb="3">Our Mission</Heading>
+        <Text as="p">
           Klados was created with the idea of free, equitable access to learning
           resources for anyone seeking to learn to identify organisms.
           Dichotomous keys for many fields are often hard to obtain, and are

@@ -1,4 +1,4 @@
-# Seed: unit families + units
+# Unit Seeding
 
 - **Families**: length, area, weight, angle, dimensionless (no units)
 - **Canonical keys**: ASCII-safe (e.g. "um", "mm2", "deg")
