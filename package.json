@@ -10,7 +10,7 @@
     "build:keygen": "tsc -p keygen/tsconfig.json",
     "start": "npm run db:migrate && node --import ./.output/server/instrument.server.mjs .output/server/index.mjs",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/db/migrate.ts",
+    "db:migrate": "tsx db/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "db:drop-create": "psql \"postgres://app:app@127.0.0.1:5434/postgres\" -v ON_ERROR_STOP=1 -c \"DROP DATABASE IF EXISTS taxokeys;\" -c \"CREATE DATABASE taxokeys;\"",
     "db:reset": "npm run db:drop-create && npm run db:generate && npm run db:migrate",

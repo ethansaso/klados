@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { db } from "../../../src/db/client";
-import { unit, unitFamily } from "../../../src/db/schema/characters/units";
+import { db } from "../../../db/client";
+import { unit, unitFamily } from "../../../db/schema/characters/units";
 import type { Transaction } from "../../../src/lib/utils/transactionType";
 import { askYesNo } from "../../utils/askYesNo";
 
@@ -82,13 +82,13 @@ async function loadFamilyIdByLabelTx(tx: Transaction) {
 
 async function upsertUnitsTx(
   tx: Transaction,
-  familyIdByLabel: Map<string, number>
+  familyIdByLabel: Map<string, number>,
 ) {
   for (const u of units) {
     const familyId = familyIdByLabel.get(u.familyLabel);
     if (!familyId) {
       throw new Error(
-        `Missing unitFamily "${u.familyLabel}" for unit "${u.key}"`
+        `Missing unitFamily "${u.familyLabel}" for unit "${u.key}"`,
       );
     }
 
@@ -136,14 +136,14 @@ export async function run() {
 
     for (const u of arr) {
       console.log(
-        `  ${u.key.padEnd(6)}  ${u.symbol.padEnd(4)}  scale=${u.scale}`
+        `  ${u.key.padEnd(6)}  ${u.symbol.padEnd(4)}  scale=${u.scale}`,
       );
     }
   }
 
   console.log();
   const shouldProceed = await askYesNo(
-    "Proceed with upserting these unit families and units into the database? (y/N) "
+    "Proceed with upserting these unit families and units into the database? (y/N) ",
   );
   if (!shouldProceed) {
     console.log("\nAborted. No database changes were made.\n");

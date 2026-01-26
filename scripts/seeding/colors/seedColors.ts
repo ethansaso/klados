@@ -1,10 +1,10 @@
 import "dotenv/config";
 import { and, eq } from "drizzle-orm";
-import { db } from "../../../src/db/client";
+import { db } from "../../../db/client";
 import {
   categoricalTraitSet,
   categoricalTraitValue,
-} from "../../../src/db/schema/schema";
+} from "../../../db/schema/schema";
 import { Transaction } from "../../../src/lib/utils/transactionType";
 import { askYesNo } from "../../utils/askYesNo";
 import {
