@@ -69,7 +69,7 @@ function UserProfilePage() {
               <Text as="div" color="gray">
                 @{user.username}
               </Text>
-              <RoleBadge role={user.role} ml="2" />
+              <RoleBadge role={user.role} banned={user.banned} ml="2" />
             </Flex>
             <Text as="div" color="gray">
               Joined {joined}
@@ -81,8 +81,10 @@ function UserProfilePage() {
       <section style={{ marginTop: 24 }}>
         <div style={{ marginTop: 24 }}>
           <p>
-            {user.description ??
-              `${preferredDisplay(user)} has not added a description yet.`}
+            {user.banned
+              ? "This user has been banned for violating our terms of service."
+              : (user.description ??
+                `${preferredDisplay(user)} has not added a description yet.`)}
           </p>
         </div>
       </section>

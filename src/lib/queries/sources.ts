@@ -3,11 +3,15 @@ import { listSourcesFn } from "../api/sources/listSourcesFn";
 import type { SourceFilters } from "../domain/sources/search";
 import type { SourcePaginatedResult } from "../domain/sources/types";
 
-export const sourcesQueryOptions = (
-  page: number,
-  pageSize: number,
-  filters?: SourceFilters,
-) =>
+export const sourcesQueryOptions = ({
+  page,
+  pageSize,
+  filters,
+}: {
+  page: number;
+  pageSize: number;
+  filters?: SourceFilters;
+}) =>
   queryOptions({
     queryKey: ["sources", { page, pageSize, ...filters }],
     queryFn: () =>

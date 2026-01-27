@@ -1,9 +1,9 @@
 import { queryOptions } from "@tanstack/react-query";
 import { getSourcesForTaxonFn } from "../api/taxon-sources/getSourcesForTaxonFn";
 
-export const sourceForTaxonQueryOptions = (id: number) =>
+export const sourcesForTaxonQueryOptions = (id: number) =>
   queryOptions({
-    queryKey: ["source", id],
+    queryKey: ["taxon", id, "sources"],
     queryFn: () => getSourcesForTaxonFn({ data: { id } }),
     staleTime: 5 * 60_000,
   });

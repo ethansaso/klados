@@ -24,6 +24,7 @@ export const Route = createFileRoute("/admin")({
 function RouteComponent() {
   const homeActive = useIsActive("/admin");
   const usersActive = useIsActive("/admin/users");
+  const sourcesActive = useIsActive("/admin/sources");
 
   return (
     <div className="admin__container">
@@ -45,6 +46,9 @@ function RouteComponent() {
           </NavSidebar.Item>
           <NavSidebar.Item to="/admin/users" active={usersActive}>
             User Management
+          </NavSidebar.Item>
+          <NavSidebar.Item to="/admin/sources" active={sourcesActive}>
+            Source Management
           </NavSidebar.Item>
         </NavSidebar.Root>
         <Outlet />

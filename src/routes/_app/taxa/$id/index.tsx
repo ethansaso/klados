@@ -12,7 +12,7 @@ import { groupStatesByGroup } from "../../../../lib/domain/character-states/util
 import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 import { taxonCharacterStatesQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
-import { sourceForTaxonQueryOptions } from "../../../../lib/queries/taxonSources";
+import { sourcesForTaxonQueryOptions } from "../../../../lib/queries/taxonSources";
 import { formatPublicationForTaxon } from "../../../../lib/utils/formatting/formatPublication";
 import { prefixWithRank } from "../../../../lib/utils/formatting/prefixWithRank";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
       context.queryClient.ensureQueryData(taxonQueryOptions(id)),
       context.queryClient.ensureQueryData(taxonCharacterStatesQueryOptions(id)),
       context.queryClient.ensureQueryData(lookalikesQueryOptions(id)),
-      context.queryClient.ensureQueryData(sourceForTaxonQueryOptions(id)),
+      context.queryClient.ensureQueryData(sourcesForTaxonQueryOptions(id)),
     ]);
 
     return { id, taxon };
@@ -60,7 +60,7 @@ function TaxonPage() {
     taxonCharacterStatesQueryOptions(id),
   );
   const { data: lookalikes } = useSuspenseQuery(lookalikesQueryOptions(id));
-  const { data: sources } = useSuspenseQuery(sourceForTaxonQueryOptions(id));
+  const { data: sources } = useSuspenseQuery(sourcesForTaxonQueryOptions(id));
 
   const groupedStates = useMemo(
     () => groupStatesByGroup(characterStates),

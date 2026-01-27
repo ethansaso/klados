@@ -2,6 +2,7 @@ import { and, asc, eq, notInArray, sql } from "drizzle-orm";
 import { source as sourceTbl } from "../../../../db/schema/sources/source";
 import { taxonSource as taxonSourceTbl } from "../../../../db/schema/sources/taxonSource";
 import type { Transaction } from "../../utils/transactionType";
+import { sourceSelectDto, taxonSourceUsageAgg } from "../sources/sqlAdapters";
 import type { TaxonSourceDTO } from "./types";
 import type { TaxonSourceUpsertItem } from "./validation";
 
@@ -17,19 +18,14 @@ export const selectSourcesForTaxon = async (
       accessedAt: taxonSourceTbl.accessedAt,
       locator: taxonSourceTbl.locator,
       note: taxonSourceTbl.note,
-      source: {
-        id: sourceTbl.id,
-        name: sourceTbl.name,
-        authors: sourceTbl.authors,
-        publisher: sourceTbl.publisher,
-        note: sourceTbl.note,
-        isbn: sourceTbl.isbn,
-        url: sourceTbl.url,
-        publicationYear: sourceTbl.publicationYear,
-      },
+      source: sourceSelectDto,
     })
     .from(taxonSourceTbl)
     .innerJoin(sourceTbl, eq(sourceTbl.id, taxonSourceTbl.sourceId))
+    .leftJoin(
+      taxonSourceUsageAgg,
+      eq(taxonSourceUsageAgg.sourceId, sourceTbl.id),
+    )
     .where(eq(taxonSourceTbl.taxonId, taxonId))
     .orderBy(asc(sourceTbl.name), asc(taxonSourceTbl.id));
 

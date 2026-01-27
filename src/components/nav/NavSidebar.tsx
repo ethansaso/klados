@@ -10,7 +10,7 @@ interface ItemProps {
 const Item = ({ to, children, active }: PropsWithChildren<ItemProps>) => {
   return (
     <li className={active ? "active" : ""}>
-      <Button variant={active ? "solid" : "soft"} asChild>
+      <Button variant="soft" asChild>
         <Link to={to}>{children}</Link>
       </Button>
     </li>

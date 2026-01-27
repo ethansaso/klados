@@ -3,7 +3,7 @@ import z from "zod";
 import { requireAdminMiddleware } from "../../auth/serverFnMiddleware";
 import { banUser, getUserByIdOrUsername } from "../../domain/users/service";
 
-export const banUserFn = createServerFn({ method: "GET" })
+export const banUserAdminFn = createServerFn({ method: "GET" })
   .middleware([requireAdminMiddleware])
   .inputValidator(z.object({ userId: z.string() }))
   .handler(async ({ data }) => {

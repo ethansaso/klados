@@ -50,7 +50,7 @@ export const taxonSource = pgTable(
     // reject whitespace-only locators
     check(
       "taxon_source_locator_trimmed_ck",
-      sql`${t.locator} = '' OR btrim(${t.locator}) <> ''`
+      sql`${t.locator} = '' OR btrim(${t.locator}) <> ''`,
     ),
-  ]
+  ],
 );

@@ -11,8 +11,9 @@ export const AdminSectionHeader = ({
 }: AdminSectionHeaderProps) => {
   return (
     <Heading
-      {...props}
+      size="2"
       className={classNames("admin__section-header", className)}
+      {...props}
     >
       {children}
     </Heading>
