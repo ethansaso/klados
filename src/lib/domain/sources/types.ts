@@ -12,6 +12,8 @@ export type SourceDTO = Pick<
   | "isbn"
   | "url"
   | "publicationYear"
->;
+> & {
+  usageCount: number;
+};
 
 export type SourcePaginatedResult = PaginatedResult<SourceDTO>;

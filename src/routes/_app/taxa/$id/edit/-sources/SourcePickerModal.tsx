@@ -36,7 +36,7 @@ const SourcePickerModal = NiceModal.create<Props>(({ onConfirm }) => {
   const [selected, setSelected] = useState<ComboboxOption | null>(null);
 
   const { data: searchResp, isFetching } = useQuery(
-    sourcesQueryOptions(1, 10, { q }),
+    sourcesQueryOptions({ page: 1, pageSize: 10, filters: { q } }),
   );
 
   const options = useMemo<ComboboxOption[]>(() => {
@@ -89,7 +89,7 @@ const SourcePickerModal = NiceModal.create<Props>(({ onConfirm }) => {
     });
 
     onConfirm(created);
-    qc.invalidateQueries({ queryKey: ["sources"] });
+    qc.invalidateQueries({ queryKey: ["sources", { page: 1, pageSize: 10 }] });
     modal.hide();
   };
 

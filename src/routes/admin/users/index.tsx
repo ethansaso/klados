@@ -1,7 +1,14 @@
-import { Table } from "@radix-ui/themes";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { IconButton, Table, Tooltip } from "@radix-ui/themes";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useSearch } from "@tanstack/react-router";
-import { usersAdminViewQueryOptions } from "../../../lib/queries/users";
+import { useServerFn } from "@tanstack/react-start";
+import { PiHammer } from "react-icons/pi";
+import { banUserAdminFn } from "../../../lib/api/users/banUserAdminFn";
+import { unbanUserAdminFn } from "../../../lib/api/users/unbanUserAdminFn";
+import {
+  userQueryOptions,
+  usersAdminViewQueryOptions,
+} from "../../../lib/queries/users";
 import { SearchSchema } from "../../../lib/validation/search";
 
 export const Route = createFileRoute("/admin/users/")({
@@ -26,9 +33,31 @@ export const Route = createFileRoute("/admin/users/")({
 
 function RouteComponent() {
   const { page, pageSize: pageSize } = useSearch({ from: "/admin/users/" });
+  const qc = useQueryClient();
   const {
     data: { items },
   } = useSuspenseQuery(usersAdminViewQueryOptions(page, pageSize));
+  const banUser = useServerFn(banUserAdminFn);
+  const unbanUser = useServerFn(unbanUserAdminFn);
+
+  const invalidate = async (userId: string) => {
+    await qc.invalidateQueries({ queryKey: ["users"] });
+    await qc.invalidateQueries(userQueryOptions(userId));
+  };
+
+  const handleBanUser = async (userId: string) => {
+    if (confirm("Are you sure you want to ban this user?")) {
+      await banUser({ data: { userId } });
+      await invalidate(userId);
+    }
+  };
+
+  const handleUnbanUser = async (userId: string) => {
+    if (confirm("Are you sure you want to unban this user?")) {
+      await unbanUser({ data: { userId } });
+      await invalidate(userId);
+    }
+  };
 
   return (
     <Table.Root>
@@ -39,6 +68,7 @@ function RouteComponent() {
           <Table.ColumnHeaderCell>Email</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Creation Date</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Banned?</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Actions</Table.ColumnHeaderCell>
         </Table.Row>
       </Table.Header>
       <Table.Body>
@@ -51,6 +81,36 @@ function RouteComponent() {
               {new Date(user.createdAt).toLocaleDateString()}
             </Table.Cell>
             <Table.Cell>{user.banned ? "Yes" : "No"}</Table.Cell>
+            <Table.Cell>
+              {user.banned ? (
+                <Tooltip content="Unban User">
+                  <IconButton
+                    variant="ghost"
+                    color="tomato"
+                    onClick={() => handleUnbanUser(user.id)}
+                  >
+                    <PiHammer />
+                  </IconButton>
+                </Tooltip>
+              ) : (
+                <Tooltip
+                  content={
+                    user.role === "admin"
+                      ? "Admin users cannot be banned"
+                      : "Ban User"
+                  }
+                >
+                  <IconButton
+                    variant="ghost"
+                    color="tomato"
+                    onClick={() => handleBanUser(user.id)}
+                    disabled={user.role === "admin"}
+                  >
+                    <PiHammer />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Table.Cell>
           </Table.Row>
         ))}
       </Table.Body>

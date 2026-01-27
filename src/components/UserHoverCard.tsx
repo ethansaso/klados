@@ -19,7 +19,8 @@ interface UserHoverCardProps {
   name: string;
   imageUrl?: string;
   description?: string | null;
-  role?: UserRole;
+  role: UserRole;
+  banned: boolean | null;
   size?: "1" | "2" | "3";
 }
 
@@ -35,6 +36,7 @@ export const UserHoverCard = ({
   imageUrl,
   description,
   role,
+  banned,
   size = "2",
 }: UserHoverCardProps) => {
   return (
@@ -64,7 +66,7 @@ export const UserHoverCard = ({
                 @{username}
               </Text>
             </Box>
-            {role && <RoleBadge role={role} />}
+            {role && <RoleBadge role={role} banned={banned} />}
           </Flex>
         </Flex>
         {description && (

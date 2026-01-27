@@ -1,5 +1,6 @@
 .annotation-bubble__wrapper {
   position: relative;
+  width: 100%;
   --edge-spacing: var(--space-2);
 
   /* ---- Breakpoints ---- */
@@ -97,7 +98,7 @@
     padding: var(--space-1);
     background-color: var(--color-background-overlay);
     mix-blend-mode: screen;
-    z-index: 1000;
+    z-index: 1;
     max-width: calc(100% - (var(--edge-spacing) + var(--space-1)) * 2);
 
     .annotation-bubble__indicator {

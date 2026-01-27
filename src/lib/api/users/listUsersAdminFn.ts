@@ -5,7 +5,7 @@ import { getUsersAdminViewPage } from "../../domain/users/service";
 import type { UserAdminViewPaginatedResult } from "../../domain/users/types";
 import { PaginationSchema } from "../../validation/pagination";
 
-export const listUsersAdminViewFn = createServerFn({ method: "GET" })
+export const listUsersAdminFn = createServerFn({ method: "GET" })
   .middleware([requireAdminMiddleware])
   .inputValidator(
     PaginationSchema.extend({

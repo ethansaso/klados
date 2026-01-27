@@ -5,18 +5,24 @@ import { capitalizeFirstLetter } from "../lib/utils/formatting/casing";
 
 interface UserBadgeProps extends ComponentProps<typeof Badge> {
   role: UserDTO["role"];
+  banned: UserDTO["banned"];
 }
 
-export const RoleBadge = ({ role, size = "1", ...rest }: UserBadgeProps) => {
-  if (role === "user") return null;
+export const RoleBadge = ({
+  role,
+  banned,
+  size = "1",
+  ...rest
+}: UserBadgeProps) => {
+  if (role === "user" && !banned) return null;
   return (
     <Badge
-      variant="soft"
+      variant={banned ? "solid" : "soft"}
       size={size}
-      color={role === "admin" ? "tomato" : undefined}
+      color={role === "admin" ? "tomato" : banned ? "tomato" : undefined}
       {...rest}
     >
-      {capitalizeFirstLetter(role)}
+      {banned ? "BANNED" : capitalizeFirstLetter(role)}
     </Badge>
   );
 };

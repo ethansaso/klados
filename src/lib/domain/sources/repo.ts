@@ -4,7 +4,7 @@ import { source as sourceTbl } from "../../../../db/schema/sources/source";
 import { likeAnywhere } from "../../utils/likeAnywhere";
 import type { Transaction } from "../../utils/transactionType";
 import type { SourceSearchParams } from "./search";
-import { sourceSelectDto } from "./sqlAdapters";
+import { sourceSelectDto, taxonSourceUsageAgg } from "./sqlAdapters";
 import type { SourceDTO, SourcePaginatedResult } from "./types";
 import type { SourceItem } from "./validation";
 
@@ -38,7 +38,7 @@ export async function insertSource(
     throw new Error("Failed to insert source.");
   }
 
-  return inserted;
+  return { ...inserted, usageCount: 0 };
 }
 
 export async function selectSourceById(
@@ -48,6 +48,10 @@ export async function selectSourceById(
   const [source] = await tx
     .select(sourceSelectDto)
     .from(sourceTbl)
+    .leftJoin(
+      taxonSourceUsageAgg,
+      eq(taxonSourceUsageAgg.sourceId, sourceTbl.id),
+    )
     .where(eq(sourceTbl.id, id))
     .limit(1);
 
@@ -72,6 +76,10 @@ export async function selectSourceByUniqueKeys(
   const [row] = await tx
     .select(sourceSelectDto)
     .from(sourceTbl)
+    .leftJoin(
+      taxonSourceUsageAgg,
+      eq(taxonSourceUsageAgg.sourceId, sourceTbl.id),
+    )
     .where(or(...preds))
     .limit(1);
 
@@ -133,6 +141,10 @@ export async function listSourcesQuery(
   const items = await db
     .select(sourceSelectDto)
     .from(sourceTbl)
+    .leftJoin(
+      taxonSourceUsageAgg,
+      eq(taxonSourceUsageAgg.sourceId, sourceTbl.id),
+    )
     .where(where)
     .orderBy(order, asc(sourceTbl.id))
     .limit(pageSize)

@@ -26,10 +26,12 @@ import { Route as AppDmcaRouteImport } from './routes/_app/dmca'
 import { Route as AppAboutRouteImport } from './routes/_app/about'
 import { Route as ApiUnauthenticatedRouteRouteImport } from './routes/api/_unauthenticated/route'
 import { Route as AdminUsersRouteRouteImport } from './routes/admin/users/route'
+import { Route as AdminSourcesRouteRouteImport } from './routes/admin/sources/route'
 import { Route as AppUsersRouteRouteImport } from './routes/_app/users/route'
 import { Route as AppGuidesRouteRouteImport } from './routes/_app/guides/route'
 import { Route as AppGlossaryRouteRouteImport } from './routes/_app/glossary/route'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
+import { Route as AdminSourcesIndexRouteImport } from './routes/admin/sources/index'
 import { Route as AppUsersIndexRouteImport } from './routes/_app/users/index'
 import { Route as AppTaxaIndexRouteImport } from './routes/_app/taxa/index'
 import { Route as AppGlossaryIndexRouteImport } from './routes/_app/glossary/index'
@@ -145,6 +147,11 @@ const AdminUsersRouteRoute = AdminUsersRouteRouteImport.update({
   path: '/users',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminSourcesRouteRoute = AdminSourcesRouteRouteImport.update({
+  id: '/sources',
+  path: '/sources',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AppUsersRouteRoute = AppUsersRouteRouteImport.update({
   id: '/users',
   path: '/users',
@@ -164,6 +171,11 @@ const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminUsersRouteRoute,
+} as any)
+const AdminSourcesIndexRoute = AdminSourcesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminSourcesRouteRoute,
 } as any)
 const AppUsersIndexRoute = AppUsersIndexRouteImport.update({
   id: '/',
@@ -320,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/glossary': typeof AppGlossaryRouteRouteWithChildren
   '/guides': typeof AppGuidesBrowsingRouteRouteWithChildren
   '/users': typeof AppUsersRouteRouteWithChildren
+  '/admin/sources': typeof AdminSourcesRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
   '/api': typeof ApiUnauthenticatedRouteRouteWithChildren
   '/about': typeof AppAboutRoute
@@ -346,6 +359,7 @@ export interface FileRoutesByFullPath {
   '/glossary/': typeof AppGlossaryIndexRoute
   '/taxa/': typeof AppTaxaIndexRoute
   '/users/': typeof AppUsersIndexRoute
+  '/admin/sources/': typeof AdminSourcesIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/taxa/$id/edit': typeof AppTaxaIdEditRouteRouteWithChildren
   '/glossary/characters/$id': typeof AppGlossaryCharactersIdRoute
@@ -387,6 +401,7 @@ export interface FileRoutesByTo {
   '/glossary': typeof AppGlossaryIndexRoute
   '/taxa': typeof AppTaxaIndexRoute
   '/users': typeof AppUsersIndexRoute
+  '/admin/sources': typeof AdminSourcesIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
   '/glossary/characters/$id': typeof AppGlossaryCharactersIdRoute
   '/glossary/groups/$id': typeof AppGlossaryGroupsIdRoute
@@ -410,6 +425,7 @@ export interface FileRoutesById {
   '/_app/glossary': typeof AppGlossaryRouteRouteWithChildren
   '/_app/guides': typeof AppGuidesRouteRouteWithChildren
   '/_app/users': typeof AppUsersRouteRouteWithChildren
+  '/admin/sources': typeof AdminSourcesRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
   '/api/_unauthenticated': typeof ApiUnauthenticatedRouteRouteWithChildren
   '/_app/about': typeof AppAboutRoute
@@ -438,6 +454,7 @@ export interface FileRoutesById {
   '/_app/glossary/': typeof AppGlossaryIndexRoute
   '/_app/taxa/': typeof AppTaxaIndexRoute
   '/_app/users/': typeof AppUsersIndexRoute
+  '/admin/sources/': typeof AdminSourcesIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/_app/taxa/$id/edit': typeof AppTaxaIdEditRouteRouteWithChildren
   '/_app/glossary/characters/$id': typeof AppGlossaryCharactersIdRoute
@@ -464,6 +481,7 @@ export interface FileRouteTypes {
     | '/glossary'
     | '/guides'
     | '/users'
+    | '/admin/sources'
     | '/admin/users'
     | '/api'
     | '/about'
@@ -490,6 +508,7 @@ export interface FileRouteTypes {
     | '/glossary/'
     | '/taxa/'
     | '/users/'
+    | '/admin/sources/'
     | '/admin/users/'
     | '/taxa/$id/edit'
     | '/glossary/characters/$id'
@@ -531,6 +550,7 @@ export interface FileRouteTypes {
     | '/glossary'
     | '/taxa'
     | '/users'
+    | '/admin/sources'
     | '/admin/users'
     | '/glossary/characters/$id'
     | '/glossary/groups/$id'
@@ -553,6 +573,7 @@ export interface FileRouteTypes {
     | '/_app/glossary'
     | '/_app/guides'
     | '/_app/users'
+    | '/admin/sources'
     | '/admin/users'
     | '/api/_unauthenticated'
     | '/_app/about'
@@ -581,6 +602,7 @@ export interface FileRouteTypes {
     | '/_app/glossary/'
     | '/_app/taxa/'
     | '/_app/users/'
+    | '/admin/sources/'
     | '/admin/users/'
     | '/_app/taxa/$id/edit'
     | '/_app/glossary/characters/$id'
@@ -729,6 +751,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersRouteRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/sources': {
+      id: '/admin/sources'
+      path: '/sources'
+      fullPath: '/admin/sources'
+      preLoaderRoute: typeof AdminSourcesRouteRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/_app/users': {
       id: '/_app/users'
       path: '/users'
@@ -756,6 +785,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/users/'
       preLoaderRoute: typeof AdminUsersIndexRouteImport
       parentRoute: typeof AdminUsersRouteRoute
+    }
+    '/admin/sources/': {
+      id: '/admin/sources/'
+      path: '/'
+      fullPath: '/admin/sources/'
+      preLoaderRoute: typeof AdminSourcesIndexRouteImport
+      parentRoute: typeof AdminSourcesRouteRoute
     }
     '/_app/users/': {
       id: '/_app/users/'
@@ -1163,6 +1199,17 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
   AppRouteRouteChildren,
 )
 
+interface AdminSourcesRouteRouteChildren {
+  AdminSourcesIndexRoute: typeof AdminSourcesIndexRoute
+}
+
+const AdminSourcesRouteRouteChildren: AdminSourcesRouteRouteChildren = {
+  AdminSourcesIndexRoute: AdminSourcesIndexRoute,
+}
+
+const AdminSourcesRouteRouteWithChildren =
+  AdminSourcesRouteRoute._addFileChildren(AdminSourcesRouteRouteChildren)
+
 interface AdminUsersRouteRouteChildren {
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
 }
@@ -1176,11 +1223,13 @@ const AdminUsersRouteRouteWithChildren = AdminUsersRouteRoute._addFileChildren(
 )
 
 interface AdminRouteRouteChildren {
+  AdminSourcesRouteRoute: typeof AdminSourcesRouteRouteWithChildren
   AdminUsersRouteRoute: typeof AdminUsersRouteRouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminSourcesRouteRoute: AdminSourcesRouteRouteWithChildren,
   AdminUsersRouteRoute: AdminUsersRouteRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
 }
