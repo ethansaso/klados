@@ -66,8 +66,9 @@ export const GuideRow = ({ rowData }: GuideRowProps) => {
             name={author.name}
             description={author.description}
             role={author.role}
+            banned={author.banned}
           />
-          <RoleBadge role={author.role} />
+          <RoleBadge role={author.role} banned={author.banned} />
         </Flex>
       </Table.Cell>
       <Table.Cell>
