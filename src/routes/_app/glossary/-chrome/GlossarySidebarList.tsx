@@ -5,7 +5,12 @@ import { type PropsWithChildren } from "react";
 
 function List({ children }: PropsWithChildren) {
   return (
-    <ScrollArea type="hover" size="1" scrollbars="vertical">
+    <ScrollArea
+      type="hover"
+      size="1"
+      scrollbars="vertical"
+      className="glossary-sidebar__list"
+    >
       <NavigationMenu.Root orientation="vertical">
         <Flex asChild px="3" py="1" m="0" direction="column" gap="1">
           <NavigationMenu.List>{children}</NavigationMenu.List>
@@ -16,15 +21,15 @@ function List({ children }: PropsWithChildren) {
 }
 
 interface ItemProps {
-  keyStr: string;
   label: string;
+  sub: string;
   to: string;
   params?: Record<string, string | number>;
   search?: Record<string, string | number>;
 }
 
 function Item({
-  keyStr,
+  sub,
   label,
   to,
   params,
@@ -47,7 +52,7 @@ function Item({
                 {label}
               </Text>
               <Text as="p" size="1" color="gray" truncate>
-                {keyStr}
+                {sub || "\u00A0"}
               </Text>
             </Box>
             <Flex direction="column" align="end" justify="start">

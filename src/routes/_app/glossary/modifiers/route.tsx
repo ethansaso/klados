@@ -69,7 +69,7 @@ function RouteComponent() {
           {paginatedResult.items.map((item) => (
             <GlossarySidebarList.Item
               key={item.id}
-              keyStr={item.key}
+              sub={item.key}
               label={item.label}
               to="/glossary/modifiers/$id"
               params={{ id: item.id }}

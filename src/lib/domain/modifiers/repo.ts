@@ -6,8 +6,46 @@ import {
 } from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/likeAnywhere";
 import type { Transaction } from "../../utils/transactionType";
-import type { ModifierGroupDTO, ModifierGroupPaginatedResult } from "./types";
+import type {
+  ModifierDTO,
+  ModifierGroupDetailDTO,
+  ModifierGroupDTO,
+  ModifierGroupPaginatedResult,
+} from "./types";
 import type { CreateModifierGroupInput } from "./validation";
+
+export async function selectModifierGroupById(
+  id: number,
+): Promise<ModifierGroupDetailDTO | null> {
+  // Group itself -- COPILOT, are the following lines correct?
+  const [row] = await db
+    .select({
+      id: modifierGroupTbl.id,
+      key: modifierGroupTbl.key,
+      label: modifierGroupTbl.label,
+      description: modifierGroupTbl.description,
+      class: modifierGroupTbl.class,
+    })
+    .from(modifierGroupTbl)
+    .where(eq(modifierGroupTbl.id, id))
+    .limit(1);
+
+  if (!row) return null;
+
+  // Modifier values within the group
+  const values: ModifierDTO[] = await db
+    .select({
+      id: modifierValueTbl.id,
+      groupId: modifierValueTbl.groupId,
+      value: modifierValueTbl.value,
+      description: modifierValueTbl.description,
+      affixType: modifierValueTbl.affixType,
+    })
+    .from(modifierValueTbl)
+    .where(eq(modifierValueTbl.groupId, id));
+
+  return { ...row, values };
+}
 
 export async function listModifierGroupsQuery(args: {
   page: number;
