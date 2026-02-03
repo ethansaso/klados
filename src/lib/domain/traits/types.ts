@@ -3,7 +3,7 @@ import {
   categoricalTraitValue,
 } from "../../../../db/schema/schema";
 import type { PaginatedResult } from "../../validation/pagination";
-import type { Trait } from "../character-states/types";
+import type { Trait } from "../states/types";
 
 export type TraitSetRow = typeof categoricalTraitSet.$inferSelect;
 export type TraitSetDTO = Pick<

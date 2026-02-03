@@ -7,13 +7,13 @@ import {
   replaceCategoricalStatesForTaxon,
   replaceNumberStatesForTaxon,
   replaceRangeStatesForTaxon,
-} from "../character-states/repo";
+} from "../states/repo";
 import type {
   CategoricalCharacterUpdate,
   CharacterUpdate,
   NumberCharacterUpdate,
   RangeCharacterUpdate,
-} from "../character-states/validation";
+} from "../states/validation";
 import { replaceNamesForTaxon } from "../taxon-names/repo";
 import type { NameItem } from "../taxon-names/validation";
 import { setSourcesForTaxon } from "../taxon-sources/repo";

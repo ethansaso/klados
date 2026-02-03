@@ -4,7 +4,7 @@ import type {
   TaxonNumberStateDTO,
   TaxonRangeStateDTO,
   Trait,
-} from "../character-states/types";
+} from "../states/types";
 import type { TaxonDTO } from "../taxa/types";
 import type { MediaItem } from "../taxa/validation";
 

@@ -1,11 +1,11 @@
 import { Box, Heading, Text } from "@radix-ui/themes";
-import type { GroupedCharacterStates } from "../../../../../lib/domain/character-states/utils";
+import type { TaxonCharacterGroupStateDTO } from "../../../../../lib/domain/states/types";
 import { GroupCard } from "./GroupCard";
 
 export const TaxonCharacterSection = ({
   groups,
 }: {
-  groups: GroupedCharacterStates[];
+  groups: TaxonCharacterGroupStateDTO[];
 }) => {
   return (
     <Box>

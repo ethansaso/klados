@@ -1,16 +1,16 @@
 import { db } from "../../../../db/client";
 import {
   selectTaxonCharacterStatesByTaxonIds,
-  type TaxonCharacterStatesByTaxonId,
+  type TaxonStatesById,
 } from "./repo";
-import type { TaxonCharacterStateDTO } from "./types";
+import type { TaxonCharacterGroupStateDTO } from "./types";
 
 /**
  * Fetch all character states for a taxon.
  */
 export async function getTaxonCharacterStates(args: {
   taxonId: number;
-}): Promise<TaxonCharacterStateDTO[]> {
+}): Promise<TaxonCharacterGroupStateDTO[]> {
   const map = await db.transaction((tx) =>
     selectTaxonCharacterStatesByTaxonIds(tx, [args.taxonId]),
   );
@@ -20,11 +20,11 @@ export async function getTaxonCharacterStates(args: {
 /**
  * INTERNAL USE ONLY. Do not expose in public API.
  * Fetch character states for many taxa at once.
- * Returns a map taxonId -> TaxonCharacterStateDTO[].
+ * Returns a map taxonId -> TaxonCharacterGroupStateDTO[].
  */
 export async function getTaxaCharacterStates(args: {
   taxonIds: number[];
-}): Promise<TaxonCharacterStatesByTaxonId> {
+}): Promise<TaxonStatesById> {
   if (!args.taxonIds.length) return {};
 
   return db.transaction((tx) =>

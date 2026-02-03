@@ -1,5 +1,5 @@
 import { db } from "../../../../db/client";
-import { selectTaxonCharacterStatesByTaxonIds } from "../character-states/repo";
+import { selectTaxonCharacterStatesByTaxonIds } from "../states/repo";
 import { selectTaxonDtoById } from "../taxa/repo";
 import { computeTaxonLookalikesByCategoricalOverlap } from "./repo";
 import type { LookalikeComparisonDetailDTO, TaxonLookalikeDTO } from "./types";

@@ -1,4 +1,4 @@
-import type { TaxonCharacterStateDTO } from "../character-states/types";
+import type { TaxonCharacterStateDTO } from "../states/types";
 import type {
   LookalikeComparisonAnnotatedCategoricalState,
   LookalikeComparisonAnnotatedCategoricalTrait,

@@ -1,8 +1,8 @@
 import {
   getTaxaCharacterStates,
   getTaxonCharacterStates,
-} from "../../lib/domain/character-states/service";
-import type { TaxonCharacterStateDTO } from "../../lib/domain/character-states/types";
+} from "../../lib/domain/states/service";
+import type { TaxonCharacterStateDTO } from "../../lib/domain/states/types";
 import { getTaxonHierarchyMetaForParents } from "../../lib/domain/taxa/repo";
 import { getTaxon } from "../../lib/domain/taxa/service";
 import type { TaxonHierarchyDTO } from "../../lib/domain/taxa/types";

@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
-import { getTaxonCharacterStates } from "../../domain/character-states/service";
-import type { TaxonCharacterStateDTO } from "../../domain/character-states/types";
+import { getTaxonCharacterStates } from "../../domain/states/service";
+import type { TaxonCharacterGroupStateDTO } from "../../domain/states/types";
 
 export const getTaxonCharacterStatesFn = createServerFn({ method: "GET" })
   .inputValidator(
@@ -9,7 +9,7 @@ export const getTaxonCharacterStatesFn = createServerFn({ method: "GET" })
       taxonId: z.number().int().nonnegative(),
     }),
   )
-  .handler(async ({ data }): Promise<TaxonCharacterStateDTO[]> => {
+  .handler(async ({ data }): Promise<TaxonCharacterGroupStateDTO[]> => {
     const { taxonId } = data;
     return getTaxonCharacterStates({ taxonId });
   });

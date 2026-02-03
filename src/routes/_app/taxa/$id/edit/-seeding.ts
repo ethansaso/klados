@@ -1,5 +1,5 @@
 import type { TaxonEditFormValues } from ".";
-import type { TaxonCharacterStateDTO } from "../../../../../lib/domain/character-states/types";
+import type { TaxonCharacterStateDTO } from "../../../../../lib/domain/states/types";
 import type { TaxonDetailDTO } from "../../../../../lib/domain/taxa/types";
 import type { TaxonSourceDTO } from "../../../../../lib/domain/taxon-sources/types";
 import type { TaxonSourceUpsertItem } from "../../../../../lib/domain/taxon-sources/validation";

@@ -8,7 +8,6 @@ import {
   Breadcrumbs,
 } from "../../../../components/Breadcrumbs";
 import { ContentContainer } from "../../../../components/ContentContainer";
-import { groupStatesByGroup } from "../../../../lib/domain/character-states/utils";
 import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 import { taxonCharacterStatesQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
@@ -62,11 +61,6 @@ function TaxonPage() {
   const { data: lookalikes } = useSuspenseQuery(lookalikesQueryOptions(id));
   const { data: sources } = useSuspenseQuery(sourcesForTaxonQueryOptions(id));
 
-  const groupedStates = useMemo(
-    () => groupStatesByGroup(characterStates),
-    [characterStates],
-  );
-
   const breadcrumbItems: Breadcrumb[] = useMemo(() => {
     const items: Breadcrumb[] = taxon.ancestors.map((ancestor) => ({
       label: prefixWithRank(ancestor.rank, ancestor.acceptedName),
@@ -118,7 +112,7 @@ function TaxonPage() {
             <Tabs.Trigger value="sources">Sources</Tabs.Trigger>
           </Tabs.List>
           <Tabs.Content value="states">
-            <TaxonCharacterSection groups={groupedStates} />
+            <TaxonCharacterSection groups={characterStates} />
           </Tabs.Content>
           <Tabs.Content value="lookalikes">
             <LookalikesList

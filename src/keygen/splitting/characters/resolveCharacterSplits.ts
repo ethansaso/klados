@@ -1,7 +1,7 @@
 import type {
   TaxonCategoricalStateDTO,
   Trait,
-} from "../../../lib/domain/character-states/types";
+} from "../../../lib/domain/states/types";
 import type { HierarchyTaxonNode } from "../../hierarchy/types";
 import type { KeyGenOptions } from "../../options";
 import type {

@@ -1,7 +1,7 @@
 import type {
   TaxonCharacterStateDTO,
   Trait,
-} from "../../lib/domain/character-states/types";
+} from "../../lib/domain/states/types";
 import type { UnitDTO } from "../../lib/domain/units/types";
 
 // UI-focused types with optional weight styling.

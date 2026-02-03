@@ -8,12 +8,13 @@ import {
   numericCharacterMeta as numMetaTbl,
   taxonCharacterStateNumber as numStateTbl,
   taxonCharacterStateRange as rangeStateTbl,
+  taxonCharacterGroupState as tgsTbl,
   unit as unitsTbl,
 } from "../../../../db/schema/schema";
 import type { Transaction } from "../../utils/transactionType";
 import type {
   TaxonCategoricalStateDTO,
-  TaxonCharacterStateDTO,
+  TaxonCharacterGroupStateDTO,
   TaxonNumberStateDTO,
   TaxonRangeStateDTO,
 } from "./types";
@@ -23,10 +24,7 @@ import type {
   RangeCharacterUpdate,
 } from "./validation";
 
-export type TaxonCharacterStatesByTaxonId = Record<
-  number,
-  TaxonCharacterStateDTO[]
->;
+export type TaxonStatesById = Record<number, TaxonCharacterGroupStateDTO[]>;
 
 /**
  * Load character states for at least one taxon.
@@ -39,29 +37,34 @@ export type TaxonCharacterStatesByTaxonId = Record<
 export async function selectTaxonCharacterStatesByTaxonIds(
   tx: Transaction,
   taxonIds: number[],
-): Promise<TaxonCharacterStatesByTaxonId> {
+): Promise<TaxonStatesById> {
   if (!taxonIds.length) return {};
 
   // Categorical states data fetch
   const catRows = await tx
     .select({
-      taxonId: catStateTbl.taxonId,
+      taxonId: tgsTbl.taxonId,
+      groupStateId: tgsTbl.id,
+
+      groupId: groupsTbl.id,
+      groupLabel: groupsTbl.label,
+      groupDescription: groupsTbl.description,
+
       characterId: catStateTbl.characterId,
       characterLabel: charsTbl.label,
       characterDescription: charsTbl.description,
-      groupId: charsTbl.groupId,
-      groupLabel: groupsTbl.label,
-      groupDescription: groupsTbl.description,
+
       traitValueId: catStateTbl.traitValueId,
       traitValueLabel: catValTbl.label,
       isCanonical: catValTbl.isCanonical,
       canonicalValueId: catValTbl.canonicalValueId,
     })
     .from(catStateTbl)
+    .innerJoin(tgsTbl, eq(tgsTbl.id, catStateTbl.taxonGroupStateId))
+    .innerJoin(groupsTbl, eq(groupsTbl.id, tgsTbl.groupId))
     .innerJoin(charsTbl, eq(charsTbl.id, catStateTbl.characterId))
-    .innerJoin(groupsTbl, eq(groupsTbl.id, charsTbl.groupId))
     .innerJoin(catValTbl, eq(catValTbl.id, catStateTbl.traitValueId))
-    .where(inArray(catStateTbl.taxonId, taxonIds));
+    .where(inArray(tgsTbl.taxonId, taxonIds));
 
   const canonicalIds = Array.from(
     new Set(
@@ -71,70 +74,87 @@ export async function selectTaxonCharacterStatesByTaxonIds(
     ),
   );
 
-  const canonicalRows = await tx
-    .select({
-      id: catValTbl.id,
-      hexCode: catValTbl.hexCode,
-      description: catValTbl.description,
-    })
-    .from(catValTbl)
-    .where(inArray(catValTbl.id, canonicalIds));
+  const canonicalRows = canonicalIds.length
+    ? await tx
+        .select({
+          id: catValTbl.id,
+          hexCode: catValTbl.hexCode,
+          description: catValTbl.description,
+        })
+        .from(catValTbl)
+        .where(inArray(catValTbl.id, canonicalIds))
+    : [];
 
   const hexByCanonicalId = new Map(canonicalRows.map((r) => [r.id, r.hexCode]));
   const descriptionByCanonicalId = new Map(
     canonicalRows.map((r) => [r.id, r.description]),
   );
-  const byTaxon = new Map<number, Map<number, TaxonCharacterStateDTO>>();
 
   // Build categorical states
+  const byTaxon = new Map<number, Map<number, TaxonCharacterGroupStateDTO>>();
   for (const row of catRows) {
-    const byCharacter =
-      byTaxon.get(row.taxonId) ?? new Map<number, TaxonCharacterStateDTO>();
-    byTaxon.set(row.taxonId, byCharacter);
+    // taxon bucket
+    let groupsById = byTaxon.get(row.taxonId);
+    if (!groupsById) {
+      groupsById = new Map();
+      byTaxon.set(row.taxonId, groupsById);
+    }
 
-    let state = byCharacter.get(row.characterId) as
-      | TaxonCategoricalStateDTO
-      | undefined;
+    // group bucket
+    let group = groupsById.get(row.groupId);
+    if (!group) {
+      group = {
+        groupId: row.groupId,
+        groupLabel: row.groupLabel,
+        groupDescription: row.groupDescription,
+        states: [],
+      };
+      groupsById.set(row.groupId, group);
+    }
+
+    // character bucket inside group
+    let state = group.states.find(
+      (s) => s.kind === "categorical" && s.characterId === row.characterId,
+    ) as TaxonCategoricalStateDTO | undefined;
+
     if (!state) {
       state = {
         kind: "categorical",
         characterId: row.characterId,
         characterLabel: row.characterLabel,
         characterDescription: row.characterDescription,
-        groupId: row.groupId,
-        groupLabel: row.groupLabel,
-        groupDescription: row.groupDescription,
         traitValues: [],
       };
-      byCharacter.set(row.characterId, state);
+      group.states.push(state);
     }
 
+    // canonical resolution
     const canonicalId = row.isCanonical
       ? row.traitValueId
       : (row.canonicalValueId ?? row.traitValueId);
-
-    const hexCode = hexByCanonicalId.get(canonicalId);
-    const description = descriptionByCanonicalId.get(canonicalId);
 
     state.traitValues.push({
       id: row.traitValueId,
       canonicalId,
       label: row.traitValueLabel,
-      description: description ?? "",
-      hexCode: hexCode || undefined,
+      description: descriptionByCanonicalId.get(canonicalId) ?? "",
+      hexCode: hexByCanonicalId.get(canonicalId) || undefined,
     });
   }
 
   // Number states
   const numRows = await tx
     .select({
-      taxonId: numStateTbl.taxonId,
+      taxonId: tgsTbl.taxonId,
+
+      groupId: groupsTbl.id,
+      groupLabel: groupsTbl.label,
+      groupDescription: groupsTbl.description,
+
       characterId: numStateTbl.characterId,
       characterLabel: charsTbl.label,
       characterDescription: charsTbl.description,
-      groupId: charsTbl.groupId,
-      groupLabel: groupsTbl.label,
-      groupDescription: groupsTbl.description,
+
       siBaseValue: numStateTbl.siBaseValue,
       unitId: unitsTbl.id,
       unitFamilyId: unitsTbl.familyId,
@@ -143,24 +163,37 @@ export async function selectTaxonCharacterStatesByTaxonIds(
       unitScale: unitsTbl.scale,
     })
     .from(numStateTbl)
+    .innerJoin(tgsTbl, eq(tgsTbl.id, numStateTbl.taxonGroupStateId))
+    .innerJoin(groupsTbl, eq(groupsTbl.id, tgsTbl.groupId))
     .innerJoin(charsTbl, eq(charsTbl.id, numStateTbl.characterId))
-    .innerJoin(groupsTbl, eq(groupsTbl.id, charsTbl.groupId))
     .leftJoin(unitsTbl, eq(unitsTbl.id, numStateTbl.displayUnitId))
-    .where(inArray(numStateTbl.taxonId, taxonIds));
+    .where(inArray(tgsTbl.taxonId, taxonIds));
 
   for (const row of numRows) {
-    const byCharacter =
-      byTaxon.get(row.taxonId) ?? new Map<number, TaxonCharacterStateDTO>();
-    byTaxon.set(row.taxonId, byCharacter);
+    // taxon bucket
+    let groupsById = byTaxon.get(row.taxonId);
+    if (!groupsById) {
+      groupsById = new Map();
+      byTaxon.set(row.taxonId, groupsById);
+    }
+
+    // group bucket
+    let group = groupsById.get(row.groupId);
+    if (!group) {
+      group = {
+        groupId: row.groupId,
+        groupLabel: row.groupLabel,
+        groupDescription: row.groupDescription,
+        states: [],
+      };
+      groupsById.set(row.groupId, group);
+    }
 
     const state: TaxonNumberStateDTO = {
       kind: "number",
       characterId: row.characterId,
       characterLabel: row.characterLabel,
       characterDescription: row.characterDescription,
-      groupId: row.groupId,
-      groupLabel: row.groupLabel,
-      groupDescription: row.groupDescription,
       siBaseValue: parseFloat(row.siBaseValue),
       unit:
         row.unitId !== null
@@ -173,21 +206,27 @@ export async function selectTaxonCharacterStatesByTaxonIds(
             }
           : null,
     };
-    byCharacter.set(row.characterId, state);
+
+    group.states.push(state);
   }
 
   // Range states
   const rangeRows = await tx
     .select({
-      taxonId: rangeStateTbl.taxonId,
+      taxonId: tgsTbl.taxonId,
+      groupStateId: tgsTbl.id,
+
+      groupId: groupsTbl.id,
+      groupLabel: groupsTbl.label,
+      groupDescription: groupsTbl.description,
+
       characterId: rangeStateTbl.characterId,
       characterLabel: charsTbl.label,
       characterDescription: charsTbl.description,
-      groupId: charsTbl.groupId,
-      groupLabel: groupsTbl.label,
-      groupDescription: groupsTbl.description,
+
       siBaseMin: rangeStateTbl.siBaseMin,
       siBaseMax: rangeStateTbl.siBaseMax,
+
       unitId: unitsTbl.id,
       unitFamilyId: unitsTbl.familyId,
       unitKey: unitsTbl.key,
@@ -195,24 +234,37 @@ export async function selectTaxonCharacterStatesByTaxonIds(
       unitScale: unitsTbl.scale,
     })
     .from(rangeStateTbl)
+    .innerJoin(tgsTbl, eq(tgsTbl.id, rangeStateTbl.taxonGroupStateId))
+    .innerJoin(groupsTbl, eq(groupsTbl.id, tgsTbl.groupId))
     .innerJoin(charsTbl, eq(charsTbl.id, rangeStateTbl.characterId))
-    .innerJoin(groupsTbl, eq(groupsTbl.id, charsTbl.groupId))
     .leftJoin(unitsTbl, eq(unitsTbl.id, rangeStateTbl.displayUnitId))
-    .where(inArray(rangeStateTbl.taxonId, taxonIds));
+    .where(inArray(tgsTbl.taxonId, taxonIds));
 
   for (const row of rangeRows) {
-    const byCharacter =
-      byTaxon.get(row.taxonId) ?? new Map<number, TaxonCharacterStateDTO>();
-    byTaxon.set(row.taxonId, byCharacter);
+    // taxon bucket
+    let groupsById = byTaxon.get(row.taxonId);
+    if (!groupsById) {
+      groupsById = new Map();
+      byTaxon.set(row.taxonId, groupsById);
+    }
+
+    // group bucket
+    let group = groupsById.get(row.groupId);
+    if (!group) {
+      group = {
+        groupId: row.groupId,
+        groupLabel: row.groupLabel,
+        groupDescription: row.groupDescription,
+        states: [],
+      };
+      groupsById.set(row.groupId, group);
+    }
 
     const state: TaxonRangeStateDTO = {
       kind: "range",
       characterId: row.characterId,
       characterLabel: row.characterLabel,
       characterDescription: row.characterDescription,
-      groupId: row.groupId,
-      groupLabel: row.groupLabel,
-      groupDescription: row.groupDescription,
       siBaseMin: parseFloat(row.siBaseMin),
       siBaseMax: parseFloat(row.siBaseMax),
       unit:
@@ -226,13 +278,14 @@ export async function selectTaxonCharacterStatesByTaxonIds(
             }
           : null,
     };
-    byCharacter.set(row.characterId, state);
+
+    group.states.push(state);
   }
 
   // Convert to plain object
-  const result: TaxonCharacterStatesByTaxonId = {};
-  for (const [taxonId, byCharacter] of byTaxon) {
-    result[taxonId] = Array.from(byCharacter.values());
+  const result: TaxonStatesById = {};
+  for (const [taxonId, groups] of byTaxon) {
+    result[taxonId] = Array.from(groups.values());
   }
 
   return result;
