@@ -1,0 +1,1 @@
+DROP TABLE "taxon_character_group";

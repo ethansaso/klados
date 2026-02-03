@@ -27,6 +27,9 @@ export const character = pgTable(
   (t) => [
     uniqueIndex("characters_key_uq").on(t.key),
     index("characters_group_idx").on(t.groupId),
+
+    // ! REQUIRED FOR COMPOSITE FKs FROM STATE TABLES !
+    uniqueIndex("character_id_group_uq").on(t.id, t.groupId),
   ],
 );
 
