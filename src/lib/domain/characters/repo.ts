@@ -15,11 +15,12 @@ import {
   character as charsTbl,
   characterGroup as groupsTbl,
   numericCharacterMeta as numMetaTbl,
+  taxonCharacterStateCategorical as tcsCatTbl,
+  taxonCharacterStateNumber as tcsNumTbl,
+  taxonCharacterStateRange as tcsRangeTbl,
+  taxonCharacterGroupState as tgsTbl,
   categoricalTraitSet as traitSetTbl,
   unitFamily as unitFamilyTbl,
-  taxonCharacterStateCategorical as valCatTbl,
-  taxonCharacterStateNumber as valNumTbl,
-  taxonCharacterStateRange as valRangeTbl,
 } from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/likeAnywhere";
 import type { Transaction } from "../../utils/transactionType";
@@ -101,18 +102,29 @@ function toCharacterDTO(row: RawCharacterRow): CharacterDTO {
 export async function fetchCharacterDetailById(
   id: number,
 ): Promise<CharacterDetailDTO | null> {
-  // Get categorical row first
-  const catRow = await db
+  // Fetch base character + group
+  const base = await db
     .select({
-      type: sql<"categorical">`'categorical'`,
       id: charsTbl.id,
       key: charsTbl.key,
       label: charsTbl.label,
       description: charsTbl.description,
-      group: { id: groupsTbl.id, label: groupsTbl.label },
+      group: {
+        id: groupsTbl.id,
+        label: groupsTbl.label,
+      },
+    })
+    .from(charsTbl)
+    .innerJoin(groupsTbl, eq(groupsTbl.id, charsTbl.groupId))
+    .where(eq(charsTbl.id, id))
+    .limit(1)
+    .then((rows) => rows[0]);
 
-      usageCount: sql<number>`COUNT(DISTINCT ${valCatTbl.taxonId})`,
+  if (!base) return null;
 
+  // Check categorical metadata
+  const categoricalMeta = await db
+    .select({
       isMultiSelect: catMetaTbl.isMultiSelect,
       traitSet: {
         id: traitSetTbl.id,
@@ -121,109 +133,89 @@ export async function fetchCharacterDetailById(
         description: traitSetTbl.description,
       },
     })
-    .from(charsTbl)
-    .innerJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
-    .innerJoin(groupsTbl, eq(groupsTbl.id, charsTbl.groupId))
+    .from(catMetaTbl)
     .innerJoin(traitSetTbl, eq(traitSetTbl.id, catMetaTbl.traitSetId))
-    .leftJoin(valCatTbl, eq(valCatTbl.characterId, charsTbl.id))
-    .where(eq(charsTbl.id, id))
-    .groupBy(
-      charsTbl.id,
-      charsTbl.key,
-      charsTbl.label,
-      charsTbl.description,
-      groupsTbl.id,
-      groupsTbl.label,
-      catMetaTbl.isMultiSelect,
-      traitSetTbl.id,
-      traitSetTbl.key,
-      traitSetTbl.label,
-      traitSetTbl.description,
-    )
+    .where(eq(catMetaTbl.characterId, id))
     .limit(1)
     .then((rows) => rows[0]);
 
-  // 1) Found categorical row; return it
-  if (catRow) {
+  // If categorical, compute usage count and return
+  if (categoricalMeta) {
+    const usageCount = await db
+      .select({
+        count: sql<number>`count(distinct ${tgsTbl.taxonId})`,
+      })
+      .from(tcsCatTbl)
+      .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonGroupStateId))
+      .where(eq(tcsCatTbl.characterId, id))
+      .then((rows) => rows[0]?.count ?? 0);
+
     return {
-      id: catRow.id,
-      key: catRow.key,
-      label: catRow.label,
-      description: catRow.description,
-      group: catRow.group,
-      usageCount: catRow.usageCount,
+      id: base.id,
+      key: base.key,
+      label: base.label,
+      description: base.description,
+      group: base.group,
+      usageCount,
+      characterId: base.id,
       type: "categorical",
-      characterId: catRow.id,
-      isMultiSelect: catRow.isMultiSelect,
-      traitSet: catRow.traitSet,
+      isMultiSelect: categoricalMeta.isMultiSelect,
+      traitSet: categoricalMeta.traitSet,
     };
   }
 
-  // 2) Not categorical; try number/range
-  const numRow = await db
+  // Otherwise, fetch numeric / range metadata
+  const numericMeta = await db
     .select({
-      type: sql<"number" | "range">`CASE
-        WHEN ${numMetaTbl.kind} = 'single' THEN 'number'
-        ELSE 'range'
-      END`,
-      id: charsTbl.id,
-      key: charsTbl.key,
-      label: charsTbl.label,
-      description: charsTbl.description,
-      group: { id: groupsTbl.id, label: groupsTbl.label },
-
-      // Usage count depends on kind; count distinct taxa in the correct state table.
-      usageCount: sql<number>`CASE
-        WHEN ${numMetaTbl.kind} = 'single' THEN COUNT(DISTINCT ${valNumTbl.taxonId})
-        ELSE COUNT(DISTINCT ${valRangeTbl.taxonId})
-      END`,
-
+      kind: numMetaTbl.kind, // 'single' | 'range'
       unitFamily: {
         id: unitFamilyTbl.id,
         label: unitFamilyTbl.label,
       },
     })
-    .from(charsTbl)
-    .innerJoin(numMetaTbl, eq(numMetaTbl.characterId, charsTbl.id))
-    .innerJoin(groupsTbl, eq(groupsTbl.id, charsTbl.groupId))
+    .from(numMetaTbl)
     .innerJoin(unitFamilyTbl, eq(unitFamilyTbl.id, numMetaTbl.unitFamilyId))
-    .leftJoin(valNumTbl, eq(valNumTbl.characterId, charsTbl.id))
-    .leftJoin(valRangeTbl, eq(valRangeTbl.characterId, charsTbl.id))
-    .where(eq(charsTbl.id, id))
-    .groupBy(
-      charsTbl.id,
-      charsTbl.key,
-      charsTbl.label,
-      charsTbl.description,
-      groupsTbl.id,
-      groupsTbl.label,
-      numMetaTbl.kind,
-      unitFamilyTbl.id,
-      unitFamilyTbl.label,
-    )
+    .where(eq(numMetaTbl.characterId, id))
     .limit(1)
     .then((rows) => rows[0]);
 
-  // If neither, simply return null
-  if (!numRow) return null;
+  if (!numericMeta) return null;
 
-  // DTO formation
-  const base = {
-    id: numRow.id,
-    key: numRow.key,
-    label: numRow.label,
-    description: numRow.description,
-    group: numRow.group,
-    usageCount: numRow.usageCount,
-    characterId: numRow.id,
-    unitFamily: numRow.unitFamily,
+  // Compute usage count based on numeric kind
+  const usageCount =
+    numericMeta.kind === "single"
+      ? await db
+          .select({
+            count: sql<number>`count(distinct ${tgsTbl.taxonId})`,
+          })
+          .from(tcsNumTbl)
+          .innerJoin(tgsTbl, eq(tgsTbl.id, tcsNumTbl.taxonGroupStateId))
+          .where(eq(tcsNumTbl.characterId, id))
+          .then((rows) => rows[0]?.count ?? 0)
+      : await db
+          .select({
+            count: sql<number>`count(distinct ${tgsTbl.taxonId})`,
+          })
+          .from(tcsRangeTbl)
+          .innerJoin(tgsTbl, eq(tgsTbl.id, tcsRangeTbl.taxonGroupStateId))
+          .where(eq(tcsRangeTbl.characterId, id))
+          .then((rows) => rows[0]?.count ?? 0);
+
+  const baseNumeric = {
+    id: base.id,
+    key: base.key,
+    label: base.label,
+    description: base.description,
+    group: base.group,
+    usageCount,
+    characterId: base.id,
+    unitFamily: numericMeta.unitFamily,
   };
 
-  if (numRow.type === "number") {
-    return { ...base, type: "number" };
-  }
-
-  return { ...base, type: "range" };
+  // Return number or range DTO
+  return numericMeta.kind === "single"
+    ? { ...baseNumeric, type: "number" }
+    : { ...baseNumeric, type: "range" };
 }
 
 /**
@@ -444,29 +436,76 @@ export async function countUsageForCharacter(
   tx: Transaction,
   characterId: number,
 ): Promise<number | null> {
-  const [row] = await tx
-    .select({
-      existsId: charsTbl.id,
-
-      usageCount: sql<number>`CASE
-        WHEN ${catMetaTbl.characterId} IS NOT NULL THEN COUNT(DISTINCT ${valCatTbl.taxonId})
-        WHEN ${numMetaTbl.kind} = 'single'        THEN COUNT(DISTINCT ${valNumTbl.taxonId})
-        WHEN ${numMetaTbl.kind} = 'range'         THEN COUNT(DISTINCT ${valRangeTbl.taxonId})
-        ELSE 0
-      END`,
-    })
+  // Ensure character exists
+  const exists = await tx
+    .select({ id: charsTbl.id })
     .from(charsTbl)
-    .leftJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
-    .leftJoin(numMetaTbl, eq(numMetaTbl.characterId, charsTbl.id))
-    .leftJoin(valCatTbl, eq(valCatTbl.characterId, charsTbl.id))
-    .leftJoin(valNumTbl, eq(valNumTbl.characterId, charsTbl.id))
-    .leftJoin(valRangeTbl, eq(valRangeTbl.characterId, charsTbl.id))
     .where(eq(charsTbl.id, characterId))
-    .groupBy(charsTbl.id, catMetaTbl.characterId, numMetaTbl.kind)
-    .limit(1);
+    .limit(1)
+    .then((rows) => rows[0]);
 
-  if (!row) return null;
-  return Number(row.usageCount ?? 0);
+  if (!exists) return null;
+
+  // Check categorical
+  const categorical = await tx
+    .select({ id: catMetaTbl.characterId })
+    .from(catMetaTbl)
+    .where(eq(catMetaTbl.characterId, characterId))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (categorical) {
+    const row = await tx
+      .select({
+        count: sql<number>`count(distinct ${tgsTbl.taxonId})`,
+      })
+      .from(tcsCatTbl)
+      .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonGroupStateId))
+      .where(eq(tcsCatTbl.characterId, characterId))
+      .then((rows) => rows[0]);
+
+    return row?.count ?? 0;
+  }
+
+  // Check numeric (single or range)
+  const numericMeta = await tx
+    .select({
+      kind: numMetaTbl.kind, // 'single' | 'range'
+    })
+    .from(numMetaTbl)
+    .where(eq(numMetaTbl.characterId, characterId))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!numericMeta) {
+    // Character exists but has no meta (shouldn't happen, but be safe)
+    return 0;
+  }
+
+  if (numericMeta.kind === "single") {
+    const row = await tx
+      .select({
+        count: sql<number>`count(distinct ${tgsTbl.taxonId})`,
+      })
+      .from(tcsNumTbl)
+      .innerJoin(tgsTbl, eq(tgsTbl.id, tcsNumTbl.taxonGroupStateId))
+      .where(eq(tcsNumTbl.characterId, characterId))
+      .then((rows) => rows[0]);
+
+    return row?.count ?? 0;
+  }
+
+  // range
+  const row = await tx
+    .select({
+      count: sql<number>`count(distinct ${tgsTbl.taxonId})`,
+    })
+    .from(tcsRangeTbl)
+    .innerJoin(tgsTbl, eq(tgsTbl.id, tcsRangeTbl.taxonGroupStateId))
+    .where(eq(tcsRangeTbl.characterId, characterId))
+    .then((rows) => rows[0]);
+
+  return row?.count ?? 0;
 }
 
 /**

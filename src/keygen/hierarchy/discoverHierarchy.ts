@@ -1,7 +1,4 @@
-import {
-  getTaxaCharacterStates,
-  getTaxonCharacterStates,
-} from "../../lib/domain/states/service";
+import { getTaxaStates, getTaxonStates } from "../../lib/domain/states/service";
 import type { TaxonCharacterStateDTO } from "../../lib/domain/states/types";
 import { getTaxonHierarchyMetaForParents } from "../../lib/domain/taxa/repo";
 import { getTaxon } from "../../lib/domain/taxa/service";
@@ -22,7 +19,7 @@ export const fetchAndAssembleTaxonNode = async (
   if (!taxon) {
     return null;
   }
-  const taxonData = await getTaxonCharacterStates({ taxonId });
+  const taxonData = await getTaxonStates({ taxonId });
   if (!taxonData) {
     return null;
   }
@@ -119,7 +116,7 @@ async function loadStatesForHierarchy(
   if (allIds.length === 0) {
     return {};
   }
-  return getTaxaCharacterStates({ taxonIds: allIds });
+  return getTaxaStates({ taxonIds: allIds });
 }
 
 /**

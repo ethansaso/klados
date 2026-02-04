@@ -20,35 +20,64 @@ import type {
 } from "./types";
 import type {
   CategoricalCharacterUpdate,
+  GroupedCharacterUpdate,
   NumberCharacterUpdate,
   RangeCharacterUpdate,
 } from "./validation";
 
-export type TaxonStatesById = Record<number, TaxonCharacterGroupStateDTO[]>;
+/** Mapping of ID (string form of an int) to TaxonCharacterGroupStateDTO. */
+export type TaxonStatesById = Record<string, TaxonCharacterGroupStateDTO[]>;
 
 /**
  * Load character states for at least one taxon.
- * Returns a map taxonId -> TaxonCharacterStateDTO[].
+ * Returns a map taxonId -> TaxonCharacterGroupStateDTO[].
  *
  * For traitValues:
  * - label comes from the **stored** value (alias or canonical),
  * - hexCode comes from the **canonical** value (or itself if canonical).
  */
-export async function selectTaxonCharacterStatesByTaxonIds(
+export async function selectTaxonStatesByTaxonIds(
   tx: Transaction,
   taxonIds: number[],
 ): Promise<TaxonStatesById> {
   if (!taxonIds.length) return {};
 
-  // Categorical states data fetch
-  const catRows = await tx
+  // Load all group states up front (including empty ones)
+  const groupRows = await tx
     .select({
       taxonId: tgsTbl.taxonId,
-      groupStateId: tgsTbl.id,
 
       groupId: groupsTbl.id,
       groupLabel: groupsTbl.label,
       groupDescription: groupsTbl.description,
+    })
+    .from(tgsTbl)
+    .innerJoin(groupsTbl, eq(groupsTbl.id, tgsTbl.groupId))
+    .where(inArray(tgsTbl.taxonId, taxonIds));
+
+  const byTaxon = new Map<number, Map<number, TaxonCharacterGroupStateDTO>>();
+
+  for (const row of groupRows) {
+    let groupsById = byTaxon.get(row.taxonId);
+    if (!groupsById) {
+      groupsById = new Map();
+      byTaxon.set(row.taxonId, groupsById);
+    }
+
+    groupsById.set(row.groupId, {
+      groupId: row.groupId,
+      groupLabel: row.groupLabel,
+      groupDescription: row.groupDescription,
+      states: [],
+    });
+  }
+
+  // Categorical states
+  const catRows = await tx
+    .select({
+      taxonId: tgsTbl.taxonId,
+
+      groupId: groupsTbl.id,
 
       characterId: catStateTbl.characterId,
       characterLabel: charsTbl.label,
@@ -90,29 +119,13 @@ export async function selectTaxonCharacterStatesByTaxonIds(
     canonicalRows.map((r) => [r.id, r.description]),
   );
 
-  // Build categorical states
-  const byTaxon = new Map<number, Map<number, TaxonCharacterGroupStateDTO>>();
   for (const row of catRows) {
-    // taxon bucket
-    let groupsById = byTaxon.get(row.taxonId);
-    if (!groupsById) {
-      groupsById = new Map();
-      byTaxon.set(row.taxonId, groupsById);
-    }
+    const groupsById = byTaxon.get(row.taxonId);
+    if (!groupsById) continue;
 
-    // group bucket
-    let group = groupsById.get(row.groupId);
-    if (!group) {
-      group = {
-        groupId: row.groupId,
-        groupLabel: row.groupLabel,
-        groupDescription: row.groupDescription,
-        states: [],
-      };
-      groupsById.set(row.groupId, group);
-    }
+    const group = groupsById.get(row.groupId);
+    if (!group) continue;
 
-    // character bucket inside group
     let state = group.states.find(
       (s) => s.kind === "categorical" && s.characterId === row.characterId,
     ) as TaxonCategoricalStateDTO | undefined;
@@ -128,7 +141,6 @@ export async function selectTaxonCharacterStatesByTaxonIds(
       group.states.push(state);
     }
 
-    // canonical resolution
     const canonicalId = row.isCanonical
       ? row.traitValueId
       : (row.canonicalValueId ?? row.traitValueId);
@@ -148,8 +160,6 @@ export async function selectTaxonCharacterStatesByTaxonIds(
       taxonId: tgsTbl.taxonId,
 
       groupId: groupsTbl.id,
-      groupLabel: groupsTbl.label,
-      groupDescription: groupsTbl.description,
 
       characterId: numStateTbl.characterId,
       characterLabel: charsTbl.label,
@@ -170,24 +180,11 @@ export async function selectTaxonCharacterStatesByTaxonIds(
     .where(inArray(tgsTbl.taxonId, taxonIds));
 
   for (const row of numRows) {
-    // taxon bucket
-    let groupsById = byTaxon.get(row.taxonId);
-    if (!groupsById) {
-      groupsById = new Map();
-      byTaxon.set(row.taxonId, groupsById);
-    }
+    const groupsById = byTaxon.get(row.taxonId);
+    if (!groupsById) continue;
 
-    // group bucket
-    let group = groupsById.get(row.groupId);
-    if (!group) {
-      group = {
-        groupId: row.groupId,
-        groupLabel: row.groupLabel,
-        groupDescription: row.groupDescription,
-        states: [],
-      };
-      groupsById.set(row.groupId, group);
-    }
+    const group = groupsById.get(row.groupId);
+    if (!group) continue;
 
     const state: TaxonNumberStateDTO = {
       kind: "number",
@@ -214,11 +211,8 @@ export async function selectTaxonCharacterStatesByTaxonIds(
   const rangeRows = await tx
     .select({
       taxonId: tgsTbl.taxonId,
-      groupStateId: tgsTbl.id,
 
       groupId: groupsTbl.id,
-      groupLabel: groupsTbl.label,
-      groupDescription: groupsTbl.description,
 
       characterId: rangeStateTbl.characterId,
       characterLabel: charsTbl.label,
@@ -241,24 +235,11 @@ export async function selectTaxonCharacterStatesByTaxonIds(
     .where(inArray(tgsTbl.taxonId, taxonIds));
 
   for (const row of rangeRows) {
-    // taxon bucket
-    let groupsById = byTaxon.get(row.taxonId);
-    if (!groupsById) {
-      groupsById = new Map();
-      byTaxon.set(row.taxonId, groupsById);
-    }
+    const groupsById = byTaxon.get(row.taxonId);
+    if (!groupsById) continue;
 
-    // group bucket
-    let group = groupsById.get(row.groupId);
-    if (!group) {
-      group = {
-        groupId: row.groupId,
-        groupLabel: row.groupLabel,
-        groupDescription: row.groupDescription,
-        states: [],
-      };
-      groupsById.set(row.groupId, group);
-    }
+    const group = groupsById.get(row.groupId);
+    if (!group) continue;
 
     const state: TaxonRangeStateDTO = {
       kind: "range",
@@ -282,7 +263,6 @@ export async function selectTaxonCharacterStatesByTaxonIds(
     group.states.push(state);
   }
 
-  // Convert to plain object
   const result: TaxonStatesById = {};
   for (const [taxonId, groups] of byTaxon) {
     result[taxonId] = Array.from(groups.values());
@@ -291,18 +271,104 @@ export async function selectTaxonCharacterStatesByTaxonIds(
   return result;
 }
 
-export async function replaceCategoricalStatesForTaxon(
+/** Replace all group + character states for a taxon authoritatively. */
+export async function replaceGroupedCharacterStatesForTaxon(
   tx: Transaction,
   taxonId: number,
-  updates: CategoricalCharacterUpdate[],
+  groups: GroupedCharacterUpdate,
 ): Promise<void> {
-  // Clear if empty
-  if (updates.length === 0) {
-    await tx.delete(catStateTbl).where(eq(catStateTbl.taxonId, taxonId));
-    return;
+  console.log(groups);
+  // Load existing group states for taxon
+  const existing = await tx
+    .select({
+      id: tgsTbl.id,
+      groupId: tgsTbl.groupId,
+    })
+    .from(tgsTbl)
+    .where(eq(tgsTbl.taxonId, taxonId));
+
+  const existingByGroupId = new Map(existing.map((g) => [g.groupId, g]));
+
+  const incomingGroupIds = new Set(groups.map((g) => g.groupId));
+
+  // Delete group states that are no longer present
+  const groupStateIdsToDelete = existing
+    .filter((g) => !incomingGroupIds.has(g.groupId))
+    .map((g) => g.id);
+
+  if (groupStateIdsToDelete.length > 0) {
+    await tx.delete(tgsTbl).where(inArray(tgsTbl.id, groupStateIdsToDelete));
   }
 
-  // Normalize: dedupe by characterId, dedupe traitValueIds
+  // Process each incoming group
+  for (const group of groups) {
+    let groupStateId: number;
+
+    const existingGroup = existingByGroupId.get(group.groupId);
+    if (existingGroup) {
+      groupStateId = existingGroup.id;
+    } else {
+      const rows = await tx
+        .insert(tgsTbl)
+        .values({
+          taxonId,
+          groupId: group.groupId,
+        })
+        .returning({ id: tgsTbl.id });
+
+      if (rows.length !== 1) {
+        throw new Error("Failed to create taxon group state.");
+      }
+
+      groupStateId = rows[0]!.id;
+    }
+
+    const categorical = group.characters.filter(
+      (c): c is CategoricalCharacterUpdate => c.kind === "categorical",
+    );
+    const number = group.characters.filter(
+      (c): c is NumberCharacterUpdate => c.kind === "number",
+    );
+    const range = group.characters.filter(
+      (c): c is RangeCharacterUpdate => c.kind === "range",
+    );
+
+    await replaceCategoricalStatesForGroupState(
+      tx,
+      groupStateId,
+      group.groupId,
+      categorical,
+    );
+
+    await replaceNumberStatesForGroupState(
+      tx,
+      groupStateId,
+      group.groupId,
+      number,
+    );
+
+    await replaceRangeStatesForGroupState(
+      tx,
+      groupStateId,
+      group.groupId,
+      range,
+    );
+  }
+}
+
+/** Replace categorical states for a single taxon-group-state. */
+async function replaceCategoricalStatesForGroupState(
+  tx: Transaction,
+  taxonGroupStateId: number,
+  groupId: number,
+  updates: CategoricalCharacterUpdate[],
+): Promise<void> {
+  await tx
+    .delete(catStateTbl)
+    .where(eq(catStateTbl.taxonGroupStateId, taxonGroupStateId));
+
+  if (updates.length === 0) return;
+
   const byCharacter = new Map<number, Set<number>>();
   for (const u of updates) {
     const set = byCharacter.get(u.characterId) ?? new Set<number>();
@@ -330,22 +396,9 @@ export async function replaceCategoricalStatesForTaxon(
 
   const metaByCharacter = new Map(metas.map((m) => [m.characterId, m]));
 
-  for (const c of normalized) {
-    if (!metaByCharacter.has(c.characterId)) {
-      throw new Error(
-        `Character ${c.characterId} is not categorical or does not exist.`,
-      );
-    }
-  }
-
   const allTraitValueIds = Array.from(
     new Set(normalized.flatMap((c) => c.traitValueIds)),
   );
-
-  if (allTraitValueIds.length === 0) {
-    await tx.delete(catStateTbl).where(eq(catStateTbl.taxonId, taxonId));
-    return;
-  }
 
   const traitValues = await tx
     .select({
@@ -357,60 +410,67 @@ export async function replaceCategoricalStatesForTaxon(
 
   const traitValueById = new Map(traitValues.map((v) => [v.id, v]));
 
-  const rowsToInsert: Array<{
-    taxonId: number;
+  const rows: Array<{
+    taxonGroupStateId: number;
     characterId: number;
     traitValueId: number;
+    groupId: number;
   }> = [];
 
   for (const c of normalized) {
-    const meta = metaByCharacter.get(c.characterId)!;
+    const meta = metaByCharacter.get(c.characterId);
+    if (!meta) {
+      throw new Error(`Character ${c.characterId} is not categorical.`);
+    }
 
     if (!meta.isMultiSelect && c.traitValueIds.length > 1) {
       throw new Error(
-        `Character ${c.characterId} does not allow multiple states.`,
+        `Character ${c.characterId} does not allow multiple values.`,
       );
     }
 
     for (const traitValueId of c.traitValueIds) {
       const tv = traitValueById.get(traitValueId);
-      if (!tv) throw new Error(`Unknown trait value id ${traitValueId}.`);
+      if (!tv) throw new Error(`Unknown trait value ${traitValueId}.`);
       if (tv.setId !== meta.traitSetId) {
         throw new Error(
           `Trait value ${traitValueId} does not belong to character ${c.characterId}.`,
         );
       }
-      rowsToInsert.push({ taxonId, characterId: c.characterId, traitValueId });
+
+      rows.push({
+        taxonGroupStateId,
+        characterId: c.characterId,
+        traitValueId,
+        groupId,
+      });
     }
   }
 
-  await tx.delete(catStateTbl).where(eq(catStateTbl.taxonId, taxonId));
-  if (rowsToInsert.length) {
-    await tx.insert(catStateTbl).values(rowsToInsert);
+  if (rows.length > 0) {
+    await tx.insert(catStateTbl).values(rows);
   }
 }
 
-export async function replaceNumberStatesForTaxon(
+/** Replace numeric single-value states for a single taxon-group-state. */
+async function replaceNumberStatesForGroupState(
   tx: Transaction,
-  taxonId: number,
+  taxonGroupStateId: number,
+  groupId: number,
   updates: NumberCharacterUpdate[],
 ): Promise<void> {
-  // Clear if empty
-  if (updates.length === 0) {
-    await tx.delete(numStateTbl).where(eq(numStateTbl.taxonId, taxonId));
-    return;
-  }
+  await tx
+    .delete(numStateTbl)
+    .where(eq(numStateTbl.taxonGroupStateId, taxonGroupStateId));
 
-  // Dedupe by characterId (last wins)
+  if (updates.length === 0) return;
+
   const byCharacter = new Map<number, NumberCharacterUpdate>();
-  for (const u of updates) {
-    byCharacter.set(u.characterId, u);
-  }
+  for (const u of updates) byCharacter.set(u.characterId, u);
 
   const normalized = Array.from(byCharacter.values());
   const characterIds = normalized.map((c) => c.characterId);
 
-  // Validate characters are numeric AND single kind
   const metas = await tx
     .select({
       characterId: numMetaTbl.characterId,
@@ -422,89 +482,47 @@ export async function replaceNumberStatesForTaxon(
 
   const metaByCharacter = new Map(metas.map((m) => [m.characterId, m]));
 
-  for (const c of normalized) {
+  const rows = normalized.map((c) => {
     const meta = metaByCharacter.get(c.characterId);
-    if (!meta) {
+    if (!meta || meta.kind !== "single") {
       throw new Error(
-        `Character ${c.characterId} is not numeric or does not exist.`,
+        `Character ${c.characterId} is not a single numeric character.`,
       );
     }
-    if (meta.kind !== "single") {
-      throw new Error(
-        `Character ${c.characterId} is not a single-value numeric character.`,
-      );
-    }
-  }
 
-  // Validate units belong to correct families (only for updates with unitId)
-  const updatesWithUnits = normalized.filter((c) => c.unitId !== undefined);
-  const unitIds = updatesWithUnits.map((c) => c.unitId!);
+    return {
+      taxonGroupStateId,
+      characterId: c.characterId,
+      siBaseValue: c.siBaseValue.toString(),
+      displayUnitId: c.unitId ?? null,
+      groupId,
+    };
+  });
 
-  const unitById = new Map<number, { id: number; familyId: number }>();
-  if (unitIds.length > 0) {
-    const units = await tx
-      .select({ id: unitsTbl.id, familyId: unitsTbl.familyId })
-      .from(unitsTbl)
-      .where(inArray(unitsTbl.id, unitIds));
-
-    for (const u of units) {
-      unitById.set(u.id, u);
-    }
-  }
-
-  for (const c of normalized) {
-    const meta = metaByCharacter.get(c.characterId)!;
-
-    if (c.unitId !== undefined) {
-      // Has unit - validate it belongs to correct family
-      const unit = unitById.get(c.unitId);
-      if (!unit) throw new Error(`Unknown unit id ${c.unitId}.`);
-
-      if (unit.familyId !== meta.unitFamilyId) {
-        throw new Error(
-          `Unit ${c.unitId} does not belong to character ${c.characterId}'s unit family.`,
-        );
-      }
-    }
-    // If no unitId, it's dimensionless - no unit validation needed
-  }
-
-  // Replace states
-  await tx.delete(numStateTbl).where(eq(numStateTbl.taxonId, taxonId));
-
-  const rowsToInsert = normalized.map((c) => ({
-    taxonId,
-    characterId: c.characterId,
-    displayUnitId: c.unitId ?? null,
-    siBaseValue: c.siBaseValue.toString(), // Convert number to string for Postgres numeric
-  }));
-
-  if (rowsToInsert.length) {
-    await tx.insert(numStateTbl).values(rowsToInsert);
+  if (rows.length > 0) {
+    await tx.insert(numStateTbl).values(rows);
   }
 }
 
-export async function replaceRangeStatesForTaxon(
+// Replace numeric range states for a single taxon-group-state.
+async function replaceRangeStatesForGroupState(
   tx: Transaction,
-  taxonId: number,
+  taxonGroupStateId: number,
+  groupId: number,
   updates: RangeCharacterUpdate[],
 ): Promise<void> {
-  // Clear if empty
-  if (updates.length === 0) {
-    await tx.delete(rangeStateTbl).where(eq(rangeStateTbl.taxonId, taxonId));
-    return;
-  }
+  await tx
+    .delete(rangeStateTbl)
+    .where(eq(rangeStateTbl.taxonGroupStateId, taxonGroupStateId));
 
-  // Dedupe by characterId (last wins)
+  if (updates.length === 0) return;
+
   const byCharacter = new Map<number, RangeCharacterUpdate>();
-  for (const u of updates) {
-    byCharacter.set(u.characterId, u);
-  }
+  for (const u of updates) byCharacter.set(u.characterId, u);
 
   const normalized = Array.from(byCharacter.values());
   const characterIds = normalized.map((c) => c.characterId);
 
-  // Validate characters are numeric AND range kind
   const metas = await tx
     .select({
       characterId: numMetaTbl.characterId,
@@ -516,70 +534,27 @@ export async function replaceRangeStatesForTaxon(
 
   const metaByCharacter = new Map(metas.map((m) => [m.characterId, m]));
 
-  for (const c of normalized) {
+  const rows = normalized.map((c) => {
     const meta = metaByCharacter.get(c.characterId);
-    if (!meta) {
-      throw new Error(
-        `Character ${c.characterId} is not numeric or does not exist.`,
-      );
-    }
-    if (meta.kind !== "range") {
+    if (!meta || meta.kind !== "range") {
       throw new Error(`Character ${c.characterId} is not a range character.`);
     }
-  }
 
-  // Validate units belong to correct families (only for updates with unitId)
-  const updatesWithUnits = normalized.filter((c) => c.unitId !== undefined);
-  const unitIds = updatesWithUnits.map((c) => c.unitId!);
-
-  const unitById = new Map<number, { id: number; familyId: number }>();
-  if (unitIds.length > 0) {
-    const units = await tx
-      .select({ id: unitsTbl.id, familyId: unitsTbl.familyId })
-      .from(unitsTbl)
-      .where(inArray(unitsTbl.id, unitIds));
-
-    for (const u of units) {
-      unitById.set(u.id, u);
-    }
-  }
-
-  for (const c of normalized) {
-    const meta = metaByCharacter.get(c.characterId)!;
-
-    if (c.unitId !== undefined) {
-      // Has unit - validate it belongs to correct family
-      const unit = unitById.get(c.unitId);
-      if (!unit) throw new Error(`Unknown unit id ${c.unitId}.`);
-
-      if (unit.familyId !== meta.unitFamilyId) {
-        throw new Error(
-          `Unit ${c.unitId} does not belong to character ${c.characterId}'s unit family.`,
-        );
-      }
-    }
-    // If no unitId, it's dimensionless - no unit validation needed
-
-    // Validate min <= max
     if (c.siBaseMin > c.siBaseMax) {
-      throw new Error(
-        `Character ${c.characterId}: minimum value must be less than or equal to maximum value.`,
-      );
+      throw new Error(`Character ${c.characterId}: min must be <= max.`);
     }
-  }
 
-  // Replace states
-  await tx.delete(rangeStateTbl).where(eq(rangeStateTbl.taxonId, taxonId));
+    return {
+      taxonGroupStateId,
+      characterId: c.characterId,
+      siBaseMin: c.siBaseMin.toString(),
+      siBaseMax: c.siBaseMax.toString(),
+      displayUnitId: c.unitId ?? null,
+      groupId,
+    };
+  });
 
-  const rowsToInsert = normalized.map((c) => ({
-    taxonId,
-    characterId: c.characterId,
-    displayUnitId: c.unitId ?? null,
-    siBaseMin: c.siBaseMin.toString(), // Convert to string for Postgres numeric
-    siBaseMax: c.siBaseMax.toString(),
-  }));
-
-  if (rowsToInsert.length) {
-    await tx.insert(rangeStateTbl).values(rowsToInsert);
+  if (rows.length > 0) {
+    await tx.insert(rangeStateTbl).values(rows);
   }
 }

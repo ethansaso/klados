@@ -31,14 +31,14 @@ import { publishTaxonFn } from "../../../../../lib/api/taxa/publishFn";
 import { updateTaxonFn } from "../../../../../lib/api/taxa/updateTaxonFn";
 import { getSourcesForTaxonFn } from "../../../../../lib/api/taxon-sources/getSourcesForTaxonFn";
 import type { SourceDTO } from "../../../../../lib/domain/sources/types";
-import type { CharacterUpdate } from "../../../../../lib/domain/states/validation";
+import type { GroupedCharacterUpdate } from "../../../../../lib/domain/states/validation";
 import { mediaItemSchema } from "../../../../../lib/domain/taxa/validation";
 import { nameItemSchema } from "../../../../../lib/domain/taxon-names/validation";
 import { setTaxonSourcesSchema } from "../../../../../lib/domain/taxon-sources/validation";
 import { routeSeo } from "../../../../../lib/utils/head/routeSeo";
 import { toast } from "../../../../../lib/utils/toast";
 import { CharacterEditingForm } from "./-characters/CharactersEditingForm";
-import { characterStateFormSchema } from "./-characters/validation";
+import { groupedCharacterFormSchema } from "./-characters/validation";
 import { MediaEditingForm } from "./-media/MediaEditingForm";
 import { MetaForm } from "./-meta/MetaForm";
 import { NameEditingForm } from "./-names/NameEditingForm";
@@ -58,38 +58,43 @@ export const taxonEditFormSchema = z.object({
   media: z.array(mediaItemSchema),
   notes: z.string(),
   names: z.array(nameItemSchema),
-  characters: z.array(characterStateFormSchema),
+  states: groupedCharacterFormSchema,
   sources: setTaxonSourcesSchema,
 });
 
 const convertToServerCharacterValues = (
-  values: TaxonEditFormValues["characters"],
-): CharacterUpdate[] => {
-  return values.map((v) => {
-    switch (v.kind) {
-      case "categorical":
-        return {
-          kind: "categorical",
-          characterId: v.characterId,
-          traitValueIds: v.traitValues.map((tv) => tv.id),
-        };
-      case "number":
-        return {
-          kind: "number",
-          characterId: v.characterId,
-          unitId: v.unit?.id,
-          siBaseValue: v.siBaseValue,
-        };
-      case "range":
-        return {
-          kind: "range",
-          characterId: v.characterId,
-          unitId: v.unit?.id,
-          siBaseMin: v.siBaseMin,
-          siBaseMax: v.siBaseMax,
-        };
-    }
-  });
+  values: TaxonEditFormValues["states"],
+): GroupedCharacterUpdate => {
+  return values.map((group) => ({
+    groupId: group.groupId,
+    characters: group.characters.map((v) => {
+      switch (v.kind) {
+        case "categorical":
+          return {
+            kind: "categorical",
+            characterId: v.characterId,
+            traitValueIds: v.traitValues.map((tv) => tv.id),
+          };
+
+        case "number":
+          return {
+            kind: "number",
+            characterId: v.characterId,
+            unitId: v.unit?.id,
+            siBaseValue: v.siBaseValue,
+          };
+
+        case "range":
+          return {
+            kind: "range",
+            characterId: v.characterId,
+            unitId: v.unit?.id,
+            siBaseMin: v.siBaseMin,
+            siBaseMax: v.siBaseMax,
+          };
+      }
+    }),
+  }));
 };
 
 export const Route = createFileRoute("/_app/taxa/$id/edit/")({
@@ -224,7 +229,7 @@ function RouteComponent() {
         data: {
           ...data,
           id,
-          characters: convertToServerCharacterValues(data.characters),
+          states: convertToServerCharacterValues(data.states),
         },
       });
       reset(data, { keepDirty: false }); // keep RHF dirty tracking in sync
@@ -245,7 +250,7 @@ function RouteComponent() {
         data: {
           ...data,
           id,
-          characters: convertToServerCharacterValues(data.characters),
+          states: convertToServerCharacterValues(data.states),
         },
       });
       reset(data, { keepDirty: false }); // clear dirty after persisting
@@ -313,7 +318,7 @@ function RouteComponent() {
 
           {/* Characters */}
           <Controller
-            name="characters"
+            name="states"
             control={control}
             render={({ field }) => (
               <CharacterEditingForm

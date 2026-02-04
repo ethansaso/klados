@@ -1,4 +1,5 @@
 import type { TaxonRank } from "../../../../db/schema/schema";
+import type { Prettify } from "../../utils/types/prettify";
 import type {
   TaxonCategoricalStateDTO,
   TaxonNumberStateDTO,
@@ -31,22 +32,19 @@ type OverlapAnnotation = {
 export type LookalikeComparisonAnnotatedCategoricalTrait = Trait &
   OverlapAnnotation;
 
-export type LookalikeComparisonAnnotatedCategoricalState = Pick<
-  TaxonCategoricalStateDTO,
-  "kind"
-> & {
-  traits: LookalikeComparisonAnnotatedCategoricalTrait[];
-};
+export type LookalikeComparisonAnnotatedCategoricalState = Prettify<
+  Pick<TaxonCategoricalStateDTO, "kind"> & {
+    traits: LookalikeComparisonAnnotatedCategoricalTrait[];
+  }
+>;
 
-export type LookalikeComparisonAnnotatedNumberState = Pick<
-  TaxonNumberStateDTO,
-  "kind" | "siBaseValue" | "unit"
+export type LookalikeComparisonAnnotatedNumberState = Prettify<
+  Pick<TaxonNumberStateDTO, "kind" | "siBaseValue" | "unit">
 > &
   OverlapAnnotation;
 
-export type LookalikeComparisonAnnotatedRangeState = Pick<
-  TaxonRangeStateDTO,
-  "kind" | "siBaseMin" | "siBaseMax" | "unit"
+export type LookalikeComparisonAnnotatedRangeState = Prettify<
+  Pick<TaxonRangeStateDTO, "kind" | "siBaseMin" | "siBaseMax" | "unit">
 > &
   OverlapAnnotation;
 
@@ -64,8 +62,11 @@ export type LookalikeComparisonCharacter = {
 export type LookalikeComparisonGroup = {
   groupId: number;
   groupLabel: string;
-  aCharacters: LookalikeComparisonCharacter[];
-  bCharacters: LookalikeComparisonCharacter[];
+
+  /** When null, taxon lacks group altogether */
+  aCharacters: LookalikeComparisonCharacter[] | null;
+  /** When null, taxon lacks group altogether */
+  bCharacters: LookalikeComparisonCharacter[] | null;
 };
 
 export type LookalikeComparisonDetailDTO = {

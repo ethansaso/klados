@@ -1,20 +1,17 @@
 import { db } from "../../../../db/client";
-import {
-  selectTaxonCharacterStatesByTaxonIds,
-  type TaxonStatesById,
-} from "./repo";
-import type { TaxonCharacterGroupStateDTO } from "./types";
+import type { ValueOf } from "../../utils/types/valueOf";
+import { selectTaxonStatesByTaxonIds, type TaxonStatesById } from "./repo";
 
 /**
  * Fetch all character states for a taxon.
  */
-export async function getTaxonCharacterStates(args: {
+export async function getTaxonStates(args: {
   taxonId: number;
-}): Promise<TaxonCharacterGroupStateDTO[]> {
+}): Promise<ValueOf<TaxonStatesById>> {
   const map = await db.transaction((tx) =>
-    selectTaxonCharacterStatesByTaxonIds(tx, [args.taxonId]),
+    selectTaxonStatesByTaxonIds(tx, [args.taxonId]),
   );
-  return map[args.taxonId] ?? [];
+  return map[args.taxonId.toString()] ?? [];
 }
 
 /**
@@ -22,12 +19,10 @@ export async function getTaxonCharacterStates(args: {
  * Fetch character states for many taxa at once.
  * Returns a map taxonId -> TaxonCharacterGroupStateDTO[].
  */
-export async function getTaxaCharacterStates(args: {
+export async function getTaxaStates(args: {
   taxonIds: number[];
 }): Promise<TaxonStatesById> {
   if (!args.taxonIds.length) return {};
 
-  return db.transaction((tx) =>
-    selectTaxonCharacterStatesByTaxonIds(tx, args.taxonIds),
-  );
+  return db.transaction((tx) => selectTaxonStatesByTaxonIds(tx, args.taxonIds));
 }

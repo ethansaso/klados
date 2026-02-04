@@ -1,10 +1,14 @@
-import type { TaxonCharacterStateDTO } from "../states/types";
+import type {
+  TaxonCharacterGroupStateDTO,
+  TaxonCharacterStateDTO,
+} from "../states/types";
 import type {
   LookalikeComparisonAnnotatedCategoricalState,
   LookalikeComparisonAnnotatedCategoricalTrait,
   LookalikeComparisonAnnotatedNumberState,
   LookalikeComparisonAnnotatedRangeState,
   LookalikeComparisonAnnotatedState,
+  LookalikeComparisonCharacter,
   LookalikeComparisonGroup,
 } from "./types";
 
@@ -168,89 +172,79 @@ function buildAnnotatedState(
 }
 
 export function buildGroupedLookalikeStates(args: {
-  aStates: TaxonCharacterStateDTO[];
-  bStates: TaxonCharacterStateDTO[];
+  aGroups: TaxonCharacterGroupStateDTO[];
+  bGroups: TaxonCharacterGroupStateDTO[];
 }): LookalikeComparisonGroup[] {
-  const { aStates, bStates } = args;
+  const { aGroups, bGroups } = args;
 
-  const aByChar = new Map(aStates.map((s) => [s.characterId, s]));
-  const bByChar = new Map(bStates.map((s) => [s.characterId, s]));
+  const aByGroup = new Map(aGroups.map((g) => [g.groupId, g]));
+  const bByGroup = new Map(bGroups.map((g) => [g.groupId, g]));
 
-  // Collect all unique characterIds from both taxa
-  const allCharacterIds = new Set([
-    ...aStates.map((s) => s.characterId),
-    ...bStates.map((s) => s.characterId),
-  ]);
+  const allGroupIds = new Set<number>([...aByGroup.keys(), ...bByGroup.keys()]);
 
-  // Build a lookup for character metadata from whichever state has it
-  const characterMeta = new Map<
-    number,
-    {
-      characterId: number;
-      characterLabel: string;
-      groupId: number;
-      groupLabel: string;
+  const result: LookalikeComparisonGroup[] = [];
+
+  for (const groupId of allGroupIds) {
+    const aGroup = aByGroup.get(groupId);
+    const bGroup = bByGroup.get(groupId);
+
+    const groupLabel = aGroup?.groupLabel ?? bGroup?.groupLabel ?? "";
+    const aStates = aGroup?.states ?? null;
+    const bStates = bGroup?.states ?? null;
+
+    let aCharacters: LookalikeComparisonCharacter[] | null = null;
+    let bCharacters: LookalikeComparisonCharacter[] | null = null;
+
+    if (aStates !== null || bStates !== null) {
+      const aByChar = new Map((aStates ?? []).map((s) => [s.characterId, s]));
+      const bByChar = new Map((bStates ?? []).map((s) => [s.characterId, s]));
+
+      const allCharacterIds = new Set<number>([
+        ...aByChar.keys(),
+        ...bByChar.keys(),
+      ]);
+
+      aCharacters = [];
+      bCharacters = [];
+
+      for (const characterId of allCharacterIds) {
+        const aState = aByChar.get(characterId);
+        const bState = bByChar.get(characterId);
+
+        const metaState = aState ?? bState;
+        if (!metaState) continue; // defensive, should not happen
+
+        const { aAnnotated, bAnnotated } = buildAnnotatedState(aState, bState);
+
+        aCharacters.push({
+          characterId,
+          characterLabel: metaState.characterLabel,
+          state: aAnnotated,
+        });
+
+        bCharacters.push({
+          characterId,
+          characterLabel: metaState.characterLabel,
+          state: bAnnotated,
+        });
+      }
+
+      aCharacters.sort((a, b) =>
+        a.characterLabel.localeCompare(b.characterLabel),
+      );
+      bCharacters.sort((a, b) =>
+        a.characterLabel.localeCompare(b.characterLabel),
+      );
     }
-  >();
 
-  for (const state of [...aStates, ...bStates]) {
-    if (!characterMeta.has(state.characterId)) {
-      characterMeta.set(state.characterId, {
-        characterId: state.characterId,
-        characterLabel: state.characterLabel,
-        groupId: state.groupId,
-        groupLabel: state.groupLabel,
-      });
-    }
+    result.push({
+      groupId,
+      groupLabel,
+      aCharacters,
+      bCharacters,
+    });
   }
 
-  const groups = new Map<number, LookalikeComparisonGroup>();
-
-  for (const characterId of allCharacterIds) {
-    const meta = characterMeta.get(characterId);
-    if (!meta) continue; // Shouldn't happen
-
-    const aState = aByChar.get(characterId);
-    const bState = bByChar.get(characterId);
-
-    const { aAnnotated, bAnnotated } = buildAnnotatedState(aState, bState);
-
-    let group = groups.get(meta.groupId);
-    if (!group) {
-      group = {
-        groupId: meta.groupId,
-        groupLabel: meta.groupLabel,
-        aCharacters: [],
-        bCharacters: [],
-      };
-      groups.set(meta.groupId, group);
-    }
-
-    group.aCharacters.push({
-      characterId: meta.characterId,
-      characterLabel: meta.characterLabel,
-      state: aAnnotated,
-    });
-
-    group.bCharacters.push({
-      characterId: meta.characterId,
-      characterLabel: meta.characterLabel,
-      state: bAnnotated,
-    });
-  }
-
-  // Sort groups by label, and characters within groups by label
-  const result = Array.from(groups.values());
   result.sort((a, b) => a.groupLabel.localeCompare(b.groupLabel));
-
-  for (const group of result) {
-    group.aCharacters.sort((a, b) =>
-      a.characterLabel.localeCompare(b.characterLabel),
-    );
-    group.bCharacters.sort((a, b) =>
-      a.characterLabel.localeCompare(b.characterLabel),
-    );
-  }
-
   return result;
 }

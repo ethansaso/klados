@@ -1,5 +1,5 @@
 import { db } from "../../../../db/client";
-import { selectTaxonCharacterStatesByTaxonIds } from "../states/repo";
+import { selectTaxonStatesByTaxonIds } from "../states/repo";
 import { selectTaxonDtoById } from "../taxa/repo";
 import { computeTaxonLookalikesByCategoricalOverlap } from "./repo";
 import type { LookalikeComparisonDetailDTO, TaxonLookalikeDTO } from "./types";
@@ -21,7 +21,7 @@ export const getLookalikeComparisonDetailForTaxa = async (args: {
   lookalikeId: number;
 }): Promise<LookalikeComparisonDetailDTO> => {
   return db.transaction(async (tx) => {
-    const byTaxon = await selectTaxonCharacterStatesByTaxonIds(tx, [
+    const byTaxon = await selectTaxonStatesByTaxonIds(tx, [
       args.taxonId,
       args.lookalikeId,
     ]);
@@ -35,13 +35,13 @@ export const getLookalikeComparisonDetailForTaxa = async (args: {
     if (!bTaxon)
       throw new Error(`Taxon with ID ${args.lookalikeId} not found.`);
 
-    const aStates = byTaxon[args.taxonId] ?? [];
-    const bStates = byTaxon[args.lookalikeId] ?? [];
+    const aGroups = byTaxon[args.taxonId] ?? [];
+    const bGroups = byTaxon[args.lookalikeId] ?? [];
 
     // No need to fetch characters separately - metadata is already on the states!
     const groupedStates = buildGroupedLookalikeStates({
-      aStates,
-      bStates,
+      aGroups,
+      bGroups,
     });
 
     return {

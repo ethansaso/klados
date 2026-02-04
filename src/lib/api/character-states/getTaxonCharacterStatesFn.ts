@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
-import { getTaxonCharacterStates } from "../../domain/states/service";
+import { getTaxonStates } from "../../domain/states/service";
 import type { TaxonCharacterGroupStateDTO } from "../../domain/states/types";
 
 export const getTaxonCharacterStatesFn = createServerFn({ method: "GET" })
@@ -11,5 +11,5 @@ export const getTaxonCharacterStatesFn = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }): Promise<TaxonCharacterGroupStateDTO[]> => {
     const { taxonId } = data;
-    return getTaxonCharacterStates({ taxonId });
+    return getTaxonStates({ taxonId });
   });

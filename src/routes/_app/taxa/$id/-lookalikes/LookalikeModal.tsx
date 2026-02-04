@@ -48,7 +48,13 @@ function toUIState(
   }
 }
 
-function GroupDataList({ items }: { items: LookalikeComparisonCharacter[] }) {
+function GroupDataList({
+  items,
+}: {
+  items: LookalikeComparisonCharacter[] | null;
+}) {
+  if (!items) return null;
+
   return (
     <DataList.Root size="2" orientation="vertical">
       {items.map((it) => {

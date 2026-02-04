@@ -3,17 +3,7 @@ import { and, count, eq } from "drizzle-orm";
 import { db } from "../../../../db/client";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import { assertHierarchyInvariant } from "../../utils/assertHierarchyInvariant";
-import {
-  replaceCategoricalStatesForTaxon,
-  replaceNumberStatesForTaxon,
-  replaceRangeStatesForTaxon,
-} from "../states/repo";
-import type {
-  CategoricalCharacterUpdate,
-  CharacterUpdate,
-  NumberCharacterUpdate,
-  RangeCharacterUpdate,
-} from "../states/validation";
+import { replaceGroupedCharacterStatesForTaxon } from "../states/repo";
 import { replaceNamesForTaxon } from "../taxon-names/repo";
 import type { NameItem } from "../taxon-names/validation";
 import { setSourcesForTaxon } from "../taxon-sources/repo";
@@ -291,29 +281,15 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
     if (!ok) throw notFound();
 
     // 2) names replace (if provided)
-    if ("names" in updates && updates.names) {
+    if (updates.names) {
       assertNamesPayloadInvariant(updates.names);
       await replaceNamesForTaxon(tx, id, updates.names);
       await assertExactlyOneAcceptedScientificName(tx, id);
     }
 
-    // 3) categorical characters replace (if provided)
-    if ("characters" in updates) {
-      const characters = (updates.characters ?? []) as CharacterUpdate[];
-
-      const categorical = characters.filter(
-        (c): c is CategoricalCharacterUpdate => c.kind === "categorical",
-      );
-      const number = characters.filter(
-        (c): c is NumberCharacterUpdate => c.kind === "number",
-      );
-      const range = characters.filter(
-        (c): c is RangeCharacterUpdate => c.kind === "range",
-      );
-
-      await replaceCategoricalStatesForTaxon(tx, id, categorical);
-      await replaceNumberStatesForTaxon(tx, id, number);
-      await replaceRangeStatesForTaxon(tx, id, range);
+    // 3) character states replace (if provided)
+    if (updates.states) {
+      await replaceGroupedCharacterStatesForTaxon(tx, id, updates.states ?? []);
     }
 
     // 4) taxon sources set (if provided)

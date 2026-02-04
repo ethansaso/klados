@@ -1,5 +1,5 @@
 import { Box } from "@radix-ui/themes";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import type { TaxonEditFormValues } from "..";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
@@ -10,11 +10,11 @@ import {
   removeCategoricalTraitValue,
   removeCharacterState,
 } from "./stateUtils";
-import type { CharacterStateFormValue } from "./validation";
+import type { GroupedCharacterFormValue } from "./validation";
 
 type CharacterEditingFormProps = {
-  value: CharacterStateFormValue[];
-  onChange: (next: CharacterStateFormValue[]) => void;
+  value: GroupedCharacterFormValue;
+  onChange: (next: GroupedCharacterFormValue) => void;
 };
 
 export function CharacterEditingForm({
@@ -23,57 +23,30 @@ export function CharacterEditingForm({
 }: CharacterEditingFormProps) {
   const { getValues } = useFormContext<TaxonEditFormValues>();
 
-  const [openGroupIds, setOpenGroupIds] = useState<number[]>(() => {
-    const seen = new Set<number>();
-    for (const row of value) {
-      seen.add(row.groupId);
-    }
-    return Array.from(seen);
-  });
-
   const handleGroupSelect = (option: ComboboxOption) => {
-    // Only add if not already present.
-    setOpenGroupIds((prev) => {
-      if (prev.some((gId) => gId === option.id)) {
-        return prev;
-      }
-      return [...prev, option.id];
-    });
+    if (value.some((g) => g.groupId === option.id)) return;
+
+    onChange([
+      ...value,
+      {
+        groupId: option.id,
+        groupLabel: option.label,
+        characters: [],
+      },
+    ]);
   };
 
-  const handleDeleteGroup = (groupId: number, characterIds: number[]) => {
-    // Remove all character states associated with this group.
-    if (characterIds.length > 0) {
-      const current = getValues("characters");
-      const next = current.filter(
-        (row) => !characterIds.includes(row.characterId),
-      );
-      onChange(next);
-    }
-    // Close the group card.
-    setOpenGroupIds((prev) => prev.filter((gId) => gId !== groupId));
+  const handleDeleteGroup = (groupId: number) => {
+    onChange(value.filter((g) => g.groupId !== groupId));
   };
-
-  // Group states by groupId for efficient per-card updates
-  const statesByGroupId = useMemo(() => {
-    const map = new Map<number, CharacterStateFormValue[]>();
-    for (const row of value) {
-      const existing = map.get(row.groupId);
-      if (existing) {
-        existing.push(row);
-      } else {
-        map.set(row.groupId, [row]);
-      }
-    }
-    return map;
-  }, [value]);
 
   // getValues is stable, so these callbacks are stable
-  const handleRemoveCategoricalValue = useCallback(
-    (characterId: number, traitValueId: number) => {
-      const current = getValues("characters");
+  const handleRemoveCategoricalTrait = useCallback(
+    (groupId: number, characterId: number, traitValueId: number) => {
+      const prev = getValues("states");
       const next = removeCategoricalTraitValue(
-        current,
+        prev,
+        groupId,
         characterId,
         traitValueId,
       );
@@ -83,9 +56,9 @@ export function CharacterEditingForm({
   );
 
   const handleRemoveState = useCallback(
-    (characterId: number) => {
-      const current = getValues("characters");
-      const next = removeCharacterState(current, characterId);
+    (groupId: number, characterId: number) => {
+      const prev = getValues("states");
+      const next = removeCharacterState(prev, groupId, characterId);
       onChange(next);
     },
     [getValues, onChange],
@@ -101,14 +74,13 @@ export function CharacterEditingForm({
           <GroupSearch onSelect={handleGroupSelect} />
         </Box>
         <div className="character-group-card-grid">
-          {openGroupIds.map((gId) => (
+          {value.map((group) => (
             <EditingGroupCard
-              key={gId}
-              groupId={gId}
-              statesForGroup={statesByGroupId.get(gId) ?? []}
+              key={group.groupId}
+              group={group}
               onChange={onChange}
-              onDelete={handleDeleteGroup}
-              onRemoveCategoricalValue={handleRemoveCategoricalValue}
+              onDelete={() => handleDeleteGroup(group.groupId)}
+              onRemoveCategoricalValue={handleRemoveCategoricalTrait}
               onRemoveState={handleRemoveState}
             />
           ))}
