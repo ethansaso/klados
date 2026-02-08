@@ -1,3 +1,5 @@
+import "../../../../assets/styles/pages/guides/editor.css";
+
 import { Box, Flex } from "@radix-ui/themes";
 import { createFileRoute } from "@tanstack/react-router";
 import { ReactFlowProvider } from "@xyflow/react";
@@ -6,8 +8,6 @@ import { GuideEditorCanvas } from "../../../../components/react-flow-guides/Guid
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { GuideEditorSidebar } from "./-GuideEditorSidebar";
 import { GuideEditorToolbar } from "./-GuideEditorToolbar";
-
-import guideEditorCssUrl from "../../../../assets/styles/pages/guides/editor.css?url";
 
 // Simple schema for initial population of taxon selection
 const CreateGuideSearchSchema = z.object({
@@ -20,7 +20,6 @@ export const Route = createFileRoute("/_app/guides/create/")({
     routeSeo({
       title: "Create Guide | Klados",
       canonicalUrl: match.pathname,
-      links: [{ rel: "stylesheet", href: guideEditorCssUrl }],
     }),
   component: RouteComponent,
 });

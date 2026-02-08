@@ -2,8 +2,8 @@ import type { HierarchyTaxonNode } from "../hierarchy/types";
 import type { GroupPresentAbsentSplitResult } from "./types";
 
 /**
- * Try to split taxa into two groups based on "has any character in groupId G"
- * vs "has no characters in groupId G".
+ * Try to split taxa into two groups based on
+ * "taxon has groupId G" vs "taxon does not have groupId G".
  *
  * Returns all possible splits along with their scores.
  */
@@ -18,11 +18,12 @@ export function resolveGroupPresentAbsentSplits(
 
   for (const taxon of taxa) {
     const set = new Set<number>();
-    for (const state of taxon.states) {
-      if (state.kind !== "categorical") continue;
-      set.add(state.groupId);
-      allGroupIds.add(state.groupId);
+
+    for (const group of taxon.states) {
+      set.add(group.groupId);
+      allGroupIds.add(group.groupId);
     }
+
     groupsByTaxon.set(taxon.id, set);
   }
 
@@ -47,20 +48,12 @@ export function resolveGroupPresentAbsentSplits(
       groupId,
       score,
       branches: [
-        {
-          taxa: present,
-          status: "present",
-        },
-        {
-          taxa: absent,
-          status: "absent",
-        },
+        { taxa: present, status: "present" },
+        { taxa: absent, status: "absent" },
       ],
     });
   }
 
-  // Sort by descending score
   results.sort((a, b) => b.score - a.score);
-
   return results;
 }

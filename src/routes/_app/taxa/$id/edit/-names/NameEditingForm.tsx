@@ -1,25 +1,25 @@
 import { Button, DataList, Flex, RadioGroup, Text } from "@radix-ui/themes";
 import { useCallback, useMemo } from "react";
+import { useFormContext } from "react-hook-form";
 import { FaDove } from "react-icons/fa";
+import { v4 as uuidv4 } from "uuid";
+import type { TaxonEditFormValues } from "..";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import { localeDisplayValues } from "../../../../../../lib/consts/locale-display-values";
-import type { NameItem } from "../../../../../../lib/domain/taxon-names/validation";
 import { toast } from "../../../../../../lib/utils/toast";
 import { selectInatNames } from "./InatNameModal";
 import { NameRow } from "./NameRow";
 import type { LocaleEntry } from "./types";
+import type { NameItemForm } from "./validation";
 
 type NameEditingFormProps = {
-  value: NameItem[];
   inatId: number | null;
-  onChange: (next: NameItem[]) => void;
+  onChange: (next: NameItemForm[]) => void;
 };
 
-export const NameEditingForm = ({
-  value,
-  inatId,
-  onChange,
-}: NameEditingFormProps) => {
+export const NameEditingForm = ({ inatId, onChange }: NameEditingFormProps) => {
+  const { watch, getValues } = useFormContext<TaxonEditFormValues>();
+  const value = watch("names");
   // const addRow = () =>
   //   onChange([...value, { locale: "", value: "", isPreferred: false }]);
 
@@ -33,69 +33,63 @@ export const NameEditingForm = ({
     }
     const picked = await selectInatNames(inatId);
     if (picked && picked.length) {
-      onChange(picked);
+      onChange(picked.map((n) => ({ ...n, _formId: uuidv4() })));
     }
   };
 
   // Ensure exactly one preferred per locale
   const setPreferredForLocale = useCallback(
-    (locale: string, targetIndex: number) => {
+    (locale: string, targetId: string) => {
+      const value = getValues("names");
       onChange(
-        value.map((item, index) =>
+        value.map((item) =>
           item.locale === locale
-            ? { ...item, isPreferred: index === targetIndex }
+            ? { ...item, isPreferred: item._formId === targetId }
             : item,
         ),
       );
     },
-    [value, onChange],
+    [onChange],
   );
 
   const handleNameChange = useCallback(
-    (index: number, nextValue: string) => {
-      const next = [...value];
-      if (!next[index]) return;
-      next[index] = { ...next[index], value: nextValue };
+    (id: string, nextValue: string) => {
+      const next = getValues("names").map((n) =>
+        n._formId === id ? { ...n, value: nextValue } : n,
+      );
       onChange(next);
     },
-    [value, onChange],
+    [onChange],
   );
 
   const handleDelete = useCallback(
-    (indexToDelete: number) => {
-      const target = value[indexToDelete];
+    (id: string) => {
+      const value = getValues("names");
+      const target = value.find((n) => n._formId === id);
       if (!target) return;
 
-      const locale = target.locale;
-      const wasPreferred = target.isPreferred;
+      const next = value.filter((n) => n._formId !== id);
 
-      const next = value.filter((_, i) => i !== indexToDelete);
-
-      if (wasPreferred) {
-        const sameLocale = next
-          .map((item, i) => ({ item, i }))
-          .filter(({ item }) => item.locale === locale);
-
-        const firstInLocale = sameLocale[0];
-        if (firstInLocale) {
-          const { item, i } = firstInLocale;
-          next[i] = { ...item, isPreferred: true };
+      if (target.isPreferred) {
+        const firstSameLocale = next.find((n) => n.locale === target.locale);
+        if (firstSameLocale) {
+          firstSameLocale.isPreferred = true;
         }
       }
 
-      onChange(next);
+      onChange([...next]);
     },
-    [value, onChange],
+    [onChange],
   );
 
   // Group + sort locales once per `value` change
   const localeEntries: LocaleEntry[] = useMemo(() => {
-    const grouped: Record<string, { item: NameItem; index: number }[]> = {};
+    const grouped: Record<string, { item: NameItemForm }[]> = {};
 
-    value.forEach((item, index) => {
+    value.forEach((item) => {
       const loc = item.locale || "";
       if (!grouped[loc]) grouped[loc] = [];
-      grouped[loc].push({ item, index });
+      grouped[loc].push({ item });
     });
 
     return Object.entries(grouped)
@@ -139,8 +133,7 @@ export const NameEditingForm = ({
           {localeEntries.map(({ code, label: localeLabel, entries }) => {
             const labelId = `taxon-names-locale-${code}`;
             const selected = entries.find((e) => e.item.isPreferred);
-            const groupValue =
-              selected !== undefined ? String(selected.index) : undefined;
+            const groupValue = selected?.item._formId;
 
             return (
               <DataList.Item key={code} align="start">
@@ -154,20 +147,17 @@ export const NameEditingForm = ({
                     name={`preferred-${code}`}
                     className="taxon-names__radio-group"
                     aria-labelledby={labelId}
-                    onValueChange={(next) => {
-                      const idx = Number(next);
-                      if (!Number.isNaN(idx)) {
-                        setPreferredForLocale(code, idx);
-                      }
+                    onValueChange={(id) => {
+                      setPreferredForLocale(code, id);
                     }}
                   >
                     <Flex direction="column" gap="1">
-                      {entries.map(({ item, index }) => (
+                      {entries.map(({ item }) => (
                         <NameRow
-                          key={index}
+                          key={item._formId}
+                          id={item._formId}
                           localeLabel={localeLabel}
-                          item={item}
-                          index={index}
+                          value={item.value}
                           onNameChange={handleNameChange}
                           onDelete={handleDelete}
                         />

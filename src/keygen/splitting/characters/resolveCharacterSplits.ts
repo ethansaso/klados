@@ -13,6 +13,7 @@ import { scoreCharacterSplit } from "./scoreCharacterSplit";
 type CharEntry = {
   taxon: HierarchyTaxonNode;
   state: TaxonCategoricalStateDTO;
+  groupId: number;
 };
 
 type ByCharacter = Map<number, Map<number, CharEntry>>;
@@ -41,16 +42,22 @@ function buildCharacterIndex(taxa: HierarchyTaxonNode[]): ByCharacter {
   const byCharacter = new Map<number, Map<number, CharEntry>>();
 
   for (const taxon of taxa) {
-    for (const state of taxon.states) {
-      if (state.kind !== "categorical") continue;
+    for (const group of taxon.states) {
+      for (const state of group.states) {
+        if (state.kind !== "categorical") continue;
 
-      let byTaxon = byCharacter.get(state.characterId);
-      if (!byTaxon) {
-        byTaxon = new Map<number, CharEntry>();
-        byCharacter.set(state.characterId, byTaxon);
+        let byTaxon = byCharacter.get(state.characterId);
+        if (!byTaxon) {
+          byTaxon = new Map<number, CharEntry>();
+          byCharacter.set(state.characterId, byTaxon);
+        }
+
+        byTaxon.set(taxon.id, {
+          taxon,
+          state,
+          groupId: group.groupId,
+        });
       }
-
-      byTaxon.set(taxon.id, { taxon, state });
     }
   }
 
@@ -68,34 +75,25 @@ function normalizeTraitSetsForCharacter(
   byTaxon: Map<number, CharEntry>,
 ): NormalizedCharacterTraitSets | null {
   const traitSetsByTaxon = new Map<number, Trait[]>();
-
   let groupId: number | null = null;
 
   for (const taxon of taxa) {
     const entry = byTaxon.get(taxon.id);
-    if (!entry) {
-      // Reject if any taxon lacks this character.
-      return null;
-    }
+    if (!entry) return null;
 
-    const { state } = entry;
+    const { state, groupId: entryGroupId } = entry;
     const traits = state.traitValues ?? [];
-    if (!traits.length) {
-      // Reject empty trait-sets.
-      return null;
-    }
+    if (traits.length === 0) return null;
 
+    // Record groupId once for downstream clause construction.
+    // Structural invariants guarantee consistency.
     if (groupId === null) {
-      groupId = state.groupId;
-    } else if (groupId !== state.groupId) {
-      // Reject if groupIds differ (should not happen).
-      return null;
+      groupId = entryGroupId;
     }
 
     traitSetsByTaxon.set(taxon.id, traits);
   }
 
-  // Return null if groupId was never set (should not happen)
   if (groupId === null) return null;
 
   return { traitSetsByTaxon, groupId };

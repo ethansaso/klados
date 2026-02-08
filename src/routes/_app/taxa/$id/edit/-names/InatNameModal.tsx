@@ -2,18 +2,13 @@ import NiceModal from "@ebay/nice-modal-react";
 import { Button, Dialog, Flex, Spinner, Table, Text } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
 import z from "zod";
+import type { NameItem } from "../../../../../../lib/domain/taxon-names/validation";
 
 type InatRawName = z.infer<typeof InatRawNameSchema>;
 
-type NormalizedInatName = {
-  value: string;
-  locale: string;
-  isPreferred: boolean;
-};
-
 type Props = {
   inatId: number;
-  onConfirm: (names: NormalizedInatName[]) => void;
+  onConfirm: (names: NameItem[]) => void;
 };
 
 const InatRawNameSchema = z.object({
@@ -35,7 +30,7 @@ export const InatNamesModal = NiceModal.create<Props>(
     const { visible, hide } = NiceModal.useModal();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [names, setNames] = useState<NormalizedInatName[] | null>(null);
+    const [names, setNames] = useState<NameItem[] | null>(null);
     const [selected, setSelected] = useState<Set<number>>(() => new Set());
 
     useEffect(() => {
@@ -130,7 +125,7 @@ export const InatNamesModal = NiceModal.create<Props>(
 
 /** Simple helper which aids in acquiring common names for a given taxon. */
 export async function selectInatNames(inatId: number) {
-  return new Promise<NormalizedInatName[] | null>((resolve) => {
+  return new Promise<NameItem[] | null>((resolve) => {
     NiceModal.show(InatNamesModal, {
       inatId,
       onConfirm: (names) => resolve(names),
@@ -143,7 +138,7 @@ function extractInatNames(data: unknown) {
   return parsed.success ? (parsed.data.results?.[0]?.names ?? []) : [];
 }
 
-function normalizeInatNames(rawNames: InatRawName[]): NormalizedInatName[] {
+function normalizeInatNames(rawNames: InatRawName[]): NameItem[] {
   const seenLocales = new Set<string>();
 
   // Find preferred scientific name: first is_valid sci, else first sci.

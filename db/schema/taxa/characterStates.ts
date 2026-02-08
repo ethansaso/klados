@@ -17,7 +17,7 @@ import {
 } from "../characters/characters";
 import { categoricalTraitValue } from "../characters/traits";
 import { unit } from "../characters/units";
-import { taxonCharacterGroupState } from "./characterGroups";
+import { taxonCharacterGroupState } from "./characterGroupStates";
 
 // ! The tables in this file contain explicit stored group IDs and foreign keys
 // ! to enforce that states belong to characters within the same group as the

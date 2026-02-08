@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import type { TaxonEditFormValues } from ".";
 import type {
   TaxonCharacterGroupStateDTO,
@@ -77,6 +78,13 @@ const seedCharacterGroups = (
     characters: group.states.map(seedCharacterState),
   }));
 
+const seedNames = (names: TaxonDetailDTO["names"]) => {
+  return names.map((name) => ({
+    ...name,
+    _formId: uuidv4(),
+  }));
+};
+
 export const seedTaxonEditState = (
   taxon: TaxonDetailDTO,
   characterGroups: TaxonCharacterGroupStateDTO[],
@@ -88,7 +96,7 @@ export const seedTaxonEditState = (
   sourceInatId: taxon.sourceInatId,
   media: taxon.media,
   notes: taxon.notes,
-  names: taxon.names,
+  names: seedNames(taxon.names),
   states: seedCharacterGroups(characterGroups),
   sources: seedSources(sources),
 });

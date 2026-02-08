@@ -1,3 +1,5 @@
+import "../../../../assets/styles/pages/taxa/$id.css";
+
 import { Box, Flex, Heading, Tabs, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -18,10 +20,8 @@ import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { TaxonCharacterSection } from "./-characters/TaxonCharacterSection";
 import { LookalikesList } from "./-lookalikes/LookalikesList";
 import { NamesDataList } from "./-NameDataList";
-import { TaxonMainSection } from "./-TaxonMainSection";
-
-import taxonPageCssUrl from "../../../../assets/styles/pages/taxa/$id.css?url";
 import { StatusCallout } from "./-StatusCallout";
+import { TaxonMainSection } from "./-TaxonMainSection";
 
 const ParamsSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -45,7 +45,6 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
       title: loaderData
         ? `${loaderData.taxon.acceptedName} | Klados`
         : "Klados",
-      links: [{ rel: "stylesheet", href: taxonPageCssUrl }],
       canonicalUrl: match.pathname,
     }),
   component: TaxonPage,

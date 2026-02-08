@@ -4,7 +4,7 @@ export type RouteSeoInput = {
   title: string;
   description?: string;
   canonicalUrl?: string;
-  links?: { rel: string; href: string }[];
+  links?: { rel: string; as?: string; href: string }[];
 };
 
 /**

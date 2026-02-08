@@ -24,7 +24,7 @@ export const categoricalTraitSet = pgTable(
     label: text("label").notNull(),
     description: text("description").notNull().default(""),
   }),
-  (t) => [uniqueIndex("trait_sets_key_uq").on(t.key)]
+  (t) => [uniqueIndex("trait_sets_key_uq").on(t.key)],
 );
 
 /**
@@ -71,33 +71,33 @@ export const categoricalTraitValue = pgTable(
     check(
       "trait_values_role_consistency_ck",
       sql`CASE WHEN ${t.isCanonical} THEN ${t.canonicalValueId} IS NULL
-        ELSE ${t.canonicalValueId} IS NOT NULL END`
+        ELSE ${t.canonicalValueId} IS NOT NULL END`,
     ),
 
     // CHECK #2: no self-alias if canonical_value_id is set
     check(
       "trait_values_no_self_alias_ck",
-      sql`${t.canonicalValueId} IS NULL OR ${t.canonicalValueId} <> ${t.id}`
+      sql`${t.canonicalValueId} IS NULL OR ${t.canonicalValueId} <> ${t.id}`,
     ),
 
     // CHECK #3: hex code format (if present)
     check(
       "trait_values_hex_code_format_ck",
-      sql`${t.hexCode} IS NULL OR ${t.hexCode} ~ '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'`
+      sql`${t.hexCode} IS NULL OR ${t.hexCode} ~ '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'`,
     ),
 
     // CHECK #4: prevent usage of hex codes for non-canonical values
     check(
       "trait_values_hex_code_canonical_ck",
       sql`CASE WHEN ${t.isCanonical} THEN TRUE
-        ELSE ${t.hexCode} IS NULL END`
+        ELSE ${t.hexCode} IS NULL END`,
     ),
 
     // CHECK #5: prevent usage of description for non-canonical values
     check(
       "trait_values_description_canonical_ck",
       sql`CASE WHEN ${t.isCanonical} THEN TRUE
-    ELSE ${t.description} = '' END`
+    ELSE ${t.description} = '' END`,
     ),
-  ]
+  ],
 );

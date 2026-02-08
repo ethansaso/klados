@@ -1,3 +1,6 @@
+import "../../assets/styles/pages/home.css";
+import "../../assets/styles/react-flow/demo.css";
+
 import { Flex, Separator } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -9,9 +12,6 @@ import { HeroSection } from "./-index-resources/HeroSection";
 import { PurposeSection } from "./-index-resources/PurposeSection";
 import { StatsFeatureGrid } from "./-index-resources/StatsFeatureGrid";
 
-import homeCssUrl from "../../assets/styles/pages/home.css?url";
-import rfDemoCssUrl from "../../assets/styles/react-flow/demo.css?url";
-
 export const Route = createFileRoute("/_app/")({
   beforeLoad: async ({ context }) => {
     await context.queryClient.ensureQueryData(summaryStatsQueryOptions());
@@ -21,10 +21,6 @@ export const Route = createFileRoute("/_app/")({
       title: "Klados | Visual Tools to Identify Organisms",
       description:
         "Browse thousands of species and explore interactive, community-maintained guides built from real biological data.",
-      links: [
-        { rel: "stylesheet", href: homeCssUrl },
-        { rel: "stylesheet", href: rfDemoCssUrl },
-      ],
       canonicalUrl: match.pathname,
     }),
   component: Home,

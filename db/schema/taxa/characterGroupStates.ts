@@ -7,7 +7,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
 import { characterGroup } from "../characters/groups";
-import { taxon } from "../taxa/taxon";
+import { taxon } from "./taxon";
 
 /**
  * Explicit attachment of a morphological character group to a taxon.

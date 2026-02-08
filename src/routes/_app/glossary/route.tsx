@@ -1,13 +1,10 @@
+import "../../../assets/styles/pages/glossary/glossary.css";
+
 import { Flex, TabNav } from "@radix-ui/themes";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useIsActive } from "../../../lib/hooks/useIsActive";
 
-import glossaryCssUrl from "../../../assets/styles/pages/glossary/glossary.css?url";
-
 export const Route = createFileRoute("/_app/glossary")({
-  head: () => ({
-    links: [{ rel: "stylesheet", href: glossaryCssUrl }],
-  }),
   component: RouteComponent,
 });
 

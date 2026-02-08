@@ -1,7 +1,7 @@
-import type { NameItem } from "../../../../../../lib/domain/taxon-names/validation";
+import type { NameItemForm } from "./validation";
 
 export type LocaleEntry = {
   code: string;
   label: string;
-  entries: { item: NameItem; index: number }[];
+  entries: { item: NameItemForm }[];
 };
