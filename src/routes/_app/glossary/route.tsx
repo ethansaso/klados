@@ -1,3 +1,5 @@
+import "../../../assets/styles/pages/glossary/glossary.css";
+
 import { Flex, TabNav } from "@radix-ui/themes";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useIsActive } from "../../../lib/hooks/useIsActive";

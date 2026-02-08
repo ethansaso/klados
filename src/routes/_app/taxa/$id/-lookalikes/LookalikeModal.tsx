@@ -48,7 +48,14 @@ function toUIState(
   }
 }
 
-function GroupDataList({ items }: { items: LookalikeComparisonCharacter[] }) {
+function GroupDataList({
+  items,
+}: {
+  items: LookalikeComparisonCharacter[] | null;
+}) {
+  if (!items) return null;
+  if (items.length === 0) return <Text color="gray">Present</Text>;
+
   return (
     <DataList.Root size="2" orientation="vertical">
       {items.map((it) => {

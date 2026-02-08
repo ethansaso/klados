@@ -1,3 +1,5 @@
+import "../assets/styles/main.css";
+
 import NiceModal from "@ebay/nice-modal-react";
 import { Theme } from "@radix-ui/themes";
 import { QueryClient } from "@tanstack/react-query";
@@ -11,11 +13,9 @@ import {
 import type { ReactNode } from "react";
 import { ToastHost } from "../components/ToastHost";
 import { meQueryOptions } from "../lib/queries/users";
+import { GA_ID } from "../lib/utils/head/const";
 import { rootSeo } from "../lib/utils/head/rootSeo";
 import { paginationDefaults } from "../lib/validation/pagination";
-
-import appCssUrl from "../assets/styles/main.css?url";
-import { GA_ID } from "../lib/utils/head/const";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -44,7 +44,6 @@ export const Route = createRootRouteWithContext<{
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap",
       },
-      { rel: "stylesheet", href: appCssUrl },
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },

@@ -7,14 +7,13 @@ import {
 } from "@radix-ui/themes";
 import { memo, useState } from "react";
 import { PiPencil, PiTrash } from "react-icons/pi";
-import { type NameItem } from "../../../../../../lib/domain/taxon-names/validation";
 
 type NameRowProps = {
+  id: string;
   localeLabel: string;
-  item: NameItem;
-  index: number;
-  onNameChange: (index: number, nextValue: string) => void;
-  onDelete: (index: number) => void;
+  value: string;
+  onNameChange: (id: string, nextValue: string) => void;
+  onDelete: (id: string) => void;
 };
 
 /**
@@ -22,18 +21,18 @@ type NameRowProps = {
  * Performance optimization to avoid unnecessary re-renders.
  */
 export const NameRow = memo(
-  ({ localeLabel, item, index, onNameChange, onDelete }: NameRowProps) => {
+  ({ localeLabel, value, id, onNameChange, onDelete }: NameRowProps) => {
     const [isEditing, setIsEditing] = useState(false);
-    const [draft, setDraft] = useState(item.value || "");
+    const [draft, setDraft] = useState(value);
 
     const startEdit = () => {
-      setDraft(item.value || "");
+      setDraft(value || "");
       setIsEditing(true);
     };
 
     const cancelEdit = () => {
       setIsEditing(false);
-      setDraft(item.value || "");
+      setDraft(value || "");
     };
 
     const commitEdit = () => {
@@ -42,19 +41,21 @@ export const NameRow = memo(
         cancelEdit();
         return;
       }
-      if (trimmed !== item.value) {
-        onNameChange(index, trimmed);
+      if (trimmed !== value) {
+        onNameChange(id, trimmed);
       }
       setIsEditing(false);
     };
 
+    console.log("rerender");
+
     return (
       <Flex align="center" gap="2" className="taxon-names__item">
         <Flex align="center" gap="2" className="taxon-names__item__label">
-          <RadioGroup.Item value={String(index)}>
+          <RadioGroup.Item value={id}>
             {!isEditing && (
-              <Text as="span" color={item.value ? undefined : "gray"}>
-                {item.value || "(empty)"}
+              <Text as="span" color={value ? undefined : "gray"}>
+                {value || "(empty)"}
               </Text>
             )}
           </RadioGroup.Item>
@@ -96,7 +97,7 @@ export const NameRow = memo(
             variant="ghost"
             color="tomato"
             type="button"
-            onClick={() => onDelete(index)}
+            onClick={() => onDelete(id)}
             aria-label="Delete name"
           >
             <PiTrash size={12} />

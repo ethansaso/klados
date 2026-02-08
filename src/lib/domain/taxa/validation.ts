@@ -1,7 +1,7 @@
 import z from "zod";
 import { TAXON_RANKS_DESCENDING } from "../../../../db/schema/schema";
 import { MEDIA_LICENSES } from "../../../../db/utils/mediaLicense";
-import { characterUpdateSchema } from "../character-states/validation";
+import { groupedCharacterUpdateSchema } from "../states/validation";
 import { nameItemSchema } from "../taxon-names/validation";
 import { setTaxonSourcesSchema } from "../taxon-sources/validation";
 
@@ -27,7 +27,7 @@ export const updateTaxonInputSchema = taxonPatchSchema
 
     // subresources
     names: z.array(nameItemSchema).optional(),
-    characters: z.array(characterUpdateSchema).optional(),
+    states: groupedCharacterUpdateSchema.optional(),
     sources: setTaxonSourcesSchema.optional(),
   })
   .superRefine((data, ctx) => {

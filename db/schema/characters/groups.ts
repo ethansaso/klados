@@ -12,5 +12,5 @@ export const characterGroup = pgTable(
     label: text("label").notNull(), // "Cap"
     description: text("description").notNull().default(""),
   }),
-  (t) => [uniqueIndex("character_groups_key_uq").on(t.key)]
+  (t) => [uniqueIndex("character_groups_key_uq").on(t.key)],
 );

@@ -1,3 +1,5 @@
+import "../../../../../assets/styles/pages/taxa/edit.css";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Badge,
@@ -19,7 +21,7 @@ import {
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Form } from "radix-ui";
-import { type MouseEventHandler, useState } from "react";
+import { useState, type MouseEventHandler } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import z from "zod";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
@@ -30,26 +32,23 @@ import { getTaxonFn } from "../../../../../lib/api/taxa/getTaxonFn";
 import { publishTaxonFn } from "../../../../../lib/api/taxa/publishFn";
 import { updateTaxonFn } from "../../../../../lib/api/taxa/updateTaxonFn";
 import { getSourcesForTaxonFn } from "../../../../../lib/api/taxon-sources/getSourcesForTaxonFn";
-import type { CharacterUpdate } from "../../../../../lib/domain/character-states/validation";
 import type { SourceDTO } from "../../../../../lib/domain/sources/types";
+import type { GroupedCharacterUpdate } from "../../../../../lib/domain/states/validation";
 import { mediaItemSchema } from "../../../../../lib/domain/taxa/validation";
-import { nameItemSchema } from "../../../../../lib/domain/taxon-names/validation";
 import { setTaxonSourcesSchema } from "../../../../../lib/domain/taxon-sources/validation";
+import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { routeSeo } from "../../../../../lib/utils/head/routeSeo";
 import { toast } from "../../../../../lib/utils/toast";
 import { CharacterEditingForm } from "./-characters/CharactersEditingForm";
-import { characterStateFormSchema } from "./-characters/validation";
+import { groupedCharacterFormSchema } from "./-characters/validation";
 import { MediaEditingForm } from "./-media/MediaEditingForm";
 import { MetaForm } from "./-meta/MetaForm";
 import { NameEditingForm } from "./-names/NameEditingForm";
+import { nameItemFormSchema } from "./-names/validation";
 import { seedTaxonEditState } from "./-seeding";
 import { SourceEditingForm } from "./-sources/SourceEditingForm";
 
-import editPageCssUrl from "../../../../../assets/styles/pages/taxa/edit.css?url";
-import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
-
 export type TaxonEditFormValues = z.infer<typeof taxonEditFormSchema>;
-
 export const taxonEditFormSchema = z.object({
   parentId: z.number().nullable(),
   rank: z.enum(TAXON_RANKS_DESCENDING),
@@ -57,39 +56,44 @@ export const taxonEditFormSchema = z.object({
   sourceInatId: z.number().nullable(),
   media: z.array(mediaItemSchema),
   notes: z.string(),
-  names: z.array(nameItemSchema),
-  characters: z.array(characterStateFormSchema),
+  names: z.array(nameItemFormSchema),
+  states: groupedCharacterFormSchema,
   sources: setTaxonSourcesSchema,
 });
 
 const convertToServerCharacterValues = (
-  values: TaxonEditFormValues["characters"],
-): CharacterUpdate[] => {
-  return values.map((v) => {
-    switch (v.kind) {
-      case "categorical":
-        return {
-          kind: "categorical",
-          characterId: v.characterId,
-          traitValueIds: v.traitValues.map((tv) => tv.id),
-        };
-      case "number":
-        return {
-          kind: "number",
-          characterId: v.characterId,
-          unitId: v.unit?.id,
-          siBaseValue: v.siBaseValue,
-        };
-      case "range":
-        return {
-          kind: "range",
-          characterId: v.characterId,
-          unitId: v.unit?.id,
-          siBaseMin: v.siBaseMin,
-          siBaseMax: v.siBaseMax,
-        };
-    }
-  });
+  values: TaxonEditFormValues["states"],
+): GroupedCharacterUpdate => {
+  return values.map((group) => ({
+    groupId: group.groupId,
+    characters: group.characters.map((v) => {
+      switch (v.kind) {
+        case "categorical":
+          return {
+            kind: "categorical",
+            characterId: v.characterId,
+            traitValueIds: v.traitValues.map((tv) => tv.id),
+          };
+
+        case "number":
+          return {
+            kind: "number",
+            characterId: v.characterId,
+            unitId: v.unit?.id,
+            siBaseValue: v.siBaseValue,
+          };
+
+        case "range":
+          return {
+            kind: "range",
+            characterId: v.characterId,
+            unitId: v.unit?.id,
+            siBaseMin: v.siBaseMin,
+            siBaseMax: v.siBaseMax,
+          };
+      }
+    }),
+  }));
 };
 
 export const Route = createFileRoute("/_app/taxa/$id/edit/")({
@@ -126,7 +130,6 @@ export const Route = createFileRoute("/_app/taxa/$id/edit/")({
       title: loaderData
         ? `Editing ${loaderData.initialTaxon.acceptedName} | Klados`
         : "Klados",
-      links: [{ rel: "stylesheet", href: editPageCssUrl }],
       canonicalUrl: match.pathname,
     }),
   component: RouteComponent,
@@ -224,7 +227,7 @@ function RouteComponent() {
         data: {
           ...data,
           id,
-          characters: convertToServerCharacterValues(data.characters),
+          states: convertToServerCharacterValues(data.states),
         },
       });
       reset(data, { keepDirty: false }); // keep RHF dirty tracking in sync
@@ -245,7 +248,7 @@ function RouteComponent() {
         data: {
           ...data,
           id,
-          characters: convertToServerCharacterValues(data.characters),
+          states: convertToServerCharacterValues(data.states),
         },
       });
       reset(data, { keepDirty: false }); // clear dirty after persisting
@@ -313,7 +316,7 @@ function RouteComponent() {
 
           {/* Characters */}
           <Controller
-            name="characters"
+            name="states"
             control={control}
             render={({ field }) => (
               <CharacterEditingForm
@@ -329,12 +332,8 @@ function RouteComponent() {
           <Controller
             control={control}
             name="names"
-            render={({ field: { value, onChange } }) => (
-              <NameEditingForm
-                value={value}
-                inatId={inatId}
-                onChange={onChange}
-              />
+            render={({ field: { onChange } }) => (
+              <NameEditingForm inatId={inatId} onChange={onChange} />
             )}
           />
 

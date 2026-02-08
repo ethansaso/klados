@@ -1,0 +1,3 @@
+-- Reconciliation migration.
+-- Schema already updated via manual migrations.
+-- This migration exists to sync Drizzle snapshot with DB state.

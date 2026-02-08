@@ -1,8 +1,19 @@
-import { Card, DataList, Heading, Separator, Tooltip } from "@radix-ui/themes";
+import {
+  Card,
+  DataList,
+  Heading,
+  Separator,
+  Text,
+  Tooltip,
+} from "@radix-ui/themes";
 import { CharacterStateDisplay } from "../../../../../components/trait-tokens/CharacterStateDisplay";
-import type { GroupedCharacterStates } from "../../../../../lib/domain/character-states/utils";
+import type { TaxonCharacterGroupStateDTO } from "../../../../../lib/domain/states/types";
 
-export const GroupCard = ({ group }: { group: GroupedCharacterStates }) => {
+export const GroupCard = ({
+  group,
+}: {
+  group: TaxonCharacterGroupStateDTO;
+}) => {
   const cardHeaderComponent = group.groupDescription ? (
     <Tooltip content={group.groupDescription}>
       <span className="has-information">{group.groupLabel}</span>
@@ -15,26 +26,32 @@ export const GroupCard = ({ group }: { group: GroupedCharacterStates }) => {
     <Card size="2">
       <Heading size="2">{cardHeaderComponent}</Heading>
       <Separator size="4" mt="1" mb="3" />
-      <DataList.Root size={{ initial: "1", sm: "2" }}>
-        {group.states.map((state) => {
-          const dlLabel = state.characterDescription ? (
-            <Tooltip content={state.characterDescription}>
-              <span className="has-information">{state.characterLabel}</span>
-            </Tooltip>
-          ) : (
-            state.characterLabel
-          );
+      {group.states.length > 0 ? (
+        <DataList.Root size={{ initial: "1", sm: "2" }}>
+          {group.states.map((state) => {
+            const dlLabel = state.characterDescription ? (
+              <Tooltip content={state.characterDescription}>
+                <span className="has-information">{state.characterLabel}</span>
+              </Tooltip>
+            ) : (
+              state.characterLabel
+            );
 
-          return (
-            <DataList.Item key={state.characterId}>
-              <DataList.Label>{dlLabel}</DataList.Label>
-              <DataList.Value>
-                <CharacterStateDisplay state={state} />
-              </DataList.Value>
-            </DataList.Item>
-          );
-        })}
-      </DataList.Root>
+            return (
+              <DataList.Item key={state.characterId}>
+                <DataList.Label>{dlLabel}</DataList.Label>
+                <DataList.Value>
+                  <CharacterStateDisplay state={state} />
+                </DataList.Value>
+              </DataList.Item>
+            );
+          })}
+        </DataList.Root>
+      ) : (
+        <Text color="gray" size="2">
+          No character states assigned.
+        </Text>
+      )}
     </Card>
   );
 };

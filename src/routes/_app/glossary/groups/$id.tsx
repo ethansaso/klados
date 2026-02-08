@@ -1,6 +1,6 @@
-import { Box, Heading, Text } from "@radix-ui/themes";
+import { Box, Heading, Link as RadixLink, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import z from "zod";
 import { characterGroupQueryOptions } from "../../../../lib/queries/characterGroups";
 
@@ -37,9 +37,11 @@ function RouteComponent() {
       <Box>
         {group.characters.map((char) => (
           <Box key={char.id} mb="2">
-            <Text as="div" weight="medium">
-              {char.label}
-            </Text>
+            <RadixLink asChild>
+              <Link to="/glossary/characters/$id" params={{ id: char.id }}>
+                {char.label}
+              </Link>
+            </RadixLink>
             <Text as="div">{char.description}</Text>
           </Box>
         ))}

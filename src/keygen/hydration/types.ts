@@ -1,4 +1,4 @@
-import type { Trait } from "../../lib/domain/character-states/types";
+import type { Trait } from "../../lib/domain/states/types";
 import type { MediaItem } from "../../lib/domain/taxa/validation";
 import type {
   KeyCharRationale,

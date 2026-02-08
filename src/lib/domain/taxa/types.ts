@@ -25,6 +25,7 @@ export type TaxonDTO = Pick<
   activeChildCount: number;
 };
 
+/** Reduced taxon representation used internally for keygen, etc. */
 export type TaxonHierarchyDTO = {
   id: number;
   acceptedName: string;

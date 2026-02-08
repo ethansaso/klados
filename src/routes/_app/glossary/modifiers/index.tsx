@@ -1,4 +1,4 @@
-import { Text } from "@radix-ui/themes";
+import { Box, Heading, Text } from "@radix-ui/themes";
 import { createFileRoute } from "@tanstack/react-router";
 import { matchCanonicalHead } from "../../../../lib/utils/head/matchCanonicalHead";
 
@@ -8,5 +8,13 @@ export const Route = createFileRoute("/_app/glossary/modifiers/")({
 });
 
 function RouteComponent() {
-  return <Text>Select a modifier to inspect it.</Text>;
+  return (
+    <Box>
+      <Heading>Modifiers</Heading>
+      <Text>
+        Modifiers are the "who", "when", "where", "why", and "how" to the "what"
+        of characters.
+      </Text>
+    </Box>
+  );
 }

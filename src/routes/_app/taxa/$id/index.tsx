@@ -1,3 +1,5 @@
+import "../../../../assets/styles/pages/taxa/$id.css";
+
 import { Box, Flex, Heading, Tabs, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -8,7 +10,6 @@ import {
   Breadcrumbs,
 } from "../../../../components/Breadcrumbs";
 import { ContentContainer } from "../../../../components/ContentContainer";
-import { groupStatesByGroup } from "../../../../lib/domain/character-states/utils";
 import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 import { taxonCharacterStatesQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
@@ -19,10 +20,8 @@ import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { TaxonCharacterSection } from "./-characters/TaxonCharacterSection";
 import { LookalikesList } from "./-lookalikes/LookalikesList";
 import { NamesDataList } from "./-NameDataList";
-import { TaxonMainSection } from "./-TaxonMainSection";
-
-import taxonPageCssUrl from "../../../../assets/styles/pages/taxa/$id.css?url";
 import { StatusCallout } from "./-StatusCallout";
+import { TaxonMainSection } from "./-TaxonMainSection";
 
 const ParamsSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -46,7 +45,6 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
       title: loaderData
         ? `${loaderData.taxon.acceptedName} | Klados`
         : "Klados",
-      links: [{ rel: "stylesheet", href: taxonPageCssUrl }],
       canonicalUrl: match.pathname,
     }),
   component: TaxonPage,
@@ -61,11 +59,6 @@ function TaxonPage() {
   );
   const { data: lookalikes } = useSuspenseQuery(lookalikesQueryOptions(id));
   const { data: sources } = useSuspenseQuery(sourcesForTaxonQueryOptions(id));
-
-  const groupedStates = useMemo(
-    () => groupStatesByGroup(characterStates),
-    [characterStates],
-  );
 
   const breadcrumbItems: Breadcrumb[] = useMemo(() => {
     const items: Breadcrumb[] = taxon.ancestors.map((ancestor) => ({
@@ -104,33 +97,36 @@ function TaxonPage() {
         </Flex>
       </Box>
       <Box width="100%">
-        <Box mb="4">
+        <Box mb={{ initial: "2", xs: "4" }}>
           <TaxonMainSection taxon={taxon} navigate={navigate} />
         </Box>
-        <Tabs.Root mb="4" defaultValue="states">
-          <Tabs.List size={{ initial: "1", xs: "2" }} mb="5">
+        <Tabs.Root defaultValue="states">
+          <Tabs.List
+            size={{ initial: "1", xs: "2" }}
+            mb={{ initial: "4", xs: "5" }}
+          >
             <Tabs.Trigger value="states">Description</Tabs.Trigger>
             <Tabs.Trigger value="lookalikes">Lookalikes</Tabs.Trigger>
             <Tabs.Trigger value="names">Names</Tabs.Trigger>
             <Tabs.Trigger value="sources">Sources</Tabs.Trigger>
           </Tabs.List>
-          <Tabs.Content value="states" mt="4">
-            <TaxonCharacterSection groups={groupedStates} />
+          <Tabs.Content value="states">
+            <TaxonCharacterSection groups={characterStates} />
           </Tabs.Content>
-          <Tabs.Content value="lookalikes" mt="4">
+          <Tabs.Content value="lookalikes">
             <LookalikesList
               taxonId={id}
               taxonAcceptedName={taxon.acceptedName}
               lookalikes={lookalikes}
             />
           </Tabs.Content>
-          <Tabs.Content value="names" mt="4">
+          <Tabs.Content value="names">
             <Heading size={{ initial: "3", sm: "4" }} mb="3">
               Names
             </Heading>
             <NamesDataList names={taxon.names} />
           </Tabs.Content>
-          <Tabs.Content value="sources" mt="4">
+          <Tabs.Content value="sources">
             <Heading size={{ initial: "3", sm: "4" }} mb="1">
               Sources
             </Heading>

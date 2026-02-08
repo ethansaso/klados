@@ -1,6 +1,6 @@
 import { getCharacterGroupsByIds } from "../../lib/domain/character-groups/service";
-import type { Trait } from "../../lib/domain/character-states/types";
 import { getCharactersByIds } from "../../lib/domain/characters/service";
+import type { Trait } from "../../lib/domain/states/types";
 import { getTaxaByIds } from "../../lib/domain/taxa/service";
 import type { MediaItem } from "../../lib/domain/taxa/validation";
 import { getTraitValuesByIds } from "../../lib/domain/traits/service";

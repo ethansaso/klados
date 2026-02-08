@@ -16,9 +16,6 @@ type TaxonStateBase = {
   characterId: number;
   characterLabel: string;
   characterDescription: string;
-  groupId: number;
-  groupLabel: string;
-  groupDescription: string;
 };
 
 type TaxonNumericStateBase = TaxonStateBase & {
@@ -43,3 +40,10 @@ export type TaxonCharacterStateDTO =
   | TaxonCategoricalStateDTO
   | TaxonNumberStateDTO
   | TaxonRangeStateDTO;
+
+export type TaxonCharacterGroupStateDTO = {
+  groupId: number;
+  groupLabel: string;
+  groupDescription: string;
+  states: TaxonCharacterStateDTO[];
+};

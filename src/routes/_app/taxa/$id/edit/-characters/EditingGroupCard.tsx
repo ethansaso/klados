@@ -8,7 +8,7 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { PiCheck, PiTrash, PiX } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
@@ -17,21 +17,23 @@ import { characterGroupQueryOptions } from "../../../../../../lib/queries/charac
 import { CharacterStateRow } from "./CharacterStateRow";
 import { GroupStateSearch } from "./search/GroupStateSearch";
 import { addStateFromSuggestion } from "./stateUtils";
-import type { CharacterStateFormValue } from "./validation";
+import type { CharacterGroupFormValue } from "./validation";
 
 type GroupCardProps = {
-  groupId: number;
-  statesForGroup: CharacterStateFormValue[];
-  onChange: (next: CharacterStateFormValue[]) => void;
-  onDelete: (groupId: number, characterIds: number[]) => void;
-  onRemoveCategoricalValue: (characterId: number, traitValueId: number) => void;
-  onRemoveState: (characterId: number) => void;
+  group: CharacterGroupFormValue;
+  onChange: (nextGroups: CharacterGroupFormValue[]) => void;
+  onDelete: () => void;
+  onRemoveCategoricalValue: (
+    groupId: number,
+    characterId: number,
+    traitValueId: number,
+  ) => void;
+  onRemoveState: (groupId: number, characterId: number) => void;
 };
 
 export const EditingGroupCard = memo(
   ({
-    groupId,
-    statesForGroup,
+    group,
     onChange,
     onDelete,
     onRemoveCategoricalValue,
@@ -40,27 +42,16 @@ export const EditingGroupCard = memo(
     const { getValues } = useFormContext<TaxonEditFormValues>();
     const [confirmingDelete, setConfirmingDelete] = useState(false);
     const { data, isLoading, isError } = useQuery(
-      characterGroupQueryOptions(groupId),
+      characterGroupQueryOptions(group.groupId),
     );
 
     const label = data?.label;
 
-    // Build a map from statesForGroup for efficient lookup
-    const stateByCharacterId = useMemo(() => {
-      const map = new Map<number, CharacterStateFormValue>();
-      for (const state of statesForGroup) {
-        map.set(state.characterId, state);
-      }
-      return map;
-    }, [statesForGroup]);
-
     const handleSuggestionSelect = useCallback(
       (s: TraitSuggestion) => {
-        const current = getValues("characters");
-        const next = addStateFromSuggestion(current, s);
-        if (next !== current) {
-          onChange(next);
-        }
+        const prev = getValues("states");
+        const next = addStateFromSuggestion(prev, s);
+        onChange(next);
       },
       [getValues, onChange],
     );
@@ -83,9 +74,7 @@ export const EditingGroupCard = memo(
                 size="1"
                 variant="ghost"
                 color="tomato"
-                onClick={() =>
-                  onDelete(groupId, data?.characters.map((c) => c.id) ?? [])
-                }
+                onClick={() => onDelete()}
               >
                 <PiCheck size={12} />
               </IconButton>
@@ -116,7 +105,7 @@ export const EditingGroupCard = memo(
         {/* Add states via search */}
         <Box mt="2" mb="3">
           <GroupStateSearch
-            groupId={groupId}
+            groupId={group.groupId}
             onSelect={handleSuggestionSelect}
           />
         </Box>
@@ -134,9 +123,17 @@ export const EditingGroupCard = memo(
               <CharacterStateRow
                 key={c.id}
                 character={c}
-                state={stateByCharacterId.get(c.id)}
-                onRemoveCategoricalValue={onRemoveCategoricalValue}
-                onRemoveState={onRemoveState}
+                state={group.characters.find((s) => s.characterId === c.id)}
+                onRemoveCategoricalValue={(characterId, traitValueId) =>
+                  onRemoveCategoricalValue(
+                    group.groupId,
+                    characterId,
+                    traitValueId,
+                  )
+                }
+                onRemoveState={(characterId) =>
+                  onRemoveState(group.groupId, characterId)
+                }
               />
             ))}
           </DataList.Root>

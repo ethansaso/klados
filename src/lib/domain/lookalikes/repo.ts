@@ -2,10 +2,13 @@ import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "../../../../db/client";
-import { taxonCharacterStateCategorical as tcsCatTbl } from "../../../../db/schema/characters/states";
-import { categoricalTraitValue as traitValTbl } from "../../../../db/schema/characters/traits";
+import {
+  taxon as taxaTbl,
+  taxonCharacterStateCategorical as tcsCatTbl,
+  taxonCharacterGroupState as tgsTbl,
+  categoricalTraitValue as traitValTbl,
+} from "../../../../db/schema/schema";
 import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
-import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import type { TaxonLookalikeDTO } from "./types";
 
 export async function computeTaxonLookalikesByCategoricalOverlap(args: {
@@ -30,7 +33,8 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
     })
     .from(tcsCatTbl)
     .innerJoin(traitValTbl, eq(traitValTbl.id, tcsCatTbl.traitValueId))
-    .where(eq(tcsCatTbl.taxonId, args.taxonId))
+    .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonGroupStateId))
+    .where(eq(tgsTbl.taxonId, args.taxonId))
     .groupBy(tcsCatTbl.characterId, canonTraitId)
     .as("target");
 
@@ -56,11 +60,12 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
   // along with the count of shared states.
   const shared = db
     .select({
-      otherTaxonId: tcsCatTbl.taxonId,
+      otherTaxonId: tgsTbl.taxonId,
       sharedCnt: sharedCountExpr,
     })
     .from(target)
     .innerJoin(tcsCatTbl, eq(tcsCatTbl.characterId, target.characterId))
+    .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonGroupStateId))
     .innerJoin(
       tv2,
       and(
@@ -68,8 +73,8 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
         eq(canonTraitId2, target.canonTraitValueId),
       ),
     )
-    .where(ne(tcsCatTbl.taxonId, args.taxonId))
-    .groupBy(tcsCatTbl.taxonId)
+    .where(ne(tgsTbl.taxonId, args.taxonId))
+    .groupBy(tgsTbl.taxonId)
     .having(sql`${sharedCountBase} >= ${minShared}`)
     .as("shared");
 
@@ -81,15 +86,16 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
   // just taxa which share something with the target (`shared`).
   const otherCnt = db
     .select({
-      taxonId: tcsCatTbl.taxonId,
+      taxonId: tgsTbl.taxonId,
       otherCnt: sql<number>`
       count(distinct (${tcsCatTbl.characterId}, ${canonTraitId3}))::int
     `.as("other_cnt"),
     })
     .from(tcsCatTbl)
-    .innerJoin(shared, eq(shared.otherTaxonId, tcsCatTbl.taxonId))
+    .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonGroupStateId))
+    .innerJoin(shared, eq(shared.otherTaxonId, tgsTbl.taxonId))
     .innerJoin(tv3, eq(tv3.id, tcsCatTbl.traitValueId))
-    .groupBy(tcsCatTbl.taxonId)
+    .groupBy(tgsTbl.taxonId)
     .as("other_cnt");
 
   // Rank by jaccard similarity

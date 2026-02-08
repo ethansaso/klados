@@ -1,0 +1,5 @@
+.glossary-sidebar__list {
+  div.rt-ScrollAreaViewport > div {
+    max-width: 100%;
+  }
+}

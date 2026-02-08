@@ -1,8 +1,5 @@
-import {
-  getTaxaCharacterStates,
-  getTaxonCharacterStates,
-} from "../../lib/domain/character-states/service";
-import type { TaxonCharacterStateDTO } from "../../lib/domain/character-states/types";
+import { getTaxaStates, getTaxonStates } from "../../lib/domain/states/service";
+import type { TaxonCharacterGroupStateDTO } from "../../lib/domain/states/types";
 import { getTaxonHierarchyMetaForParents } from "../../lib/domain/taxa/repo";
 import { getTaxon } from "../../lib/domain/taxa/service";
 import type { TaxonHierarchyDTO } from "../../lib/domain/taxa/types";
@@ -22,7 +19,7 @@ export const fetchAndAssembleTaxonNode = async (
   if (!taxon) {
     return null;
   }
-  const taxonData = await getTaxonCharacterStates({ taxonId });
+  const taxonData = await getTaxonStates({ taxonId });
   if (!taxonData) {
     return null;
   }
@@ -114,12 +111,12 @@ export const discoverTaxonMetaHierarchyBFS = async (
  */
 async function loadStatesForHierarchy(
   metaById: Map<number, TaxonHierarchyDTO>,
-): Promise<Record<number, TaxonCharacterStateDTO[]>> {
+): Promise<Record<number, TaxonCharacterGroupStateDTO[]>> {
   const allIds = Array.from(metaById.keys());
   if (allIds.length === 0) {
     return {};
   }
-  return getTaxaCharacterStates({ taxonIds: allIds });
+  return getTaxaStates({ taxonIds: allIds });
 }
 
 /**
@@ -127,7 +124,7 @@ async function loadStatesForHierarchy(
  */
 function assembleHierarchyNodes(
   metaById: Map<number, TaxonHierarchyDTO>,
-  statesByTaxonId: Record<number, TaxonCharacterStateDTO[]>,
+  statesByTaxonId: Record<number, TaxonCharacterGroupStateDTO[]>,
 ): Map<number, HierarchyTaxonNode> {
   const tree = new Map<number, HierarchyTaxonNode>();
 
