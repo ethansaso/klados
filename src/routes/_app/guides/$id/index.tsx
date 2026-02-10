@@ -18,19 +18,23 @@ export const Route = createFileRoute("/_app/guides/$id/")({
   loader: async ({ context, params }) => {
     const { id } = params;
 
-    await context.queryClient.ensureQueryData(guideQueryOptions(id));
+    const guide = await context.queryClient.ensureQueryData(
+      guideQueryOptions(id),
+    );
 
-    return { id };
+    return { id, guide };
   },
   head: ({ loaderData }) =>
     routeSeo({
-      title: `Guide ${loaderData?.id} | Klados`,
+      title: loaderData
+        ? `Guide '${loaderData.guide.name}' | Klados`
+        : "Klados",
     }),
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { id } = Route.useLoaderData() as { id: number };
+  const { id } = Route.useLoaderData();
   const { data: guide } = useSuspenseQuery(guideQueryOptions(id));
 
   return (
