@@ -13,7 +13,7 @@ import { db } from "../../../../db/client";
 import {
   categoricalCharacterMeta as catMetaTbl,
   character as charsTbl,
-  characterGroup as groupsTbl,
+  feature as groupsTbl,
   numericCharacterMeta as numMetaTbl,
   taxonCharacterStateCategorical as tcsCatTbl,
   taxonCharacterStateNumber as tcsNumTbl,

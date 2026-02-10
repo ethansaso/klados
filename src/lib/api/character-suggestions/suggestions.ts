@@ -7,7 +7,7 @@ import {
   categoricalTraitSet,
   categoricalTraitValue,
   character,
-  characterGroup,
+  feature,
   numericCharacterMeta,
 } from "../../../../db/schema/schema";
 import { type UnitDTO } from "../../domain/units/types";
@@ -82,7 +82,7 @@ export async function searchCategoricalSuggestions(opts: {
       characterId: character.id,
       characterLabel: character.label,
       groupId: character.groupId,
-      groupLabel: characterGroup.label,
+      groupLabel: feature.label,
       traitValueId: categoricalTraitValue.id,
       traitValueLabel: categoricalTraitValue.label,
       // Get hexCode from canonical value (or self if already canonical)
@@ -107,7 +107,7 @@ export async function searchCategoricalSuggestions(opts: {
       character,
       eq(character.id, categoricalCharacterMeta.characterId),
     )
-    .innerJoin(characterGroup, eq(characterGroup.id, character.groupId))
+    .innerJoin(feature, eq(feature.id, character.groupId))
     // Self-join: if canonical, join to self; if alias, join to canonical
     .innerJoin(
       canonicalValue,
@@ -265,13 +265,13 @@ export async function buildNumericSingleSuggestions(opts: {
       characterId: character.id,
       characterLabel: character.label,
       groupId: character.groupId,
-      groupLabel: characterGroup.label,
+      groupLabel: feature.label,
       unitFamilyId: numericCharacterMeta.unitFamilyId,
       kind: numericCharacterMeta.kind,
     })
     .from(numericCharacterMeta)
     .innerJoin(character, eq(character.id, numericCharacterMeta.characterId))
-    .innerJoin(characterGroup, eq(characterGroup.id, character.groupId))
+    .innerJoin(feature, eq(feature.id, character.groupId))
     .innerJoin(unitFamily, eq(unitFamily.id, numericCharacterMeta.unitFamilyId))
     .where(
       and(
@@ -375,13 +375,13 @@ export async function buildNumericRangeSuggestions(opts: {
       characterId: character.id,
       characterLabel: character.label,
       groupId: character.groupId,
-      groupLabel: characterGroup.label,
+      groupLabel: feature.label,
       unitFamilyId: numericCharacterMeta.unitFamilyId,
       kind: numericCharacterMeta.kind,
     })
     .from(numericCharacterMeta)
     .innerJoin(character, eq(character.id, numericCharacterMeta.characterId))
-    .innerJoin(characterGroup, eq(characterGroup.id, character.groupId))
+    .innerJoin(feature, eq(feature.id, character.groupId))
     .innerJoin(unitFamily, eq(unitFamily.id, numericCharacterMeta.unitFamilyId))
     .where(
       and(

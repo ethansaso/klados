@@ -10,32 +10,28 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
+import { characterFeature } from "../characters/characterFeatures";
 import {
   categoricalCharacterMeta,
-  character,
   numericCharacterMeta,
 } from "../characters/characters";
 import { categoricalTraitValue } from "../characters/traits";
 import { unit } from "../characters/units";
-import { taxonCharacterGroupState } from "./characterGroupStates";
+import { taxonFeatureState } from "./featureStates";
 
-// ! The tables in this file contain explicit stored group IDs and foreign keys
-// ! to enforce that states belong to characters within the same group as the
-// ! taxon-group-state via foreign keys.
-
-/**
- * Taxon <-> categorical character states.
- *
- * NOTE: there is nothing preventing the use of a trait which is not part of the
- * character's trait set; this should be enforced at the application level.
- */
 export const taxonCharacterStateCategorical = pgTable(
   "taxon_character_state_categorical",
   withTimestamps({
     id: serial("id").primaryKey(),
-    taxonGroupStateId: integer("taxon_group_state_id")
+
+    taxonFeatureStateId: integer("taxon_feature_state_id")
       .notNull()
-      .references(() => taxonCharacterGroupState.id, { onDelete: "cascade" }),
+      .references(() => taxonFeatureState.id, { onDelete: "cascade" }),
+
+    characterFeatureId: integer("character_feature_id")
+      .notNull()
+      .references(() => characterFeature.id, { onDelete: "restrict" }),
+
     characterId: integer("character_id")
       .notNull()
       .references(() => categoricalCharacterMeta.characterId, {
@@ -46,119 +42,126 @@ export const taxonCharacterStateCategorical = pgTable(
       .notNull()
       .references(() => categoricalTraitValue.id, { onDelete: "restrict" }),
 
-    // ! STORED GROUP ID - MUST MATCH BOTH TAXON GROUP AND CHARACTER !
-    groupId: integer("group_id").notNull(),
+    // STORED FEATURE ID - MUST MATCH TAXON FEATURE + CHARACTER FEATURE
+    featureId: integer("feature_id").notNull(),
   }),
   (t) => [
-    // Prevent duplicate selections for the same group+character+trait
     uniqueIndex("tcs_cat_group_state_char_trait_uq").on(
-      t.taxonGroupStateId,
+      t.taxonFeatureStateId,
       t.characterId,
       t.traitValueId,
     ),
 
-    // Index on 'cap'
-    index("tcs_cat_taxon_group_state_idx").on(t.taxonGroupStateId),
-    // Index on 'cap color'
+    index("tcs_cat_taxon_feature_state_idx").on(t.taxonFeatureStateId),
     index("tcs_cat_character_idx").on(t.characterId),
-    // Index on 'red'
     index("tcs_cat_trait_idx").on(t.traitValueId),
-    // Index for joins when fetching taxa with a given character state
     index("tcs_cat_character_trait_idx").on(t.characterId, t.traitValueId),
 
-    // ! ENFORCES TAXON GROUP <-> GROUP ID CONSISTENCY !
+    // Enforce taxonFeatureState <-> featureId consistency
     foreignKey({
-      name: "tcs_cat_taxon_group_state_pair_fk",
-      columns: [t.taxonGroupStateId, t.groupId],
-      foreignColumns: [
-        taxonCharacterGroupState.id,
-        taxonCharacterGroupState.groupId,
-      ],
+      name: "tcs_cat_taxon_feature_state_pair_fk",
+      columns: [t.taxonFeatureStateId, t.featureId],
+      foreignColumns: [taxonFeatureState.id, taxonFeatureState.featureId],
     }),
 
-    // ! ENFORCES CHARACTER BELONGS TO GROUP !
+    // Enforce characterFeature <-> featureId consistency
     foreignKey({
-      name: "tcs_cat_character_group_fk",
-      columns: [t.characterId, t.groupId],
-      foreignColumns: [character.id, character.groupId],
+      name: "tcs_cat_character_feature_fk",
+      columns: [t.characterFeatureId, t.featureId],
+      foreignColumns: [characterFeature.id, characterFeature.featureId],
+    }),
+
+    // Enforce characterFeature <-> characterId consistency
+    foreignKey({
+      name: "tcs_cat_character_feature_character_fk",
+      columns: [t.characterFeatureId, t.characterId],
+      foreignColumns: [characterFeature.id, characterFeature.characterId],
+    }),
+
+    // Enforce traitValue <-> character consistency
+    foreignKey({
+      name: "tcs_cat_character_trait_same_character_fk",
+      columns: [t.characterId, t.traitValueId],
+      foreignColumns: [
+        categoricalTraitValue.characterId,
+        categoricalTraitValue.id,
+      ],
     }),
   ],
 );
 
-/**
- * Single numeric value.
- *
- * **siBaseValue** is stored in SI base units for the character's unit family.
- * **displayUnitId** is the unit to reconstruct/display in UI.
- */
 export const taxonCharacterStateNumber = pgTable(
   "taxon_character_number",
   withTimestamps({
     id: serial("id").primaryKey(),
-    taxonGroupStateId: integer("taxon_group_state_id")
+
+    taxonFeatureStateId: integer("taxon_feature_state_id")
       .notNull()
-      .references(() => taxonCharacterGroupState.id, { onDelete: "cascade" }),
+      .references(() => taxonFeatureState.id, { onDelete: "cascade" }),
+
+    characterFeatureId: integer("character_feature_id")
+      .notNull()
+      .references(() => characterFeature.id, { onDelete: "restrict" }),
+
     characterId: integer("character_id")
       .notNull()
       .references(() => numericCharacterMeta.characterId, {
         onDelete: "restrict",
       }),
 
-    // Stored canonical/base value -- see notes in units schema
     siBaseValue: numeric("si_base_value", {
       precision: 30,
       scale: 18,
     }).notNull(),
-    // Unit to use for reconstructing/displaying value (nullable for unitless families)
+
     displayUnitId: integer("display_unit_id").references(() => unit.id, {
       onDelete: "restrict",
     }),
 
-    // ! STORED GROUP ID - MUST MATCH BOTH TAXON GROUP AND CHARACTER !
-    groupId: integer("group_id").notNull(),
+    // STORED FEATURE ID - MUST MATCH TAXON GROUP + CHARACTER FEATURE
+    featureId: integer("feature_id").notNull(),
   }),
   (t) => [
-    uniqueIndex("tcn_group_state_char_uq").on(
-      t.taxonGroupStateId,
+    uniqueIndex("tcn_feature_state_char_uq").on(
+      t.taxonFeatureStateId,
       t.characterId,
     ),
 
-    index("tcn_taxon_group_state_idx").on(t.taxonGroupStateId),
+    index("tcn_taxon_feature_state_idx").on(t.taxonFeatureStateId),
     index("tcn_char_idx").on(t.characterId),
     index("tcn_display_unit_idx").on(t.displayUnitId),
 
-    // ! ENFORCES TAXON GROUP <-> GROUP ID CONSISTENCY !
     foreignKey({
-      name: "tcn_taxon_group_state_pair_fk",
-      columns: [t.taxonGroupStateId, t.groupId],
-      foreignColumns: [
-        taxonCharacterGroupState.id,
-        taxonCharacterGroupState.groupId,
-      ],
+      name: "tcn_taxon_feature_state_pair_fk",
+      columns: [t.taxonFeatureStateId, t.featureId],
+      foreignColumns: [taxonFeatureState.id, taxonFeatureState.featureId],
     }),
-
-    // ! ENFORCES CHARACTER <-> GROUP CONSISTENCY !
     foreignKey({
-      name: "tcn_character_group_fk",
-      columns: [t.characterId, t.groupId],
-      foreignColumns: [character.id, character.groupId],
+      name: "tcn_character_feature_fk",
+      columns: [t.characterFeatureId, t.featureId],
+      foreignColumns: [characterFeature.id, characterFeature.featureId],
+    }),
+    foreignKey({
+      name: "tcn_character_feature_character_fk",
+      columns: [t.characterFeatureId, t.characterId],
+      foreignColumns: [characterFeature.id, characterFeature.characterId],
     }),
   ],
 );
 
-/**
- * Numeric range character state (min/max).
- *
- * Values stored in SI base units for the character's unit family.
- * displayUnitId is the unit to reconstruct/display in UI (and for editing).
- */
 export const taxonCharacterStateRange = pgTable(
   "taxon_character_number_range",
   withTimestamps({
     id: serial("id").primaryKey(),
-    taxonGroupStateId: integer("taxon_group_state_id")
+
+    taxonFeatureStateId: integer("taxon_feature_state_id")
       .notNull()
-      .references(() => taxonCharacterGroupState.id, { onDelete: "cascade" }),
+      .references(() => taxonFeatureState.id, { onDelete: "cascade" }),
+
+    characterFeatureId: integer("character_feature_id")
+      .notNull()
+      .references(() => characterFeature.id, { onDelete: "restrict" }),
+
     characterId: integer("character_id")
       .notNull()
       .references(() => numericCharacterMeta.characterId, {
@@ -172,36 +175,35 @@ export const taxonCharacterStateRange = pgTable(
       onDelete: "restrict",
     }),
 
-    // ! STORED GROUP ID - MUST MATCH BOTH TAXON GROUP AND CHARACTER !
-    groupId: integer("group_id").notNull(),
+    // STORED FEATURE ID - MUST MATCH TAXON FEATURE + CHARACTER FEATURE
+    featureId: integer("feature_id").notNull(),
   }),
   (t) => [
-    uniqueIndex("tcnr_group_state_char_uq").on(
-      t.taxonGroupStateId,
+    uniqueIndex("tcnr_feature_state_char_uq").on(
+      t.taxonFeatureStateId,
       t.characterId,
     ),
 
     check("tcnr_min_le_max_ck", sql`${t.siBaseMin} <= ${t.siBaseMax}`),
 
-    index("tcnr_group_state_idx").on(t.taxonGroupStateId),
+    index("tcnr_feature_state_idx").on(t.taxonFeatureStateId),
     index("tcnr_char_idx").on(t.characterId),
     index("tcnr_display_unit_idx").on(t.displayUnitId),
 
-    // ! ENFORCES TAXON GROUP <-> GROUP ID CONSISTENCY !
     foreignKey({
-      name: "tcnr_taxon_group_state_pair_fk",
-      columns: [t.taxonGroupStateId, t.groupId],
-      foreignColumns: [
-        taxonCharacterGroupState.id,
-        taxonCharacterGroupState.groupId,
-      ],
+      name: "tcnr_taxon_feature_state_pair_fk",
+      columns: [t.taxonFeatureStateId, t.featureId],
+      foreignColumns: [taxonFeatureState.id, taxonFeatureState.featureId],
     }),
-
-    // ! ENFORCES CHARACTER <-> GROUP CONSISTENCY !
     foreignKey({
-      name: "tcnr_character_group_fk",
-      columns: [t.characterId, t.groupId],
-      foreignColumns: [character.id, character.groupId],
+      name: "tcnr_character_feature_fk",
+      columns: [t.characterFeatureId, t.featureId],
+      foreignColumns: [characterFeature.id, characterFeature.featureId],
+    }),
+    foreignKey({
+      name: "tcnr_character_feature_character_fk",
+      columns: [t.characterFeatureId, t.characterId],
+      foreignColumns: [characterFeature.id, characterFeature.characterId],
     }),
   ],
 );

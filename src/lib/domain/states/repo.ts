@@ -4,7 +4,7 @@ import {
   taxonCharacterStateCategorical as catStateTbl,
   categoricalTraitValue as catValTbl,
   character as charsTbl,
-  characterGroup as groupsTbl,
+  feature as groupsTbl,
   numericCharacterMeta as numMetaTbl,
   taxonCharacterStateNumber as numStateTbl,
   taxonCharacterStateRange as rangeStateTbl,
