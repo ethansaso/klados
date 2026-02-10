@@ -1,15 +1,15 @@
-import { Card, Text } from "@radix-ui/themes";
-import { Handle, type NodeProps, Position } from "@xyflow/react";
-import type { RFDiffNode } from "../editor/data/types";
+import { Box, Text } from "@radix-ui/themes";
+import { Handle, Position } from "@xyflow/react";
+import { PiArrowsSplit } from "react-icons/pi";
 
-export default function DiffNodeViewer({ data }: NodeProps<RFDiffNode>) {
+export default function DiffNodeViewer() {
   return (
     <>
-      <Card className="diff-node">
-        <Text as="div" size="2" color="gray">
-          Split
+      <Box className="diff-node">
+        <Text as="div" size="5">
+          <PiArrowsSplit />
         </Text>
-      </Card>
+      </Box>
       <Handle type="target" position={Position.Left} />
       <Handle type="source" position={Position.Right} />
     </>
