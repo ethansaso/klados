@@ -1,5 +1,5 @@
 import dagre from "@dagrejs/dagre";
-import type { RFDiffNode, RFEdge, RFNode } from "../data/types";
+import type { RFDiffNode, RFEdge, RFNode } from "../editor/data/types";
 
 // Approximate visual sizes
 const NODE_WIDTH = 192;

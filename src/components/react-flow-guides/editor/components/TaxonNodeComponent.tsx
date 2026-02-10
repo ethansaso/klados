@@ -1,7 +1,7 @@
 import { Box, Card, ContextMenu, Flex, Text } from "@radix-ui/themes";
 import { Handle, type NodeProps, Position } from "@xyflow/react";
-import { AnnotationBubbleWrap } from "../../annotations/AnnotationBubbleWrap";
-import type { RFTaxonNode } from "../data/types";
+import { AnnotationBubbleWrap } from "../../../annotations/AnnotationBubbleWrap";
+import type { RFTaxonNode } from "../../editor/data/types";
 
 export default function TaxonNodeComponent({ data }: NodeProps<RFTaxonNode>) {
   const n = data;

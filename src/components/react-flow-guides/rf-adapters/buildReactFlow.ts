@@ -11,7 +11,7 @@ import type {
   RFNode,
   RFNullBranchEdge,
   RFTaxonNode,
-} from "../data/types";
+} from "../editor/data/types";
 import { branchToEdgeId, guideNodeToRfId } from "./ids";
 
 function buildEdge(

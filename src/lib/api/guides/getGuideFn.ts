@@ -22,6 +22,8 @@ export const getGuideFn = createServerFn({ method: "GET" })
     // TODO: better type-safety guarantees, perhaps via Zod + versioning
     const rootNode = await hydrateKeyFromRoot(row.tree as KeyTaxonNode);
 
+    console.log(rootNode, row.tree);
+
     return {
       id: row.id,
       authorId: row.authorId,
