@@ -41,9 +41,11 @@ function RouteComponent() {
     <Flex direction="column" flexGrow="1">
       <Box>
         <Flex p="2" direction="column" align="center">
-          <Heading size="5">{guide.name}</Heading>
+          <Heading size="5" align="center">
+            {guide.name}
+          </Heading>
           {guide.description && (
-            <Text as="p" color="gray" size="2" mt="2">
+            <Text as="p" color="gray" size="2" mt="1" align="center">
               {guide.description}
             </Text>
           )}

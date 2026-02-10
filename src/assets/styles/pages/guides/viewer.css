@@ -4,3 +4,8 @@
   display: flex;
   flex-direction: column;
 }
+
+.react-flow__node-taxonNode {
+  pointer-events: all !important;
+  cursor: unset !important;
+}
