@@ -82,6 +82,8 @@ export async function listGuidesQuery(args: {
     .where(where);
   const total = totals[0]?.total ?? 0;
 
+  console.log(q, pageSize, page);
+
   return {
     items,
     page,

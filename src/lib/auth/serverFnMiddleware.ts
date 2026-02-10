@@ -46,7 +46,7 @@ export const requireCuratorMiddleware = createMiddleware({
       forceLoginRedirectFromRequest(request);
     }
 
-    return next();
+    return next({ context: { user: context.user! } });
   });
 
 export const requireAdminMiddleware = createMiddleware({
@@ -61,5 +61,5 @@ export const requireAdminMiddleware = createMiddleware({
       forceLoginRedirectFromRequest(request);
     }
 
-    return next();
+    return next({ context: { user: context.user! } });
   });

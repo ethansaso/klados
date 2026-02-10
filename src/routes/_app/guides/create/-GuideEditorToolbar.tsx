@@ -2,7 +2,7 @@ import { Card, IconButton, Separator, Tooltip } from "@radix-ui/themes";
 import { useReactFlow } from "@xyflow/react";
 import { useCallback } from "react";
 import { PiMinus, PiPlus, PiTreeStructure } from "react-icons/pi";
-import { useGuideEditorStore } from "../../../../components/react-flow-guides/data/useGuideEditorStore";
+import { useGuideEditorStore } from "../../../../components/react-flow-guides/editor/data/useGuideEditorStore";
 
 export const GuideEditorToolbar = () => {
   const { zoomIn, zoomOut } = useReactFlow();
