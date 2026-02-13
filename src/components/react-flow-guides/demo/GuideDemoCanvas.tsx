@@ -5,7 +5,7 @@ import {
   useEdgesState,
   useNodesState,
 } from "@xyflow/react";
-import LogoBackground from "../components/LogoBackground";
+import LogoBackground from "../bg/LogoBackground";
 import { demoEdges, demoNodes } from "./demoData";
 import { demoEdgeTypes, demoNodeTypes } from "./demoTypes";
 

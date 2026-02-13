@@ -5,17 +5,19 @@ import {
   type NodeChange,
 } from "@xyflow/react";
 import { create } from "zustand";
-import type { HydratedKeyGraphDTO } from "../../../keygen/hydration/types";
+import type { HydratedKeyGraphDTO } from "../../../../keygen/hydration/types";
 import {
   computeGuideTreeLayout,
   layoutGuideTree,
-} from "../layout/computeGuideTreeLayout";
-import { buildReactFlowFromGraph } from "../rf-adapters/buildReactFlow";
+} from "../../layout/computeGuideTreeLayout";
+import { buildGraphFromReactFlow } from "../../rf-adapters/buildGraphFromReactFlow";
+import { buildReactFlowFromGraph } from "../../rf-adapters/buildReactFlow";
 import type { RFEdge, RFNode } from "./types";
 
 type GuideEditorState = {
   // Minimal structural metadata
   rootNodeId: string | null;
+  rootTaxonId: number | null;
 
   // metadata state
   guideId: number | null;
@@ -38,6 +40,7 @@ type GuideEditorState = {
    */
   loadSavedGuide: (payload: {
     id: number;
+    rootTaxonId: number;
     name: string;
     description: string;
     graph: HydratedKeyGraphDTO;
@@ -47,7 +50,10 @@ type GuideEditorState = {
    * Initialize a brand-new guide from a generated graph (from generateGuideFn).
    * Builds RF graph from DTO and marks dirty = true.
    */
-  initFromGeneratedGuide: (payload: { graph: HydratedKeyGraphDTO }) => void;
+  initFromGeneratedGuide: (payload: {
+    rootTaxonId: number;
+    graph: HydratedKeyGraphDTO;
+  }) => void;
 
   /**
    * Delete branches by branchId (used for both UI and RF-driven deletions).
@@ -74,6 +80,18 @@ type GuideEditorState = {
    */
   reset: () => void;
 
+  /**
+   * Export the current editor state as a HydratedKeyGraphDTO for saving.
+   * Returns null if there's no valid guide to save.
+   */
+  toSavePayload: () => {
+    id: number | undefined;
+    rootTaxonId: number;
+    name: string;
+    description: string;
+    graph: HydratedKeyGraphDTO;
+  } | null;
+
   // RF change handlers
   onNodesChange: (changes: NodeChange<RFNode>[]) => void;
   onEdgesChange: (changes: EdgeChange<RFEdge>[]) => void;
@@ -81,6 +99,7 @@ type GuideEditorState = {
 
 export const useGuideEditorStore = create<GuideEditorState>((set, get) => ({
   rootNodeId: null,
+  rootTaxonId: null,
 
   guideId: null,
   name: "",
@@ -97,12 +116,13 @@ export const useGuideEditorStore = create<GuideEditorState>((set, get) => ({
       dirty: true,
     })),
 
-  loadSavedGuide: ({ id, name, description, graph }) => {
+  loadSavedGuide: ({ id, rootTaxonId, name, description, graph }) => {
     const { nodes, edges, rootRfId } = buildReactFlowFromGraph(graph);
     const laidOutNodes = layoutGuideTree(nodes, edges);
 
     set({
       guideId: id,
+      rootTaxonId,
       name,
       description,
       rootNodeId: rootRfId,
@@ -112,12 +132,13 @@ export const useGuideEditorStore = create<GuideEditorState>((set, get) => ({
     });
   },
 
-  initFromGeneratedGuide: ({ graph }) => {
+  initFromGeneratedGuide: ({ rootTaxonId, graph }) => {
     const { nodes, edges, rootRfId } = buildReactFlowFromGraph(graph);
     const laidOutNodes = layoutGuideTree(nodes, edges);
 
     set({
       guideId: null,
+      rootTaxonId,
       name: "",
       description: "",
       rootNodeId: rootRfId,
@@ -200,6 +221,7 @@ export const useGuideEditorStore = create<GuideEditorState>((set, get) => ({
   reset: () =>
     set({
       rootNodeId: null,
+      rootTaxonId: null,
       guideId: null,
       name: "",
       description: "",
@@ -207,6 +229,32 @@ export const useGuideEditorStore = create<GuideEditorState>((set, get) => ({
       edges: [],
       dirty: false,
     }),
+
+  toSavePayload: () => {
+    const {
+      nodes,
+      edges,
+      rootNodeId,
+      rootTaxonId,
+      guideId,
+      name,
+      description,
+    } = get();
+
+    if (!rootNodeId || !rootTaxonId || nodes.length === 0) {
+      return null;
+    }
+
+    const graph = buildGraphFromReactFlow(nodes, edges, rootNodeId);
+
+    return {
+      id: guideId ?? undefined,
+      rootTaxonId,
+      name: name || "Untitled",
+      description: description || "",
+      graph,
+    };
+  },
 
   // TODO: dirtiness logic could be improved to track actual changes
   onNodesChange: (changes) => {

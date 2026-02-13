@@ -18,18 +18,20 @@ import {
   useForm,
   useWatch,
 } from "react-hook-form";
+import { AdminOnly } from "../../../../components/AdminOnly";
 import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
-import { useGuideEditorStore } from "../../../../components/react-flow-guides/data/useGuideEditorStore";
+import { useGuideEditorStore } from "../../../../components/react-flow-guides/editor/data/useGuideEditorStore";
 import {
   type KeyGenerationInput,
   KeyGenerationInputSchema,
 } from "../../../../keygen/ioTypes";
 import { generateGuideFn } from "../../../../lib/api/guides/generateGuideFn";
+import { saveGuideFn } from "../../../../lib/api/guides/saveGuideFn";
 import { taxaQueryOptions } from "../../../../lib/queries/taxa";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
 import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
@@ -58,12 +60,15 @@ export const GuideEditorSidebar = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const serverGenerateGuideFn = useServerFn(generateGuideFn);
+  const serverSaveFn = useServerFn(saveGuideFn);
 
   // editor store hooks
   const initFromGeneratedGuide = useGuideEditorStore(
     (s) => s.initFromGeneratedGuide,
   );
   const updateMeta = useGuideEditorStore((s) => s.updateMeta);
+  const toSavePayload = useGuideEditorStore((s) => s.toSavePayload);
+  const markSaved = useGuideEditorStore((s) => s.markSaved);
 
   const { data: taxaResp } = useQuery(
     taxaQueryOptions(1, 10, { q: taxonQ, status: "active" }),
@@ -102,10 +107,48 @@ export const GuideEditorSidebar = () => {
       }
 
       // 1) initialize the editor store with the generated graph
-      initFromGeneratedGuide({ graph: result.graph });
+      initFromGeneratedGuide({
+        rootTaxonId: data.taxonId,
+        graph: result.graph,
+      });
 
       // 2) set default metadata for new guides
       updateMeta({ name: "Untitled", description: "" });
+    } catch (error) {
+      toast({
+        variant: "error",
+        description: getErrorMessage(error),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveGuide = async () => {
+    const payload = toSavePayload();
+
+    if (!payload) {
+      toast({
+        variant: "error",
+        description: "No guide to save",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await serverSaveFn({
+        data: payload,
+      });
+
+      if (result?.id) {
+        markSaved(result.id);
+        toast({
+          variant: "success",
+          description: `Guide saved successfully (ID: ${result.id})`,
+        });
+      }
     } catch (error) {
       toast({
         variant: "error",
@@ -227,19 +270,30 @@ export const GuideEditorSidebar = () => {
               />
             </Box>
           </section>
-          <Flex asChild justify="between" width="100%">
-            <section>
-              <Box asChild width="100%">
+          <section>
+            <Box asChild width="100%">
+              <Button
+                type="submit"
+                disabled={!taxonIdVal || isSubmitting}
+                loading={isSubmitting}
+              >
+                Generate Guide
+              </Button>
+            </Box>
+            <AdminOnly>
+              <Box asChild width="100%" mt="1">
                 <Button
-                  type="submit"
-                  disabled={!taxonIdVal || isSubmitting}
+                  type="button"
+                  color="tomato"
+                  onClick={handleSaveGuide}
+                  disabled={isSubmitting}
                   loading={isSubmitting}
                 >
-                  Generate Guide
+                  Save Guide (DEV ONLY)
                 </Button>
               </Box>
-            </section>
-          </Flex>
+            </AdminOnly>
+          </section>
         </form>
       </aside>
     </Card>

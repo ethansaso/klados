@@ -9,6 +9,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
+import { user } from "../auth";
 import { taxon } from "../taxa/taxon";
 
 export const GUIDE_STATUS = ["unapproved", "pending", "approved"] as const;
@@ -20,7 +21,9 @@ export const guide = pgTable(
   "guide",
   withTimestamps({
     id: serial("id").primaryKey(),
-    authorId: text("author_id").notNull(),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
 
     // Anchor to basal taxon for this guide
     rootTaxonId: integer("root_taxon_id")
@@ -37,7 +40,13 @@ export const guide = pgTable(
   }),
   (t) => [
     index("guide_root_taxon_idx").on(t.rootTaxonId),
-    // Prevent duplicate names for the same root taxon
-    uniqueIndex("guide_root_name_uq").on(t.rootTaxonId, t.name),
+    index("guide_status_idx").on(t.status),
+    index("guide_author_idx").on(t.authorId),
+    // Prevent duplicate guide names by the same author for the same taxon
+    uniqueIndex("guide_root_name_author_uq").on(
+      t.rootTaxonId,
+      t.name,
+      t.authorId,
+    ),
   ],
 );

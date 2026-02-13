@@ -1,8 +1,8 @@
 import { Box } from "@radix-ui/themes";
 import { ReactFlow } from "@xyflow/react";
-import LogoBackground from "./components/LogoBackground";
-import { edgeTypes, nodeTypes } from "./data/types";
-import { useGuideEditorStore } from "./data/useGuideEditorStore";
+import LogoBackground from "./bg/LogoBackground";
+import { edgeTypes, nodeTypes } from "./editor/data/types";
+import { useGuideEditorStore } from "./editor/data/useGuideEditorStore";
 
 export function GuideEditorCanvas() {
   const nodes = useGuideEditorStore((s) => s.nodes);

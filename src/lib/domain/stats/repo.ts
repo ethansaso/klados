@@ -33,6 +33,8 @@ export async function fetchSummaryStats(): Promise<SummaryStatsDTO> {
       .from(guideTbl),
   ]);
 
+  console.log(guideRows);
+
   const taxaCount = Number(taxonRows[0]?.value ?? 0);
   const memberCount = Number(memberRows[0]?.value ?? 0);
   const guidesCount = Number(guideRows[0]?.value ?? 0);

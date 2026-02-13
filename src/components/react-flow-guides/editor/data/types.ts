@@ -4,13 +4,13 @@ import type {
   HydratedCharRationale,
   HydratedDiffNode,
   HydratedTaxonNode,
-} from "../../../keygen/hydration/types";
+} from "../../../../keygen/hydration/types";
+import type { AssertedEdge } from "../../util/assertedEdge";
 import CharacterBranchEdgeComponent from "../components/CharacterBranchEdgeComponent";
 import DiffNodeComponent from "../components/DiffNodeComponent";
 import GroupBranchEdgeComponent from "../components/GroupBranchEdgeComponent";
 import NullBranchEdgeComponent from "../components/NullBranchEdgeComponent";
 import TaxonNodeComponent from "../components/TaxonNodeComponent";
-import type { AssertedEdge } from "../util/assertedEdge";
 
 export type GuideEditorTaxonNodeData = HydratedTaxonNode;
 export type GuideEditorDiffNodeData = HydratedDiffNode;

@@ -17,7 +17,7 @@ export const Footer = () => {
           <Text color="gray">
             Built with <Text color="red">❤️</Text> by{" "}
             <Link
-              href="https://github.com/ethansaso"
+              href="https://ethansaso.github.io/"
               target="_blank"
               rel="noopener noreferrer"
               color="amber"
