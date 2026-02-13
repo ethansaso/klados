@@ -1,14 +1,14 @@
 import type { Node, NodeTypes } from "@xyflow/react";
 import type {
-  HydratedBranchRationale,
   HydratedCharRationale,
   HydratedDiffNode,
+  HydratedPAFeatureRationale,
   HydratedTaxonNode,
 } from "../../../../keygen/hydration/types";
 import type { AssertedEdge } from "../../util/assertedEdge";
 import CharacterBranchEdgeComponent from "../components/CharacterBranchEdgeComponent";
 import DiffNodeComponent from "../components/DiffNodeComponent";
-import GroupBranchEdgeComponent from "../components/GroupBranchEdgeComponent";
+import FeatureBranchEdgeComponent from "../components/FeatureBranchEdgeComponent";
 import NullBranchEdgeComponent from "../components/NullBranchEdgeComponent";
 import TaxonNodeComponent from "../components/TaxonNodeComponent";
 
@@ -24,8 +24,8 @@ type BaseBranchEdgeData = {
 export type GuideEditorCharacterBranchEdgeData = BaseBranchEdgeData & {
   rationale: HydratedCharRationale;
 };
-export type GuideEditorGroupBranchEdgeData = BaseBranchEdgeData & {
-  rationale: HydratedBranchRationale;
+export type GuideEditorFeatureBranchEdgeData = BaseBranchEdgeData & {
+  rationale: HydratedPAFeatureRationale;
 };
 export type GuideEditorNullBranchEdgeData = BaseBranchEdgeData & {
   rationale: null;
@@ -35,9 +35,9 @@ export type RFCharacterBranchEdge = AssertedEdge<
   GuideEditorCharacterBranchEdgeData,
   "characterBranchEdge"
 >;
-export type RFGroupBranchEdge = AssertedEdge<
-  GuideEditorGroupBranchEdgeData,
-  "groupBranchEdge"
+export type RFFeatureBranchEdge = AssertedEdge<
+  GuideEditorFeatureBranchEdgeData,
+  "featureBranchEdge"
 >;
 export type RFNullBranchEdge = AssertedEdge<
   GuideEditorNullBranchEdgeData,
@@ -47,7 +47,7 @@ export type RFNullBranchEdge = AssertedEdge<
 export type RFNode = RFTaxonNode | RFDiffNode;
 export type RFEdge =
   | RFCharacterBranchEdge
-  | RFGroupBranchEdge
+  | RFFeatureBranchEdge
   | RFNullBranchEdge;
 
 export const nodeTypes = {
@@ -58,5 +58,5 @@ export const nodeTypes = {
 export const edgeTypes = {
   nullBranchEdge: NullBranchEdgeComponent,
   characterBranchEdge: CharacterBranchEdgeComponent,
-  groupBranchEdge: GroupBranchEdgeComponent,
+  featureBranchEdge: FeatureBranchEdgeComponent,
 };

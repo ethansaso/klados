@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
-import { createCharacterGroup } from "../../domain/character-groups/service";
-import type { CharacterGroupDTO } from "../../domain/character-groups/types";
-import { createCharacterGroupSchema } from "../../domain/character-groups/validation";
+import { createCharacterGroup } from "../../domain/features/service";
+import type { CharacterGroupDTO } from "../../domain/features/types";
+import { createCharacterGroupSchema } from "../../domain/features/validation";
 
 export const createCharacterGroupFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])

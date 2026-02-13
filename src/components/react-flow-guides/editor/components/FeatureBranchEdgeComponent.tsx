@@ -7,24 +7,24 @@ import {
   type EdgeProps,
 } from "@xyflow/react";
 import type { HydratedBranchRationale } from "../../../../keygen/hydration/types";
-import type { RFGroupBranchEdge } from "../../editor/data/types";
+import type { RFFeatureBranchEdge } from "../data/types";
 
-type GroupStatusMap = Record<string, "present" | "absent">;
+type FeatureStatusMap = Record<string, "present" | "absent">;
 
-function buildGroupStatusMap(
+function buildFeatureStatusMap(
   r: HydratedBranchRationale | null,
-): GroupStatusMap {
-  if (!r || r.kind !== "group-present-absent") return {};
+): FeatureStatusMap {
+  if (!r || r.kind !== "feature-present-absent") return {};
 
-  const map: GroupStatusMap = {};
-  for (const g of Object.values(r.groups)) {
+  const map: FeatureStatusMap = {};
+  for (const g of Object.values(r.features)) {
     map[g.name] = g.status; // already "present" | "absent"
   }
   return map;
 }
 
-export default function GroupBranchEdgeComponent(
-  props: EdgeProps<RFGroupBranchEdge>,
+export default function FeatureBranchEdgeComponent(
+  props: EdgeProps<RFFeatureBranchEdge>,
 ) {
   const { id, sourceX, sourceY, targetX, targetY, markerEnd, data } = props;
 
@@ -37,15 +37,15 @@ export default function GroupBranchEdgeComponent(
     targetPosition: Position.Left,
   });
 
-  const groups = buildGroupStatusMap(data.rationale);
+  const features = buildFeatureStatusMap(data.rationale);
 
-  const hasGroups = Object.keys(groups).length > 0;
+  const hasFeatures = Object.keys(features).length > 0;
 
   return (
     <>
       <BaseEdge id={id} path={path} markerEnd={markerEnd} />
 
-      {hasGroups && (
+      {hasFeatures && (
         <EdgeLabelRenderer>
           <Card
             style={{
@@ -55,7 +55,7 @@ export default function GroupBranchEdgeComponent(
               padding: 8,
             }}
           >
-            {Object.entries(groups).map(([name, status]) => (
+            {Object.entries(features).map(([name, status]) => (
               <Text key={name} size="1" as="div">
                 <Strong>{name}</Strong> {status}
               </Text>

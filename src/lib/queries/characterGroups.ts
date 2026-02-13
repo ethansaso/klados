@@ -4,7 +4,7 @@ import { listCharacterGroupsFn } from "../api/character-groups/listCharacterGrou
 import type {
   CharacterGroupDetailDTO,
   CharacterGroupPaginatedResult,
-} from "../domain/character-groups/types";
+} from "../domain/features/types";
 
 export const characterGroupsQueryOptions = (
   page: number,

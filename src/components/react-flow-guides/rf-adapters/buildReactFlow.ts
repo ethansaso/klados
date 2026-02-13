@@ -7,7 +7,7 @@ import type {
   RFCharacterBranchEdge,
   RFDiffNode,
   RFEdge,
-  RFGroupBranchEdge,
+  RFFeatureBranchEdge,
   RFNode,
   RFNullBranchEdge,
   RFTaxonNode,
@@ -50,10 +50,10 @@ function buildEdge(
       return e;
     }
 
-    case "group-present-absent": {
-      const e: RFGroupBranchEdge = {
+    case "feature-present-absent": {
+      const e: RFFeatureBranchEdge = {
         id: branchToEdgeId(viaBranch.id),
-        type: "groupBranchEdge",
+        type: "featureBranchEdge",
         source: parentRfId,
         target: childRfId,
         data: {

@@ -3,7 +3,7 @@ import type { MediaItem } from "../../lib/domain/taxa/validation";
 import type {
   KeyCharRationale,
   KeyDiffNode,
-  KeyPAGroupRationale,
+  KeyPAFeatureRationale,
   KeyTaxonNode,
 } from "../key-building/types";
 
@@ -28,11 +28,14 @@ export type HydratedCharRationale = Omit<KeyCharRationale, "characters"> & {
   >;
 };
 
-export type HydratedPAGroupRationale = Omit<KeyPAGroupRationale, "groups"> & {
-  groups: Record<
+export type HydratedPAFeatureRationale = Omit<
+  KeyPAFeatureRationale,
+  "features"
+> & {
+  features: Record<
     number,
     {
-      groupId: number;
+      featureId: number;
       name: string;
       status: "present" | "absent";
     }
@@ -41,7 +44,7 @@ export type HydratedPAGroupRationale = Omit<KeyPAGroupRationale, "groups"> & {
 
 export type HydratedBranchRationale =
   | HydratedCharRationale
-  | HydratedPAGroupRationale
+  | HydratedPAFeatureRationale
   | null;
 
 export type HydratedKeyBranch = {

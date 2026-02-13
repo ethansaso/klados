@@ -28,10 +28,6 @@ export const taxonCharacterStateCategorical = pgTable(
       .notNull()
       .references(() => taxonFeatureState.id, { onDelete: "cascade" }),
 
-    characterFeatureId: integer("character_feature_id")
-      .notNull()
-      .references(() => characterFeature.id, { onDelete: "restrict" }),
-
     characterId: integer("character_id")
       .notNull()
       .references(() => categoricalCharacterMeta.characterId, {
@@ -46,7 +42,7 @@ export const taxonCharacterStateCategorical = pgTable(
     featureId: integer("feature_id").notNull(),
   }),
   (t) => [
-    uniqueIndex("tcs_cat_group_state_char_trait_uq").on(
+    uniqueIndex("tcs_cat_feature_state_char_trait_uq").on(
       t.taxonFeatureStateId,
       t.characterId,
       t.traitValueId,
@@ -64,18 +60,14 @@ export const taxonCharacterStateCategorical = pgTable(
       foreignColumns: [taxonFeatureState.id, taxonFeatureState.featureId],
     }),
 
-    // Enforce characterFeature <-> featureId consistency
+    // Ensure this state references an existing (character, feature) pairing
     foreignKey({
       name: "tcs_cat_character_feature_fk",
-      columns: [t.characterFeatureId, t.featureId],
-      foreignColumns: [characterFeature.id, characterFeature.featureId],
-    }),
-
-    // Enforce characterFeature <-> characterId consistency
-    foreignKey({
-      name: "tcs_cat_character_feature_character_fk",
-      columns: [t.characterFeatureId, t.characterId],
-      foreignColumns: [characterFeature.id, characterFeature.characterId],
+      columns: [t.characterId, t.featureId],
+      foreignColumns: [
+        characterFeature.characterId,
+        characterFeature.featureId,
+      ],
     }),
 
     // Enforce traitValue <-> character consistency
@@ -91,17 +83,13 @@ export const taxonCharacterStateCategorical = pgTable(
 );
 
 export const taxonCharacterStateNumber = pgTable(
-  "taxon_character_number",
+  "taxon_character_state_number",
   withTimestamps({
     id: serial("id").primaryKey(),
 
     taxonFeatureStateId: integer("taxon_feature_state_id")
       .notNull()
       .references(() => taxonFeatureState.id, { onDelete: "cascade" }),
-
-    characterFeatureId: integer("character_feature_id")
-      .notNull()
-      .references(() => characterFeature.id, { onDelete: "restrict" }),
 
     characterId: integer("character_id")
       .notNull()
@@ -118,7 +106,7 @@ export const taxonCharacterStateNumber = pgTable(
       onDelete: "restrict",
     }),
 
-    // STORED FEATURE ID - MUST MATCH TAXON GROUP + CHARACTER FEATURE
+    // STORED FEATURE ID - MUST MATCH TAXON FEATURE + CHARACTER FEATURE
     featureId: integer("feature_id").notNull(),
   }),
   (t) => [
@@ -136,31 +124,26 @@ export const taxonCharacterStateNumber = pgTable(
       columns: [t.taxonFeatureStateId, t.featureId],
       foreignColumns: [taxonFeatureState.id, taxonFeatureState.featureId],
     }),
+    // Ensure this state references an existing (character, feature) pairing
     foreignKey({
       name: "tcn_character_feature_fk",
-      columns: [t.characterFeatureId, t.featureId],
-      foreignColumns: [characterFeature.id, characterFeature.featureId],
-    }),
-    foreignKey({
-      name: "tcn_character_feature_character_fk",
-      columns: [t.characterFeatureId, t.characterId],
-      foreignColumns: [characterFeature.id, characterFeature.characterId],
+      columns: [t.characterId, t.featureId],
+      foreignColumns: [
+        characterFeature.characterId,
+        characterFeature.featureId,
+      ],
     }),
   ],
 );
 
 export const taxonCharacterStateRange = pgTable(
-  "taxon_character_number_range",
+  "taxon_character_state_number_range",
   withTimestamps({
     id: serial("id").primaryKey(),
 
     taxonFeatureStateId: integer("taxon_feature_state_id")
       .notNull()
       .references(() => taxonFeatureState.id, { onDelete: "cascade" }),
-
-    characterFeatureId: integer("character_feature_id")
-      .notNull()
-      .references(() => characterFeature.id, { onDelete: "restrict" }),
 
     characterId: integer("character_id")
       .notNull()
@@ -195,15 +178,14 @@ export const taxonCharacterStateRange = pgTable(
       columns: [t.taxonFeatureStateId, t.featureId],
       foreignColumns: [taxonFeatureState.id, taxonFeatureState.featureId],
     }),
+    // Ensure this state references an existing (character, feature) pairing
     foreignKey({
       name: "tcnr_character_feature_fk",
-      columns: [t.characterFeatureId, t.featureId],
-      foreignColumns: [characterFeature.id, characterFeature.featureId],
-    }),
-    foreignKey({
-      name: "tcnr_character_feature_character_fk",
-      columns: [t.characterFeatureId, t.characterId],
-      foreignColumns: [characterFeature.id, characterFeature.characterId],
+      columns: [t.characterId, t.featureId],
+      foreignColumns: [
+        characterFeature.characterId,
+        characterFeature.featureId,
+      ],
     }),
   ],
 );

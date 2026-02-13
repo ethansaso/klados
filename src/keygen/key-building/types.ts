@@ -28,13 +28,13 @@ export type KeyCharRationale = BaseKeyRationale & {
   >;
 };
 
-export type KeyPAGroupRationale = BaseKeyRationale & {
-  kind: "group-present-absent";
-  /** Mapping of group IDs to their presence or absence status */
-  groups: Record<
+export type KeyPAFeatureRationale = BaseKeyRationale & {
+  kind: "feature-present-absent";
+  /** Mapping of feature IDs to their presence or absence status */
+  features: Record<
     number,
     {
-      groupId: number;
+      featureId: number;
       status: "present" | "absent";
     }
   >;
@@ -42,7 +42,10 @@ export type KeyPAGroupRationale = BaseKeyRationale & {
 
 export type KeyCustomRationale = BaseKeyRationale & {};
 
-export type KeyBranchRationale = KeyCharRationale | KeyPAGroupRationale | null;
+export type KeyBranchRationale =
+  | KeyCharRationale
+  | KeyPAFeatureRationale
+  | null;
 
 export type KeyBranch = {
   id: string;

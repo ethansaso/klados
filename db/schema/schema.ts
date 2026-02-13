@@ -1,4 +1,5 @@
 export * from "./auth";
+export * from "./characters/characterFeatures";
 export * from "./characters/characters";
 export * from "./characters/features";
 export * from "./characters/modifiers";

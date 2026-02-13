@@ -4,7 +4,7 @@ import type {
   KeyCharRationale,
   KeyDiffNode,
   KeyNode,
-  KeyPAGroupRationale,
+  KeyPAFeatureRationale,
   KeyTaxonNode,
 } from "../key-building/types";
 import type {
@@ -39,7 +39,7 @@ function dehydrateBranchRationale(
     }
 
     case "group-present-absent": {
-      const groups: KeyPAGroupRationale["groups"] = {};
+      const groups: KeyPAFeatureRationale["groups"] = {};
 
       for (const [groupIdStr, info] of Object.entries(rationale.groups)) {
         const groupId = Number(groupIdStr);

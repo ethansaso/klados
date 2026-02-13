@@ -5,7 +5,7 @@ import {
   unitFamily,
 } from "../../../../db/schema/schema";
 import type { PaginatedResult } from "../../validation/pagination";
-import type { CharacterGroupRow } from "../character-groups/types";
+import type { CharacterGroupRow } from "../features/types";
 import type { TraitSetRow } from "../traits/types";
 
 export type CharacterRow = typeof character.$inferSelect;
@@ -23,7 +23,7 @@ type BaseCharacterDTO = Pick<
 
 export type CategoricalCharacterDTO = BaseCharacterDTO & {
   type: "categorical";
-} & Pick<CategoricalMetaRow, "characterId" | "traitSetId">;
+} & Pick<CategoricalMetaRow, "characterId">;
 
 export type NumberCharacterDTO = BaseCharacterDTO & {
   type: "number";

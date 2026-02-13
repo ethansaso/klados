@@ -21,7 +21,7 @@ import { createCharacterGroupFn } from "../../../../lib/api/character-groups/cre
 import {
   type CreateCharacterGroupInput,
   createCharacterGroupSchema,
-} from "../../../../lib/domain/character-groups/validation";
+} from "../../../../lib/domain/features/validation";
 import { useAutoKey } from "../../../../lib/hooks/useAutoKey";
 import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../lib/utils/toast";

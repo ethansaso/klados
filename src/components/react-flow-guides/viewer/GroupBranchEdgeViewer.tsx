@@ -7,7 +7,7 @@ import {
   type EdgeProps,
 } from "@xyflow/react";
 import type { HydratedBranchRationale } from "../../../keygen/hydration/types";
-import type { RFGroupBranchEdge } from "../editor/data/types";
+import type { RFFeatureBranchEdge } from "../editor/data/types";
 
 type GroupStatusMap = Record<string, "present" | "absent">;
 
@@ -24,7 +24,7 @@ function buildGroupStatusMap(
 }
 
 export default function GroupBranchEdgeViewer(
-  props: EdgeProps<RFGroupBranchEdge>,
+  props: EdgeProps<RFFeatureBranchEdge>,
 ) {
   const { id, sourceX, sourceY, targetX, targetY, markerEnd, data } = props;
 

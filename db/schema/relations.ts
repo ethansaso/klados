@@ -29,7 +29,7 @@ export const relations = defineRelations(schema, (r) => ({
   flag: {},
 
   character: {},
-  characterGroup: {},
+  feature: {},
   categoricalTrait: {},
   taxonCharacterState: {},
   units: {},

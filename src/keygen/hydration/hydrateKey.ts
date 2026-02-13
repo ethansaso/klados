@@ -1,5 +1,5 @@
-import { getCharacterGroupsByIds } from "../../lib/domain/character-groups/service";
 import { getCharactersByIds } from "../../lib/domain/characters/service";
+import { getCharacterGroupsByIds } from "../../lib/domain/features/service";
 import type { Trait } from "../../lib/domain/states/types";
 import { getTaxaByIds } from "../../lib/domain/taxa/service";
 import type { MediaItem } from "../../lib/domain/taxa/validation";
@@ -16,7 +16,7 @@ import type {
   HydratedKeyBranch,
   HydratedKeyGraphDTO,
   HydratedKeyNode,
-  HydratedPAGroupRationale,
+  HydratedPAFeatureRationale,
   HydratedTaxonNode,
 } from "./types";
 
@@ -184,7 +184,7 @@ function hydrateBranchRationale(
   }
 
   if (raw.kind === "group-present-absent") {
-    const groups: HydratedPAGroupRationale["groups"] = {};
+    const groups: HydratedPAFeatureRationale["groups"] = {};
 
     for (const [groupIdStr, gInfo] of Object.entries(raw.groups)) {
       const groupId = Number(groupIdStr);
