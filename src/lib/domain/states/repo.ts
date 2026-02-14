@@ -8,29 +8,29 @@ import {
   numericCharacterMeta as numMetaTbl,
   taxonCharacterStateNumber as numStateTbl,
   taxonCharacterStateRange as rangeStateTbl,
-  taxonCharacterGroupState as tgsTbl,
+  taxonFeatureState as tfsTbl,
   unit as unitsTbl,
 } from "../../../../db/schema/schema";
 import type { Transaction } from "../../utils/transactionType";
 import type {
   TaxonCategoricalStateDTO,
-  TaxonCharacterGroupStateDTO,
+  TaxonCharacterFeatureStateDTO,
   TaxonNumberStateDTO,
   TaxonRangeStateDTO,
 } from "./types";
 import type {
   CategoricalCharacterUpdate,
-  GroupedCharacterUpdate,
+  CharacterByFeatureUpdate,
   NumberCharacterUpdate,
   RangeCharacterUpdate,
 } from "./validation";
 
-/** Mapping of ID (string form of an int) to TaxonCharacterGroupStateDTO. */
-export type TaxonStatesById = Record<string, TaxonCharacterGroupStateDTO[]>;
+/** Mapping of taxon ID to TaxonCharacterFeatureStateDTO[]. */
+export type TaxonStatesById = Record<string, TaxonCharacterFeatureStateDTO[]>;
 
 /**
  * Load character states for at least one taxon.
- * Returns a map taxonId -> TaxonCharacterGroupStateDTO[].
+ * Returns a map taxonId -> TaxonCharacterFeatureStateDTO[].
  *
  * For traitValues:
  * - label comes from the **stored** value (alias or canonical),
@@ -45,17 +45,17 @@ export async function selectTaxonStatesByTaxonIds(
   // Load all group states up front (including empty ones)
   const groupRows = await tx
     .select({
-      taxonId: tgsTbl.taxonId,
+      taxonId: tfsTbl.taxonId,
 
       groupId: groupsTbl.id,
       groupLabel: groupsTbl.label,
       groupDescription: groupsTbl.description,
     })
-    .from(tgsTbl)
-    .innerJoin(groupsTbl, eq(groupsTbl.id, tgsTbl.groupId))
-    .where(inArray(tgsTbl.taxonId, taxonIds));
+    .from(tfsTbl)
+    .innerJoin(groupsTbl, eq(groupsTbl.id, tfsTbl.featureId))
+    .where(inArray(tfsTbl.taxonId, taxonIds));
 
-  const byTaxon = new Map<number, Map<number, TaxonCharacterGroupStateDTO>>();
+  const byTaxon = new Map<number, Map<number, TaxonCharacterFeatureStateDTO>>();
 
   for (const row of groupRows) {
     let groupsById = byTaxon.get(row.taxonId);
@@ -65,9 +65,9 @@ export async function selectTaxonStatesByTaxonIds(
     }
 
     groupsById.set(row.groupId, {
-      groupId: row.groupId,
-      groupLabel: row.groupLabel,
-      groupDescription: row.groupDescription,
+      featureId: row.groupId,
+      featureLabel: row.groupLabel,
+      featureDescription: row.groupDescription,
       states: [],
     });
   }
@@ -75,7 +75,7 @@ export async function selectTaxonStatesByTaxonIds(
   // Categorical states
   const catRows = await tx
     .select({
-      taxonId: tgsTbl.taxonId,
+      taxonId: tfsTbl.taxonId,
 
       groupId: groupsTbl.id,
 
@@ -89,11 +89,11 @@ export async function selectTaxonStatesByTaxonIds(
       canonicalValueId: catValTbl.canonicalValueId,
     })
     .from(catStateTbl)
-    .innerJoin(tgsTbl, eq(tgsTbl.id, catStateTbl.taxonGroupStateId))
-    .innerJoin(groupsTbl, eq(groupsTbl.id, tgsTbl.groupId))
+    .innerJoin(tfsTbl, eq(tfsTbl.id, catStateTbl.taxonFeatureStateId))
+    .innerJoin(groupsTbl, eq(groupsTbl.id, tfsTbl.featureId))
     .innerJoin(charsTbl, eq(charsTbl.id, catStateTbl.characterId))
     .innerJoin(catValTbl, eq(catValTbl.id, catStateTbl.traitValueId))
-    .where(inArray(tgsTbl.taxonId, taxonIds));
+    .where(inArray(tfsTbl.taxonId, taxonIds));
 
   const canonicalIds = Array.from(
     new Set(
@@ -157,7 +157,7 @@ export async function selectTaxonStatesByTaxonIds(
   // Number states
   const numRows = await tx
     .select({
-      taxonId: tgsTbl.taxonId,
+      taxonId: tfsTbl.taxonId,
 
       groupId: groupsTbl.id,
 
@@ -173,11 +173,11 @@ export async function selectTaxonStatesByTaxonIds(
       unitScale: unitsTbl.scale,
     })
     .from(numStateTbl)
-    .innerJoin(tgsTbl, eq(tgsTbl.id, numStateTbl.taxonGroupStateId))
-    .innerJoin(groupsTbl, eq(groupsTbl.id, tgsTbl.groupId))
+    .innerJoin(tfsTbl, eq(tfsTbl.id, numStateTbl.taxonFeatureStateId))
+    .innerJoin(groupsTbl, eq(groupsTbl.id, tfsTbl.featureId))
     .innerJoin(charsTbl, eq(charsTbl.id, numStateTbl.characterId))
     .leftJoin(unitsTbl, eq(unitsTbl.id, numStateTbl.displayUnitId))
-    .where(inArray(tgsTbl.taxonId, taxonIds));
+    .where(inArray(tfsTbl.taxonId, taxonIds));
 
   for (const row of numRows) {
     const groupsById = byTaxon.get(row.taxonId);
@@ -210,7 +210,7 @@ export async function selectTaxonStatesByTaxonIds(
   // Range states
   const rangeRows = await tx
     .select({
-      taxonId: tgsTbl.taxonId,
+      taxonId: tfsTbl.taxonId,
 
       groupId: groupsTbl.id,
 
@@ -228,11 +228,11 @@ export async function selectTaxonStatesByTaxonIds(
       unitScale: unitsTbl.scale,
     })
     .from(rangeStateTbl)
-    .innerJoin(tgsTbl, eq(tgsTbl.id, rangeStateTbl.taxonGroupStateId))
-    .innerJoin(groupsTbl, eq(groupsTbl.id, tgsTbl.groupId))
+    .innerJoin(tfsTbl, eq(tfsTbl.id, rangeStateTbl.taxonFeatureStateId))
+    .innerJoin(groupsTbl, eq(groupsTbl.id, tfsTbl.featureId))
     .innerJoin(charsTbl, eq(charsTbl.id, rangeStateTbl.characterId))
     .leftJoin(unitsTbl, eq(unitsTbl.id, rangeStateTbl.displayUnitId))
-    .where(inArray(tgsTbl.taxonId, taxonIds));
+    .where(inArray(tfsTbl.taxonId, taxonIds));
 
   for (const row of rangeRows) {
     const groupsById = byTaxon.get(row.taxonId);
@@ -275,46 +275,46 @@ export async function selectTaxonStatesByTaxonIds(
 export async function replaceGroupedCharacterStatesForTaxon(
   tx: Transaction,
   taxonId: number,
-  groups: GroupedCharacterUpdate,
+  features: CharacterByFeatureUpdate,
 ): Promise<void> {
-  console.log(groups);
+  console.log(features);
   // Load existing group states for taxon
   const existing = await tx
     .select({
-      id: tgsTbl.id,
-      groupId: tgsTbl.groupId,
+      id: tfsTbl.id,
+      featureId: tfsTbl.featureId,
     })
-    .from(tgsTbl)
-    .where(eq(tgsTbl.taxonId, taxonId));
+    .from(tfsTbl)
+    .where(eq(tfsTbl.taxonId, taxonId));
 
-  const existingByGroupId = new Map(existing.map((g) => [g.groupId, g]));
+  const existingByFeatureId = new Map(existing.map((g) => [g.featureId, g]));
 
-  const incomingGroupIds = new Set(groups.map((g) => g.groupId));
+  const incomingFeatureIds = new Set(features.map((g) => g.featureId));
 
-  // Delete group states that are no longer present
-  const groupStateIdsToDelete = existing
-    .filter((g) => !incomingGroupIds.has(g.groupId))
+  // Delete feature states that are no longer present
+  const featureStateIdsToDelete = existing
+    .filter((g) => !incomingFeatureIds.has(g.featureId))
     .map((g) => g.id);
 
-  if (groupStateIdsToDelete.length > 0) {
-    await tx.delete(tgsTbl).where(inArray(tgsTbl.id, groupStateIdsToDelete));
+  if (featureStateIdsToDelete.length > 0) {
+    await tx.delete(tfsTbl).where(inArray(tfsTbl.id, featureStateIdsToDelete));
   }
 
-  // Process each incoming group
-  for (const group of groups) {
+  // Process each incoming feature
+  for (const feature of features) {
     let groupStateId: number;
 
-    const existingGroup = existingByGroupId.get(group.groupId);
+    const existingGroup = existingByFeatureId.get(feature.featureId);
     if (existingGroup) {
       groupStateId = existingGroup.id;
     } else {
       const rows = await tx
-        .insert(tgsTbl)
+        .insert(tfsTbl)
         .values({
           taxonId,
-          groupId: group.groupId,
+          featureId: feature.featureId,
         })
-        .returning({ id: tgsTbl.id });
+        .returning({ id: tfsTbl.id });
 
       if (rows.length !== 1) {
         throw new Error("Failed to create taxon group state.");
@@ -323,49 +323,49 @@ export async function replaceGroupedCharacterStatesForTaxon(
       groupStateId = rows[0]!.id;
     }
 
-    const categorical = group.characters.filter(
+    const categorical = feature.characters.filter(
       (c): c is CategoricalCharacterUpdate => c.kind === "categorical",
     );
-    const number = group.characters.filter(
+    const number = feature.characters.filter(
       (c): c is NumberCharacterUpdate => c.kind === "number",
     );
-    const range = group.characters.filter(
+    const range = feature.characters.filter(
       (c): c is RangeCharacterUpdate => c.kind === "range",
     );
 
-    await replaceCategoricalStatesForGroupState(
+    await replaceCategoricalStatesForFeatureState(
       tx,
       groupStateId,
-      group.groupId,
+      feature.featureId,
       categorical,
     );
 
-    await replaceNumberStatesForGroupState(
+    await replaceNumberStatesForFeatureState(
       tx,
       groupStateId,
-      group.groupId,
+      feature.featureId,
       number,
     );
 
-    await replaceRangeStatesForGroupState(
+    await replaceRangeStatesForFeatureState(
       tx,
       groupStateId,
-      group.groupId,
+      feature.featureId,
       range,
     );
   }
 }
 
-/** Replace categorical states for a single taxon-group-state. */
-async function replaceCategoricalStatesForGroupState(
+/** Replace categorical states for a single taxon-feature-state. */
+async function replaceCategoricalStatesForFeatureState(
   tx: Transaction,
-  taxonGroupStateId: number,
-  groupId: number,
+  taxonFeatureStateId: number,
+  featureId: number,
   updates: CategoricalCharacterUpdate[],
 ): Promise<void> {
   await tx
     .delete(catStateTbl)
-    .where(eq(catStateTbl.taxonGroupStateId, taxonGroupStateId));
+    .where(eq(catStateTbl.taxonFeatureStateId, taxonFeatureStateId));
 
   if (updates.length === 0) return;
 
@@ -388,7 +388,6 @@ async function replaceCategoricalStatesForGroupState(
   const metas = await tx
     .select({
       characterId: catMetaTbl.characterId,
-      traitSetId: catMetaTbl.traitSetId,
       isMultiSelect: catMetaTbl.isMultiSelect,
     })
     .from(catMetaTbl)
@@ -403,7 +402,7 @@ async function replaceCategoricalStatesForGroupState(
   const traitValues = await tx
     .select({
       id: catValTbl.id,
-      setId: catValTbl.setId,
+      characterId: catValTbl.characterId, // <-- HERE
     })
     .from(catValTbl)
     .where(inArray(catValTbl.id, allTraitValueIds));
@@ -411,10 +410,10 @@ async function replaceCategoricalStatesForGroupState(
   const traitValueById = new Map(traitValues.map((v) => [v.id, v]));
 
   const rows: Array<{
-    taxonGroupStateId: number;
+    taxonFeatureStateId: number;
     characterId: number;
     traitValueId: number;
-    groupId: number;
+    featureId: number;
   }> = [];
 
   for (const c of normalized) {
@@ -432,17 +431,18 @@ async function replaceCategoricalStatesForGroupState(
     for (const traitValueId of c.traitValueIds) {
       const tv = traitValueById.get(traitValueId);
       if (!tv) throw new Error(`Unknown trait value ${traitValueId}.`);
-      if (tv.setId !== meta.traitSetId) {
+
+      if (tv.characterId !== c.characterId) {
         throw new Error(
           `Trait value ${traitValueId} does not belong to character ${c.characterId}.`,
         );
       }
 
       rows.push({
-        taxonGroupStateId,
+        taxonFeatureStateId,
         characterId: c.characterId,
         traitValueId,
-        groupId,
+        featureId,
       });
     }
   }
@@ -452,16 +452,16 @@ async function replaceCategoricalStatesForGroupState(
   }
 }
 
-/** Replace numeric single-value states for a single taxon-group-state. */
-async function replaceNumberStatesForGroupState(
+/** Replace numeric single-value states for a single taxon-feature-state. */
+async function replaceNumberStatesForFeatureState(
   tx: Transaction,
-  taxonGroupStateId: number,
-  groupId: number,
+  taxonFeatureStateId: number,
+  featureId: number,
   updates: NumberCharacterUpdate[],
 ): Promise<void> {
   await tx
     .delete(numStateTbl)
-    .where(eq(numStateTbl.taxonGroupStateId, taxonGroupStateId));
+    .where(eq(numStateTbl.taxonFeatureStateId, taxonFeatureStateId));
 
   if (updates.length === 0) return;
 
@@ -491,11 +491,11 @@ async function replaceNumberStatesForGroupState(
     }
 
     return {
-      taxonGroupStateId,
+      taxonFeatureStateId,
       characterId: c.characterId,
       siBaseValue: c.siBaseValue.toString(),
       displayUnitId: c.unitId ?? null,
-      groupId,
+      featureId,
     };
   });
 
@@ -504,16 +504,16 @@ async function replaceNumberStatesForGroupState(
   }
 }
 
-// Replace numeric range states for a single taxon-group-state.
-async function replaceRangeStatesForGroupState(
+// Replace numeric range states for a single taxon-feature-state.
+async function replaceRangeStatesForFeatureState(
   tx: Transaction,
-  taxonGroupStateId: number,
-  groupId: number,
+  taxonFeatureStateId: number,
+  featureId: number,
   updates: RangeCharacterUpdate[],
 ): Promise<void> {
   await tx
     .delete(rangeStateTbl)
-    .where(eq(rangeStateTbl.taxonGroupStateId, taxonGroupStateId));
+    .where(eq(rangeStateTbl.taxonFeatureStateId, taxonFeatureStateId));
 
   if (updates.length === 0) return;
 
@@ -545,12 +545,12 @@ async function replaceRangeStatesForGroupState(
     }
 
     return {
-      taxonGroupStateId,
+      taxonFeatureStateId,
       characterId: c.characterId,
       siBaseMin: c.siBaseMin.toString(),
       siBaseMax: c.siBaseMax.toString(),
       displayUnitId: c.unitId ?? null,
-      groupId,
+      featureId,
     };
   });
 

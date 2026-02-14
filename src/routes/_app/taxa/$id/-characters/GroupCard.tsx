@@ -7,19 +7,19 @@ import {
   Tooltip,
 } from "@radix-ui/themes";
 import { CharacterStateDisplay } from "../../../../../components/trait-tokens/CharacterStateDisplay";
-import type { TaxonCharacterGroupStateDTO } from "../../../../../lib/domain/states/types";
+import type { TaxonCharacterFeatureStateDTO } from "../../../../../lib/domain/states/types";
 
 export const GroupCard = ({
   group,
 }: {
-  group: TaxonCharacterGroupStateDTO;
+  group: TaxonCharacterFeatureStateDTO;
 }) => {
-  const cardHeaderComponent = group.groupDescription ? (
-    <Tooltip content={group.groupDescription}>
-      <span className="has-information">{group.groupLabel}</span>
+  const cardHeaderComponent = group.featureDescription ? (
+    <Tooltip content={group.featureDescription}>
+      <span className="has-information">{group.featureLabel}</span>
     </Tooltip>
   ) : (
-    group.groupLabel
+    group.featureLabel
   );
 
   return (

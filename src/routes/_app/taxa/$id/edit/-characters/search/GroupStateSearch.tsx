@@ -3,29 +3,29 @@ import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
 import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
 import type { ComboboxOption } from "../../../../../../../components/inputs/combobox/types";
-import { searchGroupTraitSuggestionsFn } from "../../../../../../../lib/api/character-suggestions/fns";
+import { searchFeatureTraitSuggestionsFn } from "../../../../../../../lib/api/character-suggestions/fns";
 import type { TraitSuggestion } from "../../../../../../../lib/api/character-suggestions/types";
 
-type GroupTraitSearchProps = {
-  groupId: number;
+type FeatureStateSearchProps = {
+  featureId: number;
   /** Called whenever the user selects a suggestion. */
   onSelect: (suggestion: TraitSuggestion) => void;
   /** Optional placeholder text in the search input. */
   placeholder?: string;
 };
 
-export function GroupStateSearch({
-  groupId,
+export function FeatureStateSearch({
+  featureId,
   onSelect,
   placeholder = "Type a value or trait…",
-}: GroupTraitSearchProps) {
+}: FeatureStateSearchProps) {
   const [suggestions, setSuggestions] = React.useState<TraitSuggestion[]>([]);
   const [options, setOptions] = React.useState<ComboboxOption[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [selectedOption, setSelectedOption] =
     React.useState<ComboboxOption | null>(null);
 
-  const serverSearch = useServerFn(searchGroupTraitSuggestionsFn);
+  const serverSearch = useServerFn(searchFeatureTraitSuggestionsFn);
 
   // Simple "request id" guard so stale responses don't win.
   const requestIdRef = React.useRef(0);
@@ -45,7 +45,7 @@ export function GroupStateSearch({
 
       try {
         const result = await serverSearch({
-          data: { groupId, q: trimmed, limit: 20 },
+          data: { featureId, q: trimmed, limit: 20 },
         });
 
         // Ignore stale responses
@@ -75,7 +75,7 @@ export function GroupStateSearch({
         }
       }
     },
-    [groupId, serverSearch],
+    [featureId, serverSearch],
   );
 
   const handleValueChange = React.useCallback(

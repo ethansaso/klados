@@ -3,15 +3,14 @@ import { Box, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { PiLink, PiMagnifyingGlass, PiPlusCircle, PiTag } from "react-icons/pi";
-import { GlossarySidebarLayout } from "../-chrome/GlossarySidebarLayout";
-import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
-import { CuratorOnly } from "../../../../components/CuratorOnly";
-import { PaginationFooter } from "../../../../components/PaginationFooter";
-import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
-import { usePaginatedSearch } from "../../../../lib/hooks/usePaginatedSearch";
-import { traitSetsQueryOptions } from "../../../../lib/queries/traits";
-import { routeSeo } from "../../../../lib/utils/head/routeSeo";
-import { SearchWithQuerySchema } from "../../../../lib/validation/search";
+import { CuratorOnly } from "../../src/components/CuratorOnly";
+import { PaginationFooter } from "../../src/components/PaginationFooter";
+import { DebouncedTextField } from "../../src/components/inputs/DebouncedTextField";
+import { usePaginatedSearch } from "../../src/lib/hooks/usePaginatedSearch";
+import { routeSeo } from "../../src/lib/utils/head/routeSeo";
+import { SearchWithQuerySchema } from "../../src/lib/validation/search";
+import { GlossarySidebarLayout } from "../../src/routes/_app/glossary/-chrome/GlossarySidebarLayout";
+import { GlossarySidebarList } from "../../src/routes/_app/glossary/-chrome/GlossarySidebarList";
 import { AddTraitSetModal } from "./-AddTraitSetModal";
 
 export const Route = createFileRoute("/_app/glossary/traits")({

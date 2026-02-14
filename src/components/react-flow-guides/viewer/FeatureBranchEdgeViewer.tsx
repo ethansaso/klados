@@ -9,21 +9,21 @@ import {
 import type { HydratedBranchRationale } from "../../../keygen/hydration/types";
 import type { RFFeatureBranchEdge } from "../editor/data/types";
 
-type GroupStatusMap = Record<string, "present" | "absent">;
+type FeatureStatusMap = Record<string, "present" | "absent">;
 
-function buildGroupStatusMap(
+function buildFeatureStatusMap(
   r: HydratedBranchRationale | null,
-): GroupStatusMap {
-  if (!r || r.kind !== "group-present-absent") return {};
+): FeatureStatusMap {
+  if (!r || r.kind !== "feature-present-absent") return {};
 
-  const map: GroupStatusMap = {};
-  for (const g of Object.values(r.groups)) {
+  const map: FeatureStatusMap = {};
+  for (const g of Object.values(r.features)) {
     map[g.name] = g.status;
   }
   return map;
 }
 
-export default function GroupBranchEdgeViewer(
+export default function FeatureBranchEdgeViewer(
   props: EdgeProps<RFFeatureBranchEdge>,
 ) {
   const { id, sourceX, sourceY, targetX, targetY, markerEnd, data } = props;
@@ -37,14 +37,14 @@ export default function GroupBranchEdgeViewer(
     targetPosition: Position.Left,
   });
 
-  const groups = buildGroupStatusMap(data.rationale);
-  const hasGroups = Object.keys(groups).length > 0;
+  const features = buildFeatureStatusMap(data.rationale);
+  const hasFeatures = Object.keys(features).length > 0;
 
   return (
     <>
       <BaseEdge id={id} path={path} markerEnd={markerEnd} />
 
-      {hasGroups && (
+      {hasFeatures && (
         <EdgeLabelRenderer>
           <Card
             style={{
@@ -54,7 +54,7 @@ export default function GroupBranchEdgeViewer(
               padding: 8,
             }}
           >
-            {Object.entries(groups).map(([name, status]) => (
+            {Object.entries(features).map(([name, status]) => (
               <Text key={name} size="1" as="div">
                 <Strong>{name}</Strong> {status}
               </Text>

@@ -9,7 +9,6 @@ import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../components/dialogs/ConfirmDeleteModal";
 import { deleteCharacterFn } from "../../../../lib/api/characters/deleteCharacterFn";
 import { type CharacterDetailDTO } from "../../../../lib/domain/characters/types";
-import { characterGroupQueryOptions } from "../../../../lib/queries/characterGroups";
 import { characterQueryOptions } from "../../../../lib/queries/characters";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
 import { toast } from "../../../../lib/utils/toast";
@@ -41,7 +40,7 @@ function RouteComponent() {
 
   const { data: character } = useSuspenseQuery(characterQueryOptions(id));
 
-  const handleTraitSetDeleteClick = (character: CharacterDetailDTO) => {
+  const handleCharacterDeleteClick = (character: CharacterDetailDTO) => {
     NiceModal.show(ConfirmDeleteModal, {
       label: character.label,
       itemType: "character",
@@ -51,9 +50,6 @@ function RouteComponent() {
           qc.invalidateQueries({ queryKey: ["characters"] });
           qc.invalidateQueries({
             queryKey: characterQueryOptions(character.id).queryKey,
-          });
-          qc.invalidateQueries({
-            queryKey: characterGroupQueryOptions(character.group.id).queryKey,
           });
           navigate({
             to: "/glossary/characters",
@@ -81,7 +77,7 @@ function RouteComponent() {
       </Text>
       {character.type === "categorical" ? (
         <Text as="div" size="2" color="gray">
-          Trait set: "{character.traitSet.label}"
+          TODO: Display traits
         </Text>
       ) : (
         <Text as="div" size="2" color="gray">
@@ -94,7 +90,7 @@ function RouteComponent() {
           <IconButton
             size="1"
             color="tomato"
-            onClick={() => handleTraitSetDeleteClick(character)}
+            onClick={() => handleCharacterDeleteClick(character)}
           >
             <PiTrash />
           </IconButton>

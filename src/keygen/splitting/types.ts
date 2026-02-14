@@ -8,7 +8,7 @@ export type TaxonGroup = HierarchyTaxonNode[];
  */
 export type CharacterClause = {
   characterId: number;
-  groupId: number;
+  featureId: number;
   traits: Trait[];
   /**
    * false: taxa in this branch HAVE these traits
@@ -28,18 +28,18 @@ export type CharacterDefinitionSplitResult = {
   branches: CharacterDefinitionSplitBranch[];
 };
 
-export type GroupPresentAbsentSplitBranch = {
+export type FeaturePresentAbsentSplitBranch = {
   taxa: TaxonGroup;
   status: "present" | "absent";
 };
 
-export type GroupPresentAbsentSplitResult = {
-  kind: "group-present-absent";
-  groupId: number;
+export type FeaturePresentAbsentSplitResult = {
+  kind: "feature-present-absent";
+  featureId: number;
   score: number;
-  branches: GroupPresentAbsentSplitBranch[];
+  branches: FeaturePresentAbsentSplitBranch[];
 };
 
 export type SplitResult =
   | CharacterDefinitionSplitResult
-  | GroupPresentAbsentSplitResult;
+  | FeaturePresentAbsentSplitResult;

@@ -41,9 +41,9 @@ export type TaxonCharacterStateDTO =
   | TaxonNumberStateDTO
   | TaxonRangeStateDTO;
 
-export type TaxonCharacterGroupStateDTO = {
-  groupId: number;
-  groupLabel: string;
-  groupDescription: string;
+export type TaxonCharacterFeatureStateDTO = {
+  featureId: number;
+  featureLabel: string;
+  featureDescription: string;
   states: TaxonCharacterStateDTO[];
 };

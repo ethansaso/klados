@@ -11,8 +11,7 @@ export const Route = createFileRoute("/_app/glossary")({
 // TODO: fix needing search on nav (here it should probably remain to reset, though)
 function RouteComponent() {
   const charactersActive = useIsActive("/glossary/characters", true);
-  const groupsActive = useIsActive("/glossary/groups", true);
-  const traitsActive = useIsActive("/glossary/traits", true);
+  const featuresActive = useIsActive("/glossary/features", true);
   const modifiersActive = useIsActive("/glossary/modifiers", true);
 
   return (
@@ -23,14 +22,9 @@ function RouteComponent() {
             Characters
           </Link>
         </TabNav.Link>
-        <TabNav.Link asChild active={groupsActive}>
-          <Link to="/glossary/groups" preload="intent">
-            Groups
-          </Link>
-        </TabNav.Link>
-        <TabNav.Link asChild active={traitsActive}>
-          <Link to="/glossary/traits" preload="intent">
-            Traits
+        <TabNav.Link asChild active={featuresActive}>
+          <Link to="/glossary/features" preload="intent">
+            Features
           </Link>
         </TabNav.Link>
         <TabNav.Link asChild active={modifiersActive}>

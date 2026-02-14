@@ -51,22 +51,22 @@ export const characterStateFormSchema = z.discriminatedUnion("kind", [
   rangeCharacterFormSchema,
 ]);
 
-// groups
+// features
 
-export const characterGroupFormSchema = z
+export const featureFormSchema = z
   .object({
-    groupId: z.number().int().positive(),
-    groupLabel: z.string(),
+    featureId: z.number().int().positive(),
+    featureLabel: z.string(),
     characters: z.array(characterStateFormSchema),
   })
-  .superRefine((group, ctx) => {
-    // Enforce unique characterId within a group
+  .superRefine((feature, ctx) => {
+    // Enforce unique characterId within a feature
     const seen = new Set<number>();
-    for (const c of group.characters) {
+    for (const c of feature.characters) {
       if (seen.has(c.characterId)) {
         ctx.addIssue({
           code: "custom",
-          message: `Duplicate characterId ${c.characterId} in group ${group.groupId}.`,
+          message: `Duplicate characterId ${c.characterId} in feature ${feature.featureId}.`,
           path: ["characters"],
         });
       }
@@ -75,31 +75,31 @@ export const characterGroupFormSchema = z
   });
 
 export const groupedCharacterFormSchema = z
-  .array(characterGroupFormSchema)
-  .superRefine((groups, ctx) => {
-    const seenGroups = new Set<number>();
-    const seenCharacters = new Map<number, number>(); // characterId -> groupId
+  .array(featureFormSchema)
+  .superRefine((features, ctx) => {
+    const seenFeatureIds = new Set<number>();
+    const seenCharacters = new Map<number, number>(); // characterId -> featureId
 
-    for (const group of groups) {
-      if (seenGroups.has(group.groupId)) {
+    for (const feature of features) {
+      if (seenFeatureIds.has(feature.featureId)) {
         ctx.addIssue({
           code: "custom",
-          message: `Duplicate groupId ${group.groupId}.`,
+          message: `Duplicate featureId ${feature.featureId}.`,
           path: [],
         });
       }
-      seenGroups.add(group.groupId);
+      seenFeatureIds.add(feature.featureId);
 
-      for (const c of group.characters) {
-        const prevGroup = seenCharacters.get(c.characterId);
-        if (prevGroup !== undefined) {
+      for (const c of feature.characters) {
+        const prevFeature = seenCharacters.get(c.characterId);
+        if (prevFeature !== undefined) {
           ctx.addIssue({
             code: "custom",
-            message: `Character ${c.characterId} appears in multiple groups (${prevGroup}, ${group.groupId}).`,
+            message: `Character ${c.characterId} appears in multiple features (${prevFeature}, ${feature.featureId}).`,
             path: [],
           });
         }
-        seenCharacters.set(c.characterId, group.groupId);
+        seenCharacters.set(c.characterId, feature.featureId);
       }
     }
   });
@@ -108,7 +108,7 @@ export const groupedCharacterFormSchema = z
 
 export type CharacterStateFormValue = z.infer<typeof characterStateFormSchema>;
 
-export type CharacterGroupFormValue = z.infer<typeof characterGroupFormSchema>;
+export type FeatureFormValue = z.infer<typeof featureFormSchema>;
 
 export type GroupedCharacterFormValue = z.infer<
   typeof groupedCharacterFormSchema

@@ -38,20 +38,20 @@ function dehydrateBranchRationale(
       };
     }
 
-    case "group-present-absent": {
-      const groups: KeyPAFeatureRationale["groups"] = {};
+    case "feature-present-absent": {
+      const features: KeyPAFeatureRationale["features"] = {};
 
-      for (const [groupIdStr, info] of Object.entries(rationale.groups)) {
-        const groupId = Number(groupIdStr);
-        groups[groupId] = {
-          groupId,
+      for (const [featureIdStr, info] of Object.entries(rationale.features)) {
+        const featureId = Number(featureIdStr);
+        features[featureId] = {
+          featureId,
           status: info.status,
         };
       }
 
       return {
-        kind: "group-present-absent",
-        groups,
+        kind: "feature-present-absent",
+        features,
         annotation: rationale.annotation,
       };
     }

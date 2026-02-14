@@ -13,7 +13,7 @@ import { scoreCharacterSplit } from "./scoreCharacterSplit";
 type CharEntry = {
   taxon: HierarchyTaxonNode;
   state: TaxonCategoricalStateDTO;
-  groupId: number;
+  featureId: number;
 };
 
 type ByCharacter = Map<number, Map<number, CharEntry>>;
@@ -23,16 +23,16 @@ type SharedTraitGroup = {
   taxa: HierarchyTaxonNode[];
 };
 
-/** Post-normalization index of trait sets by taxon, with group annotation */
+/** Post-normalization index of trait sets by taxon, with feature annotation */
 type NormalizedCharacterTraitSets = {
   traitSetsByTaxon: Map<number, Trait[]>;
-  groupId: number;
+  featureId: number;
 };
 
 type GroupsResult = {
   groups: SharedTraitGroup[];
   notTaxa: Set<HierarchyTaxonNode>;
-  groupId: number;
+  featureId: number;
 };
 
 /**
@@ -55,7 +55,7 @@ function buildCharacterIndex(taxa: HierarchyTaxonNode[]): ByCharacter {
         byTaxon.set(taxon.id, {
           taxon,
           state,
-          groupId: group.groupId,
+          featureId: group.featureId,
         });
       }
     }
@@ -75,28 +75,28 @@ function normalizeTraitSetsForCharacter(
   byTaxon: Map<number, CharEntry>,
 ): NormalizedCharacterTraitSets | null {
   const traitSetsByTaxon = new Map<number, Trait[]>();
-  let groupId: number | null = null;
+  let featureId: number | null = null;
 
   for (const taxon of taxa) {
     const entry = byTaxon.get(taxon.id);
     if (!entry) return null;
 
-    const { state, groupId: entryGroupId } = entry;
+    const { state, featureId: entryFeatureId } = entry;
     const traits = state.traitValues ?? [];
     if (traits.length === 0) return null;
 
-    // Record groupId once for downstream clause construction.
+    // Record featureId once for downstream clause construction.
     // Structural invariants guarantee consistency.
-    if (groupId === null) {
-      groupId = entryGroupId;
+    if (featureId === null) {
+      featureId = entryFeatureId;
     }
 
     traitSetsByTaxon.set(taxon.id, traits);
   }
 
-  if (groupId === null) return null;
+  if (featureId === null) return null;
 
-  return { traitSetsByTaxon, groupId };
+  return { traitSetsByTaxon, featureId };
 }
 
 /** Simple set intersection */
@@ -122,7 +122,7 @@ function buildGroupsWithDeadTags(
   taxa: HierarchyTaxonNode[],
   normalized: NormalizedCharacterTraitSets,
 ): GroupsResult | null {
-  const { traitSetsByTaxon, groupId } = normalized;
+  const { traitSetsByTaxon, featureId } = normalized;
 
   const groupMap = new Map<string, SharedTraitGroup>();
   const groupTraitIdsByKey = new Map<string, Set<number>>();
@@ -238,7 +238,7 @@ function buildGroupsWithDeadTags(
     return null;
   }
 
-  return { groups, notTaxa, groupId };
+  return { groups, notTaxa, featureId };
 }
 
 /**
@@ -284,7 +284,7 @@ function enforceBranchLimit(
  */
 function createBranches(
   characterId: number,
-  groupId: number,
+  featureId: number,
   groups: SharedTraitGroup[],
   notTaxa: Set<HierarchyTaxonNode>,
 ): { branches: CharacterDefinitionSplitBranch[]; hasInvertedBranch: boolean } {
@@ -296,7 +296,7 @@ function createBranches(
       clauses: [
         {
           characterId,
-          groupId,
+          featureId,
           traits: g.traits,
           inverted: false,
         },
@@ -325,7 +325,7 @@ function createBranches(
       clauses: [
         {
           characterId,
-          groupId,
+          featureId,
           traits: unionTraits,
           inverted: true,
         },
@@ -371,7 +371,7 @@ export function resolveCharacterSplits(
     // 4) turn groups + notTaxa into branches, note inversion
     const { branches } = createBranches(
       characterId,
-      groupsResult.groupId,
+      groupsResult.featureId,
       groups,
       notTaxa,
     );

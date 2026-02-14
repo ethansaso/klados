@@ -5,7 +5,7 @@ import type {
 import type { UnitDTO } from "../../lib/domain/units/types";
 
 // UI-focused types with optional weight styling.
-// Exclude metadata like characterId and groupId.
+// Exclude metadata like characterId and featureId.
 // This allows simpler usage in contexts where those IDs are
 // difficult or impossible to provide.
 

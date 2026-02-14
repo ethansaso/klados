@@ -2,8 +2,8 @@
 type BaseCharacterContext = {
   characterId: number;
   characterLabel: string; // "Cap color", "Cap diameter"
-  groupId: number;
-  groupLabel: string; // "Cap", "Gills", etc.
+  featureId: number;
+  featureLabel: string; // "Cap", "Gills", etc.
 };
 // Base type for numeric suggestions.
 type BaseNumericSuggestion = BaseCharacterContext & {

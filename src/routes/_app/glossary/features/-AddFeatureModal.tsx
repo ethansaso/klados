@@ -17,19 +17,19 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
-import { createCharacterGroupFn } from "../../../../lib/api/character-groups/createCharacterGroupFn";
+import { createFeatureFn } from "../../../../lib/api/features/createFeatureFn";
 import {
-  type CreateCharacterGroupInput,
-  createCharacterGroupSchema,
+  type CreateFeatureInput,
+  createFeatureSchema,
 } from "../../../../lib/domain/features/validation";
 import { useAutoKey } from "../../../../lib/hooks/useAutoKey";
 import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../lib/utils/toast";
 
-export const AddCharacterGroupModal = NiceModal.create(() => {
+export const AddFeatureModal = NiceModal.create(() => {
   const { visible, hide } = useModal();
   const qc = useQueryClient();
-  const serverCreate = useServerFn(createCharacterGroupFn);
+  const serverCreate = useServerFn(createFeatureFn);
 
   const {
     register,
@@ -38,8 +38,8 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
     setValue,
     reset,
     formState: { errors, isSubmitting, touchedFields, isSubmitted },
-  } = useForm<CreateCharacterGroupInput>({
-    resolver: zodResolver(createCharacterGroupSchema),
+  } = useForm<CreateFeatureInput>({
+    resolver: zodResolver(createFeatureSchema),
     mode: "onSubmit",
     reValidateMode: "onChange",
     defaultValues: {
@@ -56,7 +56,7 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
     "key",
   );
 
-  const onSubmit: SubmitHandler<CreateCharacterGroupInput> = async ({
+  const onSubmit: SubmitHandler<CreateFeatureInput> = async ({
     key,
     label,
     description,
@@ -70,10 +70,10 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
         },
       });
 
-      qc.invalidateQueries({ queryKey: ["characterGroups"] });
+      qc.invalidateQueries({ queryKey: ["features"] });
       toast({
         variant: "success",
-        description: `Character group "${label}" created successfully.`,
+        description: `Feature "${label}" created successfully.`,
       });
       reset();
       setAutoKey(true);
@@ -98,17 +98,17 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
       }}
     >
       <Dialog.Content maxWidth="450px">
-        <Dialog.Title>Add character group</Dialog.Title>
+        <Dialog.Title>Add feature</Dialog.Title>
         <Dialog.Description size="2" mb="4">
-          Specify the details for the new character group.
+          Specify the details for the new feature.
         </Dialog.Description>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Flex direction="column" gap="3" mb="4">
             <Box>
               <Flex justify="between" align="baseline" mb="1">
-                <Label.Root htmlFor="character-group-label">Label</Label.Root>
+                <Label.Root htmlFor="feature-label">Label</Label.Root>
                 <ConditionalAlert
-                  id="character-group-label-error"
+                  id="feature-label-error"
                   message={
                     touchedFields.label || isSubmitted
                       ? errors.label?.message
@@ -117,18 +117,18 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
                 />
               </Flex>
               <TextField.Root
-                id="character-group-label"
+                id="feature-label"
                 placeholder="e.g. cap, stem, leaf"
                 {...register("label")}
-                {...a11yProps("character-group-label-error", !!errors.label)}
+                {...a11yProps("feature-label-error", !!errors.label)}
               />
             </Box>
             <Box>
               <Flex justify="between" align="baseline" mb="1">
-                <Label.Root htmlFor="character-group-key">Key</Label.Root>
+                <Label.Root htmlFor="feature-key">Key</Label.Root>
                 <Flex align="center" gap="2">
                   <ConditionalAlert
-                    id="character-group-key-error"
+                    id="feature-key-error"
                     message={
                       touchedFields.key || isSubmitted
                         ? errors.key?.message
@@ -149,20 +149,20 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
                 </Flex>
               </Flex>
               <TextField.Root
-                id="character-group-key"
+                id="feature-key"
                 type="text"
                 readOnly={autoKey}
                 {...register("key", { onBlur: handleKeyBlur })}
-                {...a11yProps("character-group-key-error", !!errors.key)}
+                {...a11yProps("feature-key-error", !!errors.key)}
               />
             </Box>
             <Box>
               <Flex justify="between" align="baseline" mb="1">
-                <Label.Root htmlFor="character-group-description">
+                <Label.Root htmlFor="feature-description">
                   Description
                 </Label.Root>
                 <ConditionalAlert
-                  id="character-group-description-error"
+                  id="feature-description-error"
                   message={
                     touchedFields.description || isSubmitted
                       ? errors.description?.message
@@ -171,11 +171,11 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
                 />
               </Flex>
               <TextArea
-                id="character-group-description"
-                placeholder="Optional description for this character group"
+                id="feature-description"
+                placeholder="Optional description for this feature"
                 {...register("description")}
                 {...a11yProps(
-                  "character-group-description-error",
+                  "feature-description-error",
                   !!errors.description,
                 )}
               />
@@ -199,7 +199,7 @@ export const AddCharacterGroupModal = NiceModal.create(() => {
                 disabled={isSubmitting}
                 loading={isSubmitting}
               >
-                Add character group
+                Add feature
               </Button>
             </Form.Submit>
           </Flex>

@@ -13,12 +13,10 @@ const baseCharacterFields = z.object({
     .string("Must be a string")
     .max(1000, "Max 1000 characters")
     .optional(),
-  groupId: z.int("Must be an integer").positive(),
 });
 
 const createCategoricalCharacterFields = baseCharacterFields.extend({
   type: z.literal("categorical"),
-  traitSetId: z.int("Must be an integer").positive(),
   isMultiSelect: z.boolean("Must be a boolean"),
 });
 const createNumberCharacterFields = baseCharacterFields.extend({

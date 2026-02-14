@@ -1,5 +1,5 @@
 import { getCharactersByIds } from "../../lib/domain/characters/service";
-import { getCharacterGroupsByIds } from "../../lib/domain/features/service";
+import { getFeaturesByIds } from "../../lib/domain/features/service";
 import type { Trait } from "../../lib/domain/states/types";
 import { getTaxaByIds } from "../../lib/domain/taxa/service";
 import type { MediaItem } from "../../lib/domain/taxa/validation";
@@ -24,7 +24,7 @@ type IdCollections = {
   taxonIds: Set<number>;
   characterIds: Set<number>;
   traitIds: Set<number>;
-  groupIds: Set<number>;
+  featureIds: Set<number>;
 };
 
 type TaxonMeta = {
@@ -41,11 +41,11 @@ type HydrationMeta = {
     {
       id: number;
       label: string;
-      groupId: number;
+      featureId: number;
     }
   >;
   traitById: Map<number, Trait>;
-  groupById: Map<
+  featureById: Map<
     number,
     {
       id: number;
@@ -65,7 +65,7 @@ function collectIdsFromTree(root: KeyTaxonNode): IdCollections {
     taxonIds: new Set(),
     characterIds: new Set(),
     traitIds: new Set(),
-    groupIds: new Set(),
+    featureIds: new Set(),
   };
 
   function visit(node: KeyNode) {
@@ -88,9 +88,9 @@ function collectIdsFromTree(root: KeyTaxonNode): IdCollections {
           }
           info.traits.forEach((traitId) => ids.traitIds.add(traitId));
         }
-      } else if (rationale?.kind === "group-present-absent") {
-        Object.values(rationale.groups).forEach((g) => {
-          ids.groupIds.add(g.groupId);
+      } else if (rationale?.kind === "feature-present-absent") {
+        Object.values(rationale.features).forEach((f) => {
+          ids.featureIds.add(f.featureId);
         });
       }
 
@@ -103,11 +103,11 @@ function collectIdsFromTree(root: KeyTaxonNode): IdCollections {
 }
 
 async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
-  const [taxa, characters, traits, groups] = await Promise.all([
+  const [taxa, characters, traits, features] = await Promise.all([
     getTaxaByIds([...ids.taxonIds]),
     getCharactersByIds([...ids.characterIds]),
     getTraitValuesByIds([...ids.traitIds]),
-    getCharacterGroupsByIds([...ids.groupIds]),
+    getFeaturesByIds([...ids.featureIds]),
   ]);
 
   const taxonById = new Map<number, TaxonMeta>();
@@ -122,13 +122,13 @@ async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
 
   const characterById = new Map<
     number,
-    { id: number; label: string; groupId: number }
+    { id: number; label: string; featureId: number }
   >();
   for (const c of characters) {
     characterById.set(c.id, {
       id: c.id,
       label: c.label,
-      groupId: c.group.id,
+      featureId: c.feature.id,
     });
   }
 
@@ -143,12 +143,12 @@ async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
     });
   }
 
-  const groupById = new Map<number, { id: number; label: string }>();
-  for (const g of groups) {
-    groupById.set(g.id, { id: g.id, label: g.label });
+  const featureById = new Map<number, { id: number; label: string }>();
+  for (const f of features) {
+    featureById.set(f.id, { id: f.id, label: f.label });
   }
 
-  return { taxonById, characterById, traitById, groupById };
+  return { taxonById, characterById, traitById, featureById };
 }
 
 function hydrateBranchRationale(
@@ -183,22 +183,22 @@ function hydrateBranchRationale(
     };
   }
 
-  if (raw.kind === "group-present-absent") {
-    const groups: HydratedPAFeatureRationale["groups"] = {};
+  if (raw.kind === "feature-present-absent") {
+    const features: HydratedPAFeatureRationale["features"] = {};
 
-    for (const [groupIdStr, gInfo] of Object.entries(raw.groups)) {
-      const groupId = Number(groupIdStr);
-      const metaGroup = meta.groupById.get(groupId);
-      groups[groupId] = {
-        groupId,
-        name: metaGroup?.label ?? `Group ${groupId}`,
-        status: gInfo.status,
+    for (const [featureIdStr, fInfo] of Object.entries(raw.features)) {
+      const featureId = Number(featureIdStr);
+      const metaFeature = meta.featureById.get(featureId);
+      features[featureId] = {
+        featureId,
+        name: metaFeature?.label ?? `Feature ${featureId}`,
+        status: fInfo.status,
       };
     }
 
     return {
-      kind: "group-present-absent",
-      groups,
+      kind: "feature-present-absent",
+      features,
       annotation: raw.annotation,
     };
   }

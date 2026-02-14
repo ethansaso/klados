@@ -1,73 +1,71 @@
 import { db } from "../../../../db/client";
 import {
-  fetchCharacterGroupDetailById,
-  insertCharacterGroup,
-  listCharacterGroupsQuery,
-  selectCharacterGroupsByIds,
+  fetchFeatureDetailById,
+  insertFeature,
+  listFeaturesQuery,
+  selectFeaturesByIds,
 } from "./repo";
 import type {
-  CharacterGroupDTO,
-  CharacterGroupDetailDTO,
-  CharacterGroupPaginatedResult,
+  FeatureDetailDTO,
+  FeatureDTO,
+  FeaturePaginatedResult,
 } from "./types";
 
 /**
  * Bulk fetch character groups by ID (non-paginated).
  */
-export async function getCharacterGroupsByIds(
-  ids: number[],
-): Promise<CharacterGroupDTO[]> {
+export async function getFeaturesByIds(ids: number[]): Promise<FeatureDTO[]> {
   if (!ids.length) {
     return [];
   }
 
   const dtos = await db.transaction(async (tx) => {
-    return selectCharacterGroupsByIds(tx, ids);
+    return selectFeaturesByIds(tx, ids);
   });
 
   return dtos;
 }
 
 /**
- * List character groups with optional search/ids, paginated.
+ * List character features with optional search/ids, paginated.
  */
-export async function listCharacterGroups(args: {
+export async function listFeatures(args: {
   q?: string;
   ids?: number[];
   page: number;
   pageSize: number;
-}): Promise<CharacterGroupPaginatedResult> {
-  return listCharacterGroupsQuery(args);
+}): Promise<FeaturePaginatedResult> {
+  return listFeaturesQuery(args);
 }
 
 /**
- * Get a single character group detail.
+ * Get a single feature detail.
  */
-export async function getCharacterGroup(args: {
+export async function getFeature(args: {
   id: number;
-}): Promise<CharacterGroupDetailDTO | null> {
-  return fetchCharacterGroupDetailById(args.id);
+}): Promise<FeatureDetailDTO | null> {
+  return fetchFeatureDetailById(args.id);
 }
 
 /**
- * Create a character group.
+ * Create a feature.
  */
-export async function createCharacterGroup(args: {
+export async function createFeature(args: {
   key: string;
   label: string;
   description?: string;
-}): Promise<CharacterGroupDTO | null> {
+}): Promise<FeatureDTO | null> {
   const key = args.key.trim();
   const label = args.label.trim();
   const description = args.description?.trim() || "";
 
   return db.transaction(async (tx) => {
-    const base = await insertCharacterGroup(tx, { key, label, description });
+    const base = await insertFeature(tx, { key, label, description });
     if (!base) {
       return null;
     }
 
-    const dto: CharacterGroupDTO = {
+    const dto: FeatureDTO = {
       ...base,
       characterCount: 0,
     };

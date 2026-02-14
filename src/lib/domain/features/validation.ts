@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const createCharacterGroupSchema = z.object({
+export const createFeatureSchema = z.object({
   key: z
     .string("Must be a string")
     .min(1, "Please provide a key.")
@@ -15,6 +15,4 @@ export const createCharacterGroupSchema = z.object({
     .optional(),
 });
 
-export type CreateCharacterGroupInput = z.infer<
-  typeof createCharacterGroupSchema
->;
+export type CreateFeatureInput = z.infer<typeof createFeatureSchema>;

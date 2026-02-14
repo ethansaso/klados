@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import type { TaxonEditFormValues } from ".";
 import type {
-  TaxonCharacterGroupStateDTO,
+  TaxonCharacterFeatureStateDTO,
   TaxonCharacterStateDTO,
 } from "../../../../../lib/domain/states/types";
 import type { TaxonDetailDTO } from "../../../../../lib/domain/taxa/types";
@@ -70,11 +70,11 @@ const seedCharacterState = (
 };
 
 const seedCharacterGroups = (
-  groups: TaxonCharacterGroupStateDTO[],
+  groups: TaxonCharacterFeatureStateDTO[],
 ): GroupedCharacterFormValue =>
   groups.map((group) => ({
-    groupId: group.groupId,
-    groupLabel: group.groupLabel,
+    groupId: group.featureId,
+    groupLabel: group.featureLabel,
     characters: group.states.map(seedCharacterState),
   }));
 
@@ -87,7 +87,7 @@ const seedNames = (names: TaxonDetailDTO["names"]) => {
 
 export const seedTaxonEditState = (
   taxon: TaxonDetailDTO,
-  characterGroups: TaxonCharacterGroupStateDTO[],
+  characterGroups: TaxonCharacterFeatureStateDTO[],
   sources: TaxonSourceDTO[],
 ): TaxonEditFormValues => ({
   parentId: taxon.ancestors?.[taxon.ancestors.length - 1]?.id ?? null,

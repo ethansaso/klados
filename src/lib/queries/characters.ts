@@ -10,8 +10,7 @@ export const charactersQueryOptions = (
 ) =>
   queryOptions<CharacterPaginatedResult>({
     queryKey: ["characters", { page, pageSize, q: opts?.q ?? null }],
-    queryFn: () =>
-      listCharactersFn({ data: { page, pageSize: pageSize, ...opts } }),
+    queryFn: () => listCharactersFn({ data: { page, pageSize, ...opts } }),
     staleTime: 60_000,
   });
 

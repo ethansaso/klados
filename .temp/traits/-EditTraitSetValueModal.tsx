@@ -24,22 +24,22 @@ import {
   useWatch,
 } from "react-hook-form";
 import z from "zod";
-import { ClearableColorField } from "../../../../components/inputs/ClearableColorField";
-import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
-import type { ComboboxOption } from "../../../../components/inputs/combobox/types";
+import { traitSetValuesPaginatedQueryOptions } from "../../../../lib/queries/traits";
+import { ClearableColorField } from "../../src/components/inputs/ClearableColorField";
+import { SelectCombobox } from "../../src/components/inputs/combobox/SelectCombobox";
+import type { ComboboxOption } from "../../src/components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
-} from "../../../../components/inputs/ConditionalAlert";
-import { updateTraitValueFn } from "../../../../lib/api/traits/updateTraitValueFn";
-import type { TraitValueDTO } from "../../../../lib/domain/traits/types";
-import { useAutoKey } from "../../../../lib/hooks/useAutoKey";
-import { traitSetValuesPaginatedQueryOptions } from "../../../../lib/queries/traits";
-import { toast } from "../../../../lib/utils/toast";
+} from "../../src/components/inputs/ConditionalAlert";
+import { updateTraitValueFn } from "../../src/lib/api/traits/updateTraitValueFn";
+import type { TraitValueDTO } from "../../src/lib/domain/traits/types";
+import { useAutoKey } from "../../src/lib/hooks/useAutoKey";
+import { toast } from "../../src/lib/utils/toast";
 import {
   trimmed,
   trimmedNonEmpty,
-} from "../../../../lib/validation/trimmedOptional";
+} from "../../src/lib/validation/trimmedOptional";
 
 interface Props {
   traitValue: TraitValueDTO;
@@ -164,7 +164,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
         await mutation.mutateAsync({
           data: {
             id: traitValue.id,
-            setId: traitValue.setId,
+            characterId: traitValue.setId,
             key: data.key,
             label: data.label,
             aliasTargetId: data.aliasTarget!.id,
@@ -176,7 +176,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
       await mutation.mutateAsync({
         data: {
           id: traitValue.id,
-          setId: traitValue.setId,
+          characterId: traitValue.setId,
           key: data.key,
           label: data.label,
           aliasTargetId: null,

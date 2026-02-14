@@ -1,10 +1,10 @@
 # KeyGen Process
 
-The key generation system creates dichotomous identification keys for taxonomic hierarchies. Given a root taxon, it produces a tree structure with rationales provided based off taxon group/character states.
+The key generation system creates dichotomous identification keys for taxonomic hierarchies. Given a root taxon, it produces a tree structure with rationales provided based off taxon feature/character states.
 
 Last updated 2/8/26.
 
-TODO: This directory will need a complete overhaul once characters/groups are overhauled for semantic structure.
+TODO: This directory will need a complete overhaul once characters/features are overhauled for semantic structure.
 
 ## Overview
 
@@ -55,7 +55,7 @@ Recursively construct the key tree given a hierarchy:
 Each branch carries a `rationale` explaining why taxa fall into that branch:
 
 - **`character-definition`**: A discrete difference in states for one or more characters
-- **`group-present-absent`**: An entire character group(s) is present/absent
+- **`feature-present-absent`**: An entire character feature(s) is present/absent
 
 ## Splitting
 
@@ -70,9 +70,9 @@ The splitting subsystem finds ways to partition a group of taxa based on their c
 3. **Score candidates**: Evaluate each potential split using configurable criteria
 4. **Merge compatible splits**: Combine splits that produce identical partitions (adding more distinguishing clauses)
 
-### Group Present/Absent Splits
+### Feature Present/Absent Splits
 
-A simpler split type: divide taxa into those that have _any_ character defined in a given character group vs. those that don't. Useful when entire character groups (e.g., "wing venation") are only applicable to certain taxa.
+A simpler split type: divide taxa into those that have _any_ character defined in a given feature vs. those that don't. Useful when entire features (e.g., "wing venation") are only applicable to certain taxa.
 
 ### Scoring Considerations
 
@@ -98,7 +98,7 @@ The raw key tree contains only IDs. Before sending to clients, hydrate it with h
 
 - **Taxon nodes:** scientific name, common name, primary media image
 - **Character rationales:** character labels, trait labels with descriptions and colors
-- **Group rationales:** character group labels
+- **Feature rationales:** character feature labels
 
 ### Graph Format
 

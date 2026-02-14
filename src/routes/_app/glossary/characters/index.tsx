@@ -1,5 +1,6 @@
-import { Box, Heading, Text } from "@radix-ui/themes";
+import { Box } from "@radix-ui/themes";
 import { createFileRoute } from "@tanstack/react-router";
+import { GlossaryProse } from "../-chrome/GlossaryProse";
 import { matchCanonicalHead } from "../../../../lib/utils/head/matchCanonicalHead";
 
 export const Route = createFileRoute("/_app/glossary/characters/")({
@@ -10,11 +11,11 @@ export const Route = createFileRoute("/_app/glossary/characters/")({
 function RouteComponent() {
   return (
     <Box>
-      <Heading>Characters</Heading>
-      <Text>
+      <GlossaryProse.Header>Characters</GlossaryProse.Header>
+      <GlossaryProse.Text>
         Characters are the "what" of Klados' descriptions. They specify a broad
         range of data, namely text, numerical, and range values.
-      </Text>
+      </GlossaryProse.Text>
     </Box>
   );
 }

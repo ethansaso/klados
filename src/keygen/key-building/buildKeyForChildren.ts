@@ -3,10 +3,10 @@ import type { HierarchyTaxonNode } from "../hierarchy/types";
 import type { KeyGenOptions } from "../options";
 import { mergeCharacterDefinitionSplits } from "../splitting/characters/mergeCompatibleCharacterSplits";
 import { resolveCharacterSplits } from "../splitting/characters/resolveCharacterSplits";
-import { resolveGroupPresentAbsentSplits } from "../splitting/resolveGroupPresentAbsentSplits";
+import { resolveFeaturePresentAbsentSplits } from "../splitting/resolveFeaturePresentAbsentSplits";
 import type {
   CharacterDefinitionSplitResult,
-  GroupPresentAbsentSplitResult,
+  FeaturePresentAbsentSplitResult,
   SplitResult,
   TaxonGroup,
 } from "../splitting/types";
@@ -113,10 +113,10 @@ function buildCharacterDefinitionRationale(
 }
 
 /**
- * Convert a group-present-absent split branch into a KeyBranchRationale.
+ * Convert a feature-present-absent split branch into a KeyBranchRationale.
  */
-function buildGroupPresentAbsentRationale(
-  split: GroupPresentAbsentSplitResult,
+function buildFeaturePresentAbsentRationale(
+  split: FeaturePresentAbsentSplitResult,
   branchIndex: number,
 ): KeyBranchRationale {
   const branch = split.branches[branchIndex];
@@ -126,10 +126,10 @@ function buildGroupPresentAbsentRationale(
     );
 
   return {
-    kind: "group-present-absent",
-    groups: {
-      [split.groupId]: {
-        groupId: split.groupId,
+    kind: "feature-present-absent",
+    features: {
+      [split.featureId]: {
+        featureId: split.featureId,
         status: branch.status,
       },
     },
@@ -148,14 +148,14 @@ function buildRationaleForBranch(
     );
   }
 
-  return buildGroupPresentAbsentRationale(
-    split as GroupPresentAbsentSplitResult,
+  return buildFeaturePresentAbsentRationale(
+    split as FeaturePresentAbsentSplitResult,
     branchIndex,
   );
 }
 
 /**
- * Differentiates a group of sibling taxa under `parent` using character/group splits,
+ * Differentiates a group of sibling taxa under `parent` using character/feature splits,
  * then for any resulting taxon nodes, continues down the hierarchy.
  *
  * Operates only on the passed 'siblings' group (same hierarchical level, even if different rank).
@@ -186,8 +186,8 @@ function buildKeyForSiblings(
     rawCharacterSplits,
     options,
   );
-  const groupSplits = resolveGroupPresentAbsentSplits(siblings);
-  const candidates: SplitResult[] = [...characterSplits, ...groupSplits];
+  const featureSplits = resolveFeaturePresentAbsentSplits(siblings);
+  const candidates: SplitResult[] = [...characterSplits, ...featureSplits];
 
   // If no valid splits, attach all siblings directly and recurse hierarchically
   // under each.

@@ -5,7 +5,7 @@ import { db } from "../../../../db/client";
 import {
   taxon as taxaTbl,
   taxonCharacterStateCategorical as tcsCatTbl,
-  taxonCharacterGroupState as tgsTbl,
+  taxonFeatureState as tgsTbl,
   categoricalTraitValue as traitValTbl,
 } from "../../../../db/schema/schema";
 import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
@@ -33,7 +33,7 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
     })
     .from(tcsCatTbl)
     .innerJoin(traitValTbl, eq(traitValTbl.id, tcsCatTbl.traitValueId))
-    .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonGroupStateId))
+    .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonFeatureStateId))
     .where(eq(tgsTbl.taxonId, args.taxonId))
     .groupBy(tcsCatTbl.characterId, canonTraitId)
     .as("target");
@@ -65,7 +65,7 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
     })
     .from(target)
     .innerJoin(tcsCatTbl, eq(tcsCatTbl.characterId, target.characterId))
-    .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonGroupStateId))
+    .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonFeatureStateId))
     .innerJoin(
       tv2,
       and(
@@ -92,7 +92,7 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
     `.as("other_cnt"),
     })
     .from(tcsCatTbl)
-    .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonGroupStateId))
+    .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonFeatureStateId))
     .innerJoin(shared, eq(shared.otherTaxonId, tgsTbl.taxonId))
     .innerJoin(tv3, eq(tv3.id, tcsCatTbl.traitValueId))
     .groupBy(tgsTbl.taxonId)

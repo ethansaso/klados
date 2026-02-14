@@ -9,102 +9,111 @@ import {
   sql,
   type SQL,
 } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "../../../../db/client";
 import {
   categoricalCharacterMeta as catMetaTbl,
+  characterFeature as characterFeatureTbl,
   character as charsTbl,
-  feature as groupsTbl,
+  feature as featuresTbl,
   numericCharacterMeta as numMetaTbl,
 } from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/likeAnywhere";
 import { type Transaction } from "../../utils/transactionType";
 import type {
-  CharacterGroupDTO,
-  CharacterGroupDetailDTO,
-  CharacterGroupPaginatedResult,
-  CharacterInGroupDTO,
+  CharacterInFeatureDTO,
+  FeatureDetailDTO,
+  FeatureDTO,
+  FeaturePaginatedResult,
 } from "./types";
 
 /**
- * Select multiple character groups by their IDs within a transaction.
+ * Select multiple features by their IDs within a transaction.
  */
-export async function selectCharacterGroupsByIds(
+export async function selectFeaturesByIds(
   tx: Transaction,
   ids: number[],
-): Promise<CharacterGroupDTO[]> {
+): Promise<FeatureDTO[]> {
   if (!ids.length) {
     return [];
   }
 
-  const items: CharacterGroupDTO[] = await tx
+  const items: FeatureDTO[] = await tx
     .select({
-      id: groupsTbl.id,
-      key: groupsTbl.key,
-      label: groupsTbl.label,
-      description: groupsTbl.description,
-      characterCount: count(charsTbl.id),
+      id: featuresTbl.id,
+      key: featuresTbl.key,
+      label: featuresTbl.label,
+      description: featuresTbl.description,
+      characterCount: count(characterFeatureTbl.characterId),
     })
-    .from(groupsTbl)
-    .leftJoin(charsTbl, eq(charsTbl.groupId, groupsTbl.id))
-    .where(inArray(groupsTbl.id, ids))
-    .groupBy(
-      groupsTbl.id,
-      groupsTbl.key,
-      groupsTbl.label,
-      groupsTbl.description,
+    .from(featuresTbl)
+    .leftJoin(
+      characterFeatureTbl,
+      eq(characterFeatureTbl.featureId, featuresTbl.id),
     )
-    .orderBy(asc(groupsTbl.key), asc(groupsTbl.id));
+    .where(inArray(featuresTbl.id, ids))
+    .groupBy(
+      featuresTbl.id,
+      featuresTbl.key,
+      featuresTbl.label,
+      featuresTbl.description,
+    )
+    .orderBy(asc(featuresTbl.key), asc(featuresTbl.id));
 
   return items;
 }
 
 /**
- * List character groups with optional search and ids, paginated.
+ * List features with optional search and ids, paginated.
  */
-export async function listCharacterGroupsQuery(args: {
+export async function listFeaturesQuery(args: {
   q?: string;
   ids?: number[];
   page: number;
   pageSize: number;
-}): Promise<CharacterGroupPaginatedResult> {
+}): Promise<FeaturePaginatedResult> {
   const { q, ids, page, pageSize } = args;
   const offset = (page - 1) * pageSize;
 
   const like = likeAnywhere(q);
 
   const filters: (SQL | undefined)[] = [
-    ids && ids.length ? inArray(groupsTbl.id, ids) : undefined,
+    ids && ids.length ? inArray(featuresTbl.id, ids) : undefined,
     like
-      ? or(ilike(groupsTbl.label, like), ilike(groupsTbl.key, like))
+      ? or(ilike(featuresTbl.label, like), ilike(featuresTbl.key, like))
       : undefined,
   ];
-  const where = and(...(filters.filter(Boolean) as SQL[]));
+  const filtered = filters.filter(Boolean) as SQL[];
+  const where = filtered.length ? and(...filtered) : undefined;
 
-  const items: CharacterGroupDTO[] = await db
+  const items: FeatureDTO[] = await db
     .select({
-      id: groupsTbl.id,
-      key: groupsTbl.key,
-      label: groupsTbl.label,
-      description: groupsTbl.description,
-      characterCount: count(charsTbl.id),
+      id: featuresTbl.id,
+      key: featuresTbl.key,
+      label: featuresTbl.label,
+      description: featuresTbl.description,
+      characterCount: count(characterFeatureTbl.characterId),
     })
-    .from(groupsTbl)
-    .leftJoin(charsTbl, eq(charsTbl.groupId, groupsTbl.id))
+    .from(featuresTbl)
+    .leftJoin(
+      characterFeatureTbl,
+      eq(characterFeatureTbl.featureId, featuresTbl.id),
+    )
     .where(where)
     .groupBy(
-      groupsTbl.id,
-      groupsTbl.key,
-      groupsTbl.label,
-      groupsTbl.description,
+      featuresTbl.id,
+      featuresTbl.key,
+      featuresTbl.label,
+      featuresTbl.description,
     )
-    .orderBy(asc(groupsTbl.key), asc(groupsTbl.id))
+    .orderBy(asc(featuresTbl.key), asc(featuresTbl.id))
     .limit(pageSize)
     .offset(offset);
 
   const totals = await db
     .select({ total: count() })
-    .from(groupsTbl)
+    .from(featuresTbl)
     .where(where);
   const total = totals[0]?.total ?? 0;
 
@@ -114,24 +123,41 @@ export async function listCharacterGroupsQuery(args: {
 /**
  * Fetch a single character group detail by id.
  */
-export async function fetchCharacterGroupDetailById(
+export async function fetchFeatureDetailById(
   id: number,
-): Promise<CharacterGroupDetailDTO | null> {
-  // Group itself
+): Promise<FeatureDetailDTO | null> {
+  const parentTbl = alias(featuresTbl, "parent");
+
+  // Feature + parent in one query
   const [groupRow] = await db
     .select({
-      id: groupsTbl.id,
-      key: groupsTbl.key,
-      label: groupsTbl.label,
-      description: groupsTbl.description,
+      id: featuresTbl.id,
+      key: featuresTbl.key,
+      label: featuresTbl.label,
+      description: featuresTbl.description,
+      parentId: parentTbl.id,
+      parentKey: parentTbl.key,
+      parentLabel: parentTbl.label,
     })
-    .from(groupsTbl)
-    .where(eq(groupsTbl.id, id))
+    .from(featuresTbl)
+    .leftJoin(parentTbl, eq(featuresTbl.parentId, parentTbl.id))
+    .where(eq(featuresTbl.id, id))
     .limit(1);
 
   if (!groupRow) return null;
 
-  // Characters belonging to group
+  // Sub-features (indexed on parent_id)
+  const subRows = await db
+    .select({
+      id: featuresTbl.id,
+      key: featuresTbl.key,
+      label: featuresTbl.label,
+    })
+    .from(featuresTbl)
+    .where(eq(featuresTbl.parentId, id))
+    .orderBy(asc(featuresTbl.key), asc(featuresTbl.id));
+
+  // Characters belonging to feature
   const rows = await db
     .select({
       id: charsTbl.id,
@@ -139,7 +165,6 @@ export async function fetchCharacterGroupDetailById(
       label: charsTbl.label,
       description: charsTbl.description,
 
-      traitSetId: catMetaTbl.traitSetId,
       unitFamilyId: numMetaTbl.unitFamilyId,
 
       // Either categorical if in table, else type specified by numeric meta kind
@@ -149,22 +174,14 @@ export async function fetchCharacterGroupDetailById(
         ELSE 'range'
       END`,
     })
-    .from(charsTbl)
+    .from(characterFeatureTbl)
+    .innerJoin(charsTbl, eq(charsTbl.id, characterFeatureTbl.characterId))
     .leftJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
     .leftJoin(numMetaTbl, eq(numMetaTbl.characterId, charsTbl.id))
-    .where(
-      and(
-        eq(charsTbl.groupId, id),
-        // Only return characters that have some meta (all should, but defensive)
-        or(
-          sql`${catMetaTbl.characterId} IS NOT NULL`,
-          sql`${numMetaTbl.characterId} IS NOT NULL`,
-        ),
-      ),
-    )
+    .where(eq(characterFeatureTbl.featureId, id))
     .orderBy(asc(charsTbl.key), asc(charsTbl.id));
 
-  const characters: CharacterInGroupDTO[] = rows.map((row) => {
+  const characters: CharacterInFeatureDTO[] = rows.map((row) => {
     const base = {
       id: row.id,
       key: row.key,
@@ -173,12 +190,7 @@ export async function fetchCharacterGroupDetailById(
     };
 
     if (row.type === "categorical") {
-      if (row.traitSetId == null) {
-        throw new Error(
-          `Categorical character ${row.id} is missing traitSetId in group detail`,
-        );
-      }
-      return { ...base, type: "categorical", traitSetId: row.traitSetId };
+      return { ...base, type: "categorical" };
     }
 
     if (row.unitFamilyId == null) {
@@ -201,31 +213,36 @@ export async function fetchCharacterGroupDetailById(
     description: groupRow.description,
     characterCount: characters.length,
     characters,
+    parentFeature: groupRow.parentId
+      ? {
+          id: groupRow.parentId,
+          key: groupRow.parentKey!,
+          label: groupRow.parentLabel!,
+        }
+      : null,
+    subFeatures: subRows,
   };
 }
 
 /**
- * Insert a character group row.
+ * Insert a feature row.
  */
-export async function insertCharacterGroup(
+export async function insertFeature(
   tx: Transaction,
   args: { key: string; label: string; description: string },
-): Promise<Pick<
-  CharacterGroupDTO,
-  "id" | "key" | "label" | "description"
-> | null> {
+): Promise<Pick<FeatureDTO, "id" | "key" | "label" | "description"> | null> {
   const [group] = await tx
-    .insert(groupsTbl)
+    .insert(featuresTbl)
     .values({
       key: args.key,
       label: args.label,
       description: args.description,
     })
     .returning({
-      id: groupsTbl.id,
-      key: groupsTbl.key,
-      label: groupsTbl.label,
-      description: groupsTbl.description,
+      id: featuresTbl.id,
+      key: featuresTbl.key,
+      label: featuresTbl.label,
+      description: featuresTbl.description,
     });
 
   return group ?? null;

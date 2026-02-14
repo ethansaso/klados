@@ -11,18 +11,18 @@ import type { TraitSuggestion } from "./types";
 
 /**
  * Search for trait suggestions (categorical values + numeric single/range)
- * scoped to a particular character group.
+ * scoped to a particular feature.
  */
-export const searchGroupTraitSuggestionsFn = createServerFn({ method: "GET" })
+export const searchFeatureTraitSuggestionsFn = createServerFn({ method: "GET" })
   .inputValidator(
     z.object({
-      groupId: z.number().int().nonnegative(),
+      featureId: z.number().int().nonnegative(),
       q: z.string().trim(),
       limit: z.number().int().min(1).max(50).optional(),
     }),
   )
   .handler(async ({ data }): Promise<TraitSuggestion[]> => {
-    const { groupId, q } = data;
+    const { featureId, q } = data;
     const limit = data.limit ?? 20;
 
     const parsedNumeric = parseNumericQuery(q);
@@ -30,17 +30,25 @@ export const searchGroupTraitSuggestionsFn = createServerFn({ method: "GET" })
       parsedNumeric.kind === "single" || parsedNumeric.kind === "range";
 
     const categoricalPromise = searchCategoricalSuggestions({
-      groupId,
+      featureId,
       q,
       limit,
     });
 
     const numericSinglePromise = isNumericQuery
-      ? buildNumericSingleSuggestions({ groupId, parsedNumeric, limit })
+      ? buildNumericSingleSuggestions({
+          featureId,
+          parsedNumeric,
+          limit,
+        })
       : Promise.resolve([]);
 
     const numericRangePromise = isNumericQuery
-      ? buildNumericRangeSuggestions({ groupId, parsedNumeric, limit })
+      ? buildNumericRangeSuggestions({
+          featureId,
+          parsedNumeric,
+          limit,
+        })
       : Promise.resolve([]);
 
     const [categorical, numericSingle, numericRange] = await Promise.all([

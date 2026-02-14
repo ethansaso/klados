@@ -1,5 +1,5 @@
 import type {
-  TaxonCharacterGroupStateDTO,
+  TaxonCharacterFeatureStateDTO,
   TaxonCharacterStateDTO,
 } from "../states/types";
 import type {
@@ -172,13 +172,13 @@ function buildAnnotatedState(
 }
 
 export function buildGroupedLookalikeStates(args: {
-  aGroups: TaxonCharacterGroupStateDTO[];
-  bGroups: TaxonCharacterGroupStateDTO[];
+  aGroups: TaxonCharacterFeatureStateDTO[];
+  bGroups: TaxonCharacterFeatureStateDTO[];
 }): LookalikeComparisonGroup[] {
   const { aGroups, bGroups } = args;
 
-  const aByGroup = new Map(aGroups.map((g) => [g.groupId, g]));
-  const bByGroup = new Map(bGroups.map((g) => [g.groupId, g]));
+  const aByGroup = new Map(aGroups.map((g) => [g.featureId, g]));
+  const bByGroup = new Map(bGroups.map((g) => [g.featureId, g]));
 
   const allGroupIds = new Set<number>([...aByGroup.keys(), ...bByGroup.keys()]);
 
@@ -188,7 +188,7 @@ export function buildGroupedLookalikeStates(args: {
     const aGroup = aByGroup.get(groupId);
     const bGroup = bByGroup.get(groupId);
 
-    const groupLabel = aGroup?.groupLabel ?? bGroup?.groupLabel ?? "";
+    const groupLabel = aGroup?.featureLabel ?? bGroup?.featureLabel ?? "";
     const aStates = aGroup?.states ?? null;
     const bStates = bGroup?.states ?? null;
 

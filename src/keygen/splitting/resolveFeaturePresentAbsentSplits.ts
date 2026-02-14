@@ -1,41 +1,41 @@
 import type { HierarchyTaxonNode } from "../hierarchy/types";
-import type { GroupPresentAbsentSplitResult } from "./types";
+import type { FeaturePresentAbsentSplitResult } from "./types";
 
 /**
  * Try to split taxa into two groups based on
- * "taxon has groupId G" vs "taxon does not have groupId G".
+ * "taxon has feature G" vs "taxon does not have feature G".
  *
  * Returns all possible splits along with their scores.
  */
-export function resolveGroupPresentAbsentSplits(
+export function resolveFeaturePresentAbsentSplits(
   taxa: HierarchyTaxonNode[],
-): GroupPresentAbsentSplitResult[] {
+): FeaturePresentAbsentSplitResult[] {
   if (taxa.length < 2) return [];
 
-  // Precompute: taxon -> set of groupIds
-  const groupsByTaxon = new Map<number, Set<number>>();
-  const allGroupIds = new Set<number>();
+  // Precompute: taxon -> set of featureIds
+  const featuresByTaxon = new Map<number, Set<number>>();
+  const allFeatureIds = new Set<number>();
 
   for (const taxon of taxa) {
     const set = new Set<number>();
 
-    for (const group of taxon.states) {
-      set.add(group.groupId);
-      allGroupIds.add(group.groupId);
+    for (const feature of taxon.states) {
+      set.add(feature.featureId);
+      allFeatureIds.add(feature.featureId);
     }
 
-    groupsByTaxon.set(taxon.id, set);
+    featuresByTaxon.set(taxon.id, set);
   }
 
-  const results: GroupPresentAbsentSplitResult[] = [];
+  const results: FeaturePresentAbsentSplitResult[] = [];
 
-  for (const groupId of allGroupIds) {
+  for (const featureId of allFeatureIds) {
     const present: HierarchyTaxonNode[] = [];
     const absent: HierarchyTaxonNode[] = [];
 
     for (const taxon of taxa) {
-      const groupSet = groupsByTaxon.get(taxon.id)!;
-      if (groupSet.has(groupId)) present.push(taxon);
+      const featureSet = featuresByTaxon.get(taxon.id)!;
+      if (featureSet.has(featureId)) present.push(taxon);
       else absent.push(taxon);
     }
 
@@ -44,8 +44,8 @@ export function resolveGroupPresentAbsentSplits(
     const score = present.length * absent.length;
 
     results.push({
-      kind: "group-present-absent",
-      groupId,
+      kind: "feature-present-absent",
+      featureId,
       score,
       branches: [
         { taxa: present, status: "present" },

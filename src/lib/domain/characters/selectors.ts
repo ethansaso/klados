@@ -3,7 +3,7 @@ import { db } from "../../../../db/client";
 import {
   categoricalCharacterMeta as catMetaTbl,
   numericCharacterMeta as numMetaTbl,
-  taxonCharacterGroupState as tgsTbl,
+  taxonFeatureState as tfsTbl,
   taxonCharacterStateCategorical as valCatTbl,
   taxonCharacterStateNumber as valNumTbl,
   taxonCharacterStateRange as valRangeTbl,
@@ -13,11 +13,11 @@ export const catUsageSel = db
   .select({
     characterId: valCatTbl.characterId,
     catUsageCount: sql<number>`
-      COUNT(DISTINCT ${tgsTbl.taxonId})
+      COUNT(DISTINCT ${tfsTbl.taxonId})
     `.as("catUsageCount"),
   })
   .from(valCatTbl)
-  .innerJoin(tgsTbl, eq(tgsTbl.id, valCatTbl.taxonGroupStateId))
+  .innerJoin(tfsTbl, eq(tfsTbl.id, valCatTbl.taxonFeatureStateId))
   .groupBy(valCatTbl.characterId)
   .as("cat_usage");
 
@@ -25,11 +25,11 @@ export const numUsageSel = db
   .select({
     characterId: valNumTbl.characterId,
     numUsageCount: sql<number>`
-      COUNT(DISTINCT ${tgsTbl.taxonId})
+      COUNT(DISTINCT ${tfsTbl.taxonId})
     `.as("numUsageCount"),
   })
   .from(valNumTbl)
-  .innerJoin(tgsTbl, eq(tgsTbl.id, valNumTbl.taxonGroupStateId))
+  .innerJoin(tfsTbl, eq(tfsTbl.id, valNumTbl.taxonFeatureStateId))
   .groupBy(valNumTbl.characterId)
   .as("num_usage");
 
@@ -37,11 +37,11 @@ export const rangeUsageSel = db
   .select({
     characterId: valRangeTbl.characterId,
     rangeUsageCount: sql<number>`
-      COUNT(DISTINCT ${tgsTbl.taxonId})
+      COUNT(DISTINCT ${tfsTbl.taxonId})
     `.as("rangeUsageCount"),
   })
   .from(valRangeTbl)
-  .innerJoin(tgsTbl, eq(tgsTbl.id, valRangeTbl.taxonGroupStateId))
+  .innerJoin(tfsTbl, eq(tfsTbl.id, valRangeTbl.taxonFeatureStateId))
   .groupBy(valRangeTbl.characterId)
   .as("range_usage");
 

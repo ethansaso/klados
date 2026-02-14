@@ -1,11 +1,11 @@
 import { Box, Heading, Text } from "@radix-ui/themes";
-import type { TaxonCharacterGroupStateDTO } from "../../../../../lib/domain/states/types";
+import type { TaxonCharacterFeatureStateDTO } from "../../../../../lib/domain/states/types";
 import { GroupCard } from "./GroupCard";
 
 export const TaxonCharacterSection = ({
   groups,
 }: {
-  groups: TaxonCharacterGroupStateDTO[];
+  groups: TaxonCharacterFeatureStateDTO[];
 }) => {
   return (
     <Box>
@@ -28,7 +28,7 @@ export const TaxonCharacterSection = ({
       {groups.length > 0 && (
         <div className="character-group-card-grid">
           {groups.map((group) => (
-            <GroupCard key={group.groupId} group={group} />
+            <GroupCard key={group.featureId} group={group} />
           ))}
         </div>
       )}

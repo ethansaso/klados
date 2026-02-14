@@ -3,10 +3,9 @@ import { aliasedTable, and, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { db } from "../../../../db/client";
 import { unit, unitFamily } from "../../../../db/schema/characters/units";
 import {
-  categoricalCharacterMeta,
-  categoricalTraitSet,
   categoricalTraitValue,
   character,
+  characterFeature,
   feature,
   numericCharacterMeta,
 } from "../../../../db/schema/schema";
@@ -45,15 +44,15 @@ async function resolveUnitFromToken(token: string): Promise<UnitDTO | null> {
 }
 
 /**
- * Categorical suggestions: find trait values within the given group
+ * Categorical suggestions: find trait values within the given feature
  * whose labels/guides match the query.
  */
 export async function searchCategoricalSuggestions(opts: {
-  groupId: number;
+  featureId: number;
   q: string;
   limit: number;
 }): Promise<CategoricalValueSuggestion[]> {
-  const { groupId, q, limit } = opts;
+  const { featureId, q, limit } = opts;
   const trimmed = q.trim();
   if (!trimmed) return [];
 
@@ -81,8 +80,8 @@ export async function searchCategoricalSuggestions(opts: {
     .select({
       characterId: character.id,
       characterLabel: character.label,
-      groupId: character.groupId,
-      groupLabel: feature.label,
+      featureId: feature.id,
+      featureLabel: feature.label,
       traitValueId: categoricalTraitValue.id,
       traitValueLabel: categoricalTraitValue.label,
       // Get hexCode from canonical value (or self if already canonical)
@@ -95,19 +94,9 @@ export async function searchCategoricalSuggestions(opts: {
       `,
     })
     .from(categoricalTraitValue)
-    .innerJoin(
-      categoricalTraitSet,
-      eq(categoricalTraitSet.id, categoricalTraitValue.setId),
-    )
-    .innerJoin(
-      categoricalCharacterMeta,
-      eq(categoricalCharacterMeta.traitSetId, categoricalTraitSet.id),
-    )
-    .innerJoin(
-      character,
-      eq(character.id, categoricalCharacterMeta.characterId),
-    )
-    .innerJoin(feature, eq(feature.id, character.groupId))
+    .innerJoin(character, eq(character.id, categoricalTraitValue.characterId))
+    .innerJoin(characterFeature, eq(characterFeature.characterId, character.id))
+    .innerJoin(feature, eq(feature.id, characterFeature.featureId))
     // Self-join: if canonical, join to self; if alias, join to canonical
     .innerJoin(
       canonicalValue,
@@ -115,7 +104,7 @@ export async function searchCategoricalSuggestions(opts: {
     )
     .where(
       and(
-        eq(character.groupId, groupId),
+        eq(feature.id, featureId),
         or(
           // 1) Normalized substring: handles hyphens/spaces
           sql`
@@ -183,7 +172,6 @@ export async function searchCategoricalSuggestions(opts: {
     }
 
     // 6) Trigram similarity as a soft boost
-    //    (helps with "bluegren" etc., but won't beat the equality boosts)
     score += sim * 25;
 
     // 7) Small bump if character label matches
@@ -210,8 +198,8 @@ export async function searchCategoricalSuggestions(opts: {
     kind: "categorical-value",
     characterId: row.characterId,
     characterLabel: row.characterLabel,
-    groupId: row.groupId,
-    groupLabel: row.groupLabel,
+    featureId: row.featureId,
+    featureLabel: row.featureLabel,
     traitValueId: row.traitValueId,
     traitValueLabel: row.traitValueLabel,
     traitValueHexCode: row.traitValueHexCode,
@@ -250,11 +238,11 @@ async function getUnitsForFamilies(
  * Numeric single-value suggestions.
  */
 export async function buildNumericSingleSuggestions(opts: {
-  groupId: number;
+  featureId: number;
   parsedNumeric: ParsedNumeric;
   limit: number;
 }): Promise<NumericSingleSuggestion[]> {
-  const { groupId, parsedNumeric, limit } = opts;
+  const { featureId, parsedNumeric, limit } = opts;
   if (parsedNumeric.kind !== "single") return [];
 
   const token = normalizeUnitToken(parsedNumeric.unitText);
@@ -264,20 +252,18 @@ export async function buildNumericSingleSuggestions(opts: {
     .select({
       characterId: character.id,
       characterLabel: character.label,
-      groupId: character.groupId,
-      groupLabel: feature.label,
+      featureId: feature.id,
+      featureLabel: feature.label,
       unitFamilyId: numericCharacterMeta.unitFamilyId,
       kind: numericCharacterMeta.kind,
     })
     .from(numericCharacterMeta)
     .innerJoin(character, eq(character.id, numericCharacterMeta.characterId))
-    .innerJoin(feature, eq(feature.id, character.groupId))
+    .innerJoin(characterFeature, eq(characterFeature.characterId, character.id))
+    .innerJoin(feature, eq(feature.id, characterFeature.featureId))
     .innerJoin(unitFamily, eq(unitFamily.id, numericCharacterMeta.unitFamilyId))
     .where(
-      and(
-        eq(character.groupId, groupId),
-        eq(numericCharacterMeta.kind, "single"),
-      ),
+      and(eq(feature.id, featureId), eq(numericCharacterMeta.kind, "single")),
     )
     .limit(limit * 4);
 
@@ -301,8 +287,8 @@ export async function buildNumericSingleSuggestions(opts: {
         kind: "numeric-single",
         characterId: row.characterId,
         characterLabel: row.characterLabel,
-        groupId: row.groupId,
-        groupLabel: row.groupLabel,
+        featureId: row.featureId,
+        featureLabel: row.featureLabel,
         value,
         unitFamilyId: row.unitFamilyId,
         displayUnitId: resolvedUnit.id,
@@ -321,8 +307,8 @@ export async function buildNumericSingleSuggestions(opts: {
           kind: "numeric-single",
           characterId: row.characterId,
           characterLabel: row.characterLabel,
-          groupId: row.groupId,
-          groupLabel: row.groupLabel,
+          featureId: row.featureId,
+          featureLabel: row.featureLabel,
           value,
           unitFamilyId: row.unitFamilyId,
           displayUnitId: null,
@@ -338,8 +324,8 @@ export async function buildNumericSingleSuggestions(opts: {
             kind: "numeric-single",
             characterId: row.characterId,
             characterLabel: row.characterLabel,
-            groupId: row.groupId,
-            groupLabel: row.groupLabel,
+            featureId: row.featureId,
+            featureLabel: row.featureLabel,
             value,
             unitFamilyId: row.unitFamilyId,
             displayUnitId: u.id,
@@ -360,11 +346,11 @@ export async function buildNumericSingleSuggestions(opts: {
  * Numeric range suggestions.
  */
 export async function buildNumericRangeSuggestions(opts: {
-  groupId: number;
+  featureId: number;
   parsedNumeric: ParsedNumeric;
   limit: number;
 }): Promise<NumericRangeSuggestion[]> {
-  const { groupId, parsedNumeric, limit } = opts;
+  const { featureId, parsedNumeric, limit } = opts;
   if (parsedNumeric.kind !== "range") return [];
 
   const token = normalizeUnitToken(parsedNumeric.unitText);
@@ -374,20 +360,18 @@ export async function buildNumericRangeSuggestions(opts: {
     .select({
       characterId: character.id,
       characterLabel: character.label,
-      groupId: character.groupId,
-      groupLabel: feature.label,
+      featureId: feature.id,
+      featureLabel: feature.label,
       unitFamilyId: numericCharacterMeta.unitFamilyId,
       kind: numericCharacterMeta.kind,
     })
     .from(numericCharacterMeta)
     .innerJoin(character, eq(character.id, numericCharacterMeta.characterId))
-    .innerJoin(feature, eq(feature.id, character.groupId))
+    .innerJoin(characterFeature, eq(characterFeature.characterId, character.id))
+    .innerJoin(feature, eq(feature.id, characterFeature.featureId))
     .innerJoin(unitFamily, eq(unitFamily.id, numericCharacterMeta.unitFamilyId))
     .where(
-      and(
-        eq(character.groupId, groupId),
-        eq(numericCharacterMeta.kind, "range"),
-      ),
+      and(eq(feature.id, featureId), eq(numericCharacterMeta.kind, "range")),
     )
     .limit(limit * 4);
 
@@ -411,8 +395,8 @@ export async function buildNumericRangeSuggestions(opts: {
         kind: "numeric-range",
         characterId: row.characterId,
         characterLabel: row.characterLabel,
-        groupId: row.groupId,
-        groupLabel: row.groupLabel,
+        featureId: row.featureId,
+        featureLabel: row.featureLabel,
         min,
         max,
         unitFamilyId: row.unitFamilyId,
@@ -432,8 +416,8 @@ export async function buildNumericRangeSuggestions(opts: {
           kind: "numeric-range",
           characterId: row.characterId,
           characterLabel: row.characterLabel,
-          groupId: row.groupId,
-          groupLabel: row.groupLabel,
+          featureId: row.featureId,
+          featureLabel: row.featureLabel,
           min,
           max,
           unitFamilyId: row.unitFamilyId,
@@ -450,8 +434,8 @@ export async function buildNumericRangeSuggestions(opts: {
             kind: "numeric-range",
             characterId: row.characterId,
             characterLabel: row.characterLabel,
-            groupId: row.groupId,
-            groupLabel: row.groupLabel,
+            featureId: row.featureId,
+            featureLabel: row.featureLabel,
             min,
             max,
             unitFamilyId: row.unitFamilyId,

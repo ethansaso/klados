@@ -33,7 +33,7 @@ import { publishTaxonFn } from "../../../../../lib/api/taxa/publishFn";
 import { updateTaxonFn } from "../../../../../lib/api/taxa/updateTaxonFn";
 import { getSourcesForTaxonFn } from "../../../../../lib/api/taxon-sources/getSourcesForTaxonFn";
 import type { SourceDTO } from "../../../../../lib/domain/sources/types";
-import type { GroupedCharacterUpdate } from "../../../../../lib/domain/states/validation";
+import type { CharacterByFeatureUpdate } from "../../../../../lib/domain/states/validation";
 import { mediaItemSchema } from "../../../../../lib/domain/taxa/validation";
 import { setTaxonSourcesSchema } from "../../../../../lib/domain/taxon-sources/validation";
 import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
@@ -63,9 +63,9 @@ export const taxonEditFormSchema = z.object({
 
 const convertToServerCharacterValues = (
   values: TaxonEditFormValues["states"],
-): GroupedCharacterUpdate => {
+): CharacterByFeatureUpdate => {
   return values.map((group) => ({
-    groupId: group.groupId,
+    groupId: group.featureId,
     characters: group.characters.map((v) => {
       switch (v.kind) {
         case "categorical":

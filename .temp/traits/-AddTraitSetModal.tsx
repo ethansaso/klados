@@ -14,16 +14,16 @@ import { useServerFn } from "@tanstack/react-start";
 import { Form, Label } from "radix-ui";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import z from "zod";
+import { createTraitSetFn } from "../../../../lib/api/traits/createTraitSetFn";
 import {
   a11yProps,
   ConditionalAlert,
-} from "../../../../components/inputs/ConditionalAlert";
-import { createTraitSetFn } from "../../../../lib/api/traits/createTraitSetFn";
-import { createTraitSetSchema } from "../../../../lib/domain/traits/validation";
-import { useAutoKey } from "../../../../lib/hooks/useAutoKey";
-import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
-import { toast } from "../../../../lib/utils/toast";
-import { trimmed } from "../../../../lib/validation/trimmedOptional";
+} from "../../src/components/inputs/ConditionalAlert";
+import { createTraitSetSchema } from "../../src/lib/domain/traits/validation";
+import { useAutoKey } from "../../src/lib/hooks/useAutoKey";
+import { getErrorMessage } from "../../src/lib/utils/getErrorMessage";
+import { toast } from "../../src/lib/utils/toast";
+import { trimmed } from "../../src/lib/validation/trimmedOptional";
 
 type CreateTraitSetFormInput = z.infer<typeof createTraitSetFormSchema>;
 

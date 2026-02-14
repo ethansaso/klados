@@ -5,7 +5,7 @@ import type { TaxonEditFormValues } from "..";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
 import { EditingGroupCard } from "./EditingGroupCard";
-import { GroupSearch } from "./search/GroupSearch";
+import { FeatureSearch } from "./search/GroupSearch";
 import {
   removeCategoricalTraitValue,
   removeCharacterState,
@@ -24,20 +24,20 @@ export function CharacterEditingForm({
   const { getValues } = useFormContext<TaxonEditFormValues>();
 
   const handleGroupSelect = (option: ComboboxOption) => {
-    if (value.some((g) => g.groupId === option.id)) return;
+    if (value.some((g) => g.featureId === option.id)) return;
 
     onChange([
       ...value,
       {
-        groupId: option.id,
-        groupLabel: option.label,
+        featureId: option.id,
+        featureLabel: option.label,
         characters: [],
       },
     ]);
   };
 
   const handleDeleteGroup = (groupId: number) => {
-    onChange(value.filter((g) => g.groupId !== groupId));
+    onChange(value.filter((g) => g.featureId !== groupId));
   };
 
   // getValues is stable, so these callbacks are stable
@@ -71,15 +71,15 @@ export function CharacterEditingForm({
     >
       <Box>
         <Box mb="4">
-          <GroupSearch onSelect={handleGroupSelect} />
+          <FeatureSearch onSelect={handleGroupSelect} />
         </Box>
         <div className="character-group-card-grid">
           {value.map((group) => (
             <EditingGroupCard
-              key={group.groupId}
+              key={group.featureId}
               group={group}
               onChange={onChange}
-              onDelete={() => handleDeleteGroup(group.groupId)}
+              onDelete={() => handleDeleteGroup(group.featureId)}
               onRemoveCategoricalValue={handleRemoveCategoricalTrait}
               onRemoveState={handleRemoveState}
             />

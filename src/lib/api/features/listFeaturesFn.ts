@@ -1,20 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { listCharacterGroups } from "../../domain/features/service";
-import type { CharacterGroupPaginatedResult } from "../../domain/features/types";
+import { listFeatures } from "../../domain/features/service";
+import type { FeaturePaginatedResult } from "../../domain/features/types";
 import { PaginationSchema } from "../../validation/pagination";
 
-export const listCharacterGroupsFn = createServerFn({ method: "GET" })
+export const listFeaturesFn = createServerFn({ method: "GET" })
   .inputValidator(
     PaginationSchema.extend({
       q: z.string().optional(),
       ids: z.array(z.number()).optional(),
     }),
   )
-  .handler(async ({ data }): Promise<CharacterGroupPaginatedResult> => {
+  .handler(async ({ data }): Promise<FeaturePaginatedResult> => {
     const { q, ids, page, pageSize } = data;
 
-    return listCharacterGroups({
+    return listFeatures({
       q,
       ids,
       page,

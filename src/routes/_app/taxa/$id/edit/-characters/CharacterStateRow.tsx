@@ -1,12 +1,12 @@
 import { DataList, Flex } from "@radix-ui/themes";
 import { memo, useMemo } from "react";
 import { CharacterStateDisplay } from "../../../../../../components/trait-tokens/CharacterStateDisplay";
-import type { CharacterGroupDetailDTO } from "../../../../../../lib/domain/features/types";
+import type { FeatureDetailDTO } from "../../../../../../lib/domain/features/types";
 import { StateTagWrapper } from "./StateTagWrapper";
 import type { CharacterStateFormValue } from "./validation";
 
 type CharacterStateRowProps = {
-  character: CharacterGroupDetailDTO["characters"][number];
+  character: FeatureDetailDTO["characters"][number];
   state?: CharacterStateFormValue;
   onRemoveCategoricalValue: (characterId: number, traitValueId: number) => void;
   onRemoveState: (characterId: number) => void;

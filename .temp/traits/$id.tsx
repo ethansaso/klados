@@ -17,20 +17,20 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
 import { PiPlusCircle, PiTrash } from "react-icons/pi";
 import z from "zod";
-import { CuratorOnly } from "../../../../components/CuratorOnly";
-import { ConfirmDeleteModal } from "../../../../components/dialogs/ConfirmDeleteModal";
-import { PaginationFooter } from "../../../../components/PaginationFooter";
-import { createTraitValueFn } from "../../../../lib/api/traits/createTraitValueFn";
 import { deleteTraitSetFn } from "../../../../lib/api/traits/deleteTraitSetFn";
-import { useMe } from "../../../../lib/auth/useMe";
-import { roleHasCuratorRights } from "../../../../lib/auth/utils";
-import type { TraitSetDTO } from "../../../../lib/domain/traits/types";
 import {
   traitSetQueryOptions,
   traitSetValuesPaginatedQueryOptions,
 } from "../../../../lib/queries/traits";
-import { snakeCase } from "../../../../lib/utils/formatting/casing";
-import { toast } from "../../../../lib/utils/toast";
+import { CuratorOnly } from "../../src/components/CuratorOnly";
+import { ConfirmDeleteModal } from "../../src/components/dialogs/ConfirmDeleteModal";
+import { PaginationFooter } from "../../src/components/PaginationFooter";
+import { createTraitValueFn } from "../../src/lib/api/traits/createTraitValueFn";
+import { useMe } from "../../src/lib/auth/useMe";
+import { roleHasCuratorRights } from "../../src/lib/auth/utils";
+import type { TraitSetDTO } from "../../src/lib/domain/traits/types";
+import { snakeCase } from "../../src/lib/utils/formatting/casing";
+import { toast } from "../../src/lib/utils/toast";
 import { DeleteTraitValueModal } from "./-DeleteTraitValueModal";
 import { EditTraitSetValueModal } from "./-EditTraitSetValueModal";
 import TraitValuesTable from "./-TraitSetTable";
@@ -112,7 +112,7 @@ function RouteComponent() {
 
       await serverCreate({
         data: {
-          setId: id,
+          characterId: id,
           key: snakeCase(trimmedValue),
           label: trimmedValue,
         },

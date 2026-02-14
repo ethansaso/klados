@@ -5,8 +5,7 @@ import {
   unitFamily,
 } from "../../../../db/schema/schema";
 import type { PaginatedResult } from "../../validation/pagination";
-import type { CharacterGroupRow } from "../features/types";
-import type { TraitSetRow } from "../traits/types";
+import type { FeatureRow } from "../features/types";
 
 export type CharacterRow = typeof character.$inferSelect;
 export type CategoricalMetaRow = typeof categoricalCharacterMeta.$inferSelect;
@@ -17,7 +16,7 @@ type BaseCharacterDTO = Pick<
   CharacterRow,
   "id" | "key" | "label" | "description"
 > & {
-  group: Pick<CharacterGroupRow, "id" | "label">;
+  features: Pick<FeatureRow, "id" | "label">[];
   usageCount: number;
 };
 
@@ -45,13 +44,8 @@ type BaseNumericCharacterDetailDTO = Omit<
   unitFamily: Pick<UnitFamilyRow, "id" | "label">;
 };
 
-export type CategoricalCharacterDetailDTO = Omit<
-  CategoricalCharacterDTO,
-  "traitSetId"
-> &
-  Pick<CategoricalMetaRow, "isMultiSelect"> & {
-    traitSet: Pick<TraitSetRow, "id" | "key" | "label" | "description">;
-  };
+export type CategoricalCharacterDetailDTO = CategoricalCharacterDTO &
+  Pick<CategoricalMetaRow, "isMultiSelect">;
 
 export type NumberCharacterDetailDTO = BaseNumericCharacterDetailDTO & {
   type: "number";

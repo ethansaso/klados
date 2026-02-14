@@ -10,21 +10,21 @@ import type {
   GroupedCharacterFormValue,
 } from "./validation";
 
-function updateGroup(
-  groups: GroupedCharacterFormValue,
-  groupId: number,
+function updateFeature(
+  featureStates: GroupedCharacterFormValue,
+  featureId: number,
   updater: (states: CharacterStateFormValue[]) => CharacterStateFormValue[],
 ): GroupedCharacterFormValue {
-  return groups.map((g) =>
-    g.groupId === groupId ? { ...g, characters: updater(g.characters) } : g,
+  return featureStates.map((g) =>
+    g.featureId === featureId ? { ...g, characters: updater(g.characters) } : g,
   );
 }
 
 export function addCategoricalStateFromSuggestion(
-  groups: GroupedCharacterFormValue,
+  featureStates: GroupedCharacterFormValue,
   suggestion: CategoricalValueSuggestion,
 ): GroupedCharacterFormValue {
-  return updateGroup(groups, suggestion.groupId, (current) => {
+  return updateFeature(featureStates, suggestion.featureId, (current) => {
     const existing = current.find(
       (row): row is Extract<CharacterStateFormValue, { kind: "categorical" }> =>
         row.kind === "categorical" &&
@@ -72,10 +72,10 @@ export function addCategoricalStateFromSuggestion(
 }
 
 export function addNumericSingleStateFromSuggestion(
-  groups: GroupedCharacterFormValue,
+  featureStates: GroupedCharacterFormValue,
   suggestion: NumericSingleSuggestion,
 ): GroupedCharacterFormValue {
-  return updateGroup(groups, suggestion.groupId, (current) => {
+  return updateFeature(featureStates, suggestion.featureId, (current) => {
     // Remove any existing state for this character (replace semantics)
     const filtered = current.filter(
       (row) => row.characterId !== suggestion.characterId,
@@ -121,10 +121,10 @@ export function addNumericSingleStateFromSuggestion(
 }
 
 export function addNumericRangeStateFromSuggestion(
-  groups: GroupedCharacterFormValue,
+  featureStates: GroupedCharacterFormValue,
   suggestion: NumericRangeSuggestion,
 ): GroupedCharacterFormValue {
-  return updateGroup(groups, suggestion.groupId, (current) => {
+  return updateFeature(featureStates, suggestion.featureId, (current) => {
     // Remove any existing state for this character (replace semantics)
     const filtered = current.filter(
       (row) => row.characterId !== suggestion.characterId,
@@ -173,26 +173,26 @@ export function addNumericRangeStateFromSuggestion(
 }
 
 export function addStateFromSuggestion(
-  groups: GroupedCharacterFormValue,
+  featureStates: GroupedCharacterFormValue,
   suggestion: TraitSuggestion,
 ): GroupedCharacterFormValue {
   switch (suggestion.kind) {
     case "categorical-value":
-      return addCategoricalStateFromSuggestion(groups, suggestion);
+      return addCategoricalStateFromSuggestion(featureStates, suggestion);
     case "numeric-single":
-      return addNumericSingleStateFromSuggestion(groups, suggestion);
+      return addNumericSingleStateFromSuggestion(featureStates, suggestion);
     case "numeric-range":
-      return addNumericRangeStateFromSuggestion(groups, suggestion);
+      return addNumericRangeStateFromSuggestion(featureStates, suggestion);
   }
 }
 
 export function removeCategoricalTraitValue(
-  groups: GroupedCharacterFormValue,
+  featureStates: GroupedCharacterFormValue,
   groupId: number,
   characterId: number,
   traitValueId: number,
 ): GroupedCharacterFormValue {
-  return updateGroup(groups, groupId, (current) =>
+  return updateFeature(featureStates, groupId, (current) =>
     current
       .map((row) => {
         if (row.kind !== "categorical" || row.characterId !== characterId) {
@@ -214,11 +214,11 @@ export function removeCategoricalTraitValue(
 }
 
 export function removeCharacterState(
-  groups: GroupedCharacterFormValue,
+  featureStates: GroupedCharacterFormValue,
   groupId: number,
   characterId: number,
 ): GroupedCharacterFormValue {
-  return updateGroup(groups, groupId, (current) =>
+  return updateFeature(featureStates, groupId, (current) =>
     current.filter((row) => row.characterId !== characterId),
   );
 }

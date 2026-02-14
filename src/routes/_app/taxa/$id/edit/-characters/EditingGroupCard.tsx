@@ -13,15 +13,15 @@ import { useFormContext } from "react-hook-form";
 import { PiCheck, PiTrash, PiX } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
 import type { TraitSuggestion } from "../../../../../../lib/api/character-suggestions/types";
-import { characterGroupQueryOptions } from "../../../../../../lib/queries/characterGroups";
+import { featureQueryOptions } from "../../../../../../lib/queries/features";
 import { CharacterStateRow } from "./CharacterStateRow";
-import { GroupStateSearch } from "./search/GroupStateSearch";
+import { FeatureStateSearch } from "./search/GroupStateSearch";
 import { addStateFromSuggestion } from "./stateUtils";
-import type { CharacterGroupFormValue } from "./validation";
+import type { FeatureFormValue } from "./validation";
 
 type GroupCardProps = {
-  group: CharacterGroupFormValue;
-  onChange: (nextGroups: CharacterGroupFormValue[]) => void;
+  group: FeatureFormValue;
+  onChange: (nextGroups: FeatureFormValue[]) => void;
   onDelete: () => void;
   onRemoveCategoricalValue: (
     groupId: number,
@@ -42,7 +42,7 @@ export const EditingGroupCard = memo(
     const { getValues } = useFormContext<TaxonEditFormValues>();
     const [confirmingDelete, setConfirmingDelete] = useState(false);
     const { data, isLoading, isError } = useQuery(
-      characterGroupQueryOptions(group.groupId),
+      featureQueryOptions(group.featureId),
     );
 
     const label = data?.label;
@@ -104,8 +104,8 @@ export const EditingGroupCard = memo(
 
         {/* Add states via search */}
         <Box mt="2" mb="3">
-          <GroupStateSearch
-            groupId={group.groupId}
+          <FeatureStateSearch
+            featureId={group.featureId}
             onSelect={handleSuggestionSelect}
           />
         </Box>
@@ -126,13 +126,13 @@ export const EditingGroupCard = memo(
                 state={group.characters.find((s) => s.characterId === c.id)}
                 onRemoveCategoricalValue={(characterId, traitValueId) =>
                   onRemoveCategoricalValue(
-                    group.groupId,
+                    group.featureId,
                     characterId,
                     traitValueId,
                   )
                 }
                 onRemoveState={(characterId) =>
-                  onRemoveState(group.groupId, characterId)
+                  onRemoveState(group.featureId, characterId)
                 }
               />
             ))}

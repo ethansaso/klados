@@ -9,12 +9,12 @@ import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { usePaginatedSearch } from "../../../../lib/hooks/usePaginatedSearch";
-import { characterGroupsQueryOptions } from "../../../../lib/queries/characterGroups";
+import { featuresQueryOptions } from "../../../../lib/queries/features";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
-import { AddCharacterGroupModal } from "./-AddCharacterGroupModal";
+import { AddFeatureModal } from "./-AddFeatureModal";
 
-export const Route = createFileRoute("/_app/glossary/groups")({
+export const Route = createFileRoute("/_app/glossary/features")({
   validateSearch: SearchWithQuerySchema,
   loaderDeps: ({ search: { page, pageSize: pageSize, q } }) => ({
     page,
@@ -23,12 +23,12 @@ export const Route = createFileRoute("/_app/glossary/groups")({
   }),
   loader: async ({ context, deps: { page, pageSize, q } }) => {
     await context.queryClient.ensureQueryData(
-      characterGroupsQueryOptions(page, pageSize, { q }),
+      featuresQueryOptions(page, pageSize, { q }),
     );
   },
   head: () =>
     routeSeo({
-      title: "Browse Character Groups | Klados",
+      title: "Browse Features | Klados",
     }),
   component: RouteComponent,
 });
@@ -36,14 +36,14 @@ export const Route = createFileRoute("/_app/glossary/groups")({
 function RouteComponent() {
   const { search, setQ, next, prev } = usePaginatedSearch();
   const { data: paginatedResult } = useSuspenseQuery(
-    characterGroupsQueryOptions(search.page, search.pageSize, {
+    featuresQueryOptions(search.page, search.pageSize, {
       q: search.q,
     }),
   );
 
   // const matchRoute = useMatchRoute();
-  // const match = matchRoute({ to: "/glossary/groups/$groupId", fuzzy: true });
-  // const selectedId = match ? (match.groupId as string | undefined) : undefined;
+  // const match = matchRoute({ to: "/glossary/features/$featureId", fuzzy: true });
+  // const selectedId = match ? (match.featureId as string | undefined) : undefined;
 
   return (
     <GlossarySidebarLayout.Root>
@@ -61,7 +61,7 @@ function RouteComponent() {
               <TextField.Slot>
                 <IconButton
                   size="1"
-                  onClick={() => NiceModal.show(AddCharacterGroupModal)}
+                  onClick={() => NiceModal.show(AddFeatureModal)}
                 >
                   <PiPlusCircle />
                 </IconButton>
@@ -75,7 +75,7 @@ function RouteComponent() {
               key={item.id}
               sub={item.key}
               label={item.label}
-              to="/glossary/groups/$id"
+              to="/glossary/features/$id"
               params={{ id: item.id }}
               search={search}
             >

@@ -4,27 +4,27 @@ import { Label } from "radix-ui";
 import * as React from "react";
 import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
 import type { ComboboxOption } from "../../../../../../../components/inputs/combobox/types";
-import { characterGroupsQueryOptions } from "../../../../../../../lib/queries/characterGroups";
+import { featuresQueryOptions } from "../../../../../../../lib/queries/features";
 
-interface GroupSearchProps {
-  onSelect: (group: ComboboxOption) => void;
+interface FeatureSearchProps {
+  onSelect: (feature: ComboboxOption) => void;
 }
 
-export const GroupSearch = ({ onSelect }: GroupSearchProps) => {
+export const FeatureSearch = ({ onSelect }: FeatureSearchProps) => {
   const [searchQ, setSearchQ] = React.useState("");
 
-  // First page of groups, filtered by q.
+  // First page of features, filtered by q.
   const { data, isLoading } = useQuery(
-    characterGroupsQueryOptions(1, 20, searchQ ? { q: searchQ } : undefined),
+    featuresQueryOptions(1, 20, searchQ ? { q: searchQ } : undefined),
   );
-  const groupQueryResults = data?.items ?? [];
-  const options: ComboboxOption[] = groupQueryResults.map((g) => ({
+  const featureQueryResults = data?.items ?? [];
+  const options: ComboboxOption[] = featureQueryResults.map((g) => ({
     id: g.id,
     label: g.label,
     hint: g.key ?? undefined,
   }));
 
-  const handleGroupSelect = (opt: ComboboxOption | null) => {
+  const handleFeatureSelect = (opt: ComboboxOption | null) => {
     if (!opt) {
       return;
     }
@@ -34,17 +34,17 @@ export const GroupSearch = ({ onSelect }: GroupSearchProps) => {
   return (
     <Box>
       <Box mb="1">
-        <Label.Root htmlFor="character-group-search">Add Group</Label.Root>
+        <Label.Root htmlFor="feature-search">Add Feature</Label.Root>
       </Box>
       <InputCombobox.Root
-        id="character-group-search"
+        id="feature-search"
         value={null}
-        onValueChange={handleGroupSelect}
+        onValueChange={handleFeatureSelect}
         options={options}
         onQueryChange={setSearchQ}
         loading={isLoading}
       >
-        <InputCombobox.Input placeholder="Search groups…" />
+        <InputCombobox.Input placeholder="Search features…" />
         <InputCombobox.Popover>
           <InputCombobox.List>
             {options.map((opt) => (

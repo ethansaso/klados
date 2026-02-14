@@ -9,7 +9,6 @@ import {
   insertCharacter,
   insertNumericMeta,
   listCharactersQuery,
-  selectCharacterGroupById,
   selectCharactersByIds,
 } from "./repo";
 import type {
@@ -61,7 +60,6 @@ export async function listCharacters(args: {
 
 /**
  * Create a character.
- * TODO: add more than categorical
  */
 export async function createCharacter(
   args: CreateCharacterInput,
@@ -83,7 +81,6 @@ export async function createCharacter(
       key: normalizedKey,
       label: normalizedLabel,
       description: normalizedDescription,
-      groupId: args.groupId,
     });
 
     if (!charRow) return null;
@@ -91,7 +88,6 @@ export async function createCharacter(
     if (args.type === "categorical") {
       await insertCategoricalMeta(tx, {
         characterId: charRow.id,
-        traitSetId: args.traitSetId,
         isMultiSelect: args.isMultiSelect,
       });
     } else {
@@ -102,20 +98,16 @@ export async function createCharacter(
       });
     }
 
-    const groupRow = await selectCharacterGroupById(tx, charRow.groupId);
-    if (!groupRow) return null;
-
     if (args.type === "categorical") {
       const dto: CategoricalCharacterDTO = {
         id: charRow.id,
         key: charRow.key,
         label: charRow.label,
+        features: [],
         description: charRow.description,
-        group: { id: groupRow.id, label: groupRow.label },
         usageCount: 0,
         type: "categorical",
         characterId: charRow.id,
-        traitSetId: args.traitSetId,
       };
       return dto;
     }
@@ -126,7 +118,7 @@ export async function createCharacter(
         key: charRow.key,
         label: charRow.label,
         description: charRow.description,
-        group: { id: groupRow.id, label: groupRow.label },
+        features: [],
         usageCount: 0,
         type: "number",
         characterId: charRow.id,
@@ -140,7 +132,7 @@ export async function createCharacter(
       key: charRow.key,
       label: charRow.label,
       description: charRow.description,
-      group: { id: groupRow.id, label: groupRow.label },
+      features: [],
       usageCount: 0,
       type: "range",
       characterId: charRow.id,
