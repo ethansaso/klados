@@ -16,7 +16,7 @@ import type {
 export const usersQueryOptions = (page: number, pageSize: number) =>
   queryOptions<UserPaginatedResult>({
     queryKey: ["users", { page, pageSize }],
-    queryFn: () => listUsersFn({ data: { page, pageSize: pageSize } }),
+    queryFn: () => listUsersFn({ data: { page, pageSize } }),
     staleTime: 60_000,
   });
 
@@ -27,7 +27,7 @@ export const usersQueryOptions = (page: number, pageSize: number) =>
 export const usersAdminViewQueryOptions = (page: number, pageSize: number) =>
   queryOptions<UserAdminViewPaginatedResult>({
     queryKey: ["users", "admin", { page, pageSize }],
-    queryFn: () => listUsersAdminFn({ data: { page, pageSize: pageSize } }),
+    queryFn: () => listUsersAdminFn({ data: { page, pageSize } }),
     staleTime: 60_000,
   });
 

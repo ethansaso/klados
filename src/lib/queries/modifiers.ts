@@ -18,7 +18,7 @@ export const modifierGroupsQueryOptions = (
     ] as const,
     queryFn: () =>
       listModifierGroupsFn({
-        data: { page, pageSize: pageSize, q: opts?.q },
+        data: { page, pageSize, q: opts?.q },
       }) as Promise<ModifierGroupPaginatedResult>,
     staleTime: 60_000,
   });

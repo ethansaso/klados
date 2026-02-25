@@ -105,7 +105,7 @@ function RouteComponent() {
     try {
       const res = await serverCreate({
         data: {
-          acceptedName: acceptedName,
+          acceptedName,
           rank,
           parentId,
         },
