@@ -15,20 +15,14 @@ import {
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import {
-  PiCellSignalFullBold,
-  PiHash,
-  PiPencil,
-  PiPlus,
-  PiTag,
-  PiTrash,
-} from "react-icons/pi";
+import { PiPencil, PiPlus, PiTrash } from "react-icons/pi";
 import z from "zod";
 import CategoricalTraitTable from "../-CategoricalTraitTable";
-import { DeleteTraitValueModal } from "../-DeleteTraitValueModal";
-import { EditTraitSetValueModal } from "../-EditTraitSetValueModal";
+import { DeleteTraitValueModal } from "../-modal/-DeleteTraitValueModal";
+import { EditTraitSetValueModal } from "../-modal/-EditTraitSetValueModal";
 import { CuratorOnly } from "../../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
+import { CharacterIcon } from "../../../../../components/icons/modular/CharacterIcon";
 import { PaginationFooter } from "../../../../../components/PaginationFooter";
 import { deleteCharacterFn } from "../../../../../lib/api/characters/deleteCharacterFn";
 import { createTraitValueFn } from "../../../../../lib/api/traits/createTraitValueFn";
@@ -41,7 +35,7 @@ import { toast } from "../../../../../lib/utils/toast";
 import { Route as CharactersLayoutRoute } from "../route";
 
 const SearchSchema = z.object({
-  traitPage: z.coerce.number().int().positive().default(1).catch(1),
+  valuePage: z.coerce.number().int().positive().default(1).catch(1),
 });
 
 const TRAIT_PAGE_SIZE = 10;
@@ -51,12 +45,12 @@ export const Route = createFileRoute("/_app/glossary/characters/$id/")({
   search: {
     middlewares: [
       stripSearchParams({
-        traitPage: 1,
+        valuePage: 1,
       }),
     ],
   },
   loaderDeps: ({ search }) => ({
-    traitPage: search.traitPage,
+    traitPage: search.valuePage,
   }),
   loader: async ({ context, params, deps: { traitPage } }) => {
     await context.queryClient.ensureQueryData(
@@ -141,12 +135,12 @@ function RouteComponent() {
   const aliasCorrectedValues = useMemo(
     () =>
       traitValuesPage.items.map((val) => {
-        if (!val.aliasTarget) {
+        if (!val.aliasOf) {
           return val;
         }
         return {
           ...val,
-          hexCode: val.aliasTarget?.hexCode || null,
+          hexCode: val.aliasOf?.hexCode || null,
         };
       }),
     [traitValuesPage.items],
@@ -162,7 +156,7 @@ function RouteComponent() {
   const goToTraitPage = (nextPage: number) => {
     navigate({
       search: {
-        traitPage: nextPage,
+        valuePage: nextPage,
       },
     });
   };
@@ -194,31 +188,20 @@ function RouteComponent() {
         </Flex>
         <Flex gap="1" align="center">
           <Text color="gray" size="2" asChild>
-            {character.type === "categorical" ? (
-              <PiTag />
-            ) : character.type === "number" ? (
-              <PiHash />
-            ) : (
-              <PiCellSignalFullBold />
-            )}
+            <CharacterIcon type={character.type} />
           </Text>
           <Text size="2" color="gray">
             {capitalizeFirstLetter(character.type)}
           </Text>
         </Flex>
       </Box>
-      <Text
-        as="p"
-        size="2"
-        color={character.description ? undefined : "gray"}
-        mb="3"
-      >
+      <Text as="p" color={character.description ? undefined : "gray"} mb="3">
         {character.description || "No description."}
       </Text>
       {character.type === "categorical" ? (
         <Box>
           <Flex align="center" justify="between" mb="2">
-            <Heading size="4">Traits</Heading>
+            <Heading size="4">Possible Traits</Heading>
             {isCurator && (
               <TextField.Root
                 size="2"

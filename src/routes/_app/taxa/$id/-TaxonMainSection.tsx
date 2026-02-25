@@ -10,8 +10,8 @@ import {
 import { Link, type UseNavigateResult } from "@tanstack/react-router";
 import { PiPencilSimple, PiTreeStructureFill } from "react-icons/pi";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
-import { ExGbif } from "../../../../components/icons/ExGbif";
-import { ExInat } from "../../../../components/icons/ExInat";
+import { ExGbif } from "../../../../components/icons/individual/ExGbif";
+import { ExInat } from "../../../../components/icons/individual/ExInat";
 import type { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
 import { TaxonImageBrowser } from "./-TaxonImageBrowser";
 

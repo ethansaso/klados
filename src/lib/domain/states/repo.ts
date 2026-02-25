@@ -85,7 +85,6 @@ export async function selectTaxonStatesByTaxonIds(
 
       traitValueId: catStateTbl.traitValueId,
       traitValueLabel: catValTbl.label,
-      isCanonical: catValTbl.isCanonical,
       canonicalValueId: catValTbl.canonicalValueId,
     })
     .from(catStateTbl)
@@ -98,7 +97,7 @@ export async function selectTaxonStatesByTaxonIds(
   const canonicalIds = Array.from(
     new Set(
       catRows.map((r) =>
-        r.isCanonical ? r.traitValueId : (r.canonicalValueId ?? r.traitValueId),
+        r.canonicalValueId ?? r.traitValueId,
       ),
     ),
   );
@@ -141,9 +140,7 @@ export async function selectTaxonStatesByTaxonIds(
       group.states.push(state);
     }
 
-    const canonicalId = row.isCanonical
-      ? row.traitValueId
-      : (row.canonicalValueId ?? row.traitValueId);
+    const canonicalId = row.canonicalValueId ?? row.traitValueId;
 
     state.traitValues.push({
       id: row.traitValueId,

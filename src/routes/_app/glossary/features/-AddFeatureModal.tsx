@@ -36,14 +36,13 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors, isSubmitting, touchedFields, isSubmitted },
   } = useForm<CreateFeatureInput>({
     resolver: zodResolver(createFeatureSchema),
     mode: "onSubmit",
     reValidateMode: "onChange",
-    defaultValues: {
-      label: initialLabel,
+    values: {
+      label: initialLabel ?? "",
       description: "",
     },
   });
@@ -65,7 +64,6 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
         variant: "success",
         description: `Feature "${label}" created successfully.`,
       });
-      reset();
       hide();
     } catch (error) {
       toast({
@@ -76,15 +74,7 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
   };
 
   return (
-    <Dialog.Root
-      open={visible}
-      onOpenChange={(open) => {
-        if (!open) {
-          reset();
-          hide();
-        }
-      }}
-    >
+    <Dialog.Root open={visible} onOpenChange={hide}>
       <Dialog.Content maxWidth="450px">
         <Dialog.Title>Add feature</Dialog.Title>
         <Dialog.Description size="2" mb="4">

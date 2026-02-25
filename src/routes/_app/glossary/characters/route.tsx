@@ -2,18 +2,13 @@ import NiceModal from "@ebay/nice-modal-react";
 import { Box, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  PiCellSignalFullBold,
-  PiHash,
-  PiMagnifyingGlass,
-  PiPlusCircle,
-  PiTag,
-} from "react-icons/pi";
+import { PiMagnifyingGlass, PiPlusCircle } from "react-icons/pi";
 import { GlossarySidebarLayout } from "../-chrome/GlossarySidebarLayout";
 import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
-import { TiOutline } from "../../../../components/icons/TiOutline";
+import { TiOutline } from "../../../../components/icons/individual/TiOutline";
+import { CharacterIcon } from "../../../../components/icons/modular/CharacterIcon";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { usePaginatedSearch } from "../../../../lib/hooks/usePaginatedSearch";
 import { charactersQueryOptions } from "../../../../lib/queries/characters";
@@ -94,18 +89,7 @@ function RouteComponent() {
               sub={item.description}
               label={
                 <Flex align="center" gap="1">
-                  {(() => {
-                    switch (item.type) {
-                      case "categorical":
-                        return <PiTag />;
-                      case "number":
-                        return <PiHash />;
-                      case "range":
-                        return <PiCellSignalFullBold />;
-                      default:
-                        return "Unknown Type";
-                    }
-                  })()}
+                  <CharacterIcon type={item.type} />
                   {item.label}
                 </Flex>
               }

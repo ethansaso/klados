@@ -1,6 +1,5 @@
 import { sql } from "drizzle-orm";
 import {
-  boolean,
   check,
   foreignKey,
   index,
@@ -29,8 +28,6 @@ export const categoricalTraitValue = pgTable(
     label: text("label").notNull(),
     hexCode: text("hex_code"),
     description: text("description").notNull().default(""),
-    // TODO: migrate to just 'canonicalValueId' -- isCanonical can be derived from whether the FK is null
-    isCanonical: boolean("is_canonical").notNull().default(true),
     canonicalValueId: integer("canonical_value_id"),
   }),
   (t) => [
@@ -48,11 +45,6 @@ export const categoricalTraitValue = pgTable(
       .where(sql`${t.canonicalValueId} IS NOT NULL`),
 
     check(
-      "trait_values_role_consistency_ck",
-      sql`CASE WHEN ${t.isCanonical} THEN ${t.canonicalValueId} IS NULL
-        ELSE ${t.canonicalValueId} IS NOT NULL END`,
-    ),
-    check(
       "trait_values_no_self_alias_ck",
       sql`${t.canonicalValueId} IS NULL OR ${t.canonicalValueId} <> ${t.id}`,
     ),
@@ -62,13 +54,11 @@ export const categoricalTraitValue = pgTable(
     ),
     check(
       "trait_values_hex_code_canonical_ck",
-      sql`CASE WHEN ${t.isCanonical} THEN TRUE
-        ELSE ${t.hexCode} IS NULL END`,
+      sql`${t.canonicalValueId} IS NULL OR ${t.hexCode} IS NULL`,
     ),
     check(
       "trait_values_description_canonical_ck",
-      sql`CASE WHEN ${t.isCanonical} THEN TRUE
-        ELSE ${t.description} = '' END`,
+      sql`${t.canonicalValueId} IS NULL OR ${t.description} = ''`,
     ),
   ],
 );

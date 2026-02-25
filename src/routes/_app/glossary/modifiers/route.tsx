@@ -7,6 +7,7 @@ import { GlossarySidebarLayout } from "../-chrome/GlossarySidebarLayout";
 import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
+import { ModifierIcon } from "../../../../components/icons/modular/ModifierIcon";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { usePaginatedSearch } from "../../../../lib/hooks/usePaginatedSearch";
 import { modifierGroupsQueryOptions } from "../../../../lib/queries/modifiers";
@@ -56,7 +57,11 @@ function RouteComponent() {
             <CuratorOnly>
               <TextField.Slot>
                 <IconButton
-                  onClick={() => NiceModal.show(AddModifierGroupModal)}
+                  onClick={() =>
+                    NiceModal.show(AddModifierGroupModal, {
+                      initialLabel: search.q,
+                    })
+                  }
                   size="1"
                 >
                   <PiPlusCircle />
@@ -70,7 +75,12 @@ function RouteComponent() {
             <GlossarySidebarList.Item
               key={item.id}
               sub={item.description}
-              label={item.label}
+              label={
+                <Flex align="center" gap="1">
+                  <ModifierIcon type={item.class} />
+                  {item.label}
+                </Flex>
+              }
               to="/glossary/modifiers/$id"
               params={{ id: item.id }}
               search={{ ...search }}

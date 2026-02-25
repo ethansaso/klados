@@ -137,8 +137,8 @@ async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
     traitById.set(tr.id, {
       id: tr.id,
       label: tr.label,
-      description: tr.aliasTarget?.description ?? tr.description,
-      canonicalId: tr.aliasTarget?.id ?? tr.id,
+      description: tr.aliasOf?.description ?? tr.description,
+      canonicalId: tr.aliasOf?.id ?? tr.id,
       hexCode: tr.hexCode ?? undefined,
     });
   }

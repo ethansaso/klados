@@ -9,7 +9,6 @@ export const createModifierGroupFn = createServerFn({ method: "POST" })
   .inputValidator(createModifierGroupSchema)
   .handler(async ({ data }): Promise<ModifierGroupDTO> => {
     const dto = await createModifierGroup({
-      key: data.key,
       label: data.label,
       description: data.description,
       class: data.class,

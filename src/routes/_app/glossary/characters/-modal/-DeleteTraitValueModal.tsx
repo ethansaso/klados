@@ -1,10 +1,10 @@
 import NiceModal, { useModal } from "@ebay/nice-modal-react";
 import { AlertDialog, Button, Flex, Text } from "@radix-ui/themes";
 import { useServerFn } from "@tanstack/react-start";
-import { deleteTraitValueFn } from "../../../../lib/api/traits/deleteTraitValueFn";
-import type { TraitValueDTO } from "../../../../lib/domain/traits/types";
-import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
-import { toast } from "../../../../lib/utils/toast";
+import { deleteTraitValueFn } from "../../../../../lib/api/traits/deleteTraitValueFn";
+import type { TraitValueDTO } from "../../../../../lib/domain/traits/types";
+import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
+import { toast } from "../../../../../lib/utils/toast";
 
 type Props = {
   value: TraitValueDTO;
@@ -18,7 +18,7 @@ export const DeleteTraitValueModal = NiceModal.create<Props>(
 
     const canDelete =
       value.usageCount === 0 &&
-      (value.aliasTarget ? true : (value.aliasCount ?? 0) === 0);
+      (value.aliasOf ? true : (value.aliasCount ?? 0) === 0);
 
     const close = () => modal.hide();
 
@@ -46,7 +46,7 @@ export const DeleteTraitValueModal = NiceModal.create<Props>(
     const reason =
       value.usageCount > 0
         ? `Used ${value.usageCount} time(s)`
-        : !value.aliasTarget && (value.aliasCount ?? 0) > 0
+        : !value.aliasOf && (value.aliasCount ?? 0) > 0
           ? `Has ${value.aliasCount} alias(es)`
           : null;
 

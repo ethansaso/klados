@@ -25,12 +25,12 @@ export default function CategoricalTraitTable({
   onEditClick,
 }: RootProps) {
   return (
-    <Table.Root size="1">
+    <Table.Root size="1" variant="surface">
       <Table.Header>
         <Table.Row>
           <Table.ColumnHeaderCell width="45px">Icon</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Trait</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Alias for</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Alias of</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Description</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Usages</Table.ColumnHeaderCell>
 
@@ -44,7 +44,7 @@ export default function CategoricalTraitTable({
         {values.length === 0 ? (
           <Table.Row>
             <Table.Cell colSpan={showActions ? 6 : 5}>
-              No values found.
+              <Text color="gray">No values found.</Text>
             </Table.Cell>
           </Table.Row>
         ) : (
@@ -68,7 +68,7 @@ function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
     if (value.usageCount > 0) {
       return "Value in use";
     }
-    if (!value.aliasTarget && (value.aliasCount ?? 0) > 0) {
+    if (!value.aliasOf && (value.aliasCount ?? 0) > 0) {
       return "Value has aliases";
     }
     return null;
@@ -107,11 +107,7 @@ function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
       </Table.Cell>
 
       <Table.Cell>
-        {!value.aliasTarget ? (
-          <Text color="gray">------</Text>
-        ) : (
-          <Text>{value.aliasTarget.label}</Text>
-        )}
+        {value.aliasOf && <Text>{value.aliasOf.label}</Text>}
       </Table.Cell>
 
       <Table.Cell>

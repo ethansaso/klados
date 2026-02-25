@@ -10,12 +10,12 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
+import { categoricalTraitValue } from "../glossary/categoricalTraits";
 import { characterFeature } from "../glossary/characterFeatures";
 import {
   categoricalCharacterMeta,
   numericCharacterMeta,
 } from "../glossary/characters";
-import { categoricalTraitValue } from "../glossary/traits";
 import { unit } from "../glossary/units";
 import { taxonFeatureState } from "./featureStates";
 

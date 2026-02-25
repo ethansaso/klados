@@ -1,4 +1,4 @@
-import { and, asc, count, eq, ilike, inArray, sql } from "drizzle-orm";
+import { and, asc, count, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import {
@@ -35,13 +35,13 @@ export async function selectMinimalTraitValueRowById(
   id: number,
 ): Promise<Pick<
   TraitValueRow,
-  "id" | "characterId" | "isCanonical" | "label"
+  "id" | "characterId" | "canonicalValueId" | "label"
 > | null> {
   const [row] = await tx
     .select({
       id: valsTbl.id,
       characterId: valsTbl.characterId,
-      isCanonical: valsTbl.isCanonical,
+      canonicalValueId: valsTbl.canonicalValueId,
       label: valsTbl.label,
     })
     .from(valsTbl)
@@ -59,7 +59,6 @@ export async function insertTraitValueRow(
   args: {
     characterId: number;
     label: string;
-    isCanonical: boolean;
     canonicalValueId: number | null;
   },
 ): Promise<TraitValueRow | null> {
@@ -68,14 +67,12 @@ export async function insertTraitValueRow(
     .values({
       characterId: args.characterId,
       label: args.label,
-      isCanonical: args.isCanonical,
       canonicalValueId: args.canonicalValueId,
     })
     .returning({
       id: valsTbl.id,
       characterId: valsTbl.characterId,
       label: valsTbl.label,
-      isCanonical: valsTbl.isCanonical,
       canonicalValueId: valsTbl.canonicalValueId,
     });
 
@@ -123,7 +120,6 @@ export async function selectTraitValueDtoById(
       label: v.label,
       hexCode: v.hexCode,
       description: v.description,
-      isCanonical: v.isCanonical,
       canonId: canon.id,
       canonLabel: canon.label,
       canonHexCode: canon.hexCode,
@@ -149,17 +145,15 @@ export async function selectTraitValueDtoById(
     description: row.description,
     usageCount: row.usageCount,
     aliasCount: row.aliasCount,
-    aliasTarget: row.isCanonical
-      ? null
-      : row.canonId
-        ? {
-            id: row.canonId,
-            canonicalId: row.canonId,
-            label: row.canonLabel!,
-            description: row.canonDescription!,
-            hexCode: row.canonHexCode ?? undefined,
-          }
-        : null,
+    aliasOf: row.canonId
+      ? {
+          id: row.canonId,
+          canonicalId: row.canonId,
+          label: row.canonLabel!,
+          description: row.canonDescription!,
+          hexCode: row.canonHexCode ?? undefined,
+        }
+      : null,
   };
 }
 
@@ -208,7 +202,6 @@ export async function selectTraitValueDtosByIds(
       label: v.label,
       hexCode: v.hexCode,
       description: v.description,
-      isCanonical: v.isCanonical,
       canonId: canon.id,
       canonLabel: canon.label,
       canonHexCode: canon.hexCode,
@@ -231,17 +224,15 @@ export async function selectTraitValueDtosByIds(
     description: row.description,
     usageCount: row.usageCount,
     aliasCount: row.aliasCount,
-    aliasTarget: row.isCanonical
-      ? null
-      : row.canonId
-        ? {
-            id: row.canonId,
-            canonicalId: row.canonId,
-            label: row.canonLabel!,
-            description: row.canonDescription!,
-            hexCode: row.canonHexCode ?? undefined,
-          }
-        : null,
+    aliasOf: row.canonId
+      ? {
+          id: row.canonId,
+          canonicalId: row.canonId,
+          label: row.canonLabel!,
+          description: row.canonDescription!,
+          hexCode: row.canonHexCode ?? undefined,
+        }
+      : null,
   }));
 }
 
@@ -267,10 +258,8 @@ export async function updateTraitValueRow(
 
   if (args.aliasTargetId !== undefined) {
     if (args.aliasTargetId === null) {
-      patch.isCanonical = true;
       patch.canonicalValueId = null;
     } else {
-      patch.isCanonical = false;
       patch.canonicalValueId = args.aliasTargetId;
       patch.hexCode = null;
       patch.description = "";
@@ -305,7 +294,7 @@ export async function selectTraitValuesByCharacterPaginated(
 
   const filters: ReturnType<typeof eq>[] = [eq(v.characterId, characterId)];
   if (opts?.canonicalOnly) {
-    filters.push(eq(v.isCanonical, true));
+    filters.push(isNull(v.canonicalValueId));
   }
   if (opts?.q) {
     filters.push(ilike(v.label, `%${opts.q}%`));
@@ -341,7 +330,6 @@ export async function selectTraitValuesByCharacterPaginated(
       label: v.label,
       hexCode: v.hexCode,
       description: v.description,
-      isCanonical: v.isCanonical,
       canonId: canon.id,
       canonLabel: canon.label,
       canonHexCode: canon.hexCode,
@@ -370,17 +358,15 @@ export async function selectTraitValuesByCharacterPaginated(
     description: row.description,
     usageCount: row.usageCount,
     aliasCount: row.aliasCount,
-    aliasTarget: row.isCanonical
-      ? null
-      : row.canonId
-        ? {
-            id: row.canonId,
-            canonicalId: row.canonId,
-            label: row.canonLabel!,
-            description: row.canonDescription!,
-            hexCode: row.canonHexCode ?? undefined,
-          }
-        : null,
+    aliasOf: row.canonId
+      ? {
+          id: row.canonId,
+          canonicalId: row.canonId,
+          label: row.canonLabel!,
+          description: row.canonDescription!,
+          hexCode: row.canonHexCode ?? undefined,
+        }
+      : null,
   }));
 
   return { items, page, pageSize, total };

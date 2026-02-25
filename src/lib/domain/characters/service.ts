@@ -1,4 +1,5 @@
 import { db } from "../../../../db/client";
+import { InUseError } from "../../utils/InUseError";
 import { selectUnitFamilyById } from "../units/repo";
 import {
   countUsageForCharacter,
@@ -139,20 +140,10 @@ export async function createCharacter(
   });
 }
 
-export class CharacterInUseError extends Error {
-  readonly usageCount: number;
-
-  constructor(usageCount: number) {
-    super(`Cannot delete character; it is in use by ${usageCount} taxa.`);
-    this.name = "CharacterInUseError";
-    this.usageCount = usageCount;
-  }
-}
-
 /**
  * Delete a character if it is unused.
  * Returns { id } if deleted, null if the character does not exist.
- * Throws CharacterInUseError if in use.
+ * Throws InUseError if in use.
  */
 export async function deleteCharacter(args: {
   id: number;
@@ -167,7 +158,7 @@ export async function deleteCharacter(args: {
     }
 
     if (usageCount > 0) {
-      throw new CharacterInUseError(usageCount);
+      throw new InUseError("character", usageCount);
     }
 
     const deleted = await deleteCharacterById(tx, id);

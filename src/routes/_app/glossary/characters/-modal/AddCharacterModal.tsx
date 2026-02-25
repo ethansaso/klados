@@ -35,19 +35,18 @@ interface Props {
 }
 
 export const AddCharacterModal = NiceModal.create(({ initialLabel }: Props) => {
-  const { visible, hide, remove } = NiceModal.useModal();
+  const { visible, hide } = NiceModal.useModal();
   const qc = useQueryClient();
   const serverCreate = useServerFn(createCharacterFn);
 
   const methods = useForm<CreateCharacterInput>({
     resolver: zodResolver(createCharacterSchema),
-    defaultValues: { ...DEFAULT_VALUES, label: initialLabel },
+    values: { ...DEFAULT_VALUES, label: initialLabel ?? "" },
   });
 
   const {
     handleSubmit,
     control,
-    reset,
     formState: { isSubmitting },
   } = methods;
 
@@ -67,9 +66,7 @@ export const AddCharacterModal = NiceModal.create(({ initialLabel }: Props) => {
         variant: "success",
         description: `Character "${data.label}" created successfully.`,
       });
-
-      reset();
-      remove();
+      hide();
     } catch (error) {
       toast({
         variant: "error",
@@ -79,15 +76,7 @@ export const AddCharacterModal = NiceModal.create(({ initialLabel }: Props) => {
   };
 
   return (
-    <Dialog.Root
-      open={visible}
-      onOpenChange={async (open) => {
-        if (!open) {
-          reset();
-          await hide();
-        }
-      }}
-    >
+    <Dialog.Root open={visible} onOpenChange={hide}>
       <Dialog.Content maxWidth="450px">
         <Dialog.Title>Add character</Dialog.Title>
         <Dialog.Description size="2" mb="4">

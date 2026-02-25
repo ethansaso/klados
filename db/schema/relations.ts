@@ -19,19 +19,4 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.user.id,
     }),
   },
-  verification: {},
-
-  // everything else (requires no special logic)
-  guide: {},
-  source: {},
-  taxon: {},
-  name: {},
-  flag: {},
-
-  character: {},
-  feature: {},
-  categoricalTrait: {},
-  taxonCharacterState: {},
-  units: {},
-  taxonSource: {},
 }));

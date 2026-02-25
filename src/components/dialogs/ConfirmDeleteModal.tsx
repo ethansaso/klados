@@ -13,7 +13,7 @@ export const ConfirmDeleteModal = NiceModal.create<Props>(
     const { visible, hide } = useModal();
     return (
       <AlertDialog.Root open={visible} onOpenChange={(open) => !open && hide()}>
-        <AlertDialog.Content maxWidth="400px" aria-describedby={undefined}>
+        <AlertDialog.Content maxWidth="400px">
           <AlertDialog.Title>Delete {itemType}</AlertDialog.Title>
           <AlertDialog.Description size="2" mb="4">
             Are you sure you want to delete the {itemType}{" "}
@@ -38,5 +38,5 @@ export const ConfirmDeleteModal = NiceModal.create<Props>(
         </AlertDialog.Content>
       </AlertDialog.Root>
     );
-  }
+  },
 );

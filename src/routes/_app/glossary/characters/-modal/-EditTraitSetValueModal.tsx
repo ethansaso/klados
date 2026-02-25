@@ -24,21 +24,21 @@ import {
   useWatch,
 } from "react-hook-form";
 import z from "zod";
-import { ClearableColorField } from "../../../../components/inputs/ClearableColorField";
-import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
-import type { ComboboxOption } from "../../../../components/inputs/combobox/types";
+import { ClearableColorField } from "../../../../../components/inputs/ClearableColorField";
+import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
+import type { ComboboxOption } from "../../../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
-} from "../../../../components/inputs/ConditionalAlert";
-import { updateTraitValueFn } from "../../../../lib/api/traits/updateTraitValueFn";
-import type { TraitValueDTO } from "../../../../lib/domain/traits/types";
-import { traitValuesQueryOptions } from "../../../../lib/queries/traits";
-import { toast } from "../../../../lib/utils/toast";
+} from "../../../../../components/inputs/ConditionalAlert";
+import { updateTraitValueFn } from "../../../../../lib/api/traits/updateTraitValueFn";
+import type { TraitValueDTO } from "../../../../../lib/domain/traits/types";
+import { traitValuesQueryOptions } from "../../../../../lib/queries/traits";
+import { toast } from "../../../../../lib/utils/toast";
 import {
   trimmed,
   trimmedNonEmpty,
-} from "../../../../lib/validation/trimmedOptional";
+} from "../../../../../lib/validation/trimmedOptional";
 
 interface Props {
   traitValue: TraitValueDTO;
@@ -85,13 +85,13 @@ const formSchema = z
   });
 
 const seedFormValues = (value: TraitValueDTO): FormValues => {
-  if (value.aliasTarget) {
+  if (value.aliasOf) {
     return {
       kind: "alias",
       label: value.label,
       aliasTarget: {
-        id: value.aliasTarget.id,
-        label: value.aliasTarget.label,
+        id: value.aliasOf.id,
+        label: value.aliasOf.label,
       },
     };
   }
@@ -190,7 +190,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
     }, [canonicalResp, traitValue.id]);
 
     // Derived values for blocking aliasing if value has dependents
-    const aliasBlocked = traitValue.aliasCount > 0 && !traitValue.aliasTarget;
+    const aliasBlocked = traitValue.aliasCount > 0 && !traitValue.aliasOf;
     const aliasBlockedMsg = `Cannot make "${label}" an alias because ${traitValue.aliasCount} alias value(s) depend on it.`;
 
     const setKindAtomic = (next: FormValues["kind"]) => {

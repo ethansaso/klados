@@ -32,7 +32,7 @@ export async function deleteTraitValue(args: {
     }
 
     // Block delete if has dependent aliases
-    if (!dto.aliasTarget && (dto.aliasCount ?? 0) > 0) {
+    if (!dto.aliasOf && (dto.aliasCount ?? 0) > 0) {
       throw new Error(
         `Cannot delete "${dto.label}" because ${dto.aliasCount} alias value(s) depend on it. Remove or reassign those aliases first.`,
       );
@@ -87,7 +87,7 @@ export async function createTraitValue(args: {
       if (target.characterId !== characterId) {
         throw new Error("Alias target must belong to the same character.");
       }
-      if (!target.isCanonical) {
+      if (target.canonicalValueId !== null) {
         throw new Error("Alias target must be canonical.");
       }
     }
@@ -95,7 +95,6 @@ export async function createTraitValue(args: {
     const inserted = await insertTraitValueRow(tx, {
       characterId,
       label,
-      isCanonical: !canonicalValueId,
       canonicalValueId,
     });
 
@@ -126,7 +125,7 @@ export async function updateTraitValue(
     const willBeAlias =
       aliasTargetId !== undefined
         ? aliasTargetId !== null
-        : cur.aliasTarget !== null;
+        : cur.aliasOf !== null;
 
     // block: setting alias when this value has aliases
     if (
@@ -148,7 +147,7 @@ export async function updateTraitValue(
       if (!target) throw new Error("Alias target not found.");
       if (target.characterId !== args.characterId)
         throw new Error("Alias target must belong to the same character.");
-      if (!target.isCanonical)
+      if (target.canonicalValueId !== null)
         throw new Error("Alias target must be canonical.");
     }
 

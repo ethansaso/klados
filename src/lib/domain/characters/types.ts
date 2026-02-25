@@ -17,25 +17,6 @@ type BaseCharacterDTO = Pick<CharacterRow, "id" | "label" | "description"> & {
   usageCount: number;
 };
 
-export type CategoricalCharacterDTO = BaseCharacterDTO & {
-  type: "categorical";
-} & Pick<CategoricalMetaRow, "characterId"> & {
-    traitCount: number;
-  };
-
-export type NumberCharacterDTO = BaseCharacterDTO & {
-  type: "number";
-} & Pick<NumericMetaRow, "characterId" | "unitFamilyId">;
-
-export type RangeCharacterDTO = BaseCharacterDTO & {
-  type: "range";
-} & Pick<NumericMetaRow, "characterId" | "unitFamilyId">;
-
-export type CharacterDTO =
-  | CategoricalCharacterDTO
-  | NumberCharacterDTO
-  | RangeCharacterDTO;
-
 type BaseNumericCharacterDetailDTO = Omit<
   NumberCharacterDTO | RangeCharacterDTO,
   "unitFamilyId"
@@ -43,23 +24,41 @@ type BaseNumericCharacterDetailDTO = Omit<
   unitFamily: Pick<UnitFamilyRow, "id" | "label">;
 };
 
+export type CategoricalCharacterDTO = BaseCharacterDTO & {
+  type: "categorical";
+} & Pick<CategoricalMetaRow, "characterId"> & {
+    traitCount: number;
+  };
 export type CategoricalCharacterDetailDTO = Omit<
   CategoricalCharacterDTO,
   "traitCount"
 > &
   Pick<CategoricalMetaRow, "isMultiSelect">;
 
+export type NumberCharacterDTO = BaseCharacterDTO & {
+  type: "number";
+} & Pick<NumericMetaRow, "characterId" | "unitFamilyId">;
 export type NumberCharacterDetailDTO = BaseNumericCharacterDetailDTO & {
   type: "number";
 };
 
+export type RangeCharacterDTO = BaseCharacterDTO & {
+  type: "range";
+} & Pick<NumericMetaRow, "characterId" | "unitFamilyId">;
 export type RangeCharacterDetailDTO = BaseNumericCharacterDetailDTO & {
   type: "range";
 };
+
+export type CharacterDTO =
+  | CategoricalCharacterDTO
+  | NumberCharacterDTO
+  | RangeCharacterDTO;
 
 export type CharacterDetailDTO =
   | CategoricalCharacterDetailDTO
   | NumberCharacterDetailDTO
   | RangeCharacterDetailDTO;
+
+export type CharacterType = CharacterDTO["type"];
 
 export type CharacterPaginatedResult = PaginatedResult<CharacterDTO>;
