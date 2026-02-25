@@ -5,14 +5,13 @@ export type FeatureRow = typeof feature.$inferSelect;
 
 export type FeatureDTO = Pick<
   FeatureRow,
-  "id" | "key" | "label" | "description"
+  "id" | "label" | "description" | "parentId"
 > & {
   characterCount: number;
 };
 
 type BaseCharacterInFeatureDTO = {
   id: number;
-  key: string;
   label: string;
   description: string;
 };
@@ -34,10 +33,10 @@ export type CharacterInFeatureDTO =
   | NumberCharacterInFeatureDTO
   | RangeCharacterInFeatureDTO;
 
-export type FeatureDetailDTO = FeatureDTO & {
+export type FeatureDetailDTO = Omit<FeatureDTO, "parentId"> & {
   characters: CharacterInFeatureDTO[];
-  parentFeature: Pick<FeatureRow, "id" | "key" | "label"> | null;
-  subFeatures: Pick<FeatureRow, "id" | "key" | "label">[];
+  parentFeature: Pick<FeatureRow, "id" | "label"> | null;
+  subFeatures: Pick<FeatureRow, "id" | "label">[];
 };
 
 export type FeaturePaginatedResult = PaginatedResult<FeatureDTO>;

@@ -15,11 +15,10 @@ export const character = pgTable(
   "character",
   withTimestamps({
     id: serial("id").primaryKey(),
-    key: text("key").notNull(),
     label: text("label").notNull(),
     description: text("description").notNull().default(""),
   }),
-  (t) => [uniqueIndex("characters_key_uq").on(t.key)],
+  (t) => [uniqueIndex("characters_label_uq").on(t.label)],
 );
 
 /**

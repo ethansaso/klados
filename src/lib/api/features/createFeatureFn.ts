@@ -10,7 +10,6 @@ export const createFeatureFn = createServerFn({ method: "POST" })
   .inputValidator(createFeatureSchema)
   .handler(async ({ data }): Promise<FeatureDTO> => {
     const dto = await createFeature({
-      key: data.key,
       label: data.label,
       description: data.description,
     });

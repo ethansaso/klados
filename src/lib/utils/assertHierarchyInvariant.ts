@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm";
-import { db } from "../../../db/client";
 import {
   taxon as taxaTbl,
   TAXON_RANKS_DESCENDING,
@@ -7,7 +6,6 @@ import {
 import { type Transaction } from "./transactionType";
 
 type Rank = (typeof TAXON_RANKS_DESCENDING)[number];
-type DbOrTx = typeof db | Transaction;
 
 function rankIndex(r: Rank): number {
   const i = TAXON_RANKS_DESCENDING.indexOf(r);
@@ -21,7 +19,7 @@ function rankIndex(r: Rank): number {
  *  - If a parent is provided, it must exist and be strictly coarser than the child.
  */
 export async function assertHierarchyInvariant(params: {
-  tx: DbOrTx;
+  tx: Transaction;
   nextParentId: number | null;
   nextRank: Rank;
 }) {

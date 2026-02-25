@@ -5,7 +5,7 @@ import { db } from "../../../../db/client";
 import {
   taxon as taxaTbl,
   taxonCharacterStateCategorical as tcsCatTbl,
-  taxonFeatureState as tgsTbl,
+  taxonFeatureState as tfsTbl,
   categoricalTraitValue as traitValTbl,
 } from "../../../../db/schema/schema";
 import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
@@ -28,14 +28,15 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
   // Request taxon's categorical character states
   const target = db
     .select({
+      featureId: tfsTbl.featureId,
       characterId: tcsCatTbl.characterId,
       canonTraitValueId: canonTraitId.as("canon_trait_value_id"),
     })
     .from(tcsCatTbl)
     .innerJoin(traitValTbl, eq(traitValTbl.id, tcsCatTbl.traitValueId))
-    .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonFeatureStateId))
-    .where(eq(tgsTbl.taxonId, args.taxonId))
-    .groupBy(tcsCatTbl.characterId, canonTraitId)
+    .innerJoin(tfsTbl, eq(tfsTbl.id, tcsCatTbl.taxonFeatureStateId))
+    .where(eq(tfsTbl.taxonId, args.taxonId))
+    .groupBy(tfsTbl.featureId, tcsCatTbl.characterId, canonTraitId)
     .as("target");
 
   // Get simple count of target's categorical features
@@ -50,22 +51,31 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
   const tv2 = alias(traitValTbl, "tv2");
   const canonTraitId2 = sql<number>`coalesce(${tv2.canonicalValueId}, ${tv2.id})`;
 
-  // Count distinct shared (characterId, canonicalTraitValueId) pairs
+  // Count distinct shared (featureId, characterId, canonicalTraitValueId) triplets
   const sharedCountBase = sql<number>`
-  count(distinct (${tcsCatTbl.characterId}, ${canonTraitId2}))::int
+  count(distinct (
+    ${tfsTbl.featureId},
+    ${tcsCatTbl.characterId},
+    ${canonTraitId2}
+  ))::int
 `;
+
   const sharedCountExpr = sharedCountBase.as("shared_cnt");
 
-  // Find taxa that share categorical character states with the target taxon,
-  // along with the count of shared states.
   const shared = db
     .select({
-      otherTaxonId: tgsTbl.taxonId,
+      otherTaxonId: tfsTbl.taxonId,
       sharedCnt: sharedCountExpr,
     })
     .from(target)
     .innerJoin(tcsCatTbl, eq(tcsCatTbl.characterId, target.characterId))
-    .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonFeatureStateId))
+    .innerJoin(
+      tfsTbl,
+      and(
+        eq(tfsTbl.id, tcsCatTbl.taxonFeatureStateId),
+        eq(tfsTbl.featureId, target.featureId), // 👈 enforce same feature
+      ),
+    )
     .innerJoin(
       tv2,
       and(
@@ -73,8 +83,8 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
         eq(canonTraitId2, target.canonTraitValueId),
       ),
     )
-    .where(ne(tgsTbl.taxonId, args.taxonId))
-    .groupBy(tgsTbl.taxonId)
+    .where(ne(tfsTbl.taxonId, args.taxonId))
+    .groupBy(tfsTbl.taxonId)
     .having(sql`${sharedCountBase} >= ${minShared}`)
     .as("shared");
 
@@ -86,16 +96,16 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
   // just taxa which share something with the target (`shared`).
   const otherCnt = db
     .select({
-      taxonId: tgsTbl.taxonId,
+      taxonId: tfsTbl.taxonId,
       otherCnt: sql<number>`
-      count(distinct (${tcsCatTbl.characterId}, ${canonTraitId3}))::int
+      count(distinct (${tfsTbl.featureId}, ${tcsCatTbl.characterId}, ${canonTraitId3}))::int
     `.as("other_cnt"),
     })
     .from(tcsCatTbl)
-    .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonFeatureStateId))
-    .innerJoin(shared, eq(shared.otherTaxonId, tgsTbl.taxonId))
+    .innerJoin(tfsTbl, eq(tfsTbl.id, tcsCatTbl.taxonFeatureStateId))
+    .innerJoin(shared, eq(shared.otherTaxonId, tfsTbl.taxonId))
     .innerJoin(tv3, eq(tv3.id, tcsCatTbl.traitValueId))
-    .groupBy(tgsTbl.taxonId)
+    .groupBy(tfsTbl.taxonId)
     .as("other_cnt");
 
   // Rank by jaccard similarity

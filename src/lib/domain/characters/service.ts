@@ -1,5 +1,4 @@
 import { db } from "../../../../db/client";
-import { snakeCase } from "../../utils/formatting/casing";
 import { selectUnitFamilyById } from "../units/repo";
 import {
   countUsageForCharacter,
@@ -10,6 +9,8 @@ import {
   insertNumericMeta,
   listCharactersQuery,
   selectCharactersByIds,
+  updateCategoricalMeta,
+  updateCharacterBase,
 } from "./repo";
 import type {
   CategoricalCharacterDTO,
@@ -19,7 +20,7 @@ import type {
   NumberCharacterDTO,
   RangeCharacterDTO,
 } from "./types";
-import type { CreateCharacterInput } from "./validation";
+import type { CreateCharacterInput, UpdateCharacterInput } from "./validation";
 
 /**
  * Get a character by id.
@@ -27,7 +28,7 @@ import type { CreateCharacterInput } from "./validation";
 export async function getCharacter(args: {
   id: number;
 }): Promise<CharacterDetailDTO | null> {
-  return fetchCharacterDetailById(args.id);
+  return fetchCharacterDetailById(db, args.id);
 }
 
 /**
@@ -64,7 +65,6 @@ export async function listCharacters(args: {
 export async function createCharacter(
   args: CreateCharacterInput,
 ): Promise<CharacterDTO | null> {
-  const normalizedKey = snakeCase(args.key.trim());
   const normalizedLabel = args.label.trim();
   const normalizedDescription = args.description?.trim() ?? "";
 
@@ -78,7 +78,6 @@ export async function createCharacter(
     }
 
     const charRow = await insertCharacter(tx, {
-      key: normalizedKey,
       label: normalizedLabel,
       description: normalizedDescription,
     });
@@ -101,13 +100,13 @@ export async function createCharacter(
     if (args.type === "categorical") {
       const dto: CategoricalCharacterDTO = {
         id: charRow.id,
-        key: charRow.key,
         label: charRow.label,
         features: [],
         description: charRow.description,
         usageCount: 0,
         type: "categorical",
         characterId: charRow.id,
+        traitCount: 0,
       };
       return dto;
     }
@@ -115,7 +114,6 @@ export async function createCharacter(
     if (args.type === "number") {
       const dto: NumberCharacterDTO = {
         id: charRow.id,
-        key: charRow.key,
         label: charRow.label,
         description: charRow.description,
         features: [],
@@ -129,7 +127,6 @@ export async function createCharacter(
 
     const dto: RangeCharacterDTO = {
       id: charRow.id,
-      key: charRow.key,
       label: charRow.label,
       description: charRow.description,
       features: [],
@@ -175,5 +172,46 @@ export async function deleteCharacter(args: {
 
     const deleted = await deleteCharacterById(tx, id);
     return deleted;
+  });
+}
+
+/**
+ * Update a character's base fields and categorical meta.
+ * Returns the refreshed CharacterDetailDTO, or null if not found.
+ *
+ * Throws if `isMultiSelect` is provided for a non-categorical character.
+ */
+export async function updateCharacter(
+  args: UpdateCharacterInput,
+): Promise<CharacterDetailDTO | null> {
+  const { id, isMultiSelect, ...baseFields } = args;
+
+  // Normalize the fields that were provided
+  const normalized: Partial<{
+    key: string;
+    label: string;
+    description: string;
+  }> = {};
+  if (baseFields.label !== undefined)
+    normalized.label = baseFields.label.trim();
+  if (baseFields.description !== undefined)
+    normalized.description = baseFields.description.trim();
+
+  return db.transaction(async (tx) => {
+    const updated = await updateCharacterBase(tx, id, normalized);
+    if (!updated) return null;
+
+    if (isMultiSelect !== undefined) {
+      const detail = await fetchCharacterDetailById(tx, id);
+      if (!detail || detail.type !== "categorical") {
+        throw new Error(
+          `Cannot set isMultiSelect on non-categorical character ${id}.`,
+        );
+      }
+      await updateCategoricalMeta(tx, id, isMultiSelect);
+    }
+
+    // Re-fetch the full detail DTO so the caller gets fresh data.
+    return fetchCharacterDetailById(tx, id);
   });
 }

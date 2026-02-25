@@ -5,7 +5,6 @@ import {
   Button,
   Dialog,
   Flex,
-  Text,
   TextArea,
   TextField,
 } from "@radix-ui/themes";
@@ -22,11 +21,14 @@ import {
   type CreateFeatureInput,
   createFeatureSchema,
 } from "../../../../lib/domain/features/validation";
-import { useAutoKey } from "../../../../lib/hooks/useAutoKey";
 import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../lib/utils/toast";
 
-export const AddFeatureModal = NiceModal.create(() => {
+interface Props {
+  initialLabel?: string;
+}
+
+export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
   const { visible, hide } = useModal();
   const qc = useQueryClient();
   const serverCreate = useServerFn(createFeatureFn);
@@ -34,8 +36,6 @@ export const AddFeatureModal = NiceModal.create(() => {
   const {
     register,
     handleSubmit,
-    control,
-    setValue,
     reset,
     formState: { errors, isSubmitting, touchedFields, isSubmitted },
   } = useForm<CreateFeatureInput>({
@@ -43,28 +43,18 @@ export const AddFeatureModal = NiceModal.create(() => {
     mode: "onSubmit",
     reValidateMode: "onChange",
     defaultValues: {
-      key: undefined,
-      label: "",
+      label: initialLabel,
       description: "",
     },
   });
 
-  const { autoKey, setAutoKey, handleKeyBlur } = useAutoKey(
-    control,
-    setValue,
-    "label",
-    "key",
-  );
-
   const onSubmit: SubmitHandler<CreateFeatureInput> = async ({
-    key,
     label,
     description,
   }) => {
     try {
       await serverCreate({
         data: {
-          key,
           label,
           description,
         },
@@ -76,7 +66,6 @@ export const AddFeatureModal = NiceModal.create(() => {
         description: `Feature "${label}" created successfully.`,
       });
       reset();
-      setAutoKey(true);
       hide();
     } catch (error) {
       toast({
@@ -92,7 +81,6 @@ export const AddFeatureModal = NiceModal.create(() => {
       onOpenChange={(open) => {
         if (!open) {
           reset();
-          setAutoKey(true);
           hide();
         }
       }}
@@ -121,39 +109,6 @@ export const AddFeatureModal = NiceModal.create(() => {
                 placeholder="e.g. cap, stem, leaf"
                 {...register("label")}
                 {...a11yProps("feature-label-error", !!errors.label)}
-              />
-            </Box>
-            <Box>
-              <Flex justify="between" align="baseline" mb="1">
-                <Label.Root htmlFor="feature-key">Key</Label.Root>
-                <Flex align="center" gap="2">
-                  <ConditionalAlert
-                    id="feature-key-error"
-                    message={
-                      touchedFields.key || isSubmitted
-                        ? errors.key?.message
-                        : undefined
-                    }
-                  />
-                  <Text size="1" color="gray">
-                    {autoKey ? "Auto" : "Manual"}
-                  </Text>
-                  <Button
-                    size="1"
-                    variant="soft"
-                    type="button"
-                    onClick={() => setAutoKey((v) => !v)}
-                  >
-                    {autoKey ? "Edit" : "Use auto"}
-                  </Button>
-                </Flex>
-              </Flex>
-              <TextField.Root
-                id="feature-key"
-                type="text"
-                readOnly={autoKey}
-                {...register("key", { onBlur: handleKeyBlur })}
-                {...a11yProps("feature-key-error", !!errors.key)}
               />
             </Box>
             <Box>

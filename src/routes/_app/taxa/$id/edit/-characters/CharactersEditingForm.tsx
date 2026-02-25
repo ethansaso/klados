@@ -4,8 +4,8 @@ import { useFormContext } from "react-hook-form";
 import type { TaxonEditFormValues } from "..";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
-import { EditingGroupCard } from "./EditingGroupCard";
-import { FeatureSearch } from "./search/GroupSearch";
+import { EditingFeatureCard } from "./EditingFeatureCard";
+import { FeatureSearch } from "./search/FeatureSearch";
 import {
   removeCategoricalTraitValue,
   removeCharacterState,
@@ -73,11 +73,11 @@ export function CharacterEditingForm({
         <Box mb="4">
           <FeatureSearch onSelect={handleGroupSelect} />
         </Box>
-        <div className="character-group-card-grid">
+        <div className="feature-card-grid">
           {value.map((group) => (
-            <EditingGroupCard
+            <EditingFeatureCard
               key={group.featureId}
-              group={group}
+              feature={group}
               onChange={onChange}
               onDelete={() => handleDeleteGroup(group.featureId)}
               onRemoveCategoricalValue={handleRemoveCategoricalTrait}

@@ -5,9 +5,10 @@ import {
   selectMinimalTraitValueRowById,
   selectTraitValueDtoById,
   selectTraitValueDtosByIds,
+  selectTraitValuesByCharacterPaginated,
   updateTraitValueRow,
 } from "./repo";
-import type { TraitValueDTO } from "./types";
+import type { TraitValueDTO, TraitValuePaginatedResult } from "./types";
 import type { UpdateTraitValueInput } from "./validation";
 
 /**
@@ -69,12 +70,10 @@ export async function getTraitValuesByIds(
  */
 export async function createTraitValue(args: {
   characterId: number;
-  key: string;
   label: string;
   canonicalValueId?: number | null;
 }): Promise<TraitValueDTO> {
   const characterId = args.characterId;
-  const key = args.key.trim();
   const label = args.label.trim();
   const canonicalValueId = args.canonicalValueId ?? null;
 
@@ -95,7 +94,6 @@ export async function createTraitValue(args: {
 
     const inserted = await insertTraitValueRow(tx, {
       characterId,
-      key,
       label,
       isCanonical: !canonicalValueId,
       canonicalValueId,
@@ -182,5 +180,26 @@ export async function updateTraitValue(
     if (!dto) throw new Error("Updated row not found.");
 
     return dto;
+  });
+}
+
+/**
+ * List trait values for a character, paginated.
+ */
+export async function listTraitValuesByCharacter(args: {
+  characterId: number;
+  page: number;
+  pageSize: number;
+  canonicalOnly?: boolean;
+  q?: string;
+}): Promise<TraitValuePaginatedResult> {
+  return db.transaction(async (tx) => {
+    return selectTraitValuesByCharacterPaginated(
+      tx,
+      args.characterId,
+      args.page,
+      args.pageSize,
+      { canonicalOnly: args.canonicalOnly, q: args.q },
+    );
   });
 }

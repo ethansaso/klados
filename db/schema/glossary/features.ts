@@ -13,7 +13,6 @@ export const feature = pgTable(
   "feature",
   withTimestamps({
     id: serial("id").primaryKey(),
-    key: text("key").notNull(), // machine-stable, e.g., "cap", "hymenium", "gills"
     label: text("label").notNull(),
     description: text("description").notNull().default(""),
     parentId: integer("parent_id"),
@@ -26,7 +25,7 @@ export const feature = pgTable(
       foreignColumns: [t.id],
     }).onDelete("restrict"),
 
-    uniqueIndex("feature_key_uq").on(t.key),
+    uniqueIndex("feature_label_uq").on(t.label),
     index("feature_parent_idx").on(t.parentId),
   ],
 );

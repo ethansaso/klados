@@ -5,7 +5,7 @@ import type { Trait } from "../states/types";
 export type TraitValueRow = typeof categoricalTraitValue.$inferSelect;
 export type TraitValueDTO = Pick<
   TraitValueRow,
-  "id" | "characterId" | "key" | "label" | "hexCode" | "description"
+  "id" | "characterId" | "label" | "hexCode" | "description"
 > & {
   /** Present when this value is an alias (isCanonical = false). */
   aliasTarget: Trait | null;

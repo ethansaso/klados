@@ -1,7 +1,7 @@
 import { Box, Card, Flex, ScrollArea, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import { NavigationMenu } from "radix-ui";
-import { type PropsWithChildren } from "react";
+import { type PropsWithChildren, type ReactNode } from "react";
 
 function List({ children }: PropsWithChildren) {
   return (
@@ -21,7 +21,7 @@ function List({ children }: PropsWithChildren) {
 }
 
 interface ItemProps {
-  label: string;
+  label: ReactNode;
   sub: string;
   to: string;
   params?: Record<string, string | number>;

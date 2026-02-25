@@ -10,17 +10,12 @@ import { Transaction } from "../../../src/lib/utils/transactionType";
 import { askYesNo } from "../../utils/askYesNo";
 import {
   ansiBlock,
+  ColorDef,
   generateCanonicalColorDefs,
   getNormalizedColorAliases,
 } from "../colors/util";
 
-type ColorDef = {
-  key: string; // machine key (snake_case)
-  label: string; // human label
-  hexCode: string | null;
-};
-
-const COLOR_CHARACTER_KEY = "color";
+const COLOR_CHARACTER_LABEL = "Color";
 
 /**
  * Fetch or create the "Color" character inside a transaction.
@@ -29,7 +24,7 @@ async function getOrCreateColorCharacterTx(tx: Transaction) {
   const existing = await tx
     .select()
     .from(character)
-    .where(eq(character.key, COLOR_CHARACTER_KEY))
+    .where(eq(character.label, COLOR_CHARACTER_LABEL))
     .limit(1);
 
   let charRow;
@@ -40,8 +35,7 @@ async function getOrCreateColorCharacterTx(tx: Transaction) {
     const [inserted] = await tx
       .insert(character)
       .values({
-        key: COLOR_CHARACTER_KEY,
-        label: "Color",
+        label: COLOR_CHARACTER_LABEL,
         description:
           "Standardized color names and swatches for Klados, derived from a simplified ISCC-like scheme.",
       })
@@ -75,16 +69,17 @@ async function upsertCanonicalColorsTx(
       .insert(categoricalTraitValue)
       .values({
         characterId,
-        key: color.key,
         label: color.label,
         isCanonical: true,
         canonicalValueId: null,
         hexCode: color.hexCode,
       })
       .onConflictDoUpdate({
-        target: [categoricalTraitValue.characterId, categoricalTraitValue.key],
+        target: [
+          categoricalTraitValue.characterId,
+          categoricalTraitValue.label,
+        ],
         set: {
-          label: color.label,
           hexCode: color.hexCode,
           isCanonical: true,
           canonicalValueId: null,
@@ -108,38 +103,40 @@ async function syncColorAliasesTx(tx: Transaction, characterId: number) {
       ),
     );
 
-  const canonicalByKey = new Map(canonicalRows.map((row) => [row.key, row]));
-  const canonicalKeys = new Set(canonicalByKey.keys());
+  const canonicalByLabel = new Map(
+    canonicalRows.map((row) => [row.label, row]),
+  );
+  const canonicalLabels = new Set(canonicalByLabel.keys());
 
   const aliases = getNormalizedColorAliases();
   const errors: string[] = [];
-  const aliasKeyToCanonical = new Map<string, string>();
+  const aliasLabelToCanonical = new Map<string, string>();
 
   for (const alias of aliases) {
-    const { aliasLabel, aliasKey, canonicalKey } = alias;
+    const { aliasLabel, canonicalLabel } = alias;
 
-    if (!canonicalByKey.has(canonicalKey)) {
+    if (!canonicalByLabel.has(canonicalLabel)) {
       errors.push(
-        `Alias "${aliasLabel}" uses canonicalKey "${canonicalKey}", but no canonical color with that key exists.`,
+        `Alias "${aliasLabel}" references canonical label "${canonicalLabel}", but no canonical color with that label exists.`,
       );
     }
 
-    if (canonicalKeys.has(aliasKey)) {
+    if (canonicalLabels.has(aliasLabel)) {
       errors.push(
-        `Alias "${aliasLabel}" uses aliasKey "${aliasKey}", which collides with an existing canonical key.`,
+        `Alias "${aliasLabel}" collides with an existing canonical label.`,
       );
     }
 
-    const existingCanonicalForAlias = aliasKeyToCanonical.get(aliasKey);
+    const existingCanonicalForAlias = aliasLabelToCanonical.get(aliasLabel);
     if (
       existingCanonicalForAlias &&
-      existingCanonicalForAlias !== canonicalKey
+      existingCanonicalForAlias !== canonicalLabel
     ) {
       errors.push(
-        `Alias key "${aliasKey}" is mapped to multiple canonical keys: "${existingCanonicalForAlias}" and "${canonicalKey}".`,
+        `Alias label "${aliasLabel}" is mapped to multiple canonicals: "${existingCanonicalForAlias}" and "${canonicalLabel}".`,
       );
     } else if (!existingCanonicalForAlias) {
-      aliasKeyToCanonical.set(aliasKey, canonicalKey);
+      aliasLabelToCanonical.set(aliasLabel, canonicalLabel);
     }
   }
 
@@ -150,22 +147,23 @@ async function syncColorAliasesTx(tx: Transaction, characterId: number) {
   }
 
   for (const alias of aliases) {
-    const canonical = canonicalByKey.get(alias.canonicalKey)!;
+    const canonical = canonicalByLabel.get(alias.canonicalLabel)!;
 
     await tx
       .insert(categoricalTraitValue)
       .values({
         characterId,
-        key: alias.aliasKey,
         label: alias.aliasLabel,
         isCanonical: false,
         canonicalValueId: canonical.id,
         hexCode: null,
       })
       .onConflictDoUpdate({
-        target: [categoricalTraitValue.characterId, categoricalTraitValue.key],
+        target: [
+          categoricalTraitValue.characterId,
+          categoricalTraitValue.label,
+        ],
         set: {
-          label: alias.aliasLabel,
           isCanonical: false,
           canonicalValueId: canonical.id,
           hexCode: null,
@@ -211,7 +209,7 @@ export async function run() {
   });
 
   console.log(
-    `\nDone. Seeded canonical colors and aliases into character "${COLOR_CHARACTER_KEY}".\n`,
+    `\nDone. Seeded canonical colors and aliases into character "${COLOR_CHARACTER_LABEL}".\n`,
   );
   process.exit(0);
 }

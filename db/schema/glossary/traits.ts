@@ -26,10 +26,10 @@ export const categoricalTraitValue = pgTable(
       .references(() => categoricalCharacterMeta.characterId, {
         onDelete: "cascade",
       }),
-    key: text("key").notNull(),
     label: text("label").notNull(),
     hexCode: text("hex_code"),
     description: text("description").notNull().default(""),
+    // TODO: migrate to just 'canonicalValueId' -- isCanonical can be derived from whether the FK is null
     isCanonical: boolean("is_canonical").notNull().default(true),
     canonicalValueId: integer("canonical_value_id"),
   }),
@@ -41,7 +41,7 @@ export const categoricalTraitValue = pgTable(
       foreignColumns: [t.characterId, t.id],
     }).onDelete("cascade"),
 
-    uniqueIndex("trait_values_character_key_uq").on(t.characterId, t.key),
+    uniqueIndex("trait_values_character_label_uq").on(t.characterId, t.label),
     index("trait_values_character_idx").on(t.characterId),
     index("trait_values_canonical_target_idx")
       .on(t.canonicalValueId)

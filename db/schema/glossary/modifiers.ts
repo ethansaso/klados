@@ -28,12 +28,11 @@ export const categoricalModifierGroup = pgTable(
   "categorical_modifier_group",
   withTimestamps({
     id: serial("id").primaryKey(),
-    key: text("key").notNull(),
     label: text("label").notNull(),
     description: text("description").notNull().default(""),
     class: modifierClassEnum("class").notNull(),
   }),
-  (t) => [uniqueIndex("categorical_modifier_groups_key_uq").on(t.key)],
+  (t) => [uniqueIndex("categorical_modifier_groups_label_uq").on(t.label)],
 );
 
 /**

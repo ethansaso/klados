@@ -64,9 +64,9 @@ export const taxonEditFormSchema = z.object({
 const convertToServerCharacterValues = (
   values: TaxonEditFormValues["states"],
 ): CharacterByFeatureUpdate => {
-  return values.map((group) => ({
-    groupId: group.featureId,
-    characters: group.characters.map((v) => {
+  return values.map((feature) => ({
+    featureId: feature.featureId,
+    characters: feature.characters.map((v) => {
       switch (v.kind) {
         case "categorical":
           return {

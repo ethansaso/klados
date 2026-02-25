@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, eq, ilike, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import {
@@ -6,7 +6,11 @@ import {
   categoricalTraitValue as valsTbl,
 } from "../../../../db/schema/schema";
 import type { Transaction } from "../../utils/transactionType";
-import type { TraitValueDTO, TraitValueRow } from "./types";
+import type {
+  TraitValueDTO,
+  TraitValuePaginatedResult,
+  TraitValueRow,
+} from "./types";
 
 /**
  * Delete a trait value by id; returns the deleted id or null if nothing deleted.
@@ -54,7 +58,6 @@ export async function insertTraitValueRow(
   tx: Transaction,
   args: {
     characterId: number;
-    key: string;
     label: string;
     isCanonical: boolean;
     canonicalValueId: number | null;
@@ -64,7 +67,6 @@ export async function insertTraitValueRow(
     .insert(valsTbl)
     .values({
       characterId: args.characterId,
-      key: args.key,
       label: args.label,
       isCanonical: args.isCanonical,
       canonicalValueId: args.canonicalValueId,
@@ -72,7 +74,6 @@ export async function insertTraitValueRow(
     .returning({
       id: valsTbl.id,
       characterId: valsTbl.characterId,
-      key: valsTbl.key,
       label: valsTbl.label,
       isCanonical: valsTbl.isCanonical,
       canonicalValueId: valsTbl.canonicalValueId,
@@ -119,7 +120,6 @@ export async function selectTraitValueDtoById(
     .select({
       id: v.id,
       characterId: v.characterId,
-      key: v.key,
       label: v.label,
       hexCode: v.hexCode,
       description: v.description,
@@ -144,7 +144,6 @@ export async function selectTraitValueDtoById(
   return {
     id: row.id,
     characterId: row.characterId,
-    key: row.key,
     label: row.label,
     hexCode: row.hexCode,
     description: row.description,
@@ -206,7 +205,6 @@ export async function selectTraitValueDtosByIds(
     .select({
       id: v.id,
       characterId: v.characterId,
-      key: v.key,
       label: v.label,
       hexCode: v.hexCode,
       description: v.description,
@@ -228,7 +226,6 @@ export async function selectTraitValueDtosByIds(
   return rows.map((row) => ({
     id: row.id,
     characterId: row.characterId,
-    key: row.key,
     label: row.label,
     hexCode: row.hexCode,
     description: row.description,
@@ -289,4 +286,102 @@ export async function updateTraitValueRow(
     .returning({ id: valsTbl.id });
 
   return updated ?? null;
+}
+
+/**
+ * Fetch paginated TraitValueDTOs for a given character.
+ */
+export async function selectTraitValuesByCharacterPaginated(
+  tx: Transaction,
+  characterId: number,
+  page: number,
+  pageSize: number,
+  opts?: { canonicalOnly?: boolean; q?: string },
+): Promise<TraitValuePaginatedResult> {
+  const offset = (page - 1) * pageSize;
+
+  const v = valsTbl;
+  const canon = alias(valsTbl, "canon");
+
+  const filters: ReturnType<typeof eq>[] = [eq(v.characterId, characterId)];
+  if (opts?.canonicalOnly) {
+    filters.push(eq(v.isCanonical, true));
+  }
+  if (opts?.q) {
+    filters.push(ilike(v.label, `%${opts.q}%`));
+  }
+  const where = and(...filters)!;
+
+  const usageAgg = tx
+    .select({
+      traitValueId: tcsTbl.traitValueId,
+      usageCount: sql<number>`CAST(COUNT(${tcsTbl.id}) AS INT)`.as(
+        "usage_count",
+      ),
+    })
+    .from(tcsTbl)
+    .groupBy(tcsTbl.traitValueId)
+    .as("usage_agg");
+
+  const aliasAgg = tx
+    .select({
+      targetId: valsTbl.canonicalValueId,
+      aliasCount: sql<number>`CAST(COUNT(${valsTbl.id}) AS INT)`.as(
+        "alias_count",
+      ),
+    })
+    .from(valsTbl)
+    .groupBy(valsTbl.canonicalValueId)
+    .as("alias_agg");
+
+  const rows = await tx
+    .select({
+      id: v.id,
+      characterId: v.characterId,
+      label: v.label,
+      hexCode: v.hexCode,
+      description: v.description,
+      isCanonical: v.isCanonical,
+      canonId: canon.id,
+      canonLabel: canon.label,
+      canonHexCode: canon.hexCode,
+      canonDescription: canon.description,
+      usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
+      aliasCount: sql<number>`COALESCE(${aliasAgg.aliasCount}, 0)`,
+    })
+    .from(v)
+    .leftJoin(canon, eq(v.canonicalValueId, canon.id))
+    .leftJoin(usageAgg, eq(usageAgg.traitValueId, v.id))
+    .leftJoin(aliasAgg, eq(aliasAgg.targetId, v.id))
+    .where(where)
+    .orderBy(asc(v.label), asc(v.id))
+    .limit(pageSize)
+    .offset(offset);
+
+  const [totals] = await tx.select({ total: count() }).from(v).where(where);
+
+  const total = totals?.total ?? 0;
+
+  const items: TraitValueDTO[] = rows.map((row) => ({
+    id: row.id,
+    characterId: row.characterId,
+    label: row.label,
+    hexCode: row.hexCode,
+    description: row.description,
+    usageCount: row.usageCount,
+    aliasCount: row.aliasCount,
+    aliasTarget: row.isCanonical
+      ? null
+      : row.canonId
+        ? {
+            id: row.canonId,
+            canonicalId: row.canonId,
+            label: row.canonLabel!,
+            description: row.canonDescription!,
+            hexCode: row.canonHexCode ?? undefined,
+          }
+        : null,
+  }));
+
+  return { items, page, pageSize, total };
 }

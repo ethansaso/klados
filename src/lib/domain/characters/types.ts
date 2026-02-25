@@ -12,17 +12,16 @@ export type CategoricalMetaRow = typeof categoricalCharacterMeta.$inferSelect;
 export type NumericMetaRow = typeof numericCharacterMeta.$inferSelect;
 export type UnitFamilyRow = typeof unitFamily.$inferSelect;
 
-type BaseCharacterDTO = Pick<
-  CharacterRow,
-  "id" | "key" | "label" | "description"
-> & {
+type BaseCharacterDTO = Pick<CharacterRow, "id" | "label" | "description"> & {
   features: Pick<FeatureRow, "id" | "label">[];
   usageCount: number;
 };
 
 export type CategoricalCharacterDTO = BaseCharacterDTO & {
   type: "categorical";
-} & Pick<CategoricalMetaRow, "characterId">;
+} & Pick<CategoricalMetaRow, "characterId"> & {
+    traitCount: number;
+  };
 
 export type NumberCharacterDTO = BaseCharacterDTO & {
   type: "number";
@@ -44,7 +43,10 @@ type BaseNumericCharacterDetailDTO = Omit<
   unitFamily: Pick<UnitFamilyRow, "id" | "label">;
 };
 
-export type CategoricalCharacterDetailDTO = CategoricalCharacterDTO &
+export type CategoricalCharacterDetailDTO = Omit<
+  CategoricalCharacterDTO,
+  "traitCount"
+> &
   Pick<CategoricalMetaRow, "isMultiSelect">;
 
 export type NumberCharacterDetailDTO = BaseNumericCharacterDetailDTO & {

@@ -1,15 +1,20 @@
 import { db } from "../../../../db/client";
 import {
+  countDependentsForFeature,
+  deleteFeatureById,
   fetchFeatureDetailById,
   insertFeature,
   listFeaturesQuery,
   selectFeaturesByIds,
+  setCharacterFeatureRows,
+  updateFeatureRow,
 } from "./repo";
 import type {
   FeatureDetailDTO,
   FeatureDTO,
   FeaturePaginatedResult,
 } from "./types";
+import type { UpdateFeatureInput } from "./validation";
 
 /**
  * Bulk fetch character groups by ID (non-paginated).
@@ -44,23 +49,23 @@ export async function listFeatures(args: {
 export async function getFeature(args: {
   id: number;
 }): Promise<FeatureDetailDTO | null> {
-  return fetchFeatureDetailById(args.id);
+  return db.transaction(async (tx) => {
+    return fetchFeatureDetailById(tx, args.id);
+  });
 }
 
 /**
  * Create a feature.
  */
 export async function createFeature(args: {
-  key: string;
   label: string;
   description?: string;
 }): Promise<FeatureDTO | null> {
-  const key = args.key.trim();
   const label = args.label.trim();
   const description = args.description?.trim() || "";
 
   return db.transaction(async (tx) => {
-    const base = await insertFeature(tx, { key, label, description });
+    const base = await insertFeature(tx, { label, description });
     if (!base) {
       return null;
     }
@@ -71,5 +76,78 @@ export async function createFeature(args: {
     };
 
     return dto;
+  });
+}
+
+export async function updateFeature(
+  args: UpdateFeatureInput,
+): Promise<FeatureDetailDTO | null> {
+  const { id, label, description, parentId, characterIds } = args;
+
+  return db.transaction(async (tx) => {
+    const updated = await updateFeatureRow(tx, id, {
+      label,
+      description,
+      parentId,
+    });
+    if (!updated) {
+      return null;
+    }
+
+    if (characterIds) {
+      await setCharacterFeatureRows(tx, id, characterIds);
+    }
+
+    const dto = await fetchFeatureDetailById(tx, id);
+    if (!dto) {
+      throw new Error("Unexpected error fetching updated feature");
+    }
+
+    return dto;
+  });
+}
+
+export class FeatureInUseError extends Error {
+  readonly subFeatureCount: number;
+  readonly featureStateCount: number;
+
+  constructor(subFeatureCount: number, featureStateCount: number) {
+    const reasons: string[] = [];
+    if (subFeatureCount > 0) reasons.push(`${subFeatureCount} subfeature(s)`);
+    if (featureStateCount > 0)
+      reasons.push(`${featureStateCount} feature state(s)`);
+    super(`Cannot delete feature; it still has ${reasons.join(" and ")}.`);
+    this.name = "FeatureInUseError";
+    this.subFeatureCount = subFeatureCount;
+    this.featureStateCount = featureStateCount;
+  }
+}
+
+/**
+ * Delete a feature if it has no subfeatures and no feature-state references.
+ * Returns { id } if deleted, null if the feature does not exist.
+ * Throws FeatureInUseError if it has dependents.
+ */
+export async function deleteFeature(args: {
+  id: number;
+}): Promise<{ id: number } | null> {
+  const { id } = args;
+
+  return db.transaction(async (tx) => {
+    const dependents = await countDependentsForFeature(tx, id);
+
+    if (dependents === null) {
+      return null;
+    }
+
+    if (dependents.subFeatureCount > 0 || dependents.featureStateCount > 0) {
+      throw new FeatureInUseError(
+        dependents.subFeatureCount,
+        dependents.featureStateCount,
+      );
+    }
+
+    const deleted = await deleteFeatureById(tx, id);
+    return deleted;
   });
 }

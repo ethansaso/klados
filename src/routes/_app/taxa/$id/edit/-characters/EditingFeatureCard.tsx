@@ -15,35 +15,37 @@ import type { TaxonEditFormValues } from "..";
 import type { TraitSuggestion } from "../../../../../../lib/api/character-suggestions/types";
 import { featureQueryOptions } from "../../../../../../lib/queries/features";
 import { CharacterStateRow } from "./CharacterStateRow";
-import { FeatureStateSearch } from "./search/GroupStateSearch";
+import { FeatureStateSearch } from "./search/FeatureStateSearch";
 import { addStateFromSuggestion } from "./stateUtils";
 import type { FeatureFormValue } from "./validation";
 
-type GroupCardProps = {
-  group: FeatureFormValue;
+type Props = {
+  feature: FeatureFormValue;
   onChange: (nextGroups: FeatureFormValue[]) => void;
   onDelete: () => void;
   onRemoveCategoricalValue: (
-    groupId: number,
+    featureId: number,
     characterId: number,
     traitValueId: number,
   ) => void;
-  onRemoveState: (groupId: number, characterId: number) => void;
+  onRemoveState: (featureId: number, characterId: number) => void;
 };
 
-export const EditingGroupCard = memo(
+export const EditingFeatureCard = memo(
   ({
-    group,
+    feature,
     onChange,
     onDelete,
     onRemoveCategoricalValue,
     onRemoveState,
-  }: GroupCardProps) => {
+  }: Props) => {
     const { getValues } = useFormContext<TaxonEditFormValues>();
     const [confirmingDelete, setConfirmingDelete] = useState(false);
-    const { data, isLoading, isError } = useQuery(
-      featureQueryOptions(group.featureId),
-    );
+    const { data, isLoading, isError } = useQuery({
+      ...featureQueryOptions(feature.featureId),
+      staleTime: 5_000,
+      refetchOnWindowFocus: true,
+    });
 
     const label = data?.label;
 
@@ -105,7 +107,7 @@ export const EditingGroupCard = memo(
         {/* Add states via search */}
         <Box mt="2" mb="3">
           <FeatureStateSearch
-            featureId={group.featureId}
+            featureId={feature.featureId}
             onSelect={handleSuggestionSelect}
           />
         </Box>
@@ -123,16 +125,16 @@ export const EditingGroupCard = memo(
               <CharacterStateRow
                 key={c.id}
                 character={c}
-                state={group.characters.find((s) => s.characterId === c.id)}
+                state={feature.characters.find((s) => s.characterId === c.id)}
                 onRemoveCategoricalValue={(characterId, traitValueId) =>
                   onRemoveCategoricalValue(
-                    group.featureId,
+                    feature.featureId,
                     characterId,
                     traitValueId,
                   )
                 }
                 onRemoveState={(characterId) =>
-                  onRemoveState(group.featureId, characterId)
+                  onRemoveState(feature.featureId, characterId)
                 }
               />
             ))}

@@ -17,11 +17,10 @@ import type { CreateModifierGroupInput } from "./validation";
 export async function selectModifierGroupById(
   id: number,
 ): Promise<ModifierGroupDetailDTO | null> {
-  // Group itself -- COPILOT, are the following lines correct?
+  // Group itself
   const [row] = await db
     .select({
       id: modifierGroupTbl.id,
-      key: modifierGroupTbl.key,
       label: modifierGroupTbl.label,
       description: modifierGroupTbl.description,
       class: modifierGroupTbl.class,
@@ -62,7 +61,6 @@ export async function listModifierGroupsQuery(args: {
   const items = await db
     .select({
       id: modifierGroupTbl.id,
-      key: modifierGroupTbl.key,
       label: modifierGroupTbl.label,
       description: modifierGroupTbl.description,
       class: modifierGroupTbl.class,
@@ -76,12 +74,11 @@ export async function listModifierGroupsQuery(args: {
     .where(filters)
     .groupBy(
       modifierGroupTbl.id,
-      modifierGroupTbl.key,
       modifierGroupTbl.label,
       modifierGroupTbl.description,
       modifierGroupTbl.class,
     )
-    .orderBy(asc(modifierGroupTbl.label), asc(modifierGroupTbl.key))
+    .orderBy(asc(modifierGroupTbl.label))
     .limit(pageSize)
     .offset(offset);
 
@@ -104,14 +101,12 @@ export async function insertModifierGroup(
   const [group] = await tx
     .insert(modifierGroupTbl)
     .values({
-      key: args.key,
       label: args.label,
       description: args.description,
       class: args.class,
     })
     .returning({
       id: modifierGroupTbl.id,
-      key: modifierGroupTbl.key,
       label: modifierGroupTbl.label,
       description: modifierGroupTbl.description,
       class: modifierGroupTbl.class,

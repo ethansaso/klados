@@ -54,10 +54,14 @@ import { Route as AppGlossaryFeaturesIndexRouteImport } from './routes/_app/glos
 import { Route as AppGlossaryCharactersIndexRouteImport } from './routes/_app/glossary/characters/index'
 import { Route as AppUsersUsernameEditRouteImport } from './routes/_app/users/$username/edit'
 import { Route as AppGlossaryModifiersIdRouteImport } from './routes/_app/glossary/modifiers/$id'
-import { Route as AppGlossaryFeaturesIdRouteImport } from './routes/_app/glossary/features/$id'
-import { Route as AppGlossaryCharactersIdRouteImport } from './routes/_app/glossary/characters/$id'
 import { Route as AppTaxaIdEditRouteRouteImport } from './routes/_app/taxa/$id/edit/route'
+import { Route as AppGlossaryFeaturesIdRouteRouteImport } from './routes/_app/glossary/features/$id/route'
+import { Route as AppGlossaryCharactersIdRouteRouteImport } from './routes/_app/glossary/characters/$id/route'
 import { Route as AppTaxaIdEditIndexRouteImport } from './routes/_app/taxa/$id/edit/index'
+import { Route as AppGlossaryFeaturesIdIndexRouteImport } from './routes/_app/glossary/features/$id/index'
+import { Route as AppGlossaryCharactersIdIndexRouteImport } from './routes/_app/glossary/characters/$id/index'
+import { Route as AppGlossaryFeaturesIdEditRouteImport } from './routes/_app/glossary/features/$id/edit'
+import { Route as AppGlossaryCharactersIdEditRouteImport } from './routes/_app/glossary/characters/$id/edit'
 
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
@@ -289,26 +293,52 @@ const AppGlossaryModifiersIdRoute = AppGlossaryModifiersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AppGlossaryModifiersRouteRoute,
 } as any)
-const AppGlossaryFeaturesIdRoute = AppGlossaryFeaturesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AppGlossaryFeaturesRouteRoute,
-} as any)
-const AppGlossaryCharactersIdRoute = AppGlossaryCharactersIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AppGlossaryCharactersRouteRoute,
-} as any)
 const AppTaxaIdEditRouteRoute = AppTaxaIdEditRouteRouteImport.update({
   id: '/edit',
   path: '/edit',
   getParentRoute: () => AppTaxaIdRouteRoute,
 } as any)
+const AppGlossaryFeaturesIdRouteRoute =
+  AppGlossaryFeaturesIdRouteRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AppGlossaryFeaturesRouteRoute,
+  } as any)
+const AppGlossaryCharactersIdRouteRoute =
+  AppGlossaryCharactersIdRouteRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AppGlossaryCharactersRouteRoute,
+  } as any)
 const AppTaxaIdEditIndexRoute = AppTaxaIdEditIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppTaxaIdEditRouteRoute,
 } as any)
+const AppGlossaryFeaturesIdIndexRoute =
+  AppGlossaryFeaturesIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppGlossaryFeaturesIdRouteRoute,
+  } as any)
+const AppGlossaryCharactersIdIndexRoute =
+  AppGlossaryCharactersIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppGlossaryCharactersIdRouteRoute,
+  } as any)
+const AppGlossaryFeaturesIdEditRoute =
+  AppGlossaryFeaturesIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AppGlossaryFeaturesIdRouteRoute,
+  } as any)
+const AppGlossaryCharactersIdEditRoute =
+  AppGlossaryCharactersIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AppGlossaryCharactersIdRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -344,9 +374,9 @@ export interface FileRoutesByFullPath {
   '/users/': typeof AppUsersIndexRoute
   '/admin/sources/': typeof AdminSourcesIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/glossary/characters/$id': typeof AppGlossaryCharactersIdRouteRouteWithChildren
+  '/glossary/features/$id': typeof AppGlossaryFeaturesIdRouteRouteWithChildren
   '/taxa/$id/edit': typeof AppTaxaIdEditRouteRouteWithChildren
-  '/glossary/characters/$id': typeof AppGlossaryCharactersIdRoute
-  '/glossary/features/$id': typeof AppGlossaryFeaturesIdRoute
   '/glossary/modifiers/$id': typeof AppGlossaryModifiersIdRoute
   '/users/$username/edit': typeof AppUsersUsernameEditRoute
   '/glossary/characters/': typeof AppGlossaryCharactersIndexRoute
@@ -357,6 +387,10 @@ export interface FileRoutesByFullPath {
   '/guides/create/': typeof AppGuidesCreateIndexRoute
   '/taxa/$id/': typeof AppTaxaIdIndexRoute
   '/users/$username/': typeof AppUsersUsernameIndexRoute
+  '/glossary/characters/$id/edit': typeof AppGlossaryCharactersIdEditRoute
+  '/glossary/features/$id/edit': typeof AppGlossaryFeaturesIdEditRoute
+  '/glossary/characters/$id/': typeof AppGlossaryCharactersIdIndexRoute
+  '/glossary/features/$id/': typeof AppGlossaryFeaturesIdIndexRoute
   '/taxa/$id/edit/': typeof AppTaxaIdEditIndexRoute
 }
 export interface FileRoutesByTo {
@@ -384,8 +418,6 @@ export interface FileRoutesByTo {
   '/users': typeof AppUsersIndexRoute
   '/admin/sources': typeof AdminSourcesIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
-  '/glossary/characters/$id': typeof AppGlossaryCharactersIdRoute
-  '/glossary/features/$id': typeof AppGlossaryFeaturesIdRoute
   '/glossary/modifiers/$id': typeof AppGlossaryModifiersIdRoute
   '/users/$username/edit': typeof AppUsersUsernameEditRoute
   '/glossary/characters': typeof AppGlossaryCharactersIndexRoute
@@ -395,6 +427,10 @@ export interface FileRoutesByTo {
   '/guides/create': typeof AppGuidesCreateIndexRoute
   '/taxa/$id': typeof AppTaxaIdIndexRoute
   '/users/$username': typeof AppUsersUsernameIndexRoute
+  '/glossary/characters/$id/edit': typeof AppGlossaryCharactersIdEditRoute
+  '/glossary/features/$id/edit': typeof AppGlossaryFeaturesIdEditRoute
+  '/glossary/characters/$id': typeof AppGlossaryCharactersIdIndexRoute
+  '/glossary/features/$id': typeof AppGlossaryFeaturesIdIndexRoute
   '/taxa/$id/edit': typeof AppTaxaIdEditIndexRoute
 }
 export interface FileRoutesById {
@@ -434,9 +470,9 @@ export interface FileRoutesById {
   '/_app/users/': typeof AppUsersIndexRoute
   '/admin/sources/': typeof AdminSourcesIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/_app/glossary/characters/$id': typeof AppGlossaryCharactersIdRouteRouteWithChildren
+  '/_app/glossary/features/$id': typeof AppGlossaryFeaturesIdRouteRouteWithChildren
   '/_app/taxa/$id/edit': typeof AppTaxaIdEditRouteRouteWithChildren
-  '/_app/glossary/characters/$id': typeof AppGlossaryCharactersIdRoute
-  '/_app/glossary/features/$id': typeof AppGlossaryFeaturesIdRoute
   '/_app/glossary/modifiers/$id': typeof AppGlossaryModifiersIdRoute
   '/_app/users/$username/edit': typeof AppUsersUsernameEditRoute
   '/_app/glossary/characters/': typeof AppGlossaryCharactersIndexRoute
@@ -447,6 +483,10 @@ export interface FileRoutesById {
   '/_app/guides/create/': typeof AppGuidesCreateIndexRoute
   '/_app/taxa/$id/': typeof AppTaxaIdIndexRoute
   '/_app/users/$username/': typeof AppUsersUsernameIndexRoute
+  '/_app/glossary/characters/$id/edit': typeof AppGlossaryCharactersIdEditRoute
+  '/_app/glossary/features/$id/edit': typeof AppGlossaryFeaturesIdEditRoute
+  '/_app/glossary/characters/$id/': typeof AppGlossaryCharactersIdIndexRoute
+  '/_app/glossary/features/$id/': typeof AppGlossaryFeaturesIdIndexRoute
   '/_app/taxa/$id/edit/': typeof AppTaxaIdEditIndexRoute
 }
 export interface FileRouteTypes {
@@ -485,9 +525,9 @@ export interface FileRouteTypes {
     | '/users/'
     | '/admin/sources/'
     | '/admin/users/'
-    | '/taxa/$id/edit'
     | '/glossary/characters/$id'
     | '/glossary/features/$id'
+    | '/taxa/$id/edit'
     | '/glossary/modifiers/$id'
     | '/users/$username/edit'
     | '/glossary/characters/'
@@ -498,6 +538,10 @@ export interface FileRouteTypes {
     | '/guides/create/'
     | '/taxa/$id/'
     | '/users/$username/'
+    | '/glossary/characters/$id/edit'
+    | '/glossary/features/$id/edit'
+    | '/glossary/characters/$id/'
+    | '/glossary/features/$id/'
     | '/taxa/$id/edit/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -525,8 +569,6 @@ export interface FileRouteTypes {
     | '/users'
     | '/admin/sources'
     | '/admin/users'
-    | '/glossary/characters/$id'
-    | '/glossary/features/$id'
     | '/glossary/modifiers/$id'
     | '/users/$username/edit'
     | '/glossary/characters'
@@ -536,6 +578,10 @@ export interface FileRouteTypes {
     | '/guides/create'
     | '/taxa/$id'
     | '/users/$username'
+    | '/glossary/characters/$id/edit'
+    | '/glossary/features/$id/edit'
+    | '/glossary/characters/$id'
+    | '/glossary/features/$id'
     | '/taxa/$id/edit'
   id:
     | '__root__'
@@ -574,9 +620,9 @@ export interface FileRouteTypes {
     | '/_app/users/'
     | '/admin/sources/'
     | '/admin/users/'
-    | '/_app/taxa/$id/edit'
     | '/_app/glossary/characters/$id'
     | '/_app/glossary/features/$id'
+    | '/_app/taxa/$id/edit'
     | '/_app/glossary/modifiers/$id'
     | '/_app/users/$username/edit'
     | '/_app/glossary/characters/'
@@ -587,6 +633,10 @@ export interface FileRouteTypes {
     | '/_app/guides/create/'
     | '/_app/taxa/$id/'
     | '/_app/users/$username/'
+    | '/_app/glossary/characters/$id/edit'
+    | '/_app/glossary/features/$id/edit'
+    | '/_app/glossary/characters/$id/'
+    | '/_app/glossary/features/$id/'
     | '/_app/taxa/$id/edit/'
   fileRoutesById: FileRoutesById
 }
@@ -915,26 +965,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGlossaryModifiersIdRouteImport
       parentRoute: typeof AppGlossaryModifiersRouteRoute
     }
-    '/_app/glossary/features/$id': {
-      id: '/_app/glossary/features/$id'
-      path: '/$id'
-      fullPath: '/glossary/features/$id'
-      preLoaderRoute: typeof AppGlossaryFeaturesIdRouteImport
-      parentRoute: typeof AppGlossaryFeaturesRouteRoute
-    }
-    '/_app/glossary/characters/$id': {
-      id: '/_app/glossary/characters/$id'
-      path: '/$id'
-      fullPath: '/glossary/characters/$id'
-      preLoaderRoute: typeof AppGlossaryCharactersIdRouteImport
-      parentRoute: typeof AppGlossaryCharactersRouteRoute
-    }
     '/_app/taxa/$id/edit': {
       id: '/_app/taxa/$id/edit'
       path: '/edit'
       fullPath: '/taxa/$id/edit'
       preLoaderRoute: typeof AppTaxaIdEditRouteRouteImport
       parentRoute: typeof AppTaxaIdRouteRoute
+    }
+    '/_app/glossary/features/$id': {
+      id: '/_app/glossary/features/$id'
+      path: '/$id'
+      fullPath: '/glossary/features/$id'
+      preLoaderRoute: typeof AppGlossaryFeaturesIdRouteRouteImport
+      parentRoute: typeof AppGlossaryFeaturesRouteRoute
+    }
+    '/_app/glossary/characters/$id': {
+      id: '/_app/glossary/characters/$id'
+      path: '/$id'
+      fullPath: '/glossary/characters/$id'
+      preLoaderRoute: typeof AppGlossaryCharactersIdRouteRouteImport
+      parentRoute: typeof AppGlossaryCharactersRouteRoute
     }
     '/_app/taxa/$id/edit/': {
       id: '/_app/taxa/$id/edit/'
@@ -943,17 +993,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTaxaIdEditIndexRouteImport
       parentRoute: typeof AppTaxaIdEditRouteRoute
     }
+    '/_app/glossary/features/$id/': {
+      id: '/_app/glossary/features/$id/'
+      path: '/'
+      fullPath: '/glossary/features/$id/'
+      preLoaderRoute: typeof AppGlossaryFeaturesIdIndexRouteImport
+      parentRoute: typeof AppGlossaryFeaturesIdRouteRoute
+    }
+    '/_app/glossary/characters/$id/': {
+      id: '/_app/glossary/characters/$id/'
+      path: '/'
+      fullPath: '/glossary/characters/$id/'
+      preLoaderRoute: typeof AppGlossaryCharactersIdIndexRouteImport
+      parentRoute: typeof AppGlossaryCharactersIdRouteRoute
+    }
+    '/_app/glossary/features/$id/edit': {
+      id: '/_app/glossary/features/$id/edit'
+      path: '/edit'
+      fullPath: '/glossary/features/$id/edit'
+      preLoaderRoute: typeof AppGlossaryFeaturesIdEditRouteImport
+      parentRoute: typeof AppGlossaryFeaturesIdRouteRoute
+    }
+    '/_app/glossary/characters/$id/edit': {
+      id: '/_app/glossary/characters/$id/edit'
+      path: '/edit'
+      fullPath: '/glossary/characters/$id/edit'
+      preLoaderRoute: typeof AppGlossaryCharactersIdEditRouteImport
+      parentRoute: typeof AppGlossaryCharactersIdRouteRoute
+    }
   }
 }
 
+interface AppGlossaryCharactersIdRouteRouteChildren {
+  AppGlossaryCharactersIdEditRoute: typeof AppGlossaryCharactersIdEditRoute
+  AppGlossaryCharactersIdIndexRoute: typeof AppGlossaryCharactersIdIndexRoute
+}
+
+const AppGlossaryCharactersIdRouteRouteChildren: AppGlossaryCharactersIdRouteRouteChildren =
+  {
+    AppGlossaryCharactersIdEditRoute: AppGlossaryCharactersIdEditRoute,
+    AppGlossaryCharactersIdIndexRoute: AppGlossaryCharactersIdIndexRoute,
+  }
+
+const AppGlossaryCharactersIdRouteRouteWithChildren =
+  AppGlossaryCharactersIdRouteRoute._addFileChildren(
+    AppGlossaryCharactersIdRouteRouteChildren,
+  )
+
 interface AppGlossaryCharactersRouteRouteChildren {
-  AppGlossaryCharactersIdRoute: typeof AppGlossaryCharactersIdRoute
+  AppGlossaryCharactersIdRouteRoute: typeof AppGlossaryCharactersIdRouteRouteWithChildren
   AppGlossaryCharactersIndexRoute: typeof AppGlossaryCharactersIndexRoute
 }
 
 const AppGlossaryCharactersRouteRouteChildren: AppGlossaryCharactersRouteRouteChildren =
   {
-    AppGlossaryCharactersIdRoute: AppGlossaryCharactersIdRoute,
+    AppGlossaryCharactersIdRouteRoute:
+      AppGlossaryCharactersIdRouteRouteWithChildren,
     AppGlossaryCharactersIndexRoute: AppGlossaryCharactersIndexRoute,
   }
 
@@ -962,14 +1057,31 @@ const AppGlossaryCharactersRouteRouteWithChildren =
     AppGlossaryCharactersRouteRouteChildren,
   )
 
+interface AppGlossaryFeaturesIdRouteRouteChildren {
+  AppGlossaryFeaturesIdEditRoute: typeof AppGlossaryFeaturesIdEditRoute
+  AppGlossaryFeaturesIdIndexRoute: typeof AppGlossaryFeaturesIdIndexRoute
+}
+
+const AppGlossaryFeaturesIdRouteRouteChildren: AppGlossaryFeaturesIdRouteRouteChildren =
+  {
+    AppGlossaryFeaturesIdEditRoute: AppGlossaryFeaturesIdEditRoute,
+    AppGlossaryFeaturesIdIndexRoute: AppGlossaryFeaturesIdIndexRoute,
+  }
+
+const AppGlossaryFeaturesIdRouteRouteWithChildren =
+  AppGlossaryFeaturesIdRouteRoute._addFileChildren(
+    AppGlossaryFeaturesIdRouteRouteChildren,
+  )
+
 interface AppGlossaryFeaturesRouteRouteChildren {
-  AppGlossaryFeaturesIdRoute: typeof AppGlossaryFeaturesIdRoute
+  AppGlossaryFeaturesIdRouteRoute: typeof AppGlossaryFeaturesIdRouteRouteWithChildren
   AppGlossaryFeaturesIndexRoute: typeof AppGlossaryFeaturesIndexRoute
 }
 
 const AppGlossaryFeaturesRouteRouteChildren: AppGlossaryFeaturesRouteRouteChildren =
   {
-    AppGlossaryFeaturesIdRoute: AppGlossaryFeaturesIdRoute,
+    AppGlossaryFeaturesIdRouteRoute:
+      AppGlossaryFeaturesIdRouteRouteWithChildren,
     AppGlossaryFeaturesIndexRoute: AppGlossaryFeaturesIndexRoute,
   }
 

@@ -4,14 +4,14 @@ export function PaginationFooter({
   page,
   pageSize,
   total,
-  showValue,
+  showTotal,
   onPrev,
   onNext,
 }: {
   page: number;
   pageSize: number;
   total: number;
-  showValue?: boolean;
+  showTotal?: boolean;
   onPrev: () => void;
   onNext: () => void;
 }) {
@@ -20,7 +20,7 @@ export function PaginationFooter({
     <Flex mt="3" justify="between" align="center" wrap="wrap" gap="2">
       <Text size="1" color="gray">
         Page {page} of {max}
-        {showValue ? ` · ${total} value${total === 1 ? "" : "s"}` : ""}
+        {showTotal ? ` · ${total} value${total === 1 ? "" : "s"}` : ""}
       </Text>
       <Flex gap="2">
         <Button size="1" variant="soft" disabled={page <= 1} onClick={onPrev}>

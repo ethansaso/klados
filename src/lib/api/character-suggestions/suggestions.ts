@@ -1,7 +1,7 @@
 import { aliasedTable, and, eq, ilike, inArray, or, sql } from "drizzle-orm";
 
 import { db } from "../../../../db/client";
-import { unit, unitFamily } from "../../../../db/schema/characters/units";
+import { unit, unitFamily } from "../../../../db/schema/glossary/units";
 import {
   categoricalTraitValue,
   character,
@@ -120,7 +120,6 @@ export async function searchCategoricalSuggestions(opts: {
           `,
           // 3) Raw substring fallback
           ilike(categoricalTraitValue.label, likeNeedle),
-          ilike(categoricalTraitValue.key, likeNeedle),
         ),
       ),
     )

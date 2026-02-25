@@ -18,10 +18,10 @@ export const FeatureSearch = ({ onSelect }: FeatureSearchProps) => {
     featuresQueryOptions(1, 20, searchQ ? { q: searchQ } : undefined),
   );
   const featureQueryResults = data?.items ?? [];
-  const options: ComboboxOption[] = featureQueryResults.map((g) => ({
-    id: g.id,
-    label: g.label,
-    hint: g.key ?? undefined,
+  const options: ComboboxOption[] = featureQueryResults.map((f) => ({
+    id: f.id,
+    label: f.label,
+    hint: f.description ?? undefined,
   }));
 
   const handleFeatureSelect = (opt: ComboboxOption | null) => {

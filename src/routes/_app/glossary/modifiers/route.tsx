@@ -69,15 +69,15 @@ function RouteComponent() {
           {paginatedResult.items.map((item) => (
             <GlossarySidebarList.Item
               key={item.id}
-              sub={item.key}
+              sub={item.description}
               label={item.label}
               to="/glossary/modifiers/$id"
               params={{ id: item.id }}
-              search={{ ...search, valuePage: 1 }}
+              search={{ ...search }}
             >
               <Flex align="center" gap="1" asChild>
                 <Text as="div" size="1">
-                  todo <PiTag />
+                  {item.valueCount} <PiTag />
                 </Text>
               </Flex>
             </GlossarySidebarList.Item>

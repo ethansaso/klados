@@ -6,7 +6,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
-import { feature } from "../characters/features";
+import { feature } from "../glossary/features";
 import { taxon } from "./taxon";
 
 /**

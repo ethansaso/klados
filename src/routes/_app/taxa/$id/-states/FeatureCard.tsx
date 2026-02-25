@@ -9,26 +9,26 @@ import {
 import { CharacterStateDisplay } from "../../../../../components/trait-tokens/CharacterStateDisplay";
 import type { TaxonCharacterFeatureStateDTO } from "../../../../../lib/domain/states/types";
 
-export const GroupCard = ({
-  group,
+export const FeatureCard = ({
+  feature,
 }: {
-  group: TaxonCharacterFeatureStateDTO;
+  feature: TaxonCharacterFeatureStateDTO;
 }) => {
-  const cardHeaderComponent = group.featureDescription ? (
-    <Tooltip content={group.featureDescription}>
-      <span className="has-information">{group.featureLabel}</span>
+  const cardHeaderComponent = feature.featureDescription ? (
+    <Tooltip content={feature.featureDescription}>
+      <span className="has-information">{feature.featureLabel}</span>
     </Tooltip>
   ) : (
-    group.featureLabel
+    feature.featureLabel
   );
 
   return (
     <Card size="2">
       <Heading size="2">{cardHeaderComponent}</Heading>
       <Separator size="4" mt="1" mb="3" />
-      {group.states.length > 0 ? (
+      {feature.states.length > 0 ? (
         <DataList.Root size={{ initial: "1", sm: "2" }}>
-          {group.states.map((state) => {
+          {feature.states.map((state) => {
             const dlLabel = state.characterDescription ? (
               <Tooltip content={state.characterDescription}>
                 <span className="has-information">{state.characterLabel}</span>

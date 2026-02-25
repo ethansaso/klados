@@ -41,7 +41,7 @@ type HydrationMeta = {
     {
       id: number;
       label: string;
-      featureId: number;
+      featureIds: number[];
     }
   >;
   traitById: Map<number, Trait>;
@@ -122,13 +122,13 @@ async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
 
   const characterById = new Map<
     number,
-    { id: number; label: string; featureId: number }
+    { id: number; label: string; featureIds: number[] }
   >();
   for (const c of characters) {
     characterById.set(c.id, {
       id: c.id,
       label: c.label,
-      featureId: c.feature.id,
+      featureIds: c.features.map((f) => f.id),
     });
   }
 

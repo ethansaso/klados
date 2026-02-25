@@ -17,14 +17,14 @@ function RouteComponent() {
   return (
     <Flex direction="column" flexGrow="1">
       <TabNav.Root size="2">
-        <TabNav.Link asChild active={charactersActive}>
-          <Link to="/glossary/characters" preload="intent">
-            Characters
-          </Link>
-        </TabNav.Link>
         <TabNav.Link asChild active={featuresActive}>
           <Link to="/glossary/features" preload="intent">
             Features
+          </Link>
+        </TabNav.Link>
+        <TabNav.Link asChild active={charactersActive}>
+          <Link to="/glossary/characters" preload="intent">
+            Characters
           </Link>
         </TabNav.Link>
         <TabNav.Link asChild active={modifiersActive}>

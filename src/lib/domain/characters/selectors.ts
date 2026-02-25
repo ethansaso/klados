@@ -4,10 +4,20 @@ import {
   categoricalCharacterMeta as catMetaTbl,
   numericCharacterMeta as numMetaTbl,
   taxonFeatureState as tfsTbl,
+  categoricalTraitValue as traitValueTbl,
   taxonCharacterStateCategorical as valCatTbl,
   taxonCharacterStateNumber as valNumTbl,
   taxonCharacterStateRange as valRangeTbl,
 } from "../../../../db/schema/schema";
+
+export const catTraitCountSel = db
+  .select({
+    characterId: traitValueTbl.characterId,
+    traitCount: sql<number>`COUNT(*)`.as("traitCount"),
+  })
+  .from(traitValueTbl)
+  .groupBy(traitValueTbl.characterId)
+  .as("cat_trait_count");
 
 export const catUsageSel = db
   .select({

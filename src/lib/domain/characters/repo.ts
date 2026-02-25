@@ -23,8 +23,9 @@ import {
   unitFamily as unitFamilyTbl,
 } from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/likeAnywhere";
-import type { Transaction } from "../../utils/transactionType";
+import type { Transaction, TxOrDb } from "../../utils/transactionType";
 import {
+  catTraitCountSel,
   catUsageSel,
   characterTypeExpr,
   hasSomeMetaExpr,
@@ -46,6 +47,7 @@ type RawCharacterRow = {
   feature: { id: number; label: string };
   usageCount: number;
   type: "categorical" | "number" | "range";
+  traitCount: number | null;
   unitFamilyId: number | null;
 };
 
@@ -70,6 +72,7 @@ function groupRowsToCharacterDTOs(rows: RawCharacterRow[]): CharacterDTO[] {
           ...base,
           type: "categorical",
           characterId: row.id,
+          traitCount: row.traitCount ?? 0,
         };
       } else {
         if (row.unitFamilyId === null) {
@@ -111,13 +114,13 @@ function groupRowsToCharacterDTOs(rows: RawCharacterRow[]): CharacterDTO[] {
  * Fetch a single character detail by id.
  */
 export async function fetchCharacterDetailById(
+  tx: TxOrDb,
   id: number,
 ): Promise<CharacterDetailDTO | null> {
   // Fetch base character
-  const base = await db
+  const base = await tx
     .select({
       id: charsTbl.id,
-      key: charsTbl.key,
       label: charsTbl.label,
       description: charsTbl.description,
     })
@@ -129,7 +132,7 @@ export async function fetchCharacterDetailById(
   if (!base) return null;
 
   // Fetch features for character
-  const features = await db
+  const features = await tx
     .select({
       id: featuresTbl.id,
       label: featuresTbl.label,
@@ -140,7 +143,7 @@ export async function fetchCharacterDetailById(
     .orderBy(asc(featuresTbl.label), asc(featuresTbl.id));
 
   // Check categorical metadata
-  const categoricalMeta = await db
+  const categoricalMeta = await tx
     .select({
       isMultiSelect: catMetaTbl.isMultiSelect,
     })
@@ -151,7 +154,7 @@ export async function fetchCharacterDetailById(
 
   // If categorical, compute usage count and return
   if (categoricalMeta) {
-    const usageCount = await db
+    const usageCount = await tx
       .select({
         count: sql<number>`count(distinct ${tfsTbl.taxonId})`,
       })
@@ -162,7 +165,6 @@ export async function fetchCharacterDetailById(
 
     return {
       id: base.id,
-      key: base.key,
       label: base.label,
       description: base.description,
       features,
@@ -174,7 +176,7 @@ export async function fetchCharacterDetailById(
   }
 
   // Otherwise, fetch numeric / range metadata
-  const numericMeta = await db
+  const numericMeta = await tx
     .select({
       kind: numMetaTbl.kind, // 'single' | 'range'
       unitFamily: {
@@ -193,7 +195,7 @@ export async function fetchCharacterDetailById(
   // Compute usage count based on numeric kind
   const usageCount =
     numericMeta.kind === "single"
-      ? await db
+      ? await tx
           .select({
             count: sql<number>`count(distinct ${tfsTbl.taxonId})`,
           })
@@ -201,7 +203,7 @@ export async function fetchCharacterDetailById(
           .innerJoin(tfsTbl, eq(tfsTbl.id, tcsNumTbl.taxonFeatureStateId))
           .where(eq(tcsNumTbl.characterId, id))
           .then((rows) => rows[0]?.count ?? 0)
-      : await db
+      : await tx
           .select({
             count: sql<number>`count(distinct ${tfsTbl.taxonId})`,
           })
@@ -212,7 +214,6 @@ export async function fetchCharacterDetailById(
 
   const baseNumeric = {
     id: base.id,
-    key: base.key,
     label: base.label,
     description: base.description,
     features,
@@ -239,7 +240,6 @@ export async function selectCharactersByIds(
   const rows = (await tx
     .select({
       id: charsTbl.id,
-      key: charsTbl.key,
       label: charsTbl.label,
       description: charsTbl.description,
       feature: { id: featuresTbl.id, label: featuresTbl.label },
@@ -253,6 +253,8 @@ export async function selectCharactersByIds(
 
       type: characterTypeExpr,
       unitFamilyId: numMetaTbl.unitFamilyId,
+
+      traitCount: catTraitCountSel.traitCount,
     })
     .from(charsTbl)
     .leftJoin(
@@ -265,6 +267,7 @@ export async function selectCharactersByIds(
     .leftJoin(catUsageSel, eq(catUsageSel.characterId, charsTbl.id))
     .leftJoin(numUsageSel, eq(numUsageSel.characterId, charsTbl.id))
     .leftJoin(rangeUsageSel, eq(rangeUsageSel.characterId, charsTbl.id))
+    .leftJoin(catTraitCountSel, eq(catTraitCountSel.characterId, charsTbl.id))
     .where(and(inArray(charsTbl.id, ids), hasSomeMetaExpr))
     .orderBy(
       asc(featuresTbl.label),
@@ -291,9 +294,7 @@ export async function listCharactersQuery(args: {
 
   const userFilters: (SQL | undefined)[] = [
     ids && ids.length ? inArray(charsTbl.id, ids) : undefined,
-    like
-      ? or(ilike(charsTbl.label, like), ilike(charsTbl.key, like))
-      : undefined,
+    like ? or(ilike(charsTbl.label, like)) : undefined,
   ];
 
   const filtered = userFilters.filter(Boolean) as SQL[];
@@ -309,6 +310,7 @@ export async function listCharactersQuery(args: {
     .leftJoin(numMetaTbl, eq(numMetaTbl.characterId, charsTbl.id))
     .where(where)
     .groupBy(charsTbl.id)
+    // order for pagination sorting guarantees
     .orderBy(asc(charsTbl.label), asc(charsTbl.id))
     .limit(pageSize)
     .offset(offset);
@@ -321,7 +323,6 @@ export async function listCharactersQuery(args: {
     const rows = (await db
       .select({
         id: charsTbl.id,
-        key: charsTbl.key,
         label: charsTbl.label,
         description: charsTbl.description,
         feature: { id: featuresTbl.id, label: featuresTbl.label },
@@ -334,6 +335,8 @@ export async function listCharactersQuery(args: {
 
         type: characterTypeExpr,
         unitFamilyId: numMetaTbl.unitFamilyId,
+
+        traitCount: catTraitCountSel.traitCount,
       })
       .from(charsTbl)
       .leftJoin(
@@ -346,10 +349,12 @@ export async function listCharactersQuery(args: {
       .leftJoin(catUsageSel, eq(catUsageSel.characterId, charsTbl.id))
       .leftJoin(numUsageSel, eq(numUsageSel.characterId, charsTbl.id))
       .leftJoin(rangeUsageSel, eq(rangeUsageSel.characterId, charsTbl.id))
+      .leftJoin(catTraitCountSel, eq(catTraitCountSel.characterId, charsTbl.id))
       .where(inArray(charsTbl.id, characterIds))
+      // order for consistent ordering with pagination step
       .orderBy(
-        asc(featuresTbl.label),
         asc(charsTbl.label),
+        asc(featuresTbl.label),
         asc(charsTbl.id),
       )) as RawCharacterRow[];
 
@@ -380,26 +385,22 @@ export async function listCharactersQuery(args: {
 export async function insertCharacter(
   tx: Transaction,
   args: {
-    key: string;
     label: string;
     description: string;
   },
 ): Promise<{
   id: number;
-  key: string;
   label: string;
   description: string;
 } | null> {
   const [row] = await tx
     .insert(charsTbl)
     .values({
-      key: args.key,
       label: args.label,
       description: args.description,
     })
     .returning({
       id: charsTbl.id,
-      key: charsTbl.key,
       label: charsTbl.label,
       description: charsTbl.description,
     });
@@ -552,4 +553,58 @@ export async function deleteCharacterById(
     .returning({ id: charsTbl.id });
 
   return deleted ?? null;
+}
+
+/**
+ * Update the base character row (key, label, description).
+ * Returns null when the character doesn't exist.
+ */
+export async function updateCharacterBase(
+  tx: Transaction,
+  id: number,
+  values: Partial<{ label: string; description: string }>,
+): Promise<{
+  id: number;
+  label: string;
+  description: string;
+} | null> {
+  // Nothing to set → just verify existence
+  if (!Object.keys(values).length) {
+    const [existing] = await tx
+      .select({
+        id: charsTbl.id,
+        label: charsTbl.label,
+        description: charsTbl.description,
+      })
+      .from(charsTbl)
+      .where(eq(charsTbl.id, id))
+      .limit(1);
+    return existing ?? null;
+  }
+
+  const [row] = await tx
+    .update(charsTbl)
+    .set(values)
+    .where(eq(charsTbl.id, id))
+    .returning({
+      id: charsTbl.id,
+      label: charsTbl.label,
+      description: charsTbl.description,
+    });
+
+  return row ?? null;
+}
+
+/**
+ * Update the `isMultiSelect` flag on categorical character meta.
+ */
+export async function updateCategoricalMeta(
+  tx: Transaction,
+  characterId: number,
+  isMultiSelect: boolean,
+): Promise<void> {
+  await tx
+    .update(catMetaTbl)
+    .set({ isMultiSelect })
+    .where(eq(catMetaTbl.characterId, characterId));
 }

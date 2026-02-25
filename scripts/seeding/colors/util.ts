@@ -1,4 +1,4 @@
-import { capitalizeWord, snakeCase } from "../../utils/case";
+import { capitalizeWord } from "../../utils/case";
 import { COLOR_ALIASES } from "./aliases";
 import {
   BASE_HUE_NAMES,
@@ -16,21 +16,17 @@ export type Modifier = (typeof MODIFIERS)[number];
  * Fully normalized alias entry.
  *
  * - aliasLabel: human-facing string ("Maroon")
- * - aliasKey: machine key derived from aliasLabel ("maroon")
- * - canonicalKey: machine key of the canonical color ("dark_red")
+ * - canonicalLabel: label of the canonical color ("Dark Red")
  */
 export type NormalizedColorAlias = {
   aliasLabel: string;
-  aliasKey: string;
-  canonicalKey: string;
+  canonicalLabel: string;
 };
 
 /**
  * Canonical color definition used by seeding + tests.
  */
 export type ColorDef = {
-  /** Snake-cased machine key */
-  key: string;
   label: string;
   hexCode: string | null;
 };
@@ -87,7 +83,7 @@ export function buildLabel(mod: Modifier, hueName: string): string {
       part
         .split("-")
         .map((w) => capitalizeWord(w))
-        .join("-")
+        .join("-"),
     );
   }
 
@@ -101,7 +97,7 @@ const MODIFIERS_SL_MAP: Record<Modifier, { s: number; l: number }> =
       acc[mod] = MODIFIERS_SL[idx];
       return acc;
     },
-    {} as Record<Modifier, { s: number; l: number }>
+    {} as Record<Modifier, { s: number; l: number }>,
   );
 
 export function getNeutralColors() {
@@ -113,7 +109,7 @@ export function getNeutralColors() {
 
 export function colorFromHueIndex(
   rowIndex: number,
-  modifier: Modifier
+  modifier: Modifier,
 ): string {
   const hueDeg = HUE_MAP[rowIndex];
   const sl = MODIFIERS_SL_MAP[modifier];
@@ -161,7 +157,7 @@ export function expandHueRow(
   rowIndex: number,
   lightHue: string,
   baseHue: string,
-  darkHue: string
+  darkHue: string,
 ): { name: string; hex: string }[] {
   const isLightShifted = lightHue !== baseHue;
   const isDarkShifted = darkHue !== baseHue;
@@ -176,7 +172,7 @@ export function expandHueRow(
       { name: baseHue, modifier: "" },
       { name: `grayish ${baseHue}`, modifier: "grayish" },
       { name: `dark ${baseHue}`, modifier: "dark" },
-      { name: `dark grayish ${baseHue}`, modifier: "dark-grayish" }
+      { name: `dark grayish ${baseHue}`, modifier: "dark-grayish" },
     );
   } else if (isLightShifted && !isDarkShifted) {
     // Case 2: light-shifted (e.g. ["pink","red","red"])
@@ -186,7 +182,7 @@ export function expandHueRow(
       { name: baseHue, modifier: "" }, // red
       { name: `grayish ${baseHue}`, modifier: "grayish" },
       { name: `dark ${baseHue}`, modifier: "dark" },
-      { name: `dark grayish ${baseHue}`, modifier: "dark-grayish" }
+      { name: `dark grayish ${baseHue}`, modifier: "dark-grayish" },
     );
   } else if (!isLightShifted && isDarkShifted) {
     // Case 3: dark-shifted (e.g. ["yellow","yellow","brown"])
@@ -196,12 +192,12 @@ export function expandHueRow(
       { name: baseHue, modifier: "" },
       { name: `grayish ${baseHue}`, modifier: "grayish" },
       { name: darkHue, modifier: "dark" },
-      { name: `grayish ${darkHue}`, modifier: "dark-grayish" }
+      { name: `grayish ${darkHue}`, modifier: "dark-grayish" },
     );
   } else {
     // With your current BASE_HUE_NAMES this should never happen.
     throw new Error(
-      `Unexpected both-shifted hue row: [${lightHue}, ${baseHue}, ${darkHue}]`
+      `Unexpected both-shifted hue row: [${lightHue}, ${baseHue}, ${darkHue}]`,
     );
   }
 
@@ -221,7 +217,6 @@ export function getAllHueColors() {
 
 function generateSpecialColors(): ColorDef[] {
   return SPECIAL_COLOR_NAMES.map((name) => ({
-    key: snakeCase(name),
     label: capitalizeWord(name),
     hexCode: null,
   }));
@@ -234,8 +229,7 @@ function generateNeutralColorDefs(): ColorDef[] {
       .split(/\s+/)
       .map((w) => capitalizeWord(w))
       .join(" ");
-    const key = snakeCase(label);
-    return { key, label, hexCode: hex };
+    return { label, hexCode: hex };
   });
 }
 
@@ -252,21 +246,14 @@ function generateHueColorDefs(): ColorDef[] {
           word
             .split("-")
             .map((w) => capitalizeWord(w))
-            .join("-")
+            .join("-"),
         )
         .join(" ");
-      const key = snakeCase(label);
-      colors.push({ key, label, hexCode: c.hex });
+      colors.push({ label, hexCode: c.hex });
     }
   }
 
-  // Deduplicate by key, last one wins (shouldn't really collide).
-  const byKey = new Map<string, ColorDef>();
-  for (const c of colors) {
-    byKey.set(c.key, c);
-  }
-
-  return Array.from(byKey.values());
+  return colors;
 }
 
 /**
@@ -277,13 +264,7 @@ export function generateCanonicalColorDefs(): ColorDef[] {
   const hues = generateHueColorDefs();
   const specials = generateSpecialColors();
 
-  const byKey = new Map<string, ColorDef>();
-
-  for (const c of [...neutrals, ...hues, ...specials]) {
-    byKey.set(c.key, c);
-  }
-
-  return Array.from(byKey.values());
+  return [...neutrals, ...hues, ...specials];
 }
 
 /**
@@ -292,13 +273,11 @@ export function generateCanonicalColorDefs(): ColorDef[] {
 export function getNormalizedColorAliases(): NormalizedColorAlias[] {
   const result: NormalizedColorAlias[] = [];
 
-  for (const [canonicalKey, aliasLabels] of Object.entries(COLOR_ALIASES)) {
+  for (const [canonicalLabel, aliasLabels] of Object.entries(COLOR_ALIASES)) {
     for (const aliasLabel of aliasLabels) {
-      const aliasKey = snakeCase(aliasLabel);
       result.push({
         aliasLabel,
-        aliasKey,
-        canonicalKey,
+        canonicalLabel,
       });
     }
   }

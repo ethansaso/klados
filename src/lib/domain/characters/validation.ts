@@ -1,10 +1,6 @@
 import z from "zod";
 
 const baseCharacterFields = z.object({
-  key: z
-    .string("Must be a string")
-    .min(1, "Key is required")
-    .max(100, "Max 100 characters"),
   label: z
     .string("Must be a string")
     .min(1, "Label is required.")
@@ -34,6 +30,11 @@ export const createCharacterSchema = z.discriminatedUnion("type", [
   createRangeCharacterFields,
 ]);
 
+export const updateCharacterSchema = baseCharacterFields.partial().extend({
+  id: z.int("Must be an integer").positive("Must be positive"),
+  isMultiSelect: z.boolean().optional(),
+});
+
 export type CreateCategoricalCharacterInput = z.infer<
   typeof createCategoricalCharacterFields
 >;
@@ -44,3 +45,5 @@ export type CreateRangeCharacterInput = z.infer<
   typeof createRangeCharacterFields
 >;
 export type CreateCharacterInput = z.infer<typeof createCharacterSchema>;
+
+export type UpdateCharacterInput = z.infer<typeof updateCharacterSchema>;

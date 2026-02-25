@@ -2,7 +2,13 @@ import NiceModal from "@ebay/nice-modal-react";
 import { Box, Flex, IconButton, Text, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { PiMagnifyingGlass, PiPlusCircle } from "react-icons/pi";
+import {
+  PiCellSignalFullBold,
+  PiHash,
+  PiMagnifyingGlass,
+  PiPlusCircle,
+  PiTag,
+} from "react-icons/pi";
 import { GlossarySidebarLayout } from "../-chrome/GlossarySidebarLayout";
 import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
@@ -69,7 +75,11 @@ function RouteComponent() {
               <TextField.Slot>
                 <IconButton
                   size="1"
-                  onClick={() => NiceModal.show(AddCharacterModal)}
+                  onClick={() =>
+                    NiceModal.show(AddCharacterModal, {
+                      initialLabel: search.q,
+                    })
+                  }
                 >
                   <PiPlusCircle />
                 </IconButton>
@@ -81,17 +91,35 @@ function RouteComponent() {
           {paginatedResult.items.map((item) => (
             <GlossarySidebarList.Item
               key={item.id}
-              sub={item.key}
-              label={item.label}
+              sub={item.description}
+              label={
+                <Flex align="center" gap="1">
+                  {(() => {
+                    switch (item.type) {
+                      case "categorical":
+                        return <PiTag />;
+                      case "number":
+                        return <PiHash />;
+                      case "range":
+                        return <PiCellSignalFullBold />;
+                      default:
+                        return "Unknown Type";
+                    }
+                  })()}
+                  {item.label}
+                </Flex>
+              }
               to="/glossary/characters/$id"
               params={{ id: item.id }}
               search={search}
             >
-              <Flex align="center" gap="1" asChild>
-                <Text as="div" size="1">
-                  {item.usageCount}
-                  <TiOutline />
-                </Text>
+              <Flex direction="column" height="100%" align="end">
+                <Flex align="center" gap="1" asChild>
+                  <Text as="div" size="1">
+                    {item.usageCount}
+                    <TiOutline />
+                  </Text>
+                </Flex>
               </Flex>
             </GlossarySidebarList.Item>
           ))}

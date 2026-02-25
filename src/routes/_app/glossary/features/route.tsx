@@ -61,7 +61,9 @@ function RouteComponent() {
               <TextField.Slot>
                 <IconButton
                   size="1"
-                  onClick={() => NiceModal.show(AddFeatureModal)}
+                  onClick={() =>
+                    NiceModal.show(AddFeatureModal, { initialLabel: search.q })
+                  }
                 >
                   <PiPlusCircle />
                 </IconButton>
@@ -73,7 +75,7 @@ function RouteComponent() {
           {paginatedResult.items.map((item) => (
             <GlossarySidebarList.Item
               key={item.id}
-              sub={item.key}
+              sub={item.description}
               label={item.label}
               to="/glossary/features/$id"
               params={{ id: item.id }}

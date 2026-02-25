@@ -10,13 +10,13 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
-import { characterFeature } from "../characters/characterFeatures";
+import { characterFeature } from "../glossary/characterFeatures";
 import {
   categoricalCharacterMeta,
   numericCharacterMeta,
-} from "../characters/characters";
-import { categoricalTraitValue } from "../characters/traits";
-import { unit } from "../characters/units";
+} from "../glossary/characters";
+import { categoricalTraitValue } from "../glossary/traits";
+import { unit } from "../glossary/units";
 import { taxonFeatureState } from "./featureStates";
 
 export const taxonCharacterStateCategorical = pgTable(

@@ -1,15 +1,14 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { generateLoginRedirectFromLocation } from "../../../../../lib/auth/utils";
+import {
+  generateLoginRedirectFromLocation,
+  roleHasCuratorRights,
+} from "../../../../../lib/auth/utils";
 
 export const Route = createFileRoute("/_app/taxa/$id/edit")({
   beforeLoad: async ({ context, location }) => {
-    const { user } = context;
-    if (!user || user.role !== "admin") {
+    if (!roleHasCuratorRights(context.user?.role)) {
       throw generateLoginRedirectFromLocation(location);
     }
-    return {
-      user,
-    };
   },
   component: RouteComponent,
 });

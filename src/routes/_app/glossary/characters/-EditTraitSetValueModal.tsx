@@ -24,22 +24,21 @@ import {
   useWatch,
 } from "react-hook-form";
 import z from "zod";
-import { traitSetValuesPaginatedQueryOptions } from "../../../../lib/queries/traits";
-import { ClearableColorField } from "../../src/components/inputs/ClearableColorField";
-import { SelectCombobox } from "../../src/components/inputs/combobox/SelectCombobox";
-import type { ComboboxOption } from "../../src/components/inputs/combobox/types";
+import { ClearableColorField } from "../../../../components/inputs/ClearableColorField";
+import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
+import type { ComboboxOption } from "../../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
-} from "../../src/components/inputs/ConditionalAlert";
-import { updateTraitValueFn } from "../../src/lib/api/traits/updateTraitValueFn";
-import type { TraitValueDTO } from "../../src/lib/domain/traits/types";
-import { useAutoKey } from "../../src/lib/hooks/useAutoKey";
-import { toast } from "../../src/lib/utils/toast";
+} from "../../../../components/inputs/ConditionalAlert";
+import { updateTraitValueFn } from "../../../../lib/api/traits/updateTraitValueFn";
+import type { TraitValueDTO } from "../../../../lib/domain/traits/types";
+import { traitValuesQueryOptions } from "../../../../lib/queries/traits";
+import { toast } from "../../../../lib/utils/toast";
 import {
   trimmed,
   trimmedNonEmpty,
-} from "../../src/lib/validation/trimmedOptional";
+} from "../../../../lib/validation/trimmedOptional";
 
 interface Props {
   traitValue: TraitValueDTO;
@@ -49,9 +48,6 @@ interface Props {
 type FormValues = z.infer<typeof formSchema>;
 
 const base = z.object({
-  key: trimmedNonEmpty("Please provide a key.", {
-    max: { value: 100, message: "Max 100 characters" },
-  }),
   label: trimmedNonEmpty("Please provide a label.", {
     max: { value: 200, message: "Max 200 characters" },
   }),
@@ -92,7 +88,6 @@ const seedFormValues = (value: TraitValueDTO): FormValues => {
   if (value.aliasTarget) {
     return {
       kind: "alias",
-      key: value.key,
       label: value.label,
       aliasTarget: {
         id: value.aliasTarget.id,
@@ -102,7 +97,6 @@ const seedFormValues = (value: TraitValueDTO): FormValues => {
   }
   return {
     kind: "canon",
-    key: value.key,
     label: value.label,
     description: value.description ?? "",
     hexCode: value.hexCode ?? "",
@@ -122,7 +116,6 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
     const {
       control,
       formState: { isSubmitted, touchedFields, errors },
-      setValue,
       setError,
       register,
       reset,
@@ -133,13 +126,6 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
     const aliasErrors = getErrorsByKind(errors, "alias");
     const label = useWatch({ control, name: "label" });
     const kind = useWatch({ control, name: "kind" });
-
-    const { autoKey, setAutoKey, handleKeyBlur } = useAutoKey(
-      control,
-      setValue,
-      "label",
-      "key",
-    );
 
     const mutation = useMutation({
       mutationFn: serverUpdate,
@@ -164,8 +150,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
         await mutation.mutateAsync({
           data: {
             id: traitValue.id,
-            characterId: traitValue.setId,
-            key: data.key,
+            characterId: traitValue.characterId,
             label: data.label,
             aliasTargetId: data.aliasTarget!.id,
           },
@@ -176,8 +161,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
       await mutation.mutateAsync({
         data: {
           id: traitValue.id,
-          characterId: traitValue.setId,
-          key: data.key,
+          characterId: traitValue.characterId,
           label: data.label,
           aliasTargetId: null,
           description: data.description,
@@ -189,9 +173,9 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
     // Alias combobox state
     const [aliasQuery, setAliasQuery] = useState("");
     const { data: canonicalResp, isFetching: canonicalLoading } = useQuery(
-      traitSetValuesPaginatedQueryOptions(traitValue.setId, 1, 20, {
-        kind: "canonical",
-        q: aliasQuery,
+      traitValuesQueryOptions(traitValue.characterId, 1, 20, {
+        canonicalOnly: true,
+        q: aliasQuery || undefined,
       }),
     );
     const canonicalOptions: ComboboxOption[] = useMemo(() => {
@@ -201,7 +185,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
         .map((v) => ({
           id: v.id,
           label: v.label,
-          hint: v.key,
+          hint: v.description,
         }));
     }, [canonicalResp, traitValue.id]);
 
@@ -210,11 +194,11 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
     const aliasBlockedMsg = `Cannot make "${label}" an alias because ${traitValue.aliasCount} alias value(s) depend on it.`;
 
     const setKindAtomic = (next: FormValues["kind"]) => {
-      const { key, label } = methods.getValues();
+      const { label } = methods.getValues();
       const nextValues: FormValues =
         next === "canon"
-          ? { kind: "canon", key, label, description: "", hexCode: "" }
-          : { kind: "alias", key, label, aliasTarget: null };
+          ? { kind: "canon", label, description: "", hexCode: "" }
+          : { kind: "alias", label, aliasTarget: null };
 
       reset(nextValues, {
         keepDirty: true,
@@ -227,7 +211,6 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
     useEffect(() => {
       if (!visible) return;
       reset(seedFormValues(traitValue));
-      setAutoKey(true);
       // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
       setAliasQuery("");
       mutation.reset();
@@ -274,37 +257,6 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
                     placeholder="e.g. colors, shapes"
                     {...register("label")}
                     {...a11yProps("label-error", !!errors.label)}
-                  />
-                </Box>
-                <Box>
-                  <Flex justify="between" align="baseline" mb="1">
-                    <Label.Root htmlFor="key">Key</Label.Root>
-                    <Flex align="center" gap="2">
-                      <ConditionalAlert
-                        id="key-error"
-                        message={errors.key?.message}
-                      />
-                      <Text size="1" color="gray">
-                        {autoKey ? "Auto" : "Manual"}
-                      </Text>
-                      <Button
-                        size="1"
-                        variant="soft"
-                        type="button"
-                        onClick={() => setAutoKey((v) => !v)}
-                      >
-                        {autoKey ? "Edit" : "Use auto"}
-                      </Button>
-                    </Flex>
-                  </Flex>
-                  <TextField.Root
-                    id="key"
-                    type="text"
-                    readOnly={autoKey}
-                    {...register("key", {
-                      onBlur: handleKeyBlur,
-                    })}
-                    {...a11yProps("key-error", !!errors.key)}
                   />
                 </Box>
                 <Box>

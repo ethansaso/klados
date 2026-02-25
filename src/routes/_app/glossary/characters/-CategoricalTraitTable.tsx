@@ -1,12 +1,12 @@
 import { Flex, IconButton, Table, Text, Tooltip } from "@radix-ui/themes";
 import { useMemo } from "react";
 import { PiPencil, PiTrash } from "react-icons/pi";
-import { ColorBubble } from "../../src/components/trait-tokens/ColorBubble";
-import type { TraitValueDTO } from "../../src/lib/domain/traits/types";
+import { ColorBubble } from "../../../../components/trait-tokens/ColorBubble";
+import type { TraitValueDTO } from "../../../../lib/domain/traits/types";
 
 type RootProps = {
   values: TraitValueDTO[];
-  showActions: boolean;
+  showActions?: boolean;
   onDeleteClick?: (value: TraitValueDTO) => void;
   onEditClick?: (value: TraitValueDTO) => void;
 };
@@ -18,7 +18,7 @@ type RowProps = {
   onEditClick?: (value: TraitValueDTO) => void;
 };
 
-export default function TraitValuesTable({
+export default function CategoricalTraitTable({
   values,
   showActions = false,
   onDeleteClick,

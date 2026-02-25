@@ -24,21 +24,24 @@ import { AddRangeCharacterForm } from "./AddRangeCharacterForm";
 const DEFAULT_VALUES = {
   type: "categorical" as const,
   key: "",
-  label: "",
   groupId: undefined,
   traitSetId: undefined,
   description: undefined,
   isMultiSelect: true,
 };
 
-export const AddCharacterModal = NiceModal.create(() => {
+interface Props {
+  initialLabel?: string;
+}
+
+export const AddCharacterModal = NiceModal.create(({ initialLabel }: Props) => {
   const { visible, hide, remove } = NiceModal.useModal();
   const qc = useQueryClient();
   const serverCreate = useServerFn(createCharacterFn);
 
   const methods = useForm<CreateCharacterInput>({
     resolver: zodResolver(createCharacterSchema),
-    defaultValues: DEFAULT_VALUES,
+    defaultValues: { ...DEFAULT_VALUES, label: initialLabel },
   });
 
   const {

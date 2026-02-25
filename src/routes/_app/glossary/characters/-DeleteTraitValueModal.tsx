@@ -1,10 +1,10 @@
 import NiceModal, { useModal } from "@ebay/nice-modal-react";
 import { AlertDialog, Button, Flex, Text } from "@radix-ui/themes";
 import { useServerFn } from "@tanstack/react-start";
-import { deleteTraitValueFn } from "../../src/lib/api/traits/deleteTraitValueFn";
-import type { TraitValueDTO } from "../../src/lib/domain/traits/types";
-import { getErrorMessage } from "../../src/lib/utils/getErrorMessage";
-import { toast } from "../../src/lib/utils/toast";
+import { deleteTraitValueFn } from "../../../../lib/api/traits/deleteTraitValueFn";
+import type { TraitValueDTO } from "../../../../lib/domain/traits/types";
+import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
+import { toast } from "../../../../lib/utils/toast";
 
 type Props = {
   value: TraitValueDTO;

@@ -18,6 +18,7 @@ import {
   character as charsTbl,
   feature as featuresTbl,
   numericCharacterMeta as numMetaTbl,
+  taxonFeatureState as tfsTbl,
 } from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/likeAnywhere";
 import { type Transaction } from "../../utils/transactionType";
@@ -42,9 +43,9 @@ export async function selectFeaturesByIds(
   const items: FeatureDTO[] = await tx
     .select({
       id: featuresTbl.id,
-      key: featuresTbl.key,
       label: featuresTbl.label,
       description: featuresTbl.description,
+      parentId: featuresTbl.parentId,
       characterCount: count(characterFeatureTbl.characterId),
     })
     .from(featuresTbl)
@@ -53,13 +54,8 @@ export async function selectFeaturesByIds(
       eq(characterFeatureTbl.featureId, featuresTbl.id),
     )
     .where(inArray(featuresTbl.id, ids))
-    .groupBy(
-      featuresTbl.id,
-      featuresTbl.key,
-      featuresTbl.label,
-      featuresTbl.description,
-    )
-    .orderBy(asc(featuresTbl.key), asc(featuresTbl.id));
+    .groupBy(featuresTbl.id, featuresTbl.label, featuresTbl.description)
+    .orderBy(asc(featuresTbl.label), asc(featuresTbl.id));
 
   return items;
 }
@@ -80,9 +76,7 @@ export async function listFeaturesQuery(args: {
 
   const filters: (SQL | undefined)[] = [
     ids && ids.length ? inArray(featuresTbl.id, ids) : undefined,
-    like
-      ? or(ilike(featuresTbl.label, like), ilike(featuresTbl.key, like))
-      : undefined,
+    like ? or(ilike(featuresTbl.label, like)) : undefined,
   ];
   const filtered = filters.filter(Boolean) as SQL[];
   const where = filtered.length ? and(...filtered) : undefined;
@@ -90,9 +84,9 @@ export async function listFeaturesQuery(args: {
   const items: FeatureDTO[] = await db
     .select({
       id: featuresTbl.id,
-      key: featuresTbl.key,
       label: featuresTbl.label,
       description: featuresTbl.description,
+      parentId: featuresTbl.parentId,
       characterCount: count(characterFeatureTbl.characterId),
     })
     .from(featuresTbl)
@@ -101,13 +95,8 @@ export async function listFeaturesQuery(args: {
       eq(characterFeatureTbl.featureId, featuresTbl.id),
     )
     .where(where)
-    .groupBy(
-      featuresTbl.id,
-      featuresTbl.key,
-      featuresTbl.label,
-      featuresTbl.description,
-    )
-    .orderBy(asc(featuresTbl.key), asc(featuresTbl.id))
+    .groupBy(featuresTbl.id, featuresTbl.label, featuresTbl.description)
+    .orderBy(asc(featuresTbl.label), asc(featuresTbl.id))
     .limit(pageSize)
     .offset(offset);
 
@@ -124,19 +113,18 @@ export async function listFeaturesQuery(args: {
  * Fetch a single character group detail by id.
  */
 export async function fetchFeatureDetailById(
+  tx: Transaction,
   id: number,
 ): Promise<FeatureDetailDTO | null> {
   const parentTbl = alias(featuresTbl, "parent");
 
   // Feature + parent in one query
-  const [groupRow] = await db
+  const [groupRow] = await tx
     .select({
       id: featuresTbl.id,
-      key: featuresTbl.key,
       label: featuresTbl.label,
       description: featuresTbl.description,
       parentId: parentTbl.id,
-      parentKey: parentTbl.key,
       parentLabel: parentTbl.label,
     })
     .from(featuresTbl)
@@ -147,21 +135,19 @@ export async function fetchFeatureDetailById(
   if (!groupRow) return null;
 
   // Sub-features (indexed on parent_id)
-  const subRows = await db
+  const subRows = await tx
     .select({
       id: featuresTbl.id,
-      key: featuresTbl.key,
       label: featuresTbl.label,
     })
     .from(featuresTbl)
     .where(eq(featuresTbl.parentId, id))
-    .orderBy(asc(featuresTbl.key), asc(featuresTbl.id));
+    .orderBy(asc(featuresTbl.label), asc(featuresTbl.id));
 
   // Characters belonging to feature
   const rows = await db
     .select({
       id: charsTbl.id,
-      key: charsTbl.key,
       label: charsTbl.label,
       description: charsTbl.description,
 
@@ -179,12 +165,11 @@ export async function fetchFeatureDetailById(
     .leftJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
     .leftJoin(numMetaTbl, eq(numMetaTbl.characterId, charsTbl.id))
     .where(eq(characterFeatureTbl.featureId, id))
-    .orderBy(asc(charsTbl.key), asc(charsTbl.id));
+    .orderBy(asc(charsTbl.label), asc(charsTbl.id));
 
   const characters: CharacterInFeatureDTO[] = rows.map((row) => {
     const base = {
       id: row.id,
-      key: row.key,
       label: row.label,
       description: row.description,
     };
@@ -208,7 +193,6 @@ export async function fetchFeatureDetailById(
 
   return {
     id: groupRow.id,
-    key: groupRow.key,
     label: groupRow.label,
     description: groupRow.description,
     characterCount: characters.length,
@@ -216,7 +200,6 @@ export async function fetchFeatureDetailById(
     parentFeature: groupRow.parentId
       ? {
           id: groupRow.parentId,
-          key: groupRow.parentKey!,
           label: groupRow.parentLabel!,
         }
       : null,
@@ -229,21 +212,158 @@ export async function fetchFeatureDetailById(
  */
 export async function insertFeature(
   tx: Transaction,
-  args: { key: string; label: string; description: string },
-): Promise<Pick<FeatureDTO, "id" | "key" | "label" | "description"> | null> {
+  args: { label: string; description: string },
+): Promise<FeatureDTO | null> {
   const [group] = await tx
     .insert(featuresTbl)
     .values({
-      key: args.key,
       label: args.label,
       description: args.description,
     })
     .returning({
       id: featuresTbl.id,
-      key: featuresTbl.key,
       label: featuresTbl.label,
+      parentId: featuresTbl.parentId,
       description: featuresTbl.description,
+      characterCount: sql<number>`0`,
     });
 
   return group ?? null;
+}
+
+export async function updateFeatureRow(
+  tx: Transaction,
+  id: number,
+  args: {
+    label?: string;
+    description?: string;
+    parentId?: number | null;
+  },
+): Promise<Omit<FeatureDTO, "characterCount"> | null> {
+  const [group] = await tx
+    .update(featuresTbl)
+    .set({
+      label: args.label,
+      description: args.description,
+      parentId: args.parentId,
+    })
+    .where(eq(featuresTbl.id, id))
+    .returning({
+      id: featuresTbl.id,
+      label: featuresTbl.label,
+      description: featuresTbl.description,
+      parentId: featuresTbl.parentId,
+    });
+
+  if (!group) return null;
+
+  return group;
+}
+
+/** Imperatively set the characters linked to a feature. */
+export async function setCharacterFeatureRows(
+  tx: Transaction,
+  featureId: number,
+  characterIds: number[],
+): Promise<number[]> {
+  // Normalize input (dedupe)
+  const uniqueIds = Array.from(new Set(characterIds));
+
+  // Load existing links
+  const existing = await tx
+    .select({
+      characterId: characterFeatureTbl.characterId,
+    })
+    .from(characterFeatureTbl)
+    .where(eq(characterFeatureTbl.featureId, featureId));
+
+  // Determine insertions + deletions
+  const existingIds = new Set(existing.map((r) => r.characterId));
+  const nextIds = new Set(uniqueIds);
+  const toInsert = uniqueIds.filter((id) => !existingIds.has(id));
+  const toDelete = existing
+    .filter((r) => !nextIds.has(r.characterId))
+    .map((r) => r.characterId);
+
+  // Apply deletions/insertions
+  if (toDelete.length > 0) {
+    await tx
+      .delete(characterFeatureTbl)
+      .where(
+        and(
+          eq(characterFeatureTbl.featureId, featureId),
+          inArray(characterFeatureTbl.characterId, toDelete),
+        ),
+      );
+  }
+  if (toInsert.length > 0) {
+    await tx.insert(characterFeatureTbl).values(
+      toInsert.map((characterId) => ({
+        featureId,
+        characterId,
+      })),
+    );
+  }
+
+  return uniqueIds;
+}
+
+/**
+ * Check whether a feature can be safely deleted.
+ * Returns `null` if the feature doesn't exist, otherwise returns counts
+ * of subfeatures and taxon feature-state references.
+ */
+export async function countDependentsForFeature(
+  tx: Transaction,
+  featureId: number,
+): Promise<{
+  subFeatureCount: number;
+  featureStateCount: number;
+} | null> {
+  // Ensure feature exists
+  const exists = await tx
+    .select({ id: featuresTbl.id })
+    .from(featuresTbl)
+    .where(eq(featuresTbl.id, featureId))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!exists) return null;
+
+  // Count child features
+  const [subRow] = await tx
+    .select({ count: count() })
+    .from(featuresTbl)
+    .where(eq(featuresTbl.parentId, featureId));
+
+  // Count taxon_feature_state references
+  const [stateRow] = await tx
+    .select({ count: count() })
+    .from(tfsTbl)
+    .where(eq(tfsTbl.featureId, featureId));
+
+  return {
+    subFeatureCount: subRow?.count ?? 0,
+    featureStateCount: stateRow?.count ?? 0,
+  };
+}
+
+/**
+ * Delete a feature by id; returns the deleted id or null if nothing deleted.
+ */
+export async function deleteFeatureById(
+  tx: Transaction,
+  featureId: number,
+): Promise<{ id: number } | null> {
+  // Remove character_feature links first (FK is RESTRICT)
+  await tx
+    .delete(characterFeatureTbl)
+    .where(eq(characterFeatureTbl.featureId, featureId));
+
+  const [deleted] = await tx
+    .delete(featuresTbl)
+    .where(eq(featuresTbl.id, featureId))
+    .returning({ id: featuresTbl.id });
+
+  return deleted ?? null;
 }

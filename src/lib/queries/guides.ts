@@ -20,7 +20,6 @@ export const guidesQueryOptions = (
 ) =>
   queryOptions<GuidePaginatedResult>({
     queryKey: ["guides", { page, pageSize, q: opts?.q ?? null }],
-    queryFn: () =>
-      listGuidesFn({ data: { page, pageSize: pageSize, ...opts } }),
+    queryFn: () => listGuidesFn({ data: { page, pageSize, ...opts } }),
     staleTime: 60_000,
   });

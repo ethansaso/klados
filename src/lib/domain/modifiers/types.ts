@@ -13,7 +13,7 @@ export type ModifierDTO = Pick<
 >;
 export type ModifierGroupDTO = Pick<
   ModifierGroupRow,
-  "id" | "key" | "label" | "description" | "class"
+  "id" | "label" | "description" | "class"
 > & {
   valueCount: number;
 };

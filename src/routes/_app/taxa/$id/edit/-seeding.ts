@@ -70,12 +70,12 @@ const seedCharacterState = (
 };
 
 const seedCharacterGroups = (
-  groups: TaxonCharacterFeatureStateDTO[],
+  features: TaxonCharacterFeatureStateDTO[],
 ): GroupedCharacterFormValue =>
-  groups.map((group) => ({
-    groupId: group.featureId,
-    groupLabel: group.featureLabel,
-    characters: group.states.map(seedCharacterState),
+  features.map((feature) => ({
+    featureId: feature.featureId,
+    featureLabel: feature.featureLabel,
+    characters: feature.states.map(seedCharacterState),
   }));
 
 const seedNames = (names: TaxonDetailDTO["names"]) => {
