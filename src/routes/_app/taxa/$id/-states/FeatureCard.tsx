@@ -6,7 +6,7 @@ import {
   Text,
   Tooltip,
 } from "@radix-ui/themes";
-import { CharacterStateDisplay } from "../../../../../components/trait-tokens/CharacterStateDisplay";
+import { CharacterStateDisplay } from "../../../../../components/state-formatting/displays/CharacterStateDisplay";
 import type { TaxonCharacterFeatureStateDTO } from "../../../../../lib/domain/states/types";
 
 export const FeatureCard = ({

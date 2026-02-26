@@ -1,7 +1,7 @@
 import { Flex, IconButton, Table, Text, Tooltip } from "@radix-ui/themes";
 import { useMemo } from "react";
 import { PiPencil, PiTrash } from "react-icons/pi";
-import { ColorBubble } from "../../../../components/trait-tokens/ColorBubble";
+import { ColorBubble } from "../../../../components/state-formatting/helpers/ColorBubble";
 import type { TraitValueDTO } from "../../../../lib/domain/traits/types";
 
 type RootProps = {

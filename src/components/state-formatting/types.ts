@@ -15,9 +15,20 @@ export type UITrait = Omit<Trait, "description" | "hexCode" | "canonicalId"> & {
   description?: string;
   hexCode?: string | null;
   weight?: Weight;
+  modifiers?: UIModifier[];
 };
 
 export type UIUnit = Pick<UnitDTO, "symbol" | "scale">;
+
+/**
+ * A modifier token for display purposes — just the fields needed to render
+ * prefix/suffix text around a state badge.
+ */
+export type UIModifier = {
+  id: number;
+  value: string;
+  affixType: "prefix" | "suffix";
+};
 
 export type UICategoricalState = Pick<
   Extract<TaxonCharacterStateDTO, { kind: "categorical" }>,
@@ -32,6 +43,7 @@ export type UINumberState = Pick<
 > & {
   unit: UIUnit | null;
   weight?: Weight;
+  modifiers?: UIModifier[];
 };
 
 export type UIRangeState = Pick<
@@ -40,6 +52,7 @@ export type UIRangeState = Pick<
 > & {
   unit: UIUnit | null;
   weight?: Weight;
+  modifiers?: UIModifier[];
 };
 
 export type UICharacterState =

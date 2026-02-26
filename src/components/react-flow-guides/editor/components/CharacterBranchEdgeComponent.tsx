@@ -14,7 +14,7 @@ import {
   type EdgeProps,
 } from "@xyflow/react";
 import { memo, useCallback, useRef, useState } from "react";
-import { CharacterStateDisplay } from "../../../trait-tokens/CharacterStateDisplay";
+import { CharacterStateDisplay } from "../../../state-formatting/displays/CharacterStateDisplay";
 import type { RFCharacterBranchEdge } from "../../editor/data/types";
 import { useGuideEditorStore } from "../../editor/data/useGuideEditorStore";
 

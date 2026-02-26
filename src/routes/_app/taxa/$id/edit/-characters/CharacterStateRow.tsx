@@ -1,77 +1,130 @@
-import { DataList, Flex } from "@radix-ui/themes";
+import { DataList, Flex, Text } from "@radix-ui/themes";
 import { memo, useMemo } from "react";
-import { CharacterStateDisplay } from "../../../../../../components/trait-tokens/CharacterStateDisplay";
+import { CharacterStateDisplay } from "../../../../../../components/state-formatting/displays/CharacterStateDisplay";
 import type { FeatureDetailDTO } from "../../../../../../lib/domain/features/types";
-import { StateTagWrapper } from "./StateTagWrapper";
+import type { SampleModifier } from "./sampleModifiers";
+import { ModifierTag } from "./tags/ModifierTag";
 import type { CharacterStateFormValue } from "./validation";
 
 type CharacterStateRowProps = {
   character: FeatureDetailDTO["characters"][number];
   state?: CharacterStateFormValue;
-  onRemoveCategoricalValue: (characterId: number, traitValueId: number) => void;
+  onRemoveCategoricalTrait: (characterId: number, traitValueId: number) => void;
   onRemoveState: (characterId: number) => void;
+  onUpdateCategoricalModifiers: (
+    characterId: number,
+    traitValueId: number,
+    mods: SampleModifier[],
+  ) => void;
+  onUpdateNumericModifiers: (
+    characterId: number,
+    mods: SampleModifier[],
+  ) => void;
 };
 
 export const CharacterStateRow = memo(
   ({
     character,
     state,
-    onRemoveCategoricalValue,
+    onRemoveCategoricalTrait,
     onRemoveState,
+    onUpdateCategoricalModifiers,
+    onUpdateNumericModifiers,
   }: CharacterStateRowProps) => {
     const content = useMemo(() => {
-      if (!state) return "—";
+      if (!state) {
+        return (
+          <Text color="gray" size="1">
+            —
+          </Text>
+        );
+      }
 
       switch (state.kind) {
         case "categorical":
           return state.traitValues.map((tv) => (
-            <StateTagWrapper
+            <ModifierTag
               key={tv.id}
-              onRemove={() => onRemoveCategoricalValue(character.id, tv.id)}
+              modifiers={tv.modifiers as SampleModifier[]}
+              onModifiersChange={(mods) =>
+                onUpdateCategoricalModifiers(character.id, tv.id, mods)
+              }
+              onRemove={() => onRemoveCategoricalTrait(character.id, tv.id)}
             >
               <CharacterStateDisplay
                 state={{ kind: "categorical", traitValues: [tv] }}
+                highlightAffixes
               />
-            </StateTagWrapper>
+            </ModifierTag>
           ));
 
         case "number":
           return (
-            <StateTagWrapper onRemove={() => onRemoveState(character.id)}>
+            <ModifierTag
+              modifiers={state.modifiers as SampleModifier[]}
+              onModifiersChange={(mods) =>
+                onUpdateNumericModifiers(character.id, mods)
+              }
+              onRemove={() => onRemoveState(character.id)}
+            >
               <CharacterStateDisplay
                 state={{
                   kind: "number",
                   siBaseValue: state.siBaseValue,
                   unit: state.unit,
+                  modifiers: state.modifiers,
                 }}
+                highlightAffixes
               />
-            </StateTagWrapper>
+            </ModifierTag>
           );
 
         case "range":
           return (
-            <StateTagWrapper onRemove={() => onRemoveState(character.id)}>
+            <ModifierTag
+              modifiers={state.modifiers as SampleModifier[]}
+              onModifiersChange={(mods) =>
+                onUpdateNumericModifiers(character.id, mods)
+              }
+              onRemove={() => onRemoveState(character.id)}
+            >
               <CharacterStateDisplay
                 state={{
                   kind: "range",
                   siBaseMin: state.siBaseMin,
                   siBaseMax: state.siBaseMax,
                   unit: state.unit,
+                  modifiers: state.modifiers,
                 }}
+                highlightAffixes
               />
-            </StateTagWrapper>
+            </ModifierTag>
           );
 
         default:
           return "Unsupported kind";
       }
-    }, [state, character.id, onRemoveCategoricalValue, onRemoveState]);
+    }, [
+      state,
+      character.id,
+      onRemoveCategoricalTrait,
+      onRemoveState,
+      onUpdateCategoricalModifiers,
+      onUpdateNumericModifiers,
+    ]);
 
     return (
       <DataList.Item>
         <DataList.Label>{character.label}</DataList.Label>
         <DataList.Value>
-          <Flex className="character-editor__tag-list">{content}</Flex>
+          <Flex
+            wrap="wrap"
+            gap="1"
+            className="character-editor__tag-list"
+            maxWidth="100%"
+          >
+            {content}
+          </Flex>
         </DataList.Value>
       </DataList.Item>
     );

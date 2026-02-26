@@ -15,8 +15,13 @@ import type { TaxonEditFormValues } from "..";
 import type { TraitSuggestion } from "../../../../../../lib/api/character-suggestions/types";
 import { featureQueryOptions } from "../../../../../../lib/queries/features";
 import { CharacterStateRow } from "./CharacterStateRow";
+import type { SampleModifier } from "./sampleModifiers";
 import { FeatureStateSearch } from "./search/FeatureStateSearch";
-import { addStateFromSuggestion } from "./stateUtils";
+import {
+  addStateFromSuggestion,
+  updateCategoricalTraitValueModifiers,
+  updateNumericStateModifiers,
+} from "./stateUtils";
 import type { FeatureFormValue } from "./validation";
 
 type Props = {
@@ -56,6 +61,35 @@ export const EditingFeatureCard = memo(
         onChange(next);
       },
       [getValues, onChange],
+    );
+
+    const handleUpdateCategoricalModifiers = useCallback(
+      (characterId: number, traitValueId: number, mods: SampleModifier[]) => {
+        const prev = getValues("states");
+        const next = updateCategoricalTraitValueModifiers(
+          prev,
+          feature.featureId,
+          characterId,
+          traitValueId,
+          mods,
+        );
+        onChange(next);
+      },
+      [getValues, onChange, feature.featureId],
+    );
+
+    const handleUpdateNumericModifiers = useCallback(
+      (characterId: number, mods: SampleModifier[]) => {
+        const prev = getValues("states");
+        const next = updateNumericStateModifiers(
+          prev,
+          feature.featureId,
+          characterId,
+          mods,
+        );
+        onChange(next);
+      },
+      [getValues, onChange, feature.featureId],
     );
 
     // TODO: Immediately delete if no characters exist in group
@@ -126,7 +160,7 @@ export const EditingFeatureCard = memo(
                 key={c.id}
                 character={c}
                 state={feature.characters.find((s) => s.characterId === c.id)}
-                onRemoveCategoricalValue={(characterId, traitValueId) =>
+                onRemoveCategoricalTrait={(characterId, traitValueId) =>
                   onRemoveCategoricalValue(
                     feature.featureId,
                     characterId,
@@ -136,6 +170,8 @@ export const EditingFeatureCard = memo(
                 onRemoveState={(characterId) =>
                   onRemoveState(feature.featureId, characterId)
                 }
+                onUpdateCategoricalModifiers={handleUpdateCategoricalModifiers}
+                onUpdateNumericModifiers={handleUpdateNumericModifiers}
               />
             ))}
           </DataList.Root>

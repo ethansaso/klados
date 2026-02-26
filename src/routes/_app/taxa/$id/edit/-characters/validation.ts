@@ -1,11 +1,18 @@
 import z from "zod";
 
-// leaves
+const modifierTokenSchema = z.object({
+  id: z.number().int(),
+  value: z.string(),
+  affixType: z.enum(["prefix", "suffix"]),
+  groupId: z.number().int(),
+  groupLabel: z.string(),
+});
 
 const traitValueSchema = z.object({
   id: z.number().int().positive(),
   label: z.string(),
   hexCode: z.string().optional(),
+  modifiers: z.array(modifierTokenSchema).default([]),
 });
 
 const unitSchema = z.object({
@@ -29,6 +36,7 @@ export const numberCharacterFormSchema = z.object({
   characterLabel: z.string(),
   unit: unitSchema.nullable(), // Nullable in case of dimensionless (validated elsewhere)
   siBaseValue: z.number(),
+  modifiers: z.array(modifierTokenSchema).default([]),
 });
 
 export const rangeCharacterFormSchema = z
@@ -39,6 +47,7 @@ export const rangeCharacterFormSchema = z
     unit: unitSchema.nullable(), // Nullable in case of dimensionless (validated elsewhere)
     siBaseMin: z.number(),
     siBaseMax: z.number(),
+    modifiers: z.array(modifierTokenSchema).default([]),
   })
   .refine((data) => data.siBaseMin <= data.siBaseMax, {
     message: "Minimum must be less than or equal to maximum.",
@@ -105,6 +114,8 @@ export const groupedCharacterFormSchema = z
   });
 
 // types
+
+export type ModifierTokenFormValue = z.infer<typeof modifierTokenSchema>;
 
 export type CharacterStateFormValue = z.infer<typeof characterStateFormSchema>;
 

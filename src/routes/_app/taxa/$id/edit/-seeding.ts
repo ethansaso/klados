@@ -33,6 +33,7 @@ const seedCharacterState = (
           id: tv.id,
           label: tv.label,
           hexCode: tv.hexCode,
+          modifiers: [],
         })),
       };
 
@@ -49,6 +50,7 @@ const seedCharacterState = (
             }
           : null,
         siBaseValue: dto.siBaseValue,
+        modifiers: [],
       };
 
     case "range":
@@ -65,6 +67,7 @@ const seedCharacterState = (
           : null,
         siBaseMin: dto.siBaseMin,
         siBaseMax: dto.siBaseMax,
+        modifiers: [],
       };
   }
 };
