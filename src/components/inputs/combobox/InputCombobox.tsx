@@ -303,7 +303,7 @@ function List({ className, style, children }: ListProps) {
 }
 
 function Item({ option, className, style }: ItemProps) {
-  const { selected, onSelectedChange, setOpen, comboboxRef } = useCb();
+  const { selected, onSelectedChange, setOpen } = useCb();
   const store = useComboboxContext();
 
   const isSelected = selected ? selected.id === option.id : false;
@@ -319,9 +319,8 @@ function Item({ option, className, style }: ItemProps) {
         onSelectedChange(option);
         // 2) Clear the combobox text / query.
         store?.setValue("");
-        // 3) Close popover and blur.
+        // 3) Close popover — focus returns to the input automatically.
         setOpen(false);
-        comboboxRef.current?.blur();
       }}
       style={style}
       aria-selected={isSelected}
