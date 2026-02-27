@@ -16,7 +16,7 @@ type CharEntry = {
   featureId: number;
 };
 
-type ByCharacter = Map<number, Map<number, CharEntry>>;
+type ByCharacter = Map<string, Map<number, CharEntry>>;
 
 type SharedTraitGroup = {
   traits: Trait[];
@@ -39,17 +39,21 @@ type GroupsResult = {
  * Build index: characterId -> (taxonId -> {taxon, states})
  */
 function buildCharacterIndex(taxa: HierarchyTaxonNode[]): ByCharacter {
-  const byCharacter = new Map<number, Map<number, CharEntry>>();
+  const byCharacter = new Map<string, Map<number, CharEntry>>();
 
   for (const taxon of taxa) {
     for (const group of taxon.states) {
       for (const state of group.states) {
         if (state.kind !== "categorical") continue;
 
-        let byTaxon = byCharacter.get(state.characterId);
+        // Key by (featureId, characterId) so that the same character scoped
+        // under different features (e.g. Cap > Color vs. Gill > Color) is
+        // treated as a distinct split candidate rather than overwriting.
+        const key = `${group.featureId}:${state.characterId}`;
+        let byTaxon = byCharacter.get(key);
         if (!byTaxon) {
           byTaxon = new Map<number, CharEntry>();
-          byCharacter.set(state.characterId, byTaxon);
+          byCharacter.set(key, byTaxon);
         }
 
         byTaxon.set(taxon.id, {
@@ -235,6 +239,26 @@ function buildGroupsWithDeadTags(
 
   if ((hasNotTaxa && groups.length === 0) || groups.length < 2) {
     // Either everyone is ambiguous, or there's no real split.
+    console.log(
+      `[KEYGEN]   buildGroups null: groups=${groups.length}, notTaxa=[${Array.from(
+        notTaxa,
+      )
+        .map((t) => `${t.id}(${t.acceptedName})`)
+        .join(", ")}]`,
+      `deadTraits=[${Array.from(deadTraitIds).join(", ")}]`,
+    );
+    for (const [key, g] of groupMap) {
+      console.log(
+        `[KEYGEN]   remaining group key=${key}: taxa=[${g.taxa.map((t) => t.id).join(", ")}] traits=[${g.traits.map((t) => `${t.id}/${t.canonicalId}:${t.label}`).join(", ")}]`,
+      );
+    }
+    // Log each taxon's full trait set for this character
+    for (const taxon of [...notTaxa, ...groups.flatMap((g) => g.taxa)]) {
+      const traits = traitSetsByTaxon.get(taxon.id) ?? [];
+      console.log(
+        `[KEYGEN]   taxon ${taxon.id}(${taxon.acceptedName}) traits: [${traits.map((t) => `${t.id}/${t.canonicalId}:${t.label}`).join(", ")}]`,
+      );
+    }
     return null;
   }
 
@@ -349,14 +373,32 @@ export function resolveCharacterSplits(
   const byCharacter = buildCharacterIndex(taxa);
   const results: CharacterDefinitionSplitResult[] = [];
 
-  for (const [characterId, byTaxon] of byCharacter) {
+  for (const [_key, byTaxon] of byCharacter) {
+    const firstEntry = byTaxon.values().next().value!;
+    const characterId = firstEntry.state.characterId;
+
     // 1) enforce all taxa have this character + normalize
     const normalized = normalizeTraitSetsForCharacter(taxa, byTaxon);
-    if (!normalized) continue;
+    if (!normalized) {
+      const missing = taxa
+        .filter((t) => !byTaxon.has(t.id))
+        .map((t) => `${t.id}(${t.acceptedName})`);
+      const charLabel = firstEntry.state.characterLabel;
+      console.log(
+        `[KEYGEN] char ${characterId}(${charLabel}): skipped at normalize — missing taxa: [${missing.join(", ")}]`,
+      );
+      continue;
+    }
 
     // 2) build disjoint groups + notTaxa
     const groupsResult = buildGroupsWithDeadTags(taxa, normalized);
-    if (!groupsResult) continue;
+    if (!groupsResult) {
+      const charLabel = firstEntry.state.characterLabel;
+      console.log(
+        `[KEYGEN] char ${characterId}(${charLabel}): skipped at buildGroups`,
+      );
+      continue;
+    }
 
     // 3) respect maxBranches (trim into inverted if needed)
     const limited = enforceBranchLimit(

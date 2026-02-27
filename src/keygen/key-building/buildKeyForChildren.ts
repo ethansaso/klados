@@ -165,6 +165,7 @@ function buildKeyForSiblings(
   siblings: TaxonGroup,
   hierarchy: Map<number, HierarchyTaxonNode>,
   options: KeyGenOptions,
+  featureAncestorMap: Map<number, number | null>,
 ): void {
   if (siblings.length === 0) return;
 
@@ -176,7 +177,7 @@ function buildKeyForSiblings(
     const branch = makeBranch(null, childNode);
     parent.branches.push(branch);
 
-    buildKeySubtreeForTaxon(childNode, hierarchy, options);
+    buildKeySubtreeForTaxon(childNode, hierarchy, options, featureAncestorMap);
     return;
   }
 
@@ -186,18 +187,32 @@ function buildKeyForSiblings(
     rawCharacterSplits,
     options,
   );
-  const featureSplits = resolveFeaturePresentAbsentSplits(siblings);
+  const featureSplits = resolveFeaturePresentAbsentSplits(
+    siblings,
+    featureAncestorMap,
+  );
   const candidates: SplitResult[] = [...characterSplits, ...featureSplits];
 
   // If no valid splits, attach all siblings directly and recurse hierarchically
   // under each.
   if (candidates.length === 0) {
+    console.log(
+      `[KEYGEN] No candidates for siblings: [${siblings.map((s) => `${s.id}(${s.acceptedName})`).join(", ")}]`,
+      `rawCharSplits=${rawCharacterSplits.length}`,
+      `mergedCharSplits=${characterSplits.length}`,
+      `featureSplits=${featureSplits.length}`,
+    );
     for (const sib of siblings) {
       const childNode = makeTaxonNode(sib.id);
       const branch = makeBranch(null, childNode);
       parent.branches.push(branch);
 
-      buildKeySubtreeForTaxon(childNode, hierarchy, options);
+      buildKeySubtreeForTaxon(
+        childNode,
+        hierarchy,
+        options,
+        featureAncestorMap,
+      );
     }
     return;
   }
@@ -222,14 +237,25 @@ function buildKeyForSiblings(
       parent.branches.push(branch);
 
       // Differentiate this single taxon further down the hierarchy
-      buildKeySubtreeForTaxon(childTaxonNode, hierarchy, options);
+      buildKeySubtreeForTaxon(
+        childTaxonNode,
+        hierarchy,
+        options,
+        featureAncestorMap,
+      );
     } else {
       const diffNode = makeDiffNode();
       const branch = makeBranch(rationale, diffNode);
       parent.branches.push(branch);
 
       // Differentiate multiple siblings recursively
-      buildKeyForSiblings(diffNode, taxaInBranch, hierarchy, options);
+      buildKeyForSiblings(
+        diffNode,
+        taxaInBranch,
+        hierarchy,
+        options,
+        featureAncestorMap,
+      );
     }
   });
 }
@@ -245,6 +271,7 @@ export function buildKeySubtreeForTaxon(
   taxonNode: KeyTaxonNode,
   hierarchy: Map<number, HierarchyTaxonNode>,
   options: KeyGenOptions,
+  featureAncestorMap: Map<number, number | null>,
 ): void {
   const children: TaxonGroup = getChildrenForTaxonNode(taxonNode, hierarchy);
 
@@ -260,10 +287,21 @@ export function buildKeySubtreeForTaxon(
     const branch = makeBranch(null, childTaxonNode);
     taxonNode.branches.push(branch);
 
-    buildKeySubtreeForTaxon(childTaxonNode, hierarchy, options);
+    buildKeySubtreeForTaxon(
+      childTaxonNode,
+      hierarchy,
+      options,
+      featureAncestorMap,
+    );
     return;
   }
 
   // Multiple children: differentiate this sibling group under the current taxon.
-  buildKeyForSiblings(taxonNode, children, hierarchy, options);
+  buildKeyForSiblings(
+    taxonNode,
+    children,
+    hierarchy,
+    options,
+    featureAncestorMap,
+  );
 }

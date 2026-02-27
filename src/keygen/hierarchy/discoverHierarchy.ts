@@ -1,3 +1,4 @@
+import { getFeatureAncestorMap } from "../../lib/domain/features/repo";
 import { getTaxaStates, getTaxonStates } from "../../lib/domain/states/service";
 import type { FeatureStateDTO } from "../../lib/domain/states/types";
 import { getTaxonHierarchyMetaForParents } from "../../lib/domain/taxa/repo";
@@ -144,22 +145,40 @@ function assembleHierarchyNodes(
 }
 
 /**
- * Build a flat map of KGTaxonNodes for the subtree rooted at `rootTaxonId`.
+ * Build a flat map of KGTaxonNodes for the subtree rooted at `rootTaxonId`
+ * and a feature ancestry map covering all features referenced by those taxa.
  *
  * Steps:
- *  1. Discover taxon subtree structure (one getTaxon per taxon).
+ *  1. Discover taxon subtree structure.
  *  2. Bulk-load character states for all discovered taxa.
- *  3. Assemble Map<number, KGTaxonNode>.
+ *  3. Assemble Map<number, HierarchyTaxonNode>.
+ *  4. Collect all referenced featureIds and fetch their full ancestor chains.
  */
 export const discoverTaxonHierarchyFromRoot = async (
   rootTaxonId: number,
   options: KeyGenOptions,
-): Promise<Map<number, HierarchyTaxonNode>> => {
+): Promise<{
+  hierarchy: Map<number, HierarchyTaxonNode>;
+  featureAncestorMap: Map<number, number | null>;
+}> => {
   const metaById = await discoverTaxonMetaHierarchyBFS(rootTaxonId, options);
   if (!metaById.size) {
     throw new Error(`No taxa discovered under root ID ${rootTaxonId}.`);
   }
 
   const statesByTaxonId = await loadStatesForHierarchy(metaById);
-  return assembleHierarchyNodes(metaById, statesByTaxonId);
+  const hierarchy = assembleHierarchyNodes(metaById, statesByTaxonId);
+
+  // Collect every featureId referenced across all taxa, then fetch ancestor chains.
+  const allFeatureIds = new Set<number>();
+  for (const node of hierarchy.values()) {
+    for (const state of node.states) {
+      allFeatureIds.add(state.featureId);
+    }
+  }
+  const featureAncestorMap = await getFeatureAncestorMap(
+    Array.from(allFeatureIds),
+  );
+
+  return { hierarchy, featureAncestorMap };
 };

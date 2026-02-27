@@ -350,6 +350,42 @@ export async function countDependentsForFeature(
 }
 
 /**
+ * Given a set of seed feature IDs, returns a map of featureId -> parentId for
+ * every feature in the ancestor chains (seeds + all of their ancestors).
+ *
+ * ! Assumes no cycles in the data.
+ */
+export async function getFeatureAncestorMap(
+  featureIds: number[],
+): Promise<Map<number, number | null>> {
+  if (featureIds.length === 0) return new Map();
+
+  type AncRow = { id: number; parentId: number | null };
+
+  const rows = await db.execute<AncRow>(sql`
+    WITH RECURSIVE ancestors AS (
+      SELECT id, parent_id AS "parentId"
+      FROM ${featuresTbl}
+      WHERE id = ANY(ARRAY[${sql.join(
+        featureIds.map((id) => sql`${id}`),
+        sql`, `,
+      )}]::integer[])
+      UNION ALL
+      SELECT f.id, f.parent_id AS "parentId"
+      FROM ${featuresTbl} f
+      INNER JOIN ancestors a ON f.id = a."parentId"
+    )
+    SELECT DISTINCT id, "parentId" FROM ancestors
+  `);
+
+  const map = new Map<number, number | null>();
+  for (const row of rows.rows) {
+    map.set(row.id, row.parentId);
+  }
+  return map;
+}
+
+/**
  * Delete a feature by id; returns the deleted id or null if nothing deleted.
  */
 export async function deleteFeatureById(

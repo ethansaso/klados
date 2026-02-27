@@ -11,7 +11,8 @@ export async function generateKeyForTaxon(
   taxonId: number,
   options: KeyGenOptions,
 ): Promise<{ rootNode: KeyTaxonNode }> {
-  const hierarchy = await discoverTaxonHierarchyFromRoot(taxonId, options);
+  const { hierarchy, featureAncestorMap } =
+    await discoverTaxonHierarchyFromRoot(taxonId, options);
 
   const root = hierarchy.get(taxonId);
   if (!root) {
@@ -25,7 +26,7 @@ export async function generateKeyForTaxon(
   };
 
   // Populate the key recursively
-  buildKeySubtreeForTaxon(rootNode, hierarchy, options);
+  buildKeySubtreeForTaxon(rootNode, hierarchy, options, featureAncestorMap);
 
   return { rootNode };
 }

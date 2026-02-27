@@ -139,7 +139,7 @@ async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
       label: tr.label,
       description: tr.aliasOf?.description ?? tr.description,
       canonicalId: tr.aliasOf?.id ?? tr.id,
-      hexCode: tr.hexCode ?? undefined,
+      hexCode: tr.aliasOf?.hexCode ?? tr.hexCode ?? undefined,
     });
   }
 
