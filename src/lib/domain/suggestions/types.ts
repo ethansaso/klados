@@ -5,6 +5,7 @@ type BaseCharacterContext = {
   featureId: number;
   featureLabel: string; // "Cap", "Gills", etc.
 };
+
 // Base type for numeric suggestions.
 type BaseNumericSuggestion = BaseCharacterContext & {
   // Which unit to use for display/re-entry if it was resolved from the query. Null if incomplete/unknown.
@@ -23,11 +24,13 @@ export type CategoricalValueSuggestion = BaseCharacterContext & {
   traitValueLabel: string; // "Red"
   traitValueHexCode: string | null; // "#FF0000" or null
 };
+
 export type NumericSingleSuggestion = BaseNumericSuggestion & {
   kind: "numeric-single";
   value: number; // e.g. 10
   displayValue: string; // "10 µm" or "10"
 };
+
 export type NumericRangeSuggestion = BaseNumericSuggestion & {
   kind: "numeric-range";
   min: number; // e.g. 7
@@ -43,3 +46,17 @@ export type TraitSuggestion =
   | CategoricalValueSuggestion
   | NumericSingleSuggestion
   | NumericRangeSuggestion;
+
+/**
+ * A suggestion for modifier values.
+ * Scoped only by the query string (modifiers are not tied to features/characters).
+ */
+export type ModifierSuggestion = {
+  kind: "modifier";
+  modifierId: number;
+  modifierValue: string; // e.g. "at apex"
+  affixType: "prefix" | "suffix";
+  groupId: number;
+  groupLabel: string; // e.g. "Position"
+  groupClass: "positional" | "reliability" | "demographic" | "reactive";
+};

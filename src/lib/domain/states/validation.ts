@@ -3,7 +3,14 @@ import z from "zod";
 const categoricalCharacterUpdateSchema = z.object({
   kind: z.literal("categorical"),
   characterId: z.number(),
-  traitValueIds: z.array(z.number()).nonempty(),
+  traitValues: z
+    .array(
+      z.object({
+        id: z.number(),
+        modifierIds: z.array(z.number()).default([]),
+      }),
+    )
+    .nonempty(),
 });
 
 const numberCharacterUpdateSchema = z.object({
@@ -11,6 +18,7 @@ const numberCharacterUpdateSchema = z.object({
   characterId: z.number(),
   unitId: z.int().positive().optional(),
   siBaseValue: z.number(),
+  modifierIds: z.array(z.number()).default([]),
 });
 
 const rangeCharacterUpdateSchema = z
@@ -20,6 +28,7 @@ const rangeCharacterUpdateSchema = z
     unitId: z.int().positive().optional(),
     siBaseMin: z.number(),
     siBaseMax: z.number(),
+    modifierIds: z.array(z.number()).default([]),
   })
   .refine((data) => data.siBaseMin <= data.siBaseMax, {
     message: "Minimum must be less than or equal to maximum.",
@@ -56,29 +65,16 @@ export const groupedCharacterUpdateSchema = z
   .array(featureUpdateSchema)
   .superRefine((groups, ctx) => {
     const seenGroups = new Set<number>();
-    const seenCharacters = new Map<number, number>(); // characterId -> groupId
 
     for (const group of groups) {
       if (seenGroups.has(group.featureId)) {
         ctx.addIssue({
           code: "custom",
-          message: `Duplicate groupId ${group.featureId}.`,
+          message: `Duplicate featureId ${group.featureId}.`,
           path: [],
         });
       }
       seenGroups.add(group.featureId);
-
-      for (const c of group.characters) {
-        const prevGroup = seenCharacters.get(c.characterId);
-        if (prevGroup !== undefined) {
-          ctx.addIssue({
-            code: "custom",
-            message: `Character ${c.characterId} appears in multiple groups (${prevGroup}, ${group.featureId}).`,
-            path: [],
-          });
-        }
-        seenCharacters.set(c.characterId, group.featureId);
-      }
     }
   });
 

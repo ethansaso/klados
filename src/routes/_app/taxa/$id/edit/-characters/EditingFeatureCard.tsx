@@ -12,17 +12,22 @@ import { memo, useCallback, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { PiCheck, PiTrash, PiX } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
-import type { TraitSuggestion } from "../../../../../../lib/api/character-suggestions/types";
+import type { TraitSuggestion } from "../../../../../../lib/domain/suggestions/types";
 import { featureQueryOptions } from "../../../../../../lib/queries/features";
 import { CharacterStateRow } from "./CharacterStateRow";
-import type { SampleModifier } from "./sampleModifiers";
-import { FeatureStateSearch } from "./search/FeatureStateSearch";
+import { CharacterStateSearch } from "./search/CharacterStateSearch";
 import {
   addStateFromSuggestion,
   updateCategoricalTraitValueModifiers,
   updateNumericStateModifiers,
 } from "./stateUtils";
-import type { FeatureFormValue } from "./validation";
+import type { FeatureFormValue, ModifierTokenFormValue } from "./validation";
+
+type LastAdded = {
+  characterId: number;
+  traitValueId?: number;
+  label: string;
+};
 
 type Props = {
   feature: FeatureFormValue;
@@ -46,6 +51,9 @@ export const EditingFeatureCard = memo(
   }: Props) => {
     const { getValues } = useFormContext<TaxonEditFormValues>();
     const [confirmingDelete, setConfirmingDelete] = useState(false);
+    const [lastAdded, setLastAdded] = useState<LastAdded | null>(null);
+    const [autoOpenFor, setAutoOpenFor] = useState<LastAdded | null>(null);
+
     const { data, isLoading, isError } = useQuery({
       ...featureQueryOptions(feature.featureId),
       staleTime: 5_000,
@@ -59,12 +67,34 @@ export const EditingFeatureCard = memo(
         const prev = getValues("states");
         const next = addStateFromSuggestion(prev, s);
         onChange(next);
+
+        const label =
+          s.kind === "categorical-value" ? s.traitValueLabel : s.displayValue;
+        setLastAdded(
+          s.kind === "categorical-value"
+            ? {
+                characterId: s.characterId,
+                traitValueId: s.traitValueId,
+                label,
+              }
+            : { characterId: s.characterId, label },
+        );
+        setAutoOpenFor(null);
       },
       [getValues, onChange],
     );
 
+    const handleAutoOpenHandled = useCallback(() => {
+      setAutoOpenFor(null);
+      setLastAdded(null);
+    }, []);
+
     const handleUpdateCategoricalModifiers = useCallback(
-      (characterId: number, traitValueId: number, mods: SampleModifier[]) => {
+      (
+        characterId: number,
+        traitValueId: number,
+        mods: ModifierTokenFormValue[],
+      ) => {
         const prev = getValues("states");
         const next = updateCategoricalTraitValueModifiers(
           prev,
@@ -79,7 +109,7 @@ export const EditingFeatureCard = memo(
     );
 
     const handleUpdateNumericModifiers = useCallback(
-      (characterId: number, mods: SampleModifier[]) => {
+      (characterId: number, mods: ModifierTokenFormValue[]) => {
         const prev = getValues("states");
         const next = updateNumericStateModifiers(
           prev,
@@ -140,9 +170,19 @@ export const EditingFeatureCard = memo(
 
         {/* Add states via search */}
         <Box mt="2" mb="3">
-          <FeatureStateSearch
+          <CharacterStateSearch
             featureId={feature.featureId}
             onSelect={handleSuggestionSelect}
+            modifyHint={lastAdded?.label}
+            onModifyShortcut={
+              lastAdded
+                ? () => {
+                    setAutoOpenFor(lastAdded);
+                    setLastAdded(null); // dismiss hint immediately on /
+                  }
+                : undefined
+            }
+            onQueryActive={() => setLastAdded(null)}
           />
         </Box>
 
@@ -172,6 +212,10 @@ export const EditingFeatureCard = memo(
                 }
                 onUpdateCategoricalModifiers={handleUpdateCategoricalModifiers}
                 onUpdateNumericModifiers={handleUpdateNumericModifiers}
+                autoOpenModifierFor={
+                  autoOpenFor?.characterId === c.id ? autoOpenFor : undefined
+                }
+                onAutoOpenHandled={handleAutoOpenHandled}
               />
             ))}
           </DataList.Root>

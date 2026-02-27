@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 import type { TaxonEditFormValues } from ".";
 import type {
-  TaxonCharacterFeatureStateDTO,
-  TaxonCharacterStateDTO,
+  CharacterStateDTO,
+  FeatureStateDTO,
 } from "../../../../../lib/domain/states/types";
 import type { TaxonDetailDTO } from "../../../../../lib/domain/taxa/types";
 import type { TaxonSourceDTO } from "../../../../../lib/domain/taxon-sources/types";
@@ -21,7 +21,7 @@ const seedSources = (rows: TaxonSourceDTO[]): TaxonSourceUpsertItem[] =>
   }));
 
 const seedCharacterState = (
-  dto: TaxonCharacterStateDTO,
+  dto: CharacterStateDTO,
 ): CharacterStateFormValue => {
   switch (dto.kind) {
     case "categorical":
@@ -33,7 +33,13 @@ const seedCharacterState = (
           id: tv.id,
           label: tv.label,
           hexCode: tv.hexCode,
-          modifiers: [],
+          modifiers: tv.modifiers.map((m) => ({
+            id: m.id,
+            value: m.value,
+            affixType: m.affixType,
+            groupId: m.groupId,
+            groupLabel: m.groupLabel,
+          })),
         })),
       };
 
@@ -50,7 +56,13 @@ const seedCharacterState = (
             }
           : null,
         siBaseValue: dto.siBaseValue,
-        modifiers: [],
+        modifiers: dto.modifiers.map((m) => ({
+          id: m.id,
+          value: m.value,
+          affixType: m.affixType,
+          groupId: m.groupId,
+          groupLabel: m.groupLabel,
+        })),
       };
 
     case "range":
@@ -67,13 +79,19 @@ const seedCharacterState = (
           : null,
         siBaseMin: dto.siBaseMin,
         siBaseMax: dto.siBaseMax,
-        modifiers: [],
+        modifiers: dto.modifiers.map((m) => ({
+          id: m.id,
+          value: m.value,
+          affixType: m.affixType,
+          groupId: m.groupId,
+          groupLabel: m.groupLabel,
+        })),
       };
   }
 };
 
 const seedCharacterGroups = (
-  features: TaxonCharacterFeatureStateDTO[],
+  features: FeatureStateDTO[],
 ): GroupedCharacterFormValue =>
   features.map((feature) => ({
     featureId: feature.featureId,
@@ -90,7 +108,7 @@ const seedNames = (names: TaxonDetailDTO["names"]) => {
 
 export const seedTaxonEditState = (
   taxon: TaxonDetailDTO,
-  characterGroups: TaxonCharacterFeatureStateDTO[],
+  characterGroups: FeatureStateDTO[],
   sources: TaxonSourceDTO[],
 ): TaxonEditFormValues => ({
   parentId: taxon.ancestors?.[taxon.ancestors.length - 1]?.id ?? null,

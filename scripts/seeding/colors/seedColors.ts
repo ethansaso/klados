@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "../../../db/client";
 import {
   categoricalCharacterMeta,
@@ -36,8 +36,6 @@ async function getOrCreateColorCharacterTx(tx: Transaction) {
       .insert(character)
       .values({
         label: COLOR_CHARACTER_LABEL,
-        description:
-          "Standardized color names and swatches for Klados, derived from a simplified ISCC-like scheme.",
       })
       .returning();
 
@@ -70,7 +68,6 @@ async function upsertCanonicalColorsTx(
       .values({
         characterId,
         label: color.label,
-        isCanonical: true,
         canonicalValueId: null,
         hexCode: color.hexCode,
       })
@@ -81,7 +78,6 @@ async function upsertCanonicalColorsTx(
         ],
         set: {
           hexCode: color.hexCode,
-          isCanonical: true,
           canonicalValueId: null,
           updatedAt: new Date(),
         },
@@ -99,7 +95,7 @@ async function syncColorAliasesTx(tx: Transaction, characterId: number) {
     .where(
       and(
         eq(categoricalTraitValue.characterId, characterId),
-        eq(categoricalTraitValue.isCanonical, true),
+        isNull(categoricalTraitValue.canonicalValueId),
       ),
     );
 
@@ -154,7 +150,6 @@ async function syncColorAliasesTx(tx: Transaction, characterId: number) {
       .values({
         characterId,
         label: alias.aliasLabel,
-        isCanonical: false,
         canonicalValueId: canonical.id,
         hexCode: null,
       })
@@ -164,7 +159,6 @@ async function syncColorAliasesTx(tx: Transaction, characterId: number) {
           categoricalTraitValue.label,
         ],
         set: {
-          isCanonical: false,
           canonicalValueId: canonical.id,
           hexCode: null,
           updatedAt: new Date(),

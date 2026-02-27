@@ -1,5 +1,6 @@
 import { isRedirect } from "@tanstack/react-router";
 import { createMiddleware, createStart } from "@tanstack/react-start";
+import { dbErrorMiddleware } from "./lib/utils/dbErrorMiddleware";
 
 const convertRedirectErrorToExceptionMiddleware = createMiddleware({
   type: "function",
@@ -12,5 +13,8 @@ const convertRedirectErrorToExceptionMiddleware = createMiddleware({
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [convertRedirectErrorToExceptionMiddleware],
+  functionMiddleware: [
+    convertRedirectErrorToExceptionMiddleware,
+    dbErrorMiddleware,
+  ],
 }));

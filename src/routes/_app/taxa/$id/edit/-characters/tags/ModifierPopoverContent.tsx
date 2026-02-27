@@ -7,36 +7,108 @@ import {
   ScrollArea,
   Separator,
   Text,
-  TextField,
 } from "@radix-ui/themes";
-import type { RefObject } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { PiPlus, PiX } from "react-icons/pi";
-import {
-  filterModifiers,
-  groupModifiers,
-  type SampleModifier,
-} from "../sampleModifiers";
+import { DebouncedTextField } from "../../../../../../../components/inputs/DebouncedTextField";
+import { modifierSuggestionsQueryOptions } from "../../../../../../../lib/queries/suggestions";
+import type { ModifierTokenFormValue } from "../validation";
 
 type Props = {
-  modifiers: SampleModifier[];
-  filterQ: string;
+  modifiers: ModifierTokenFormValue[];
   filterInputRef: RefObject<HTMLInputElement | null>;
-  onFilterChange: (q: string) => void;
-  onAdd: (m: SampleModifier) => void;
+  onAdd: (m: ModifierTokenFormValue) => void;
   onRemove: (id: number) => void;
 };
 
 export function ModifierPopoverContent({
   modifiers,
-  filterQ,
   filterInputRef,
-  onFilterChange,
   onAdd,
   onRemove,
 }: Props) {
+  // `q` is the debounced/committed query that drives the server call.
+  const [q, setQ] = useState("");
+  // Incrementing this key remounts DebouncedTextField, resetting its input.
+  const [inputKey, setInputKey] = useState(0);
+
+  const { data: suggestions = [], isFetching } = useQuery(
+    modifierSuggestionsQueryOptions(q),
+  );
+
+  // Map to ModifierTokenFormValue shape and filter out already-applied IDs.
   const usedIds = new Set(modifiers.map((m) => m.id));
-  const available = filterModifiers(filterQ).filter((m) => !usedIds.has(m.id));
-  const grouped = groupModifiers(available);
+  const available = suggestions
+    .filter((s) => !usedIds.has(s.modifierId))
+    .map(
+      (s): ModifierTokenFormValue => ({
+        id: s.modifierId,
+        value: s.modifierValue,
+        affixType: s.affixType,
+        groupId: s.groupId,
+        groupLabel: s.groupLabel,
+      }),
+    );
+
+  const listRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(-1);
+
+  // Auto-activate first item whenever the list updates (mirrors Ariakit autoSelect="always").
+  useEffect(() => {
+    setActiveIndex(available.length > 0 ? 0 : -1);
+  }, [suggestions, modifiers]);
+
+  const handleAdd = (m: ModifierTokenFormValue) => {
+    onAdd(m);
+    // Reset the text input and clear the committed query.
+    setQ("");
+    setInputKey((k) => k + 1);
+    // Defer focus until after React reconciles the remounted DebouncedTextField.
+    requestAnimationFrame(() => filterInputRef.current?.focus());
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const buttons =
+        listRef.current?.querySelectorAll<HTMLButtonElement>("button");
+      if (buttons?.length) {
+        buttons[0]?.focus();
+        setActiveIndex(0);
+      }
+    } else if (
+      e.key === "Enter" &&
+      activeIndex >= 0 &&
+      available[activeIndex]
+    ) {
+      e.preventDefault();
+      handleAdd(available[activeIndex]!);
+    }
+  };
+
+  const handleListKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const buttons = Array.from(
+      listRef.current?.querySelectorAll<HTMLButtonElement>("button") ?? [],
+    );
+    const idx = buttons.indexOf(e.target as HTMLButtonElement);
+    if (idx === -1) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      buttons[idx + 1]?.focus();
+      setActiveIndex(idx + 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (idx === 0) {
+        filterInputRef.current?.focus();
+        setActiveIndex(0);
+      } else {
+        buttons[idx - 1]?.focus();
+        setActiveIndex(idx - 1);
+      }
+    }
+  };
 
   return (
     <>
@@ -83,51 +155,59 @@ export function ModifierPopoverContent({
       </Flex>
 
       {/* ── Filter input ── */}
-      <TextField.Root
+      <DebouncedTextField
+        key={inputKey}
         ref={filterInputRef}
         size="1"
-        placeholder="Filter modifiers…"
-        value={filterQ}
-        onChange={(e) => onFilterChange(e.target.value)}
+        placeholder="Search modifiers…"
+        initialValue=""
+        onDebouncedChange={setQ}
+        onKeyDown={handleInputKeyDown}
         mb="2"
       />
 
       {/* ── Available modifiers list ── */}
       <ScrollArea type="auto" scrollbars="vertical" style={{ maxHeight: 200 }}>
-        {grouped.length === 0 && (
+        {isFetching ? (
+          <Text size="1" color="gray">
+            Searching…
+          </Text>
+        ) : available.length === 0 ? (
           <Text size="1" color="gray">
             No matching modifiers found.
           </Text>
-        )}
-        {grouped.map((group) => (
-          <div key={group.groupId}>
-            <Text
-              size="1"
-              color="gray"
-              weight="bold"
-              className="modifier-tag__group-label"
-            >
-              {group.groupLabel}
-            </Text>
-            <Flex wrap="wrap" gap="1" mb="1">
-              {group.items.map((m) => (
-                <Button
-                  key={m.id}
-                  type="button"
-                  color="gray"
-                  variant="soft"
-                  highContrast
-                  size="1"
-                  className="modifier-tag__available-item"
-                  onClick={() => onAdd(m)}
-                >
+        ) : (
+          <Flex
+            ref={listRef}
+            direction="column"
+            gap="0"
+            onKeyDown={handleListKeyDown}
+            pr="3"
+          >
+            {available.map((m, i) => (
+              <Button
+                key={m.id}
+                type="button"
+                variant="ghost"
+                color="gray"
+                size="1"
+                style={{ width: "100%", justifyContent: "space-between" }}
+                className="modifier-tag__available-item"
+                data-active-item={i === activeIndex || undefined}
+                onMouseEnter={() => setActiveIndex(i)}
+                onClick={() => handleAdd(m)}
+              >
+                <Flex align="center" gap="1">
                   <PiPlus size={9} />
-                  {m.value}
-                </Button>
-              ))}
-            </Flex>
-          </div>
-        ))}
+                  <Text size="1">{m.value}</Text>
+                </Flex>
+                <Text size="1" color="gray">
+                  {m.groupLabel}
+                </Text>
+              </Button>
+            ))}
+          </Flex>
+        )}
       </ScrollArea>
     </>
   );

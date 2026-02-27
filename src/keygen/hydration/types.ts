@@ -22,7 +22,7 @@ export type HydratedCharRationale = Omit<KeyCharRationale, "characters"> & {
     number,
     {
       name: string;
-      traits: Trait[];
+      traits: Omit<Trait, "modifiers">[];
       inverted: boolean;
     }
   >;

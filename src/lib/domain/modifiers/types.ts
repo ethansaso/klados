@@ -1,11 +1,8 @@
-import {
-  categoricalModifierGroup,
-  categoricalModifierValue,
-} from "../../../../db/schema/schema";
+import { modifierGroup, modifierValue } from "../../../../db/schema/schema";
 import type { PaginatedResult } from "../../validation/pagination";
 
-type ModifierRow = typeof categoricalModifierValue.$inferSelect;
-type ModifierGroupRow = typeof categoricalModifierGroup.$inferSelect;
+type ModifierRow = typeof modifierValue.$inferSelect;
+type ModifierGroupRow = typeof modifierGroup.$inferSelect;
 
 export type ModifierDTO = Pick<
   ModifierRow,

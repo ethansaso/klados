@@ -1,15 +1,19 @@
 import { Badge, Flex, IconButton, Popover } from "@radix-ui/themes";
 import type { ReactNode } from "react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PiX } from "react-icons/pi";
-import type { SampleModifier } from "../sampleModifiers";
+import type { ModifierTokenFormValue } from "../validation";
 import { ModifierPopoverContent } from "./ModifierPopoverContent";
 
 type ModifierTagProps = {
   children: ReactNode;
-  modifiers: SampleModifier[];
+  modifiers: ModifierTokenFormValue[];
   onRemove: () => void;
-  onModifiersChange: (mods: SampleModifier[]) => void;
+  onModifiersChange: (mods: ModifierTokenFormValue[]) => void;
+  /** When true, immediately opens the modifier popover. */
+  autoOpen?: boolean;
+  /** Called when the popover closes after an auto-open (so parent can reset). */
+  onAutoOpenHandled?: () => void;
 };
 
 /**
@@ -20,14 +24,19 @@ export function ModifierTag({
   modifiers,
   onRemove,
   onModifiersChange,
+  autoOpen,
+  onAutoOpenHandled,
 }: ModifierTagProps) {
   const [open, setOpen] = useState(false);
-  const [filterQ, setFilterQ] = useState("");
   const filterInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    if (autoOpen) setOpen(true);
+  }, [autoOpen]);
+
   const handleOpenChange = (next: boolean) => {
-    if (!next) setFilterQ("");
     setOpen(next);
+    if (!next) onAutoOpenHandled?.();
   };
 
   return (
@@ -69,9 +78,7 @@ export function ModifierTag({
       >
         <ModifierPopoverContent
           modifiers={modifiers}
-          filterQ={filterQ}
           filterInputRef={filterInputRef}
-          onFilterChange={setFilterQ}
           onAdd={(m) => onModifiersChange([...modifiers, m])}
           onRemove={(id) =>
             onModifiersChange(modifiers.filter((m) => m.id !== id))

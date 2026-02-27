@@ -3,7 +3,7 @@ import type {
   NumericRangeSuggestion,
   NumericSingleSuggestion,
   TraitSuggestion,
-} from "../../../../../../lib/api/character-suggestions/types";
+} from "../../../../../../lib/domain/suggestions/types";
 import { convertToSI } from "../../../../../../lib/domain/units/conversion";
 import type {
   CharacterStateFormValue,

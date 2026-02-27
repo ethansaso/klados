@@ -1,7 +1,4 @@
-import type {
-  TaxonCharacterStateDTO,
-  Trait,
-} from "../../lib/domain/states/types";
+import type { CharacterStateDTO, Trait } from "../../lib/domain/states/types";
 import type { UnitDTO } from "../../lib/domain/units/types";
 
 // UI-focused types with optional weight styling.
@@ -11,7 +8,10 @@ import type { UnitDTO } from "../../lib/domain/units/types";
 
 type Weight = "light" | "regular" | "medium" | "bold";
 
-export type UITrait = Omit<Trait, "description" | "hexCode" | "canonicalId"> & {
+export type UITrait = Omit<
+  Trait,
+  "description" | "hexCode" | "canonicalId" | "modifiers"
+> & {
   description?: string;
   hexCode?: string | null;
   weight?: Weight;
@@ -31,14 +31,14 @@ export type UIModifier = {
 };
 
 export type UICategoricalState = Pick<
-  Extract<TaxonCharacterStateDTO, { kind: "categorical" }>,
+  Extract<CharacterStateDTO, { kind: "categorical" }>,
   "kind"
 > & {
   traitValues: UITrait[];
 };
 
 export type UINumberState = Pick<
-  Extract<TaxonCharacterStateDTO, { kind: "number" }>,
+  Extract<CharacterStateDTO, { kind: "number" }>,
   "kind" | "siBaseValue"
 > & {
   unit: UIUnit | null;
@@ -47,7 +47,7 @@ export type UINumberState = Pick<
 };
 
 export type UIRangeState = Pick<
-  Extract<TaxonCharacterStateDTO, { kind: "range" }>,
+  Extract<CharacterStateDTO, { kind: "range" }>,
   "kind" | "siBaseMin" | "siBaseMax"
 > & {
   unit: UIUnit | null;

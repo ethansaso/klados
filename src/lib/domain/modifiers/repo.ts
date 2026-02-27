@@ -2,8 +2,8 @@ import { and, asc, count, eq, ilike, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "../../../../db/client";
 import {
-  categoricalModifierGroup as modifierGroupTbl,
-  categoricalModifierValue as modifierValueTbl,
+  modifierGroup as modifierGroupTbl,
+  modifierValue as modifierValueTbl,
   taxonCharacterStateModifierCategorical,
   taxonCharacterStateModifierNumber,
   taxonCharacterStateModifierRange,

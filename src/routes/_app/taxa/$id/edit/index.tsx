@@ -22,7 +22,13 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { Form } from "radix-ui";
 import { useState, type MouseEventHandler } from "react";
-import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
+import {
+  Controller,
+  FormProvider,
+  useForm,
+  useWatch,
+  type SubmitHandler,
+} from "react-hook-form";
 import z from "zod";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
 import { ContentContainer } from "../../../../../components/ContentContainer";
@@ -40,6 +46,7 @@ import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { routeSeo } from "../../../../../lib/utils/head/routeSeo";
 import { toast } from "../../../../../lib/utils/toast";
 import { CharacterEditingForm } from "./-characters/CharactersEditingForm";
+import type { GroupedCharacterFormValue } from "./-characters/validation";
 import { groupedCharacterFormSchema } from "./-characters/validation";
 import { MediaEditingForm } from "./-media/MediaEditingForm";
 import { MetaForm } from "./-meta/MetaForm";
@@ -72,7 +79,10 @@ const convertToServerCharacterValues = (
           return {
             kind: "categorical",
             characterId: v.characterId,
-            traitValueIds: v.traitValues.map((tv) => tv.id),
+            traitValues: v.traitValues.map((tv) => ({
+              id: tv.id,
+              modifierIds: tv.modifiers.map((m) => m.id),
+            })),
           };
 
         case "number":
@@ -81,6 +91,7 @@ const convertToServerCharacterValues = (
             characterId: v.characterId,
             unitId: v.unit?.id,
             siBaseValue: v.siBaseValue,
+            modifierIds: v.modifiers.map((m) => m.id),
           };
 
         case "range":
@@ -90,6 +101,7 @@ const convertToServerCharacterValues = (
             unitId: v.unit?.id,
             siBaseMin: v.siBaseMin,
             siBaseMax: v.siBaseMax,
+            modifierIds: v.modifiers.map((m) => m.id),
           };
       }
     }),
@@ -159,8 +171,10 @@ function RouteComponent() {
     control,
     handleSubmit,
     reset,
-    formState: { isDirty, isSubmitting },
+    formState: { errors, isDirty, isSubmitting },
   } = methods;
+
+  console.log(errors);
 
   const [isDeleting, setIsDeleting] = useState(false);
   // For media fetching
@@ -220,7 +234,7 @@ function RouteComponent() {
     );
   };
 
-  const onSave = handleSubmit(async (data) => {
+  const onSave: SubmitHandler<TaxonEditFormValues> = async (data) => {
     if (!isDirty) return;
     try {
       await serverUpdate({
@@ -239,9 +253,9 @@ function RouteComponent() {
         variant: "error",
       });
     }
-  });
+  };
 
-  const onPublish = handleSubmit(async (data) => {
+  const onPublish: SubmitHandler<TaxonEditFormValues> = async (data) => {
     if (!isDraft) return;
     try {
       await serverUpdate({
@@ -262,7 +276,7 @@ function RouteComponent() {
         variant: "error",
       });
     }
-  });
+  };
 
   const handleDelete: MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault();
@@ -306,7 +320,7 @@ function RouteComponent() {
       </Box>
 
       <FormProvider {...methods}>
-        <Form.Root onSubmit={onSave}>
+        <Form.Root onSubmit={handleSubmit(onSave)}>
           <Separator size="4" my="4" />
           {/* TODO: sync accepted name */}
           {/* Basic meta (rank, parent, source IDs) */}
@@ -320,7 +334,7 @@ function RouteComponent() {
             control={control}
             render={({ field }) => (
               <CharacterEditingForm
-                value={field.value}
+                value={field.value as GroupedCharacterFormValue}
                 onChange={field.onChange}
               />
             )}
@@ -371,10 +385,11 @@ function RouteComponent() {
                 Discard Changes
               </Button>
               <Button
-                type="submit"
+                type="button"
                 variant={isDraft ? "soft" : "solid"}
                 loading={isSubmitting || isDeleting}
                 disabled={!isDirty || isSubmitting || isDeleting}
+                onClick={handleSubmit(onSave)}
               >
                 Save
               </Button>
@@ -386,7 +401,7 @@ function RouteComponent() {
                     type="button"
                     disabled={isSubmitting || isDeleting}
                     loading={isSubmitting || isDeleting}
-                    onClick={onPublish}
+                    onClick={handleSubmit(onPublish)}
                   >
                     Publish
                   </Button>

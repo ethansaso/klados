@@ -2,6 +2,7 @@ import NiceModal from "@ebay/nice-modal-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Dialog, Flex } from "@radix-ui/themes";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
   FormProvider,
@@ -36,6 +37,7 @@ interface Props {
 
 export const AddCharacterModal = NiceModal.create(({ initialLabel }: Props) => {
   const { visible, hide } = NiceModal.useModal();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const serverCreate = useServerFn(createCharacterFn);
 
@@ -55,7 +57,7 @@ export const AddCharacterModal = NiceModal.create(({ initialLabel }: Props) => {
 
   const onSubmit: SubmitHandler<CreateCharacterInput> = async (data) => {
     try {
-      await serverCreate({ data });
+      const newCharacter = await serverCreate({ data });
 
       qc.invalidateQueries({ queryKey: ["characters"] });
       qc.invalidateQueries({ queryKey: ["groups"] });
@@ -65,6 +67,11 @@ export const AddCharacterModal = NiceModal.create(({ initialLabel }: Props) => {
       toast({
         variant: "success",
         description: `Character "${data.label}" created successfully.`,
+      });
+      navigate({
+        to: "/glossary/characters/$id",
+        params: { id: newCharacter.id },
+        search: true,
       });
       hide();
     } catch (error) {

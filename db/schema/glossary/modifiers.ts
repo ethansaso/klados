@@ -28,29 +28,29 @@ export const modifierClassEnum = pgEnum("modifier_type", MODIFIER_CLASSES);
 export const modifierAffixEnum = pgEnum("affix", AFFIX_TYPES);
 
 /**
- * Groups of categorical modifiers (e.g., "Position", "KOH Reaction").
+ * Groups of modifiers (e.g., "Position", "KOH Reaction").
  */
-export const categoricalModifierGroup = pgTable(
-  "categorical_modifier_group",
+export const modifierGroup = pgTable(
+  "modifier_group",
   withTimestamps({
     id: serial("id").primaryKey(),
     label: text("label").notNull(),
     description: text("description").notNull().default(""),
     class: modifierClassEnum("class").notNull(),
   }),
-  (t) => [uniqueIndex("categorical_modifier_groups_label_uq").on(t.label)],
+  (t) => [uniqueIndex("modifier_groups_label_uq").on(t.label)],
 );
 
 /**
- * Values for categorical modifiers (e.g., "at apex", "at base" for group "position").
+ * Values for modifiers (e.g., "at apex", "at base" for group "position").
  */
-export const categoricalModifierValue = pgTable(
-  "categorical_modifier_value",
+export const modifierValue = pgTable(
+  "modifier_value",
   withTimestamps({
     id: serial("id").primaryKey(),
     groupId: serial("group_id")
       .notNull()
-      .references(() => categoricalModifierGroup.id, { onDelete: "cascade" }),
+      .references(() => modifierGroup.id, { onDelete: "cascade" }),
     value: text("value").notNull(),
     description: text("description").notNull().default(""),
     affixType: modifierAffixEnum("affix_type").notNull(),
@@ -63,10 +63,7 @@ export const categoricalModifierValue = pgTable(
       columns: [t.groupId, t.canonicalValueId],
       foreignColumns: [t.groupId, t.id],
     }).onDelete("cascade"),
-    uniqueIndex("categorical_modifier_values_group_id_value_uq").on(
-      t.groupId,
-      t.value,
-    ),
+    uniqueIndex("modifier_values_group_id_value_uq").on(t.groupId, t.value),
     index("modifier_values_canonical_target_idx")
       .on(t.canonicalValueId)
       .where(sql`${t.canonicalValueId} IS NOT NULL`),

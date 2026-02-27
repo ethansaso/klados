@@ -4,7 +4,12 @@ import {
   taxonCharacterStateCategorical as catStateTbl,
   categoricalTraitValue as catValTbl,
   character as charsTbl,
-  feature as groupsTbl,
+  feature as featuresTbl,
+  taxonCharacterStateModifierCategorical as modCatJunctionTbl,
+  modifierGroup as modGroupTbl,
+  taxonCharacterStateModifierNumber as modNumJunctionTbl,
+  taxonCharacterStateModifierRange as modRangeJunctionTbl,
+  modifierValue as modValTbl,
   numericCharacterMeta as numMetaTbl,
   taxonCharacterStateNumber as numStateTbl,
   taxonCharacterStateRange as rangeStateTbl,
@@ -13,10 +18,11 @@ import {
 } from "../../../../db/schema/schema";
 import type { Transaction } from "../../utils/transactionType";
 import type {
-  TaxonCategoricalStateDTO,
-  TaxonCharacterFeatureStateDTO,
-  TaxonNumberStateDTO,
-  TaxonRangeStateDTO,
+  CategoricalStateDTO,
+  FeatureStateDTO,
+  ModifierStateDTO,
+  NumberStateDTO,
+  RangeStateDTO,
 } from "./types";
 import type {
   CategoricalCharacterUpdate,
@@ -26,7 +32,7 @@ import type {
 } from "./validation";
 
 /** Mapping of taxon ID to TaxonCharacterFeatureStateDTO[]. */
-export type TaxonStatesById = Record<string, TaxonCharacterFeatureStateDTO[]>;
+export type TaxonStatesById = Record<string, FeatureStateDTO[]>;
 
 /**
  * Load character states for at least one taxon.
@@ -42,32 +48,32 @@ export async function selectTaxonStatesByTaxonIds(
 ): Promise<TaxonStatesById> {
   if (!taxonIds.length) return {};
 
-  // Load all group states up front (including empty ones)
-  const groupRows = await tx
+  // Load all feature states up front (including empty ones)
+  const featureRows = await tx
     .select({
       taxonId: tfsTbl.taxonId,
 
-      groupId: groupsTbl.id,
-      groupLabel: groupsTbl.label,
-      groupDescription: groupsTbl.description,
+      featureId: featuresTbl.id,
+      featureLabel: featuresTbl.label,
+      featureDescription: featuresTbl.description,
     })
     .from(tfsTbl)
-    .innerJoin(groupsTbl, eq(groupsTbl.id, tfsTbl.featureId))
+    .innerJoin(featuresTbl, eq(featuresTbl.id, tfsTbl.featureId))
     .where(inArray(tfsTbl.taxonId, taxonIds));
 
-  const byTaxon = new Map<number, Map<number, TaxonCharacterFeatureStateDTO>>();
+  const byTaxon = new Map<number, Map<number, FeatureStateDTO>>();
 
-  for (const row of groupRows) {
-    let groupsById = byTaxon.get(row.taxonId);
-    if (!groupsById) {
-      groupsById = new Map();
-      byTaxon.set(row.taxonId, groupsById);
+  for (const row of featureRows) {
+    let featuresById = byTaxon.get(row.taxonId);
+    if (!featuresById) {
+      featuresById = new Map();
+      byTaxon.set(row.taxonId, featuresById);
     }
 
-    groupsById.set(row.groupId, {
-      featureId: row.groupId,
-      featureLabel: row.groupLabel,
-      featureDescription: row.groupDescription,
+    featuresById.set(row.featureId, {
+      featureId: row.featureId,
+      featureLabel: row.featureLabel,
+      featureDescription: row.featureDescription,
       states: [],
     });
   }
@@ -77,7 +83,8 @@ export async function selectTaxonStatesByTaxonIds(
     .select({
       taxonId: tfsTbl.taxonId,
 
-      groupId: groupsTbl.id,
+      featureId: featuresTbl.id,
+      stateId: catStateTbl.id,
 
       characterId: catStateTbl.characterId,
       characterLabel: charsTbl.label,
@@ -89,17 +96,13 @@ export async function selectTaxonStatesByTaxonIds(
     })
     .from(catStateTbl)
     .innerJoin(tfsTbl, eq(tfsTbl.id, catStateTbl.taxonFeatureStateId))
-    .innerJoin(groupsTbl, eq(groupsTbl.id, tfsTbl.featureId))
+    .innerJoin(featuresTbl, eq(featuresTbl.id, tfsTbl.featureId))
     .innerJoin(charsTbl, eq(charsTbl.id, catStateTbl.characterId))
     .innerJoin(catValTbl, eq(catValTbl.id, catStateTbl.traitValueId))
     .where(inArray(tfsTbl.taxonId, taxonIds));
 
   const canonicalIds = Array.from(
-    new Set(
-      catRows.map((r) =>
-        r.canonicalValueId ?? r.traitValueId,
-      ),
-    ),
+    new Set(catRows.map((r) => r.canonicalValueId ?? r.traitValueId)),
   );
 
   const canonicalRows = canonicalIds.length
@@ -118,16 +121,52 @@ export async function selectTaxonStatesByTaxonIds(
     canonicalRows.map((r) => [r.id, r.description]),
   );
 
+  const catStateIds = catRows.map((r) => r.stateId);
+  const rawCatModRows = catStateIds.length
+    ? await tx
+        .select({
+          stateId: modCatJunctionTbl.taxonCharacterStateCategoricalId,
+          modifierId: modValTbl.id,
+          modifierValue: modValTbl.value,
+          affixType: modValTbl.affixType,
+          groupId: modGroupTbl.id,
+          groupLabel: modGroupTbl.label,
+          groupClass: modGroupTbl.class,
+        })
+        .from(modCatJunctionTbl)
+        .innerJoin(modValTbl, eq(modValTbl.id, modCatJunctionTbl.modifierId))
+        .innerJoin(modGroupTbl, eq(modGroupTbl.id, modValTbl.groupId))
+        .where(
+          inArray(
+            modCatJunctionTbl.taxonCharacterStateCategoricalId,
+            catStateIds,
+          ),
+        )
+    : [];
+  const modifiersByCatStateId = new Map<number, ModifierStateDTO[]>();
+  for (const m of rawCatModRows) {
+    const arr = modifiersByCatStateId.get(m.stateId) ?? [];
+    arr.push({
+      id: m.modifierId,
+      value: m.modifierValue,
+      affixType: m.affixType,
+      groupId: m.groupId,
+      groupLabel: m.groupLabel,
+      groupClass: m.groupClass,
+    });
+    modifiersByCatStateId.set(m.stateId, arr);
+  }
+
   for (const row of catRows) {
-    const groupsById = byTaxon.get(row.taxonId);
-    if (!groupsById) continue;
+    const featuresById = byTaxon.get(row.taxonId);
+    if (!featuresById) continue;
 
-    const group = groupsById.get(row.groupId);
-    if (!group) continue;
+    const feature = featuresById.get(row.featureId);
+    if (!feature) continue;
 
-    let state = group.states.find(
+    let state = feature.states.find(
       (s) => s.kind === "categorical" && s.characterId === row.characterId,
-    ) as TaxonCategoricalStateDTO | undefined;
+    ) as CategoricalStateDTO | undefined;
 
     if (!state) {
       state = {
@@ -137,7 +176,7 @@ export async function selectTaxonStatesByTaxonIds(
         characterDescription: row.characterDescription,
         traitValues: [],
       };
-      group.states.push(state);
+      feature.states.push(state);
     }
 
     const canonicalId = row.canonicalValueId ?? row.traitValueId;
@@ -148,6 +187,7 @@ export async function selectTaxonStatesByTaxonIds(
       label: row.traitValueLabel,
       description: descriptionByCanonicalId.get(canonicalId) ?? "",
       hexCode: hexByCanonicalId.get(canonicalId) || undefined,
+      modifiers: modifiersByCatStateId.get(row.stateId) ?? [],
     });
   }
 
@@ -156,7 +196,8 @@ export async function selectTaxonStatesByTaxonIds(
     .select({
       taxonId: tfsTbl.taxonId,
 
-      groupId: groupsTbl.id,
+      featureId: featuresTbl.id,
+      stateId: numStateTbl.id,
 
       characterId: numStateTbl.characterId,
       characterLabel: charsTbl.label,
@@ -171,19 +212,52 @@ export async function selectTaxonStatesByTaxonIds(
     })
     .from(numStateTbl)
     .innerJoin(tfsTbl, eq(tfsTbl.id, numStateTbl.taxonFeatureStateId))
-    .innerJoin(groupsTbl, eq(groupsTbl.id, tfsTbl.featureId))
+    .innerJoin(featuresTbl, eq(featuresTbl.id, tfsTbl.featureId))
     .innerJoin(charsTbl, eq(charsTbl.id, numStateTbl.characterId))
     .leftJoin(unitsTbl, eq(unitsTbl.id, numStateTbl.displayUnitId))
     .where(inArray(tfsTbl.taxonId, taxonIds));
 
+  const numStateIds = numRows.map((r) => r.stateId);
+  const rawNumModRows = numStateIds.length
+    ? await tx
+        .select({
+          stateId: modNumJunctionTbl.taxonCharacterStateNumberId,
+          modifierId: modValTbl.id,
+          modifierValue: modValTbl.value,
+          affixType: modValTbl.affixType,
+          groupId: modGroupTbl.id,
+          groupLabel: modGroupTbl.label,
+          groupClass: modGroupTbl.class,
+        })
+        .from(modNumJunctionTbl)
+        .innerJoin(modValTbl, eq(modValTbl.id, modNumJunctionTbl.modifierId))
+        .innerJoin(modGroupTbl, eq(modGroupTbl.id, modValTbl.groupId))
+        .where(
+          inArray(modNumJunctionTbl.taxonCharacterStateNumberId, numStateIds),
+        )
+    : [];
+  const modifiersByNumStateId = new Map<number, ModifierStateDTO[]>();
+  for (const m of rawNumModRows) {
+    const arr = modifiersByNumStateId.get(m.stateId) ?? [];
+    arr.push({
+      id: m.modifierId,
+      value: m.modifierValue,
+      affixType: m.affixType,
+      groupId: m.groupId,
+      groupLabel: m.groupLabel,
+      groupClass: m.groupClass,
+    });
+    modifiersByNumStateId.set(m.stateId, arr);
+  }
+
   for (const row of numRows) {
-    const groupsById = byTaxon.get(row.taxonId);
-    if (!groupsById) continue;
+    const featuresById = byTaxon.get(row.taxonId);
+    if (!featuresById) continue;
 
-    const group = groupsById.get(row.groupId);
-    if (!group) continue;
+    const feature = featuresById.get(row.featureId);
+    if (!feature) continue;
 
-    const state: TaxonNumberStateDTO = {
+    const state: NumberStateDTO = {
       kind: "number",
       characterId: row.characterId,
       characterLabel: row.characterLabel,
@@ -199,9 +273,10 @@ export async function selectTaxonStatesByTaxonIds(
               scale: row.unitScale!,
             }
           : null,
+      modifiers: modifiersByNumStateId.get(row.stateId) ?? [],
     };
 
-    group.states.push(state);
+    feature.states.push(state);
   }
 
   // Range states
@@ -209,7 +284,8 @@ export async function selectTaxonStatesByTaxonIds(
     .select({
       taxonId: tfsTbl.taxonId,
 
-      groupId: groupsTbl.id,
+      featureId: featuresTbl.id,
+      stateId: rangeStateTbl.id,
 
       characterId: rangeStateTbl.characterId,
       characterLabel: charsTbl.label,
@@ -226,19 +302,55 @@ export async function selectTaxonStatesByTaxonIds(
     })
     .from(rangeStateTbl)
     .innerJoin(tfsTbl, eq(tfsTbl.id, rangeStateTbl.taxonFeatureStateId))
-    .innerJoin(groupsTbl, eq(groupsTbl.id, tfsTbl.featureId))
+    .innerJoin(featuresTbl, eq(featuresTbl.id, tfsTbl.featureId))
     .innerJoin(charsTbl, eq(charsTbl.id, rangeStateTbl.characterId))
     .leftJoin(unitsTbl, eq(unitsTbl.id, rangeStateTbl.displayUnitId))
     .where(inArray(tfsTbl.taxonId, taxonIds));
 
+  const rangeStateIds = rangeRows.map((r) => r.stateId);
+  const rawRangeModRows = rangeStateIds.length
+    ? await tx
+        .select({
+          stateId: modRangeJunctionTbl.taxonCharacterStateRangeId,
+          modifierId: modValTbl.id,
+          modifierValue: modValTbl.value,
+          affixType: modValTbl.affixType,
+          groupId: modGroupTbl.id,
+          groupLabel: modGroupTbl.label,
+          groupClass: modGroupTbl.class,
+        })
+        .from(modRangeJunctionTbl)
+        .innerJoin(modValTbl, eq(modValTbl.id, modRangeJunctionTbl.modifierId))
+        .innerJoin(modGroupTbl, eq(modGroupTbl.id, modValTbl.groupId))
+        .where(
+          inArray(
+            modRangeJunctionTbl.taxonCharacterStateRangeId,
+            rangeStateIds,
+          ),
+        )
+    : [];
+  const modifiersByRangeStateId = new Map<number, ModifierStateDTO[]>();
+  for (const m of rawRangeModRows) {
+    const arr = modifiersByRangeStateId.get(m.stateId) ?? [];
+    arr.push({
+      id: m.modifierId,
+      value: m.modifierValue,
+      affixType: m.affixType,
+      groupId: m.groupId,
+      groupLabel: m.groupLabel,
+      groupClass: m.groupClass,
+    });
+    modifiersByRangeStateId.set(m.stateId, arr);
+  }
+
   for (const row of rangeRows) {
-    const groupsById = byTaxon.get(row.taxonId);
-    if (!groupsById) continue;
+    const featuresById = byTaxon.get(row.taxonId);
+    if (!featuresById) continue;
 
-    const group = groupsById.get(row.groupId);
-    if (!group) continue;
+    const feature = featuresById.get(row.featureId);
+    if (!feature) continue;
 
-    const state: TaxonRangeStateDTO = {
+    const state: RangeStateDTO = {
       kind: "range",
       characterId: row.characterId,
       characterLabel: row.characterLabel,
@@ -255,27 +367,28 @@ export async function selectTaxonStatesByTaxonIds(
               scale: row.unitScale!,
             }
           : null,
+      modifiers: modifiersByRangeStateId.get(row.stateId) ?? [],
     };
 
-    group.states.push(state);
+    feature.states.push(state);
   }
 
   const result: TaxonStatesById = {};
-  for (const [taxonId, groups] of byTaxon) {
-    result[taxonId] = Array.from(groups.values());
+  for (const [taxonId, features] of byTaxon) {
+    result[taxonId] = Array.from(features.values());
   }
 
   return result;
 }
 
-/** Replace all group + character states for a taxon authoritatively. */
+/** Replace all feature, character, and modifier states for a taxon authoritatively. */
 export async function replaceGroupedCharacterStatesForTaxon(
   tx: Transaction,
   taxonId: number,
   features: CharacterByFeatureUpdate,
 ): Promise<void> {
   console.log(features);
-  // Load existing group states for taxon
+  // Load existing feature states for taxon
   const existing = await tx
     .select({
       id: tfsTbl.id,
@@ -299,11 +412,11 @@ export async function replaceGroupedCharacterStatesForTaxon(
 
   // Process each incoming feature
   for (const feature of features) {
-    let groupStateId: number;
+    let featureStateId: number;
 
-    const existingGroup = existingByFeatureId.get(feature.featureId);
-    if (existingGroup) {
-      groupStateId = existingGroup.id;
+    const existingFeature = existingByFeatureId.get(feature.featureId);
+    if (existingFeature) {
+      featureStateId = existingFeature.id;
     } else {
       const rows = await tx
         .insert(tfsTbl)
@@ -314,10 +427,10 @@ export async function replaceGroupedCharacterStatesForTaxon(
         .returning({ id: tfsTbl.id });
 
       if (rows.length !== 1) {
-        throw new Error("Failed to create taxon group state.");
+        throw new Error("Failed to create taxon feature state.");
       }
 
-      groupStateId = rows[0]!.id;
+      featureStateId = rows[0]!.id;
     }
 
     const categorical = feature.characters.filter(
@@ -332,21 +445,21 @@ export async function replaceGroupedCharacterStatesForTaxon(
 
     await replaceCategoricalStatesForFeatureState(
       tx,
-      groupStateId,
+      featureStateId,
       feature.featureId,
       categorical,
     );
 
     await replaceNumberStatesForFeatureState(
       tx,
-      groupStateId,
+      featureStateId,
       feature.featureId,
       number,
     );
 
     await replaceRangeStatesForFeatureState(
       tx,
-      groupStateId,
+      featureStateId,
       feature.featureId,
       range,
     );
@@ -366,17 +479,21 @@ async function replaceCategoricalStatesForFeatureState(
 
   if (updates.length === 0) return;
 
-  const byCharacter = new Map<number, Set<number>>();
+  // Deduplicate by characterId; last modifierIds list for a given traitValueId wins.
+  const byCharacter = new Map<number, Map<number, number[]>>();
   for (const u of updates) {
-    const set = byCharacter.get(u.characterId) ?? new Set<number>();
-    for (const id of u.traitValueIds) set.add(id);
-    byCharacter.set(u.characterId, set);
+    const tvMap = byCharacter.get(u.characterId) ?? new Map<number, number[]>();
+    for (const tv of u.traitValues) tvMap.set(tv.id, tv.modifierIds);
+    byCharacter.set(u.characterId, tvMap);
   }
 
   const normalized = Array.from(byCharacter.entries()).map(
-    ([characterId, ids]) => ({
+    ([characterId, tvMap]) => ({
       characterId,
-      traitValueIds: Array.from(ids),
+      traitValues: Array.from(tvMap.entries()).map(([id, modifierIds]) => ({
+        id,
+        modifierIds,
+      })),
     }),
   );
 
@@ -393,25 +510,27 @@ async function replaceCategoricalStatesForFeatureState(
   const metaByCharacter = new Map(metas.map((m) => [m.characterId, m]));
 
   const allTraitValueIds = Array.from(
-    new Set(normalized.flatMap((c) => c.traitValueIds)),
+    new Set(normalized.flatMap((c) => c.traitValues.map((tv) => tv.id))),
   );
 
-  const traitValues = await tx
+  const traitValueRows = await tx
     .select({
       id: catValTbl.id,
-      characterId: catValTbl.characterId, // <-- HERE
+      characterId: catValTbl.characterId,
     })
     .from(catValTbl)
     .where(inArray(catValTbl.id, allTraitValueIds));
 
-  const traitValueById = new Map(traitValues.map((v) => [v.id, v]));
+  const traitValueById = new Map(traitValueRows.map((v) => [v.id, v]));
 
-  const rows: Array<{
+  // Build insert rows in stable order; track modifier IDs alongside each.
+  const stateRows: Array<{
     taxonFeatureStateId: number;
     characterId: number;
     traitValueId: number;
     featureId: number;
   }> = [];
+  const modifierIdsByRow: number[][] = [];
 
   for (const c of normalized) {
     const meta = metaByCharacter.get(c.characterId);
@@ -419,33 +538,48 @@ async function replaceCategoricalStatesForFeatureState(
       throw new Error(`Character ${c.characterId} is not categorical.`);
     }
 
-    if (!meta.isMultiSelect && c.traitValueIds.length > 1) {
+    if (!meta.isMultiSelect && c.traitValues.length > 1) {
       throw new Error(
         `Character ${c.characterId} does not allow multiple values.`,
       );
     }
 
-    for (const traitValueId of c.traitValueIds) {
-      const tv = traitValueById.get(traitValueId);
-      if (!tv) throw new Error(`Unknown trait value ${traitValueId}.`);
+    for (const tv of c.traitValues) {
+      const row = traitValueById.get(tv.id);
+      if (!row) throw new Error(`Unknown trait value ${tv.id}.`);
 
-      if (tv.characterId !== c.characterId) {
+      if (row.characterId !== c.characterId) {
         throw new Error(
-          `Trait value ${traitValueId} does not belong to character ${c.characterId}.`,
+          `Trait value ${tv.id} does not belong to character ${c.characterId}.`,
         );
       }
 
-      rows.push({
+      stateRows.push({
         taxonFeatureStateId,
         characterId: c.characterId,
-        traitValueId,
+        traitValueId: tv.id,
         featureId,
       });
+      modifierIdsByRow.push(tv.modifierIds);
     }
   }
 
-  if (rows.length > 0) {
-    await tx.insert(catStateTbl).values(rows);
+  if (stateRows.length === 0) return;
+
+  const insertedCatStates = await tx
+    .insert(catStateTbl)
+    .values(stateRows)
+    .returning({ id: catStateTbl.id });
+
+  const catModJunctionRows = insertedCatStates.flatMap((state, i) =>
+    modifierIdsByRow[i]!.map((modifierId) => ({
+      taxonCharacterStateCategoricalId: state.id,
+      modifierId,
+    })),
+  );
+
+  if (catModJunctionRows.length > 0) {
+    await tx.insert(modCatJunctionTbl).values(catModJunctionRows);
   }
 }
 
@@ -497,7 +631,21 @@ async function replaceNumberStatesForFeatureState(
   });
 
   if (rows.length > 0) {
-    await tx.insert(numStateTbl).values(rows);
+    const insertedNumStates = await tx
+      .insert(numStateTbl)
+      .values(rows)
+      .returning({ id: numStateTbl.id });
+
+    const numModJunctionRows = insertedNumStates.flatMap((state, i) =>
+      normalized[i]!.modifierIds.map((modifierId) => ({
+        taxonCharacterStateNumberId: state.id,
+        modifierId,
+      })),
+    );
+
+    if (numModJunctionRows.length > 0) {
+      await tx.insert(modNumJunctionTbl).values(numModJunctionRows);
+    }
   }
 }
 
@@ -552,6 +700,20 @@ async function replaceRangeStatesForFeatureState(
   });
 
   if (rows.length > 0) {
-    await tx.insert(rangeStateTbl).values(rows);
+    const insertedRangeStates = await tx
+      .insert(rangeStateTbl)
+      .values(rows)
+      .returning({ id: rangeStateTbl.id });
+
+    const rangeModJunctionRows = insertedRangeStates.flatMap((state, i) =>
+      normalized[i]!.modifierIds.map((modifierId) => ({
+        taxonCharacterStateRangeId: state.id,
+        modifierId,
+      })),
+    );
+
+    if (rangeModJunctionRows.length > 0) {
+      await tx.insert(modRangeJunctionTbl).values(rangeModJunctionRows);
+    }
   }
 }

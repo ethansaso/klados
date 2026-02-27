@@ -16,12 +16,12 @@ export const TraitToken = memo(
     isLast?: boolean;
     highlightAffixes?: boolean;
   }) => {
-    const prefixes = highlightAffixes
-      ? (trait.modifiers ?? []).filter((m) => m.affixType === "prefix")
-      : [];
-    const suffixes = highlightAffixes
-      ? (trait.modifiers ?? []).filter((m) => m.affixType === "suffix")
-      : [];
+    const prefixes = (trait.modifiers ?? []).filter(
+      (m) => m.affixType === "prefix",
+    );
+    const suffixes = (trait.modifiers ?? []).filter(
+      (m) => m.affixType === "suffix",
+    );
 
     const text = formatTraitLabel(trait.label, index, prefixes.length > 0);
 
@@ -43,17 +43,18 @@ export const TraitToken = memo(
       >
         {trait.hexCode && <ColorBubble size={8} hexColor={trait.hexCode} />}
         {prefixes.map((m, i) => (
-          <Text key={m.id} size="1" color="crimson">
+          <Text key={m.id} color={highlightAffixes ? "crimson" : undefined}>
             {formatModifierValue(m.value, i === 0)}
           </Text>
         ))}
         <Text weight={trait.weight}>
           {labelNode}
-          {!isLast && ","}
+          {!isLast && suffixes.length === 0 && ","}
         </Text>
-        {suffixes.map((m) => (
-          <Text key={m.id} size="1" color="cyan">
+        {suffixes.map((m, i) => (
+          <Text key={m.id} color={highlightAffixes ? "cyan" : undefined}>
             {formatModifierValue(m.value)}
+            {!isLast && i === suffixes.length - 1 && ","}
           </Text>
         ))}
       </Flex>

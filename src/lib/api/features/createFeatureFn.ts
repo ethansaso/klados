@@ -12,6 +12,7 @@ export const createFeatureFn = createServerFn({ method: "POST" })
     const dto = await createFeature({
       label: data.label,
       description: data.description,
+      parentId: data.parentId,
     });
 
     if (!dto) {

@@ -39,20 +39,15 @@ export const numberCharacterFormSchema = z.object({
   modifiers: z.array(modifierTokenSchema).default([]),
 });
 
-export const rangeCharacterFormSchema = z
-  .object({
-    kind: z.literal("range"),
-    characterId: z.number().int().positive(),
-    characterLabel: z.string(),
-    unit: unitSchema.nullable(), // Nullable in case of dimensionless (validated elsewhere)
-    siBaseMin: z.number(),
-    siBaseMax: z.number(),
-    modifiers: z.array(modifierTokenSchema).default([]),
-  })
-  .refine((data) => data.siBaseMin <= data.siBaseMax, {
-    message: "Minimum must be less than or equal to maximum.",
-    path: ["siBaseMin"],
-  });
+export const rangeCharacterFormSchema = z.object({
+  kind: z.literal("range"),
+  characterId: z.number().int().positive(),
+  characterLabel: z.string(),
+  unit: unitSchema.nullable(), // Nullable in case of dimensionless (validated elsewhere)
+  siBaseMin: z.number(),
+  siBaseMax: z.number(),
+  modifiers: z.array(modifierTokenSchema).default([]),
+});
 
 export const characterStateFormSchema = z.discriminatedUnion("kind", [
   categoricalCharacterFormSchema,
@@ -80,6 +75,14 @@ export const featureFormSchema = z
         });
       }
       seen.add(c.characterId);
+
+      if (c.kind === "range" && c.siBaseMin > c.siBaseMax) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Minimum must be less than or equal to maximum.",
+          path: ["characters", "siBaseMin"],
+        });
+      }
     }
   });
 
@@ -87,7 +90,6 @@ export const groupedCharacterFormSchema = z
   .array(featureFormSchema)
   .superRefine((features, ctx) => {
     const seenFeatureIds = new Set<number>();
-    const seenCharacters = new Map<number, number>(); // characterId -> featureId
 
     for (const feature of features) {
       if (seenFeatureIds.has(feature.featureId)) {
@@ -98,18 +100,6 @@ export const groupedCharacterFormSchema = z
         });
       }
       seenFeatureIds.add(feature.featureId);
-
-      for (const c of feature.characters) {
-        const prevFeature = seenCharacters.get(c.characterId);
-        if (prevFeature !== undefined) {
-          ctx.addIssue({
-            code: "custom",
-            message: `Character ${c.characterId} appears in multiple features (${prevFeature}, ${feature.featureId}).`,
-            path: [],
-          });
-        }
-        seenCharacters.set(c.characterId, feature.featureId);
-      }
     }
   });
 

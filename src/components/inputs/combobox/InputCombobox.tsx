@@ -54,6 +54,8 @@ type InputProps = Omit<
   "value" | "onChange" | "size"
 > & {
   className?: string;
+  /** Optional content to render inside the input's right slot. */
+  rightSlot?: ReactNode;
 };
 type PopoverProps = ComponentProps<typeof RadixPopover.Content> & {
   children: ReactNode;
@@ -197,28 +199,43 @@ function Label({ children, ...rest }: LabelProps) {
   );
 }
 
-function Input({ className, ...rest }: InputProps) {
+function Input({ className, rightSlot, ...rest }: InputProps) {
   const { id, disabled, open, setOpen, comboboxRef } = useCb();
 
   const labelId = id ? `${id}-label` : undefined;
 
   return (
     <RadixPopover.Anchor asChild>
-      <AriakitCombobox
-        ref={comboboxRef}
-        id={id}
-        autoComplete="off"
-        disabled={disabled}
-        aria-expanded={open}
-        aria-controls={id ? `${id}-listbox` : undefined}
-        aria-disabled={disabled}
-        aria-labelledby={labelId}
-        onFocus={() => {
-          if (!disabled) setOpen(true);
-        }}
-        className={classNames(`input-combobox__input rt-reset`, className)}
-        {...rest}
-      />
+      <div
+        className={classNames(
+          "input-combobox__slot-wrap",
+          !rightSlot && "input-combobox__slot-wrap--plain",
+        )}
+      >
+        <AriakitCombobox
+          ref={comboboxRef}
+          id={id}
+          autoComplete="off"
+          autoSelect="always"
+          disabled={disabled}
+          aria-expanded={open}
+          aria-controls={id ? `${id}-listbox` : undefined}
+          aria-disabled={disabled}
+          aria-labelledby={labelId}
+          onFocus={() => {
+            if (!disabled) setOpen(true);
+          }}
+          className={classNames(
+            "input-combobox__input rt-reset",
+            rightSlot ? "input-combobox__input--has-slot" : undefined,
+            className,
+          )}
+          {...rest}
+        />
+        {rightSlot && (
+          <div className="input-combobox__slot-right">{rightSlot}</div>
+        )}
+      </div>
     </RadixPopover.Anchor>
   );
 }

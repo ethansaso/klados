@@ -6,7 +6,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
-import { categoricalModifierValue } from "../glossary/modifiers";
+import { modifierValue } from "../glossary/modifiers";
 import {
   taxonCharacterStateCategorical,
   taxonCharacterStateNumber,
@@ -26,7 +26,7 @@ export const taxonCharacterStateModifierCategorical = pgTable(
       }),
     modifierId: integer("modifier_id")
       .notNull()
-      .references(() => categoricalModifierValue.id, { onDelete: "restrict" }),
+      .references(() => modifierValue.id, { onDelete: "restrict" }),
   }),
   (t) => [
     uniqueIndex("tcsmc_state_mod_uq").on(
@@ -47,7 +47,7 @@ export const taxonCharacterStateModifierNumber = pgTable(
       .references(() => taxonCharacterStateNumber.id, { onDelete: "cascade" }),
     modifierId: integer("modifier_id")
       .notNull()
-      .references(() => categoricalModifierValue.id, { onDelete: "restrict" }),
+      .references(() => modifierValue.id, { onDelete: "restrict" }),
   }),
   (t) => [
     uniqueIndex("tcsmn_state_mod_uq").on(
@@ -68,7 +68,7 @@ export const taxonCharacterStateModifierRange = pgTable(
       .references(() => taxonCharacterStateRange.id, { onDelete: "cascade" }),
     modifierId: integer("modifier_id")
       .notNull()
-      .references(() => categoricalModifierValue.id, { onDelete: "restrict" }),
+      .references(() => modifierValue.id, { onDelete: "restrict" }),
   }),
   (t) => [
     uniqueIndex("tcsmr_state_mod_uq").on(

@@ -44,7 +44,7 @@ type HydrationMeta = {
       featureIds: number[];
     }
   >;
-  traitById: Map<number, Trait>;
+  traitById: Map<number, Omit<Trait, "modifiers">>;
   featureById: Map<
     number,
     {
@@ -132,7 +132,7 @@ async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
     });
   }
 
-  const traitById = new Map<number, Trait>();
+  const traitById = new Map<number, Omit<Trait, "modifiers">>();
   for (const tr of traits) {
     traitById.set(tr.id, {
       id: tr.id,
@@ -167,7 +167,7 @@ function hydrateBranchRationale(
 
       const traits = info.traits
         .map((traitId) => meta.traitById.get(traitId))
-        .filter((t): t is Trait => !!t);
+        .filter((t): t is Omit<Trait, "modifiers"> => !!t);
 
       characters[charId] = {
         name: charMeta.label,

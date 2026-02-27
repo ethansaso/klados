@@ -1,9 +1,9 @@
 import type { TaxonRank } from "../../../../db/schema/schema";
 import type { Prettify } from "../../utils/types/prettify";
 import type {
-  TaxonCategoricalStateDTO,
-  TaxonNumberStateDTO,
-  TaxonRangeStateDTO,
+  CategoricalStateDTO,
+  NumberStateDTO,
+  RangeStateDTO,
   Trait,
 } from "../states/types";
 import type { TaxonDTO } from "../taxa/types";
@@ -33,18 +33,18 @@ export type LookalikeComparisonAnnotatedCategoricalTrait = Trait &
   OverlapAnnotation;
 
 export type LookalikeComparisonAnnotatedCategoricalState = Prettify<
-  Pick<TaxonCategoricalStateDTO, "kind"> & {
+  Pick<CategoricalStateDTO, "kind"> & {
     traits: LookalikeComparisonAnnotatedCategoricalTrait[];
   }
 >;
 
 export type LookalikeComparisonAnnotatedNumberState = Prettify<
-  Pick<TaxonNumberStateDTO, "kind" | "siBaseValue" | "unit">
+  Pick<NumberStateDTO, "kind" | "siBaseValue" | "unit">
 > &
   OverlapAnnotation;
 
 export type LookalikeComparisonAnnotatedRangeState = Prettify<
-  Pick<TaxonRangeStateDTO, "kind" | "siBaseMin" | "siBaseMax" | "unit">
+  Pick<RangeStateDTO, "kind" | "siBaseMin" | "siBaseMax" | "unit">
 > &
   OverlapAnnotation;
 

@@ -181,7 +181,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
       setValue("characters", [
         ...characters,
         { id: Number(opt.id), label: opt.label },
-      ]);
+      ], { shouldDirty: true });
     },
     [characters, linkedIds, setValue],
   );
@@ -191,6 +191,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
       setValue(
         "characters",
         characters.filter((c) => c.id !== id),
+        { shouldDirty: true },
       );
     },
     [characters, setValue],

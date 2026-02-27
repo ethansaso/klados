@@ -2,9 +2,13 @@ import { DataList, Flex, Text } from "@radix-ui/themes";
 import { memo, useMemo } from "react";
 import { CharacterStateDisplay } from "../../../../../../components/state-formatting/displays/CharacterStateDisplay";
 import type { FeatureDetailDTO } from "../../../../../../lib/domain/features/types";
-import type { SampleModifier } from "./sampleModifiers";
 import { ModifierTag } from "./tags/ModifierTag";
-import type { CharacterStateFormValue } from "./validation";
+import type {
+  CharacterStateFormValue,
+  ModifierTokenFormValue,
+} from "./validation";
+
+type AutoOpenTarget = { characterId: number; traitValueId?: number };
 
 type CharacterStateRowProps = {
   character: FeatureDetailDTO["characters"][number];
@@ -14,12 +18,15 @@ type CharacterStateRowProps = {
   onUpdateCategoricalModifiers: (
     characterId: number,
     traitValueId: number,
-    mods: SampleModifier[],
+    mods: ModifierTokenFormValue[],
   ) => void;
   onUpdateNumericModifiers: (
     characterId: number,
-    mods: SampleModifier[],
+    mods: ModifierTokenFormValue[],
   ) => void;
+  /** If set, auto-opens the modifier popover for the matching tag. */
+  autoOpenModifierFor?: AutoOpenTarget;
+  onAutoOpenHandled?: () => void;
 };
 
 export const CharacterStateRow = memo(
@@ -30,6 +37,8 @@ export const CharacterStateRow = memo(
     onRemoveState,
     onUpdateCategoricalModifiers,
     onUpdateNumericModifiers,
+    autoOpenModifierFor,
+    onAutoOpenHandled,
   }: CharacterStateRowProps) => {
     const content = useMemo(() => {
       if (!state) {
@@ -45,11 +54,16 @@ export const CharacterStateRow = memo(
           return state.traitValues.map((tv) => (
             <ModifierTag
               key={tv.id}
-              modifiers={tv.modifiers as SampleModifier[]}
+              modifiers={tv.modifiers}
               onModifiersChange={(mods) =>
                 onUpdateCategoricalModifiers(character.id, tv.id, mods)
               }
               onRemove={() => onRemoveCategoricalTrait(character.id, tv.id)}
+              autoOpen={
+                autoOpenModifierFor?.characterId === character.id &&
+                autoOpenModifierFor.traitValueId === tv.id
+              }
+              onAutoOpenHandled={onAutoOpenHandled}
             >
               <CharacterStateDisplay
                 state={{ kind: "categorical", traitValues: [tv] }}
@@ -61,11 +75,16 @@ export const CharacterStateRow = memo(
         case "number":
           return (
             <ModifierTag
-              modifiers={state.modifiers as SampleModifier[]}
+              modifiers={state.modifiers}
               onModifiersChange={(mods) =>
                 onUpdateNumericModifiers(character.id, mods)
               }
               onRemove={() => onRemoveState(character.id)}
+              autoOpen={
+                autoOpenModifierFor?.characterId === character.id &&
+                autoOpenModifierFor.traitValueId === undefined
+              }
+              onAutoOpenHandled={onAutoOpenHandled}
             >
               <CharacterStateDisplay
                 state={{
@@ -82,11 +101,16 @@ export const CharacterStateRow = memo(
         case "range":
           return (
             <ModifierTag
-              modifiers={state.modifiers as SampleModifier[]}
+              modifiers={state.modifiers}
               onModifiersChange={(mods) =>
                 onUpdateNumericModifiers(character.id, mods)
               }
               onRemove={() => onRemoveState(character.id)}
+              autoOpen={
+                autoOpenModifierFor?.characterId === character.id &&
+                autoOpenModifierFor.traitValueId === undefined
+              }
+              onAutoOpenHandled={onAutoOpenHandled}
             >
               <CharacterStateDisplay
                 state={{
@@ -111,6 +135,8 @@ export const CharacterStateRow = memo(
       onRemoveState,
       onUpdateCategoricalModifiers,
       onUpdateNumericModifiers,
+      autoOpenModifierFor,
+      onAutoOpenHandled,
     ]);
 
     return (

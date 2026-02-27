@@ -8,21 +8,34 @@ import {
   TextArea,
   TextField,
 } from "@radix-ui/themes";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Form, Label } from "radix-ui";
-import { type SubmitHandler, useForm } from "react-hook-form";
+import { useMemo, useState } from "react";
+import { Controller, type SubmitHandler, useForm } from "react-hook-form";
+import z from "zod";
+import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
+import type { ComboboxOption } from "../../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
 import { createFeatureFn } from "../../../../lib/api/features/createFeatureFn";
-import {
-  type CreateFeatureInput,
-  createFeatureSchema,
-} from "../../../../lib/domain/features/validation";
+import { createFeatureSchema } from "../../../../lib/domain/features/validation";
+import { featuresQueryOptions } from "../../../../lib/queries/features";
 import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../lib/utils/toast";
+
+const parentRefSchema = z.object({
+  id: z.number().int().positive(),
+  label: z.string().min(1),
+});
+
+const createFeatureFormSchema = createFeatureSchema
+  .omit({ parentId: true })
+  .extend({ parent: parentRefSchema.nullable().optional() });
+
+type CreateFeatureFormInput = z.infer<typeof createFeatureFormSchema>;
 
 interface Props {
   initialLabel?: string;
@@ -35,27 +48,45 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting, touchedFields, isSubmitted },
-  } = useForm<CreateFeatureInput>({
-    resolver: zodResolver(createFeatureSchema),
+  } = useForm<CreateFeatureFormInput>({
+    resolver: zodResolver(createFeatureFormSchema),
     mode: "onSubmit",
     reValidateMode: "onChange",
     values: {
       label: initialLabel ?? "",
       description: "",
+      parent: null,
     },
   });
 
-  const onSubmit: SubmitHandler<CreateFeatureInput> = async ({
+  const [parentQuery, setParentQuery] = useState("");
+  const { data: parentRes, isFetching: parentLoading } = useQuery(
+    featuresQueryOptions(1, 20, { q: parentQuery }),
+  );
+  const parentOptions: ComboboxOption[] = useMemo(
+    () =>
+      (parentRes?.items ?? []).map((p) => ({
+        id: p.id,
+        label: p.label,
+        hint: p.description ?? undefined,
+      })),
+    [parentRes],
+  );
+
+  const onSubmit: SubmitHandler<CreateFeatureFormInput> = async ({
     label,
     description,
+    parent,
   }) => {
     try {
       await serverCreate({
         data: {
           label,
           description,
+          parentId: parent ? parent.id : null,
         },
       });
 
@@ -99,6 +130,44 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
                 placeholder="e.g. cap, stem, leaf"
                 {...register("label")}
                 {...a11yProps("feature-label-error", !!errors.label)}
+              />
+            </Box>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="feature-parent">Parent feature</Label.Root>
+              </Flex>
+              <Controller
+                name="parent"
+                control={control}
+                render={({ field }) => (
+                  <SelectCombobox.Root
+                    id="feature-parent"
+                    value={field.value ?? null}
+                    onValueChange={(opt) =>
+                      field.onChange(
+                        opt ? { id: Number(opt.id), label: opt.label } : null,
+                      )
+                    }
+                    onQueryChange={setParentQuery}
+                    options={parentOptions}
+                    loading={parentLoading}
+                    disabled={isSubmitting}
+                  >
+                    <SelectCombobox.Trigger placeholder="No parent" />
+                    <SelectCombobox.Content behavior="input" maxWidth="400px">
+                      <SelectCombobox.Input placeholder="Search features..." />
+                      <SelectCombobox.List>
+                        {parentOptions.map((opt, i) => (
+                          <SelectCombobox.Item
+                            key={String(opt.id)}
+                            option={opt}
+                            index={i}
+                          />
+                        ))}
+                      </SelectCombobox.List>
+                    </SelectCombobox.Content>
+                  </SelectCombobox.Root>
+                )}
               />
             </Box>
             <Box>

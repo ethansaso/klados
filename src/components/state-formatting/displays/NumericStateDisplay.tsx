@@ -23,20 +23,28 @@ export const NumericStateDisplay = memo(
   ({ state, highlightAffixes }: Props) => {
     const copy = computeCopy(state);
     const modifiers = state.modifiers ?? [];
+    const prefixes = modifiers.filter((m) => m.affixType === "prefix");
+    const suffixes = modifiers.filter((m) => m.affixType === "suffix");
 
-    if (highlightAffixes && modifiers.length > 0) {
-      const prefixes = modifiers.filter((m) => m.affixType === "prefix");
-      const suffixes = modifiers.filter((m) => m.affixType === "suffix");
+    if (modifiers.length > 0) {
       return (
         <Flex display="inline-flex" align="center" gap="1" wrap="wrap">
           {prefixes.map((m, i) => (
-            <Text key={m.id} size="1" color="crimson">
+            <Text
+              key={m.id}
+              size="1"
+              color={highlightAffixes ? "crimson" : undefined}
+            >
               {formatModifierValue(m.value, i === 0)}
             </Text>
           ))}
           <Text weight={state.weight}>{copy}</Text>
           {suffixes.map((m) => (
-            <Text key={m.id} size="1" color="cyan">
+            <Text
+              key={m.id}
+              size="1"
+              color={highlightAffixes ? "cyan" : undefined}
+            >
               {formatModifierValue(m.value)}
             </Text>
           ))}

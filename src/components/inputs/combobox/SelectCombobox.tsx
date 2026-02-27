@@ -326,7 +326,7 @@ function List({
     <ScrollArea
       type="auto"
       scrollbars="vertical"
-      className={classNames("combobox__list", className)}
+      className={classNames("select-combobox__list", className)}
       style={{ maxHeight: 260, ...style }}
     >
       <ul

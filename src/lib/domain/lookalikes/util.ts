@@ -1,7 +1,4 @@
-import type {
-  TaxonCharacterFeatureStateDTO,
-  TaxonCharacterStateDTO,
-} from "../states/types";
+import type { CharacterStateDTO, FeatureStateDTO } from "../states/types";
 import type {
   LookalikeComparisonAnnotatedCategoricalState,
   LookalikeComparisonAnnotatedCategoricalTrait,
@@ -18,8 +15,8 @@ function traitKey(tv: { canonicalId: number }) {
 
 /** Treats as overlapping if trait values have any overlap. */
 function buildAnnotatedCategoricalState(
-  aState: TaxonCharacterStateDTO | undefined,
-  bState: TaxonCharacterStateDTO | undefined,
+  aState: CharacterStateDTO | undefined,
+  bState: CharacterStateDTO | undefined,
 ): {
   aAnnotated: LookalikeComparisonAnnotatedCategoricalState | null;
   bAnnotated: LookalikeComparisonAnnotatedCategoricalState | null;
@@ -57,8 +54,8 @@ function buildAnnotatedCategoricalState(
 }
 
 function buildAnnotatedNumberState(
-  aState: TaxonCharacterStateDTO | undefined,
-  bState: TaxonCharacterStateDTO | undefined,
+  aState: CharacterStateDTO | undefined,
+  bState: CharacterStateDTO | undefined,
 ): {
   aAnnotated: LookalikeComparisonAnnotatedNumberState | null;
   bAnnotated: LookalikeComparisonAnnotatedNumberState | null;
@@ -98,8 +95,8 @@ function buildAnnotatedNumberState(
 }
 
 function buildAnnotatedRangeState(
-  aState: TaxonCharacterStateDTO | undefined,
-  bState: TaxonCharacterStateDTO | undefined,
+  aState: CharacterStateDTO | undefined,
+  bState: CharacterStateDTO | undefined,
 ): {
   aAnnotated: LookalikeComparisonAnnotatedRangeState | null;
   bAnnotated: LookalikeComparisonAnnotatedRangeState | null;
@@ -149,8 +146,8 @@ function buildAnnotatedRangeState(
 
 /** Switch-cased dispatcher for each state kind. */
 function buildAnnotatedState(
-  aState: TaxonCharacterStateDTO | undefined,
-  bState: TaxonCharacterStateDTO | undefined,
+  aState: CharacterStateDTO | undefined,
+  bState: CharacterStateDTO | undefined,
 ): {
   aAnnotated: LookalikeComparisonAnnotatedState | null;
   bAnnotated: LookalikeComparisonAnnotatedState | null;
@@ -172,8 +169,8 @@ function buildAnnotatedState(
 }
 
 export function buildGroupedLookalikeStates(args: {
-  aGroups: TaxonCharacterFeatureStateDTO[];
-  bGroups: TaxonCharacterFeatureStateDTO[];
+  aGroups: FeatureStateDTO[];
+  bGroups: FeatureStateDTO[];
 }): LookalikeComparisonGroup[] {
   const { aGroups, bGroups } = args;
 

@@ -1,5 +1,5 @@
 import type {
-  TaxonCategoricalStateDTO,
+  CategoricalStateDTO,
   Trait,
 } from "../../../lib/domain/states/types";
 import type { HierarchyTaxonNode } from "../../hierarchy/types";
@@ -12,7 +12,7 @@ import { scoreCharacterSplit } from "./scoreCharacterSplit";
 
 type CharEntry = {
   taxon: HierarchyTaxonNode;
-  state: TaxonCategoricalStateDTO;
+  state: CategoricalStateDTO;
   featureId: number;
 };
 

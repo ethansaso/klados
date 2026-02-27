@@ -31,6 +31,7 @@ import type { CharacterDetailDTO } from "../../../../../lib/domain/characters/ty
 import { characterQueryOptions } from "../../../../../lib/queries/characters";
 import { traitValuesQueryOptions } from "../../../../../lib/queries/traits";
 import { capitalizeFirstLetter } from "../../../../../lib/utils/formatting/casing";
+import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../../lib/utils/toast";
 import { Route as CharactersLayoutRoute } from "../route";
 
@@ -90,8 +91,9 @@ function RouteComponent() {
         variant: "success",
         description: `Trait "${created.label}" added.`,
       });
-    } catch {
-      toast({ variant: "error", description: "Failed to add trait." });
+    } catch (e: unknown) {
+      const message = getErrorMessage(e);
+      toast({ variant: "error", description: message });
     } finally {
       setIsCreating(false);
     }

@@ -29,6 +29,8 @@ const MICRO_REGEX = /[µμ]/g; // normalize micro symbols
  * * "7–9"
  * * "10 cm"
  * * "7-9 µm"
+ * * "10cm"
+ * * "7-9µm"
  */
 export function parseNumericQuery(raw: string): ParsedNumeric {
   const trimmed = raw.trim();
@@ -45,6 +47,15 @@ export function parseNumericQuery(raw: string): ParsedNumeric {
   if (parts.length > 1 && last && /[a-zA-Zµμ%]+/.test(last)) {
     unitText = last;
     numericPart = parts.slice(0, -1).join(" ");
+  }
+
+  // Also handle units attached directly to numbers (e.g. "3-18cm", "42mm")
+  if (!unitText) {
+    const attachedMatch = numericPart.match(/^(.*\d)([a-zA-Zµμ%]+)$/);
+    if (attachedMatch) {
+      numericPart = attachedMatch[1]!.trim();
+      unitText = attachedMatch[2];
+    }
   }
 
   const rangeMatch = numericPart.match(
@@ -97,6 +108,7 @@ export function normalizeUnitToken(unitText?: string): string | null {
     case "nanometre":
       return "nm";
 
+    case "u":
     case "um":
     case "micron":
     case "micrometer":

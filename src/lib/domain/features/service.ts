@@ -17,7 +17,7 @@ import type {
 import type { UpdateFeatureInput } from "./validation";
 
 /**
- * Bulk fetch character groups by ID (non-paginated).
+ * Bulk fetch features by ID (non-paginated).
  */
 export async function getFeaturesByIds(ids: number[]): Promise<FeatureDTO[]> {
   if (!ids.length) {
@@ -60,12 +60,17 @@ export async function getFeature(args: {
 export async function createFeature(args: {
   label: string;
   description?: string;
+  parentId?: number | null;
 }): Promise<FeatureDTO | null> {
   const label = args.label.trim();
   const description = args.description?.trim() || "";
 
   return db.transaction(async (tx) => {
-    const base = await insertFeature(tx, { label, description });
+    const base = await insertFeature(tx, {
+      label,
+      description,
+      parentId: args.parentId,
+    });
     if (!base) {
       return null;
     }

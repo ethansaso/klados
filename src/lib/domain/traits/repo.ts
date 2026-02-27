@@ -148,10 +148,9 @@ export async function selectTraitValueDtoById(
     aliasOf: row.canonId
       ? {
           id: row.canonId,
-          canonicalId: row.canonId,
           label: row.canonLabel!,
           description: row.canonDescription!,
-          hexCode: row.canonHexCode ?? undefined,
+          hexCode: row.canonHexCode ?? null,
         }
       : null,
   };
@@ -227,10 +226,9 @@ export async function selectTraitValueDtosByIds(
     aliasOf: row.canonId
       ? {
           id: row.canonId,
-          canonicalId: row.canonId,
           label: row.canonLabel!,
           description: row.canonDescription!,
-          hexCode: row.canonHexCode ?? undefined,
+          hexCode: row.canonHexCode ?? null,
         }
       : null,
   }));
@@ -361,10 +359,9 @@ export async function selectTraitValuesByCharacterPaginated(
     aliasOf: row.canonId
       ? {
           id: row.canonId,
-          canonicalId: row.canonId,
           label: row.canonLabel!,
           description: row.canonDescription!,
-          hexCode: row.canonHexCode ?? undefined,
+          hexCode: row.canonHexCode ?? null,
         }
       : null,
   }));

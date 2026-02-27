@@ -110,7 +110,7 @@ export async function listFeaturesQuery(args: {
 }
 
 /**
- * Fetch a single character group detail by id.
+ * Fetch a single feature detail by id.
  */
 export async function fetchFeatureDetailById(
   tx: Transaction,
@@ -119,7 +119,7 @@ export async function fetchFeatureDetailById(
   const parentTbl = alias(featuresTbl, "parent");
 
   // Feature + parent in one query
-  const [groupRow] = await tx
+  const [featureRow] = await tx
     .select({
       id: featuresTbl.id,
       label: featuresTbl.label,
@@ -132,7 +132,7 @@ export async function fetchFeatureDetailById(
     .where(eq(featuresTbl.id, id))
     .limit(1);
 
-  if (!groupRow) return null;
+  if (!featureRow) return null;
 
   // Sub-features (indexed on parent_id)
   const subRows = await tx
@@ -180,7 +180,7 @@ export async function fetchFeatureDetailById(
 
     if (row.unitFamilyId == null) {
       throw new Error(
-        `Numeric character ${row.id} is missing unitFamilyId in group detail (type=${row.type})`,
+        `Numeric character ${row.id} is missing unitFamilyId in feature detail (type=${row.type})`,
       );
     }
 
@@ -192,15 +192,15 @@ export async function fetchFeatureDetailById(
   });
 
   return {
-    id: groupRow.id,
-    label: groupRow.label,
-    description: groupRow.description,
+    id: featureRow.id,
+    label: featureRow.label,
+    description: featureRow.description,
     characterCount: characters.length,
     characters,
-    parentFeature: groupRow.parentId
+    parentFeature: featureRow.parentId
       ? {
-          id: groupRow.parentId,
-          label: groupRow.parentLabel!,
+          id: featureRow.parentId,
+          label: featureRow.parentLabel!,
         }
       : null,
     subFeatures: subRows,
@@ -212,13 +212,14 @@ export async function fetchFeatureDetailById(
  */
 export async function insertFeature(
   tx: Transaction,
-  args: { label: string; description: string },
+  args: { label: string; description: string; parentId?: number | null },
 ): Promise<FeatureDTO | null> {
-  const [group] = await tx
+  const [featureRow] = await tx
     .insert(featuresTbl)
     .values({
       label: args.label,
       description: args.description,
+      parentId: args.parentId ?? null,
     })
     .returning({
       id: featuresTbl.id,
@@ -228,7 +229,7 @@ export async function insertFeature(
       characterCount: sql<number>`0`,
     });
 
-  return group ?? null;
+  return featureRow ?? null;
 }
 
 export async function updateFeatureRow(
@@ -240,7 +241,7 @@ export async function updateFeatureRow(
     parentId?: number | null;
   },
 ): Promise<Omit<FeatureDTO, "characterCount"> | null> {
-  const [group] = await tx
+  const [featureRow] = await tx
     .update(featuresTbl)
     .set({
       label: args.label,
@@ -255,9 +256,9 @@ export async function updateFeatureRow(
       parentId: featuresTbl.parentId,
     });
 
-  if (!group) return null;
+  if (!featureRow) return null;
 
-  return group;
+  return featureRow;
 }
 
 /** Imperatively set the characters linked to a feature. */

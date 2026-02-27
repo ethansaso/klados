@@ -7,13 +7,9 @@ import {
   Tooltip,
 } from "@radix-ui/themes";
 import { CharacterStateDisplay } from "../../../../../components/state-formatting/displays/CharacterStateDisplay";
-import type { TaxonCharacterFeatureStateDTO } from "../../../../../lib/domain/states/types";
+import type { FeatureStateDTO } from "../../../../../lib/domain/states/types";
 
-export const FeatureCard = ({
-  feature,
-}: {
-  feature: TaxonCharacterFeatureStateDTO;
-}) => {
+export const FeatureCard = ({ feature }: { feature: FeatureStateDTO }) => {
   const cardHeaderComponent = feature.featureDescription ? (
     <Tooltip content={feature.featureDescription}>
       <span className="has-information">{feature.featureLabel}</span>
