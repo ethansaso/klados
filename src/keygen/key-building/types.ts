@@ -12,40 +12,52 @@ export type KeyDiffNode = {
 
 export type KeyNode = KeyTaxonNode | KeyDiffNode;
 
-type BaseKeyRationale = {
+/** Trait IDs + inversion flag for one character within a branch. */
+export type KeyCharacterEntry = {
+  traits: number[];
+  inverted: boolean;
+};
+
+/**
+ * Feature is asserted present; may include character-level detail.
+ * Character assertions implicitly carry the presence claim, so whenever
+ * characters are specified the presence field is always "present".
+ */
+export type PresentFeatureRationaleEntry = {
+  presence: "present";
+  /** characterId -> entry. Empty record is valid (presence only, no char detail). */
+  characters: Record<number, KeyCharacterEntry>;
+};
+
+/** Feature is asserted absent; no character assertions are possible. */
+export type AbsentFeatureRationaleEntry = {
+  presence: "absent";
+};
+
+export type KeyFeatureRationaleEntry =
+  | PresentFeatureRationaleEntry
+  | AbsentFeatureRationaleEntry;
+
+/**
+ * Structured rationale: one or more feature-scoped assertions.
+ * featureId -> entry.
+ */
+export type KeyRichRationale = {
+  kind: "rich";
+  features: Record<number, KeyFeatureRationaleEntry>;
   annotation: string | null;
 };
 
-export type KeyCharRationale = BaseKeyRationale & {
-  kind: "character-definition";
-  /** Mapping of character IDs to their traits and inversion status */
-  characters: Record<
-    number,
-    {
-      traits: number[];
-      inverted: boolean;
-    }
-  >;
+/**
+ * Human-written rationale that replaces (not supplements) structured data.
+ * Used when a curator overrides a generated branch label.
+ */
+export type KeyWrittenRationale = {
+  kind: "written";
+  text: string;
 };
 
-export type KeyPAFeatureRationale = BaseKeyRationale & {
-  kind: "feature-present-absent";
-  /** Mapping of feature IDs to their presence or absence status */
-  features: Record<
-    number,
-    {
-      featureId: number;
-      status: "present" | "absent";
-    }
-  >;
-};
-
-export type KeyCustomRationale = BaseKeyRationale & {};
-
-export type KeyBranchRationale =
-  | KeyCharRationale
-  | KeyPAFeatureRationale
-  | null;
+export type KeyBranchRationale = KeyRichRationale | KeyWrittenRationale | null;
 
 export type KeyBranch = {
   id: string;

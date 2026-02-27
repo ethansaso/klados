@@ -12,11 +12,11 @@ import type {
 } from "../key-building/types";
 import type {
   HydratedBranchRationale,
-  HydratedCharRationale,
   HydratedKeyBranch,
   HydratedKeyGraphDTO,
   HydratedKeyNode,
-  HydratedPAFeatureRationale,
+  HydratedPresentFeatureEntry,
+  HydratedRichRationale,
   HydratedTaxonNode,
 } from "./types";
 
@@ -80,18 +80,26 @@ function collectIdsFromTree(root: KeyTaxonNode): IdCollections {
     for (const branch of node.branches) {
       const rationale = branch.rationale as KeyBranchRationale | null;
 
-      if (rationale?.kind === "character-definition") {
-        for (const [charIdStr, info] of Object.entries(rationale.characters)) {
-          const charId = Number(charIdStr);
-          if (!Number.isNaN(charId)) {
-            ids.characterIds.add(charId);
+      if (rationale?.kind === "rich") {
+        for (const [featureIdStr, fEntry] of Object.entries(
+          rationale.features,
+        )) {
+          const featureId = Number(featureIdStr);
+          if (!Number.isNaN(featureId)) {
+            ids.featureIds.add(featureId);
           }
-          info.traits.forEach((traitId) => ids.traitIds.add(traitId));
+          if (fEntry.presence === "present") {
+            for (const [charIdStr, charEntry] of Object.entries(
+              fEntry.characters,
+            )) {
+              const charId = Number(charIdStr);
+              if (!Number.isNaN(charId)) {
+                ids.characterIds.add(charId);
+              }
+              charEntry.traits.forEach((traitId) => ids.traitIds.add(traitId));
+            }
+          }
         }
-      } else if (rationale?.kind === "feature-present-absent") {
-        Object.values(rationale.features).forEach((f) => {
-          ids.featureIds.add(f.featureId);
-        });
       }
 
       visit(branch.child);
@@ -157,47 +165,47 @@ function hydrateBranchRationale(
 ): HydratedBranchRationale {
   if (!raw) return null;
 
-  if (raw.kind === "character-definition") {
-    const characters: HydratedCharRationale["characters"] = {};
-
-    for (const [charIdStr, info] of Object.entries(raw.characters)) {
-      const charId = Number(charIdStr);
-      const charMeta = meta.characterById.get(charId);
-      if (!charMeta) continue;
-
-      const traits = info.traits
-        .map((traitId) => meta.traitById.get(traitId))
-        .filter((t): t is Omit<Trait, "modifiers"> => !!t);
-
-      characters[charId] = {
-        name: charMeta.label,
-        traits,
-        inverted: info.inverted,
-      };
-    }
-
-    return {
-      kind: "character-definition",
-      characters,
-      annotation: raw.annotation,
-    };
+  if (raw.kind === "written") {
+    return { kind: "written", text: raw.text };
   }
 
-  if (raw.kind === "feature-present-absent") {
-    const features: HydratedPAFeatureRationale["features"] = {};
+  if (raw.kind === "rich") {
+    const features: HydratedRichRationale["features"] = {};
 
-    for (const [featureIdStr, fInfo] of Object.entries(raw.features)) {
+    for (const [featureIdStr, fEntry] of Object.entries(raw.features)) {
       const featureId = Number(featureIdStr);
-      const metaFeature = meta.featureById.get(featureId);
-      features[featureId] = {
-        featureId,
-        name: metaFeature?.label ?? `Feature ${featureId}`,
-        status: fInfo.status,
-      };
+      const featureMeta = meta.featureById.get(featureId);
+      const name = featureMeta?.label ?? `Feature ${featureId}`;
+
+      if (fEntry.presence === "absent") {
+        features[featureId] = { presence: "absent", name };
+      } else {
+        const characters: HydratedPresentFeatureEntry["characters"] = {};
+
+        for (const [charIdStr, charEntry] of Object.entries(
+          fEntry.characters,
+        )) {
+          const charId = Number(charIdStr);
+          const charMeta = meta.characterById.get(charId);
+          if (!charMeta) continue;
+
+          const traits = charEntry.traits
+            .map((traitId) => meta.traitById.get(traitId))
+            .filter((t): t is Omit<Trait, "modifiers"> => !!t);
+
+          characters[charId] = {
+            name: charMeta.label,
+            traits,
+            inverted: charEntry.inverted,
+          };
+        }
+
+        features[featureId] = { presence: "present", name, characters };
+      }
     }
 
     return {
-      kind: "feature-present-absent",
+      kind: "rich",
       features,
       annotation: raw.annotation,
     };

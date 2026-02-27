@@ -1,8 +1,7 @@
 import type { NodeTypes } from "@xyflow/react";
-import CharacterBranchEdgeViewer from "./CharacterBranchEdgeViewer";
 import DiffNodeViewer from "./DiffNodeViewer";
-import FeatureBranchEdgeViewer from "./FeatureBranchEdgeViewer";
 import NullBranchEdgeViewer from "./NullBranchEdgeViewer";
+import RichBranchEdgeViewer from "./RichBranchEdgeViewer";
 import TaxonNodeViewer from "./TaxonNodeViewer";
 
 export const viewerNodeTypes = {
@@ -12,6 +11,5 @@ export const viewerNodeTypes = {
 
 export const viewerEdgeTypes = {
   nullBranchEdge: NullBranchEdgeViewer,
-  characterBranchEdge: CharacterBranchEdgeViewer,
-  featureBranchEdge: FeatureBranchEdgeViewer,
+  richBranchEdge: RichBranchEdgeViewer,
 };

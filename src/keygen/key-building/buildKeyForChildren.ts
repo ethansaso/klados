@@ -13,9 +13,10 @@ import type {
 import type {
   KeyBranch,
   KeyBranchRationale,
-  KeyCharRationale,
   KeyDiffNode,
+  KeyFeatureRationaleEntry,
   KeyNode,
+  KeyRichRationale,
   KeyTaxonNode,
 } from "./types";
 
@@ -87,27 +88,40 @@ function getChildrenForTaxonNode(
 function buildCharacterDefinitionRationale(
   split: CharacterDefinitionSplitResult,
   branchIndex: number,
-): KeyCharRationale {
+): KeyRichRationale {
   const branch = split.branches[branchIndex];
   if (!branch)
     throw new Error(
       `Invalid branchIndex ${branchIndex} for split with ${split.branches.length} branches`,
     );
 
-  const characters: KeyCharRationale["characters"] = {};
+  const features: KeyRichRationale["features"] = {};
 
   for (const clause of branch.clauses) {
     const traitIds = clause.traits.map((t) => t.id);
+    const existing = features[clause.featureId];
 
-    characters[clause.characterId] = {
-      traits: traitIds,
-      inverted: clause.inverted,
-    };
+    if (existing && existing.presence === "present") {
+      existing.characters[clause.characterId] = {
+        traits: traitIds,
+        inverted: clause.inverted,
+      };
+    } else {
+      features[clause.featureId] = {
+        presence: "present",
+        characters: {
+          [clause.characterId]: {
+            traits: traitIds,
+            inverted: clause.inverted,
+          },
+        },
+      };
+    }
   }
 
   return {
-    kind: "character-definition",
-    characters,
+    kind: "rich",
+    features,
     annotation: null,
   };
 }
@@ -118,20 +132,22 @@ function buildCharacterDefinitionRationale(
 function buildFeaturePresentAbsentRationale(
   split: FeaturePresentAbsentSplitResult,
   branchIndex: number,
-): KeyBranchRationale {
+): KeyRichRationale {
   const branch = split.branches[branchIndex];
   if (!branch)
     throw new Error(
       `Invalid branchIndex ${branchIndex} for split with ${split.branches.length} branches`,
     );
 
+  const featureEntry: KeyFeatureRationaleEntry =
+    branch.status === "present"
+      ? { presence: "present", characters: {} }
+      : { presence: "absent" };
+
   return {
-    kind: "feature-present-absent",
+    kind: "rich",
     features: {
-      [split.featureId]: {
-        featureId: split.featureId,
-        status: branch.status,
-      },
+      [split.featureId]: featureEntry,
     },
     annotation: null,
   };
