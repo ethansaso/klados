@@ -10,7 +10,7 @@ import {
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { CharacterStateDisplay } from "../../../../../components/state-formatting/displays/CharacterStateDisplay";
+import { CharacterStateDisplay } from "../../../../../components/state-formatting/CharacterStateDisplay";
 import type { UICharacterState } from "../../../../../components/state-formatting/types";
 import type {
   LookalikeComparisonAnnotatedState,

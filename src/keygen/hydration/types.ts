@@ -23,6 +23,7 @@ export type HydratedCharacterEntry = {
 export type HydratedPresentFeatureEntry = {
   presence: "present";
   name: string;
+  description?: string | null;
   /** characterId -> hydrated entry */
   characters: Record<number, HydratedCharacterEntry>;
 };
@@ -31,6 +32,7 @@ export type HydratedPresentFeatureEntry = {
 export type HydratedAbsentFeatureEntry = {
   presence: "absent";
   name: string;
+  description?: string | null;
 };
 
 export type HydratedFeatureEntry =

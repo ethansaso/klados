@@ -274,6 +274,38 @@ function buildKeyForSiblings(
       );
     }
   });
+
+  // Any taxon that wasn't assigned to any split branch (e.g. has no
+  // morphological data) couldn't be differentiated by the best split.
+  // Group them under a single null-rationale diff node so they don't
+  // flood the parent with dozens of individual null branches.
+  const taxaInSplit = new Set(
+    best.branches.flatMap((b) => b.taxa.map((t) => t.id)),
+  );
+  const unplaced = siblings.filter((s) => !taxaInSplit.has(s.id));
+
+  if (unplaced.length === 1) {
+    // Single unplaced taxon: attach directly under parent with null rationale.
+    const only = unplaced[0]!;
+    const childNode = makeTaxonNode(only.id);
+    parent.branches.push(makeBranch(null, childNode));
+    buildKeySubtreeForTaxon(childNode, hierarchy, options, featureAncestorMap);
+  } else if (unplaced.length > 1) {
+    // Multiple unplaced taxa: collect under a shared diff node so the parent
+    // gets one null branch rather than N.
+    const diffNode = makeDiffNode();
+    parent.branches.push(makeBranch(null, diffNode));
+    for (const orphan of unplaced) {
+      const childNode = makeTaxonNode(orphan.id);
+      diffNode.branches.push(makeBranch(null, childNode));
+      buildKeySubtreeForTaxon(
+        childNode,
+        hierarchy,
+        options,
+        featureAncestorMap,
+      );
+    }
+  }
 }
 
 /**

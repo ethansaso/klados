@@ -1,7 +1,7 @@
 import { Flex } from "@radix-ui/themes";
 import { memo } from "react";
-import { TraitToken } from "./helpers/TraitToken";
-import type { UICategoricalState } from "./types";
+import { TraitToken } from "../helpers/TraitToken";
+import type { UICategoricalState } from "../types";
 
 type Props = {
   state: UICategoricalState;

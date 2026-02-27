@@ -1,7 +1,7 @@
 import { memo } from "react";
-import { CategoricalStateDisplay } from "../CategoricalStateDisplay";
-import type { UICharacterState } from "../types";
-import { NumericStateDisplay } from "./NumericStateDisplay";
+import { CategoricalStateDisplay } from "./displays/CategoricalStateDisplay";
+import { NumericStateDisplay } from "./displays/NumericStateDisplay";
+import type { UICharacterState } from "./types";
 
 type Props = {
   state: UICharacterState;

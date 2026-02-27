@@ -1,6 +1,6 @@
 import { DataList, Flex, Text } from "@radix-ui/themes";
 import { memo, useMemo } from "react";
-import { CharacterStateDisplay } from "../../../../../../components/state-formatting/displays/CharacterStateDisplay";
+import { CharacterStateDisplay } from "../../../../../../components/state-formatting/CharacterStateDisplay";
 import type { FeatureDetailDTO } from "../../../../../../lib/domain/features/types";
 import { ModifierTag } from "./tags/ModifierTag";
 import type {

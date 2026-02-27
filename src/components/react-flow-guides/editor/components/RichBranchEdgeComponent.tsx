@@ -1,11 +1,12 @@
 import {
+  Badge,
   Card,
   ContextMenu,
-  DataList,
+  Flex,
   Separator,
-  Strong,
   Text,
   TextArea,
+  Tooltip,
 } from "@radix-ui/themes";
 import {
   BaseEdge,
@@ -16,9 +17,37 @@ import {
   type EdgeProps,
 } from "@xyflow/react";
 import { memo, useCallback, useRef, useState } from "react";
-import { CharacterStateDisplay } from "../../../state-formatting/displays/CharacterStateDisplay";
+import type { HydratedCharacterEntry } from "../../../../keygen/hydration/types";
+import { TraitToken } from "../../../state-formatting/helpers/TraitToken";
 import type { RFRichBranchEdge } from "../../editor/data/types";
 import { useGuideEditorStore } from "../../editor/data/useGuideEditorStore";
+
+/** Flatten all character entries for a feature into badged TraitToken nodes. */
+function flattenChips(
+  characters: Record<number, HydratedCharacterEntry>,
+): React.ReactNode[] {
+  const chips: React.ReactNode[] = [];
+  for (const [charId, charEntry] of Object.entries(characters)) {
+    if (charEntry.inverted) {
+      chips.push(
+        <Badge color="gray" variant="outline" key={`${charId}-other`}>
+          <TraitToken trait={{ id: -1, label: "Other" }} isLast />
+        </Badge>,
+      );
+    } else {
+      charEntry.traits.forEach((trait, idx) => {
+        chips.push(
+          <Badge color="gray" variant="outline" key={`${charId}-${trait.id}`}>
+            <TraitToken trait={trait} index={idx} isLast />
+          </Badge>,
+        );
+      });
+    }
+  }
+  return chips;
+}
+
+// ---------------------------------------------------------------------------
 
 const RichBranchEdgeComponent = memo((props: EdgeProps<RFRichBranchEdge>) => {
   const {
@@ -126,52 +155,42 @@ const RichBranchEdgeComponent = memo((props: EdgeProps<RFRichBranchEdge>) => {
               style={{
                 position: "absolute",
                 transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-                maxWidth: "250px",
+                maxWidth: "260px",
                 pointerEvents: "all",
               }}
             >
-              {featureEntries.map(([featureId, fEntry]) => (
-                <div key={featureId}>
-                  {fEntry.presence === "absent" ? (
-                    <Text size="1" as="div">
-                      <Strong>{fEntry.name}</Strong>: absent
+              <Flex direction="column" gap="3">
+                {featureEntries.map(([featureId, fEntry]) => (
+                  <div key={featureId}>
+                    <Text size="1" as="div" weight="bold" mb="1">
+                      {fEntry.description ? (
+                        <Tooltip content={fEntry.description}>
+                          <span className="has-information">{fEntry.name}</span>
+                        </Tooltip>
+                      ) : (
+                        fEntry.name
+                      )}
                     </Text>
-                  ) : Object.keys(fEntry.characters).length === 0 ? (
-                    <Text size="1" as="div">
-                      <Strong>{fEntry.name}</Strong>: present
-                    </Text>
-                  ) : (
-                    <>
-                      <Text size="1" as="div" color="gray">
-                        {fEntry.name}
-                      </Text>
-                      <DataList.Root size="1">
-                        {Object.entries(fEntry.characters).map(
-                          ([charId, charEntry]) => (
-                            <DataList.Item key={charId}>
-                              <DataList.Label minWidth="60" maxWidth="60">
-                                {charEntry.name}
-                              </DataList.Label>
-                              <DataList.Value>
-                                {charEntry.inverted ? (
-                                  "Other"
-                                ) : (
-                                  <CharacterStateDisplay
-                                    state={{
-                                      kind: "categorical",
-                                      traitValues: charEntry.traits,
-                                    }}
-                                  />
-                                )}
-                              </DataList.Value>
-                            </DataList.Item>
-                          ),
-                        )}
-                      </DataList.Root>
-                    </>
-                  )}
-                </div>
-              ))}
+                    {fEntry.presence === "absent" ? (
+                      <Flex wrap="wrap" gap="1">
+                        <Badge color="gray" variant="outline">
+                          <Text size="1">absent</Text>
+                        </Badge>
+                      </Flex>
+                    ) : Object.keys(fEntry.characters).length === 0 ? (
+                      <Flex wrap="wrap" gap="1">
+                        <Badge color="gray" variant="outline">
+                          <Text size="1">present</Text>
+                        </Badge>
+                      </Flex>
+                    ) : (
+                      <Flex wrap="wrap" gap="1">
+                        {flattenChips(fEntry.characters)}
+                      </Flex>
+                    )}
+                  </div>
+                ))}
+              </Flex>
 
               {(isEditing || hasAnnotation) && (
                 <>

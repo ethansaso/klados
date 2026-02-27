@@ -374,12 +374,15 @@ export function resolveCharacterSplits(
   const results: CharacterDefinitionSplitResult[] = [];
 
   for (const [_key, byTaxon] of byCharacter) {
+    void _key;
     const firstEntry = byTaxon.values().next().value!;
     const characterId = firstEntry.state.characterId;
 
-    // 1) enforce all taxa have this character + normalize
-    const normalized = normalizeTraitSetsForCharacter(taxa, byTaxon);
-    if (!normalized) {
+    // Only operate on taxa that have data for this character.
+    // Taxa missing from byTaxon have no states for this character and will
+    // land in the unplaced-taxa bucket in buildKeyForChildren.
+    const describedTaxa = taxa.filter((t) => byTaxon.has(t.id));
+    if (describedTaxa.length < 2) {
       const missing = taxa
         .filter((t) => !byTaxon.has(t.id))
         .map((t) => `${t.id}(${t.acceptedName})`);
@@ -390,8 +393,18 @@ export function resolveCharacterSplits(
       continue;
     }
 
+    // 1) normalize trait-sets for the described subset
+    const normalized = normalizeTraitSetsForCharacter(describedTaxa, byTaxon);
+    if (!normalized) {
+      const charLabel = firstEntry.state.characterLabel;
+      console.log(
+        `[KEYGEN] char ${characterId}(${charLabel}): skipped at normalize (empty traits)`,
+      );
+      continue;
+    }
+
     // 2) build disjoint groups + notTaxa
-    const groupsResult = buildGroupsWithDeadTags(taxa, normalized);
+    const groupsResult = buildGroupsWithDeadTags(describedTaxa, normalized);
     if (!groupsResult) {
       const charLabel = firstEntry.state.characterLabel;
       console.log(

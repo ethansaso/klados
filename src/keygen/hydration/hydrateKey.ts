@@ -50,6 +50,7 @@ type HydrationMeta = {
     {
       id: number;
       label: string;
+      description: string;
     }
   >;
 };
@@ -151,9 +152,16 @@ async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
     });
   }
 
-  const featureById = new Map<number, { id: number; label: string }>();
+  const featureById = new Map<
+    number,
+    { id: number; label: string; description: string }
+  >();
   for (const f of features) {
-    featureById.set(f.id, { id: f.id, label: f.label });
+    featureById.set(f.id, {
+      id: f.id,
+      label: f.label,
+      description: f.description,
+    });
   }
 
   return { taxonById, characterById, traitById, featureById };
@@ -177,8 +185,10 @@ function hydrateBranchRationale(
       const featureMeta = meta.featureById.get(featureId);
       const name = featureMeta?.label ?? `Feature ${featureId}`;
 
+      const description = featureMeta?.description || null;
+
       if (fEntry.presence === "absent") {
-        features[featureId] = { presence: "absent", name };
+        features[featureId] = { presence: "absent", name, description };
       } else {
         const characters: HydratedPresentFeatureEntry["characters"] = {};
 
@@ -200,7 +210,12 @@ function hydrateBranchRationale(
           };
         }
 
-        features[featureId] = { presence: "present", name, characters };
+        features[featureId] = {
+          presence: "present",
+          name,
+          description,
+          characters,
+        };
       }
     }
 

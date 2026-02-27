@@ -7,7 +7,7 @@ import {
   type EdgeProps,
 } from "@xyflow/react";
 import { memo } from "react";
-import { CharacterStateDisplay } from "../../state-formatting/displays/CharacterStateDisplay";
+import { CharacterStateDisplay } from "../../state-formatting/CharacterStateDisplay";
 import type { RFRichBranchEdge } from "../editor/data/types";
 
 const RichBranchEdgeViewer = memo((props: EdgeProps<RFRichBranchEdge>) => {

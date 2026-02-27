@@ -70,6 +70,10 @@ export function resolveFeaturePresentAbsentSplits(
     const absent: HierarchyTaxonNode[] = [];
 
     for (const taxon of taxa) {
+      // A taxon with no states at all is "undescribed", not "absent".
+      // Exclude it from both sides so it falls into the unplaced-taxa bucket
+      // rather than being incorrectly classified as feature-absent.
+      if (taxon.states.length === 0) continue;
       const featureSet = featuresByTaxon.get(taxon.id)!;
       if (featureSet.has(featureId)) present.push(taxon);
       else absent.push(taxon);
