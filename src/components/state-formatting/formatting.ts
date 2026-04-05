@@ -53,6 +53,24 @@ export function formatTraitLabel(
   return normalized;
 }
 
+/**
+ * Group consecutive modifiers with the same groupId together.
+ * Used to render same-group alternatives with "/" instead of a space.
+ */
+export function groupConsecutive<T extends { groupId: number }>(
+  mods: T[],
+): T[][] {
+  return mods.reduce<T[][]>((acc, mod) => {
+    const last = acc.at(-1);
+    if (last && last[0]!.groupId === mod.groupId) {
+      last.push(mod);
+    } else {
+      acc.push([mod]);
+    }
+    return acc;
+  }, []);
+}
+
 /** Format a numeric value (or range string) with an optional unit symbol. */
 export function formatWithUnit(
   value: number | string,

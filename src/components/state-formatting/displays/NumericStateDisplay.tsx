@@ -1,7 +1,11 @@
 import { Flex, Text } from "@radix-ui/themes";
 import { memo } from "react";
 import { convertFromSI } from "../../../lib/domain/units/conversion";
-import { formatModifierValue, formatWithUnit } from "../formatting";
+import {
+  formatModifierValue,
+  formatWithUnit,
+  groupConsecutive,
+} from "../formatting";
 import type { UINumberState, UIRangeState } from "../types";
 
 type Props = {
@@ -37,27 +41,33 @@ export const NumericStateDisplay = memo(
     const modifiers = state.modifiers ?? [];
     const prefixes = modifiers.filter((m) => m.affixType === "prefix");
     const suffixes = modifiers.filter((m) => m.affixType === "suffix");
+    const prefixGroups = groupConsecutive(prefixes);
+    const suffixGroups = groupConsecutive(suffixes);
 
     if (modifiers.length > 0) {
       return (
         <Flex display="inline-flex" align="center" gap="1" wrap="wrap">
-          {prefixes.map((m, i) => (
+          {prefixGroups.map((group, gi) => (
             <Text
-              key={m.id}
+              key={group[0]!.id}
               size="1"
               color={highlightAffixes ? "crimson" : undefined}
             >
-              {formatModifierValue(m.value, i === 0)}
+              {group
+                .map((m, mi) =>
+                  formatModifierValue(m.value, gi === 0 && mi === 0),
+                )
+                .join("/")}
             </Text>
           ))}
           <Text weight={state.weight}>{copy}</Text>
-          {suffixes.map((m) => (
+          {suffixGroups.map((group) => (
             <Text
-              key={m.id}
+              key={group[0]!.id}
               size="1"
               color={highlightAffixes ? "cyan" : undefined}
             >
-              {formatModifierValue(m.value)}
+              {group.map((m) => formatModifierValue(m.value)).join("/")}
             </Text>
           ))}
         </Flex>

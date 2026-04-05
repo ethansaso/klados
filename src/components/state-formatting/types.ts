@@ -28,6 +28,7 @@ export type UIModifier = {
   id: number;
   value: string;
   affixType: "prefix" | "suffix";
+  groupId: number;
 };
 
 export type UICategoricalState = Pick<

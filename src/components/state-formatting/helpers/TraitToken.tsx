@@ -1,7 +1,11 @@
 import { Flex, Text } from "@radix-ui/themes";
 import { memo } from "react";
 import { ResponsiveTooltip } from "../../ResponsiveTooltip";
-import { formatModifierValue, formatTraitLabel } from "../formatting";
+import {
+  formatModifierValue,
+  formatTraitLabel,
+  groupConsecutive,
+} from "../formatting";
 import type { UITrait } from "../types";
 import { ColorBubble } from "./ColorBubble";
 
@@ -23,6 +27,8 @@ export const TraitToken = memo(
     const suffixes = (trait.modifiers ?? []).filter(
       (m) => m.affixType === "suffix",
     );
+    const prefixGroups = groupConsecutive(prefixes);
+    const suffixGroups = groupConsecutive(suffixes);
 
     const text = formatTraitLabel(trait.label, index, prefixes.length > 0);
 
@@ -43,19 +49,29 @@ export const TraitToken = memo(
         wrap="wrap"
       >
         {trait.hexCode && <ColorBubble size={8} hexColor={trait.hexCode} />}
-        {prefixes.map((m, i) => (
-          <Text key={m.id} color={highlightAffixes ? "crimson" : undefined}>
-            {formatModifierValue(m.value, i === 0)}
+        {prefixGroups.map((group, gi) => (
+          <Text
+            key={group[0]!.id}
+            color={highlightAffixes ? "crimson" : undefined}
+          >
+            {group
+              .map((m, mi) =>
+                formatModifierValue(m.value, gi === 0 && mi === 0),
+              )
+              .join("/")}
           </Text>
         ))}
         <Text weight={trait.weight}>
           {labelNode}
-          {!isLast && suffixes.length === 0 && ","}
+          {!isLast && suffixGroups.length === 0 && ","}
         </Text>
-        {suffixes.map((m, i) => (
-          <Text key={m.id} color={highlightAffixes ? "cyan" : undefined}>
-            {formatModifierValue(m.value)}
-            {!isLast && i === suffixes.length - 1 && ","}
+        {suffixGroups.map((group, gi) => (
+          <Text
+            key={group[0]!.id}
+            color={highlightAffixes ? "cyan" : undefined}
+          >
+            {group.map((m) => formatModifierValue(m.value)).join("/")}
+            {!isLast && gi === suffixGroups.length - 1 && ","}
           </Text>
         ))}
       </Flex>
