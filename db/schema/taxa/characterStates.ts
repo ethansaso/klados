@@ -151,8 +151,8 @@ export const taxonCharacterStateRange = pgTable(
         onDelete: "restrict",
       }),
 
-    siBaseMin: numeric("si_base_min", { precision: 30, scale: 18 }).notNull(),
-    siBaseMax: numeric("si_base_max", { precision: 30, scale: 18 }).notNull(),
+    siBaseMin: numeric("si_base_min", { precision: 30, scale: 18 }),
+    siBaseMax: numeric("si_base_max", { precision: 30, scale: 18 }),
 
     displayUnitId: integer("display_unit_id").references(() => unit.id, {
       onDelete: "restrict",
@@ -167,7 +167,11 @@ export const taxonCharacterStateRange = pgTable(
       t.characterId,
     ),
 
-    check("tcnr_min_le_max_ck", sql`${t.siBaseMin} <= ${t.siBaseMax}`),
+    check(
+      "tcnr_bounds_ck",
+      sql`(${t.siBaseMin} IS NOT NULL OR ${t.siBaseMax} IS NOT NULL)
+          AND (${t.siBaseMin} IS NULL OR ${t.siBaseMax} IS NULL OR ${t.siBaseMin} <= ${t.siBaseMax})`,
+    ),
 
     index("tcnr_feature_state_idx").on(t.taxonFeatureStateId),
     index("tcnr_char_idx").on(t.characterId),

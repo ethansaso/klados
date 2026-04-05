@@ -269,6 +269,16 @@ export async function buildNumericRangeSuggestions(opts: {
   const suggestions: NumericRangeSuggestion[] = [];
   const { min, max } = parsedNumeric;
 
+  function rangeDisplay(unitSymbol?: string): string {
+    const numStr =
+      min !== null && max !== null
+        ? `${min}–${max}`
+        : min !== null
+          ? `≥ ${min}`
+          : `≤ ${max}`;
+    return unitSymbol ? `${numStr} ${unitSymbol}` : numStr;
+  }
+
   for (const row of metas) {
     const expansion = resolveExpansionUnits(row, resolvedUnit, unitsByFamily);
 
@@ -291,7 +301,7 @@ export async function buildNumericRangeSuggestions(opts: {
         unitKey: u.key,
         unitScale: u.scale,
         unitLabel: u.symbol,
-        displayValue: `${min}–${max} ${u.symbol}`,
+        displayValue: rangeDisplay(u.symbol),
       });
     } else if ("unitless" in expansion) {
       suggestions.push({
@@ -300,7 +310,7 @@ export async function buildNumericRangeSuggestions(opts: {
         unitKey: null,
         unitScale: null,
         unitLabel: null,
-        displayValue: `${min}–${max}`,
+        displayValue: rangeDisplay(),
       });
     } else {
       for (const u of expansion.expanded) {
@@ -310,7 +320,7 @@ export async function buildNumericRangeSuggestions(opts: {
           unitKey: u.key,
           unitScale: u.scale,
           unitLabel: u.symbol,
-          displayValue: `${min}–${max} ${u.symbol}`,
+          displayValue: rangeDisplay(u.symbol),
         });
       }
     }

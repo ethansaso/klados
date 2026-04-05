@@ -33,9 +33,9 @@ export type NumericSingleSuggestion = BaseNumericSuggestion & {
 
 export type NumericRangeSuggestion = BaseNumericSuggestion & {
   kind: "numeric-range";
-  min: number; // e.g. 7
-  max: number; // e.g. 9
-  displayValue: string; // "7–9 µm" or "7–9"
+  min: number | null; // null for upper-bound-only (e.g. "< 3 cm")
+  max: number | null; // null for lower-bound-only (e.g. "> 3 cm")
+  displayValue: string; // "7–9 µm", "≥ 3 µm", "≤ 9 µm"
 };
 
 /**

@@ -355,8 +355,8 @@ export async function selectTaxonStatesByTaxonIds(
       characterId: row.characterId,
       characterLabel: row.characterLabel,
       characterDescription: row.characterDescription,
-      siBaseMin: parseFloat(row.siBaseMin),
-      siBaseMax: parseFloat(row.siBaseMax),
+      siBaseMin: row.siBaseMin !== null ? parseFloat(row.siBaseMin) : null,
+      siBaseMax: row.siBaseMax !== null ? parseFloat(row.siBaseMax) : null,
       unit:
         row.unitId !== null
           ? {
@@ -685,15 +685,18 @@ async function replaceRangeStatesForFeatureState(
       throw new Error(`Character ${c.characterId} is not a range character.`);
     }
 
-    if (c.siBaseMin > c.siBaseMax) {
+    if (c.siBaseMin === null && c.siBaseMax === null) {
+      throw new Error(`Character ${c.characterId}: at least one bound must be set.`);
+    }
+    if (c.siBaseMin !== null && c.siBaseMax !== null && c.siBaseMin > c.siBaseMax) {
       throw new Error(`Character ${c.characterId}: min must be <= max.`);
     }
 
     return {
       taxonFeatureStateId,
       characterId: c.characterId,
-      siBaseMin: c.siBaseMin.toString(),
-      siBaseMax: c.siBaseMax.toString(),
+      siBaseMin: c.siBaseMin !== null ? c.siBaseMin.toString() : null,
+      siBaseMax: c.siBaseMax !== null ? c.siBaseMax.toString() : null,
       displayUnitId: c.unitId ?? null,
       featureId,
     };

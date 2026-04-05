@@ -44,8 +44,8 @@ export const rangeCharacterFormSchema = z.object({
   characterId: z.number().int().positive(),
   characterLabel: z.string(),
   unit: unitSchema.nullable(), // Nullable in case of dimensionless (validated elsewhere)
-  siBaseMin: z.number(),
-  siBaseMax: z.number(),
+  siBaseMin: z.number().nullable(),
+  siBaseMax: z.number().nullable(),
   modifiers: z.array(modifierTokenSchema).default([]),
 });
 
@@ -76,12 +76,24 @@ export const featureFormSchema = z
       }
       seen.add(c.characterId);
 
-      if (c.kind === "range" && c.siBaseMin > c.siBaseMax) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Minimum must be less than or equal to maximum.",
-          path: ["characters", "siBaseMin"],
-        });
+      if (c.kind === "range") {
+        if (c.siBaseMin === null && c.siBaseMax === null) {
+          ctx.addIssue({
+            code: "custom",
+            message: "At least one bound must be set.",
+            path: ["characters", "siBaseMin"],
+          });
+        } else if (
+          c.siBaseMin !== null &&
+          c.siBaseMax !== null &&
+          c.siBaseMin > c.siBaseMax
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Minimum must be less than or equal to maximum.",
+            path: ["characters", "siBaseMin"],
+          });
+        }
       }
     }
   });

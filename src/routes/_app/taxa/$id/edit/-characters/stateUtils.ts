@@ -155,9 +155,15 @@ export function addNumericRangeStateFromSuggestion(
       return current;
     }
 
-    // Convert to SI base values
-    const siBaseMin = convertToSI(suggestion.min, suggestion.unitScale);
-    const siBaseMax = convertToSI(suggestion.max, suggestion.unitScale);
+    // Convert to SI base values (null for one-sided bounds)
+    const siBaseMin =
+      suggestion.min !== null
+        ? convertToSI(suggestion.min, suggestion.unitScale)
+        : null;
+    const siBaseMax =
+      suggestion.max !== null
+        ? convertToSI(suggestion.max, suggestion.unitScale)
+        : null;
 
     return [
       ...filtered,

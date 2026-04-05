@@ -40,8 +40,8 @@ export type NumberStateDTO = CharacterNumericStateBase & {
 };
 export type RangeStateDTO = CharacterNumericStateBase & {
   kind: "range";
-  siBaseMin: number;
-  siBaseMax: number;
+  siBaseMin: number | null;
+  siBaseMax: number | null;
   modifiers: ModifierStateDTO[];
 };
 

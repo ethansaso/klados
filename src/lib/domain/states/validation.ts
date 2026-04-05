@@ -26,14 +26,21 @@ const rangeCharacterUpdateSchema = z
     kind: z.literal("range"),
     characterId: z.number(),
     unitId: z.int().positive().optional(),
-    siBaseMin: z.number(),
-    siBaseMax: z.number(),
+    siBaseMin: z.number().nullable(),
+    siBaseMax: z.number().nullable(),
     modifierIds: z.array(z.number()).default([]),
   })
-  .refine((data) => data.siBaseMin <= data.siBaseMax, {
-    message: "Minimum must be less than or equal to maximum.",
-    path: ["siBaseMin", "siBaseMax"],
-  });
+  .refine((d) => d.siBaseMin !== null || d.siBaseMax !== null, {
+    message: "At least one bound must be set.",
+    path: ["siBaseMin"],
+  })
+  .refine(
+    (d) =>
+      d.siBaseMin === null ||
+      d.siBaseMax === null ||
+      d.siBaseMin <= d.siBaseMax,
+    { message: "Minimum must be less than or equal to maximum.", path: ["siBaseMin"] },
+  );
 
 const characterUpdateSchema = z.discriminatedUnion("kind", [
   categoricalCharacterUpdateSchema,

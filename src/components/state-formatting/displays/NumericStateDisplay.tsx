@@ -14,9 +14,21 @@ function computeCopy(state: UINumberState | UIRangeState): string {
     const value = convertFromSI(state.siBaseValue, state.unit?.scale);
     return formatWithUnit(value, state.unit);
   }
-  const min = convertFromSI(state.siBaseMin, state.unit?.scale);
-  const max = convertFromSI(state.siBaseMax, state.unit?.scale);
-  return formatWithUnit(`${min}–${max}`, state.unit);
+  const min =
+    state.siBaseMin !== null
+      ? convertFromSI(state.siBaseMin, state.unit?.scale)
+      : null;
+  const max =
+    state.siBaseMax !== null
+      ? convertFromSI(state.siBaseMax, state.unit?.scale)
+      : null;
+  const rangeStr =
+    min !== null && max !== null
+      ? `${min}–${max}`
+      : min !== null
+        ? `≥ ${min}`
+        : `≤ ${max}`;
+  return formatWithUnit(rangeStr, state.unit);
 }
 
 export const NumericStateDisplay = memo(

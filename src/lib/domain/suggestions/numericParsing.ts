@@ -8,8 +8,10 @@ export type ParsedNumeric =
     }
   | {
       kind: "range";
-      min: number;
-      max: number;
+      /** null when only an upper bound was given (e.g. "< 3 cm") */
+      min: number | null;
+      /** null when only a lower bound was given (e.g. "> 3 cm") */
+      max: number | null;
       /** raw text like "cm", "mm", "µm" */
       unitText?: string;
     };
@@ -31,6 +33,9 @@ const MICRO_REGEX = /[µμ]/g; // normalize micro symbols
  * * "7-9 µm"
  * * "10cm"
  * * "7-9µm"
+ * * "<3", "< 3", "<=3", "<= 3 cm"  (upper-bound only)
+ * * ">3", "> 3", ">=3", ">= 3 cm"  (lower-bound only)
+ * * "≤3µm", "≥ 3 cm"               (unicode operators)
  */
 export function parseNumericQuery(raw: string): ParsedNumeric {
   const trimmed = raw.trim();
@@ -42,9 +47,10 @@ export function parseNumericQuery(raw: string): ParsedNumeric {
   let unitText: string | undefined;
   let numericPart = normalized;
 
-  // Check both that there are multiple parts and that the last part looks like a unit
+  // Check both that there are multiple parts and that the last part looks like a unit.
+  // Require the token to START with a letter/% so "3cm" is never misidentified as a unit.
   const last = parts.at(-1);
-  if (parts.length > 1 && last && /[a-zA-Zµμ%]+/.test(last)) {
+  if (parts.length > 1 && last && /^[a-zA-Zµμ%]/.test(last)) {
     unitText = last;
     numericPart = parts.slice(0, -1).join(" ");
   }
@@ -55,6 +61,24 @@ export function parseNumericQuery(raw: string): ParsedNumeric {
     if (attachedMatch) {
       numericPart = attachedMatch[1]!.trim();
       unitText = attachedMatch[2];
+    }
+  }
+
+  // One-sided bound: <3, <=3, >3, >=3, ≤3, ≥3 (with optional surrounding spaces)
+  const boundMatch = numericPart.match(
+    /^\s*(<=|>=|≤|≥|<|>)\s*([+-]?\d+(\.\d+)?)\s*$/,
+  );
+  if (boundMatch) {
+    const op = boundMatch[1]!;
+    const value = Number(boundMatch[2]);
+    if (!Number.isNaN(value)) {
+      const isUpper = op === "<" || op === "<=" || op === "≤";
+      return {
+        kind: "range",
+        min: isUpper ? null : value,
+        max: isUpper ? value : null,
+        unitText,
+      };
     }
   }
 

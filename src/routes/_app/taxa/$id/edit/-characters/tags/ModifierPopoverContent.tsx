@@ -1,5 +1,6 @@
 import {
   Badge,
+  Box,
   Button,
   Flex,
   IconButton,
@@ -198,10 +199,14 @@ export function ModifierPopoverContent({
                 onClick={() => handleAdd(m)}
               >
                 <Flex align="center" gap="1">
-                  <PiPlus size={9} />
-                  <Text size="1">{m.value}</Text>
+                  <Box flexShrink="0" asChild>
+                    <PiPlus size={9} />
+                  </Box>
+                  <Text size="1" align="left">
+                    {m.value}
+                  </Text>
                 </Flex>
-                <Text size="1" color="gray">
+                <Text size="1" color="gray" align="right">
                   {m.groupLabel}
                 </Text>
               </Button>
