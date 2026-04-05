@@ -1,0 +1,1 @@
+ALTER TYPE "modifier_type" ADD VALUE 'intensity';

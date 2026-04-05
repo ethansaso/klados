@@ -21,6 +21,7 @@ export const MODIFIER_CLASSES = [
   "reliability",
   "demographic",
   "reactive",
+  "intensity",
 ] as const;
 export const AFFIX_TYPES = ["prefix", "suffix"] as const;
 

@@ -1,4 +1,10 @@
-import { PiCrosshair, PiFlask, PiUsersThree, PiWifiHigh } from "react-icons/pi";
+import {
+  PiCrosshair,
+  PiFlame,
+  PiFlask,
+  PiUsersThree,
+  PiWifiHigh,
+} from "react-icons/pi";
 import type { ModifierClass } from "../../../../db/schema/schema";
 
 interface Props {
@@ -15,5 +21,7 @@ export const ModifierIcon = ({ type, ...rest }: Props) => {
       return <PiFlask {...rest} />;
     case "reliability":
       return <PiWifiHigh {...rest} />;
+    case "intensity":
+      return <PiFlame {...rest} />;
   }
 };
