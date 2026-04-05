@@ -19,6 +19,14 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
   const limit = args.limit;
   const minShared = args.minShared ?? 2;
 
+  const [targetTaxon] = await db
+    .select({ rank: taxaTbl.rank })
+    .from(taxaTbl)
+    .where(eq(taxaTbl.id, args.taxonId))
+    .limit(1);
+
+  if (!targetTaxon) return [];
+
   const sci = alias(namesTbl, "sci");
   const common = alias(namesTbl, "common");
 
@@ -154,7 +162,9 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
         eq(common.isPreferred, true),
       ),
     )
-    .where(eq(taxaTbl.status, "active"))
+    .where(
+      and(eq(taxaTbl.status, "active"), eq(taxaTbl.rank, targetTaxon.rank)),
+    )
     .orderBy(desc(jaccardExpr), desc(shared.sharedCnt), taxaTbl.id)
     .limit(limit);
 
