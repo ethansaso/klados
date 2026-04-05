@@ -45,13 +45,14 @@ export const TraitToken = memo(
         display="inline-flex"
         className="trait-token"
         align="center"
-        gap="1"
+        gapX="1"
         wrap="wrap"
       >
         {trait.hexCode && <ColorBubble size={8} hexColor={trait.hexCode} />}
         {prefixGroups.map((group, gi) => (
           <Text
             key={group[0]!.id}
+            weight={trait.weight}
             color={highlightAffixes ? "crimson" : undefined}
           >
             {group
@@ -68,6 +69,7 @@ export const TraitToken = memo(
         {suffixGroups.map((group, gi) => (
           <Text
             key={group[0]!.id}
+            weight={trait.weight}
             color={highlightAffixes ? "cyan" : undefined}
           >
             {group.map((m) => formatModifierValue(m.value)).join("/")}

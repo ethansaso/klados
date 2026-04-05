@@ -51,6 +51,7 @@ export const NumericStateDisplay = memo(
             <Text
               key={group[0]!.id}
               size="1"
+              weight={state.weight}
               color={highlightAffixes ? "crimson" : undefined}
             >
               {group
@@ -65,6 +66,7 @@ export const NumericStateDisplay = memo(
             <Text
               key={group[0]!.id}
               size="1"
+              weight={state.weight}
               color={highlightAffixes ? "cyan" : undefined}
             >
               {group.map((m) => formatModifierValue(m.value)).join("/")}

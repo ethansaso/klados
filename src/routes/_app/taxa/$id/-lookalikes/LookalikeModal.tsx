@@ -173,7 +173,7 @@ export const LookalikeModal = NiceModal.create<{
         }
       }}
     >
-      <Dialog.Content>{content}</Dialog.Content>
+      <Dialog.Content className="lookalike-modal">{content}</Dialog.Content>
     </Dialog.Root>
   );
 });

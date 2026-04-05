@@ -29,3 +29,14 @@
     }
   }
 }
+
+.rt-TableRoot {
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-5);
+
+  .rt-TableRow:last-of-type {
+    .rt-TableCell {
+      box-shadow: none;
+    }
+  }
+}
