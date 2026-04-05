@@ -1,4 +1,5 @@
 .has-information {
+  display: inline-block;
   text-decoration: underline;
   text-decoration-style: dotted;
   cursor: help;

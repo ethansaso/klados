@@ -1,4 +1,4 @@
-import { Tooltip } from "@radix-ui/themes";
+import { Box, Tooltip } from "@radix-ui/themes";
 import type { ComponentPropsWithoutRef } from "react";
 import { useCallback, useRef, useState } from "react";
 
@@ -61,13 +61,14 @@ export const ResponsiveTooltip = ({ children, ...props }: TooltipProps) => {
   return (
     <Tooltip open={open} onOpenChange={handleOpenChange} {...props}>
       {/* The span is the Radix trigger anchor; pointer handlers intercept touch taps */}
-      <span
+      <Box
+        asChild
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
       >
         {children}
-      </span>
+      </Box>
     </Tooltip>
   );
 };
