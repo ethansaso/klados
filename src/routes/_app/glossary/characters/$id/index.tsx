@@ -19,7 +19,7 @@ import { PiPencil, PiPlus, PiTrash } from "react-icons/pi";
 import z from "zod";
 import CategoricalTraitTable from "../-CategoricalTraitTable";
 import { DeleteTraitValueModal } from "../-modal/-DeleteTraitValueModal";
-import { EditTraitSetValueModal } from "../-modal/-EditTraitSetValueModal";
+import { EditTraitValueModal } from "../-modal/-EditTraitSetValueModal";
 import { CuratorOnly } from "../../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
 import { CharacterIcon } from "../../../../../components/icons/modular/CharacterIcon";
@@ -235,7 +235,7 @@ function RouteComponent() {
             values={aliasCorrectedValues}
             showActions={isCurator}
             onEditClick={(value) =>
-              NiceModal.show(EditTraitSetValueModal, {
+              NiceModal.show(EditTraitValueModal, {
                 traitValue: value,
                 invalidate: () =>
                   qc.invalidateQueries({

@@ -22,14 +22,12 @@ function List({ children }: PropsWithChildren) {
 
 interface ItemProps {
   label: ReactNode;
-  sub: string;
   to: string;
   params?: Record<string, string | number>;
   search?: Record<string, string | number>;
 }
 
 function Item({
-  sub,
   label,
   to,
   params,
@@ -46,18 +44,13 @@ function Item({
           preload="intent"
           activeOptions={{ includeSearch: false }}
         >
-          <Flex width="100%" gap="5" justify="between">
+          <Flex width="100%" gap="5" align="center" justify="between">
             <Box flexShrink="1" style={{ minWidth: 0 }}>
               <Text as="p" size="2" truncate className="glossary-label">
                 {label}
               </Text>
-              <Text as="p" size="1" color="gray" truncate>
-                {sub || "\u00A0"}
-              </Text>
             </Box>
-            <Flex direction="column" align="end" justify="start">
-              {children}
-            </Flex>
+            {children}
           </Flex>
         </Link>
       </Card>

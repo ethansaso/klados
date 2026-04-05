@@ -8,9 +8,9 @@ type TooltipProps = ComponentPropsWithoutRef<typeof Tooltip>;
 const SCROLL_THRESHOLD = 10;
 
 /**
- * A Radix Tooltip that also works on mobile via tap, without firing during scrolls.
+ * A Radix Tooltip that also works on mobile via tap, with a scroll guard.
  *
- * On desktop, standard hover behavior is preserved via Radix's onOpenChange.
+ * Uses Radix' interactivity on desktop.
  * On touch devices:
  *  - pointerdown records start position but doesn't open yet.
  *  - pointermove cancels if the finger travels more than SCROLL_THRESHOLD px.

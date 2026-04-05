@@ -86,7 +86,6 @@ function RouteComponent() {
           {paginatedResult.items.map((item) => (
             <GlossarySidebarList.Item
               key={item.id}
-              sub={item.description}
               label={
                 <Flex align="center" gap="1">
                   <CharacterIcon type={item.type} />

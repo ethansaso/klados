@@ -75,7 +75,6 @@ function RouteComponent() {
           {paginatedResult.items.map((item) => (
             <GlossarySidebarList.Item
               key={item.id}
-              sub={item.description}
               label={item.label}
               to="/glossary/features/$id"
               params={{ id: item.id }}

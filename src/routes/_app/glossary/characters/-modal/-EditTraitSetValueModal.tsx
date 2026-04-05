@@ -103,7 +103,7 @@ const seedFormValues = (value: TraitValueDTO): FormValues => {
   };
 };
 
-export const EditTraitSetValueModal = NiceModal.create<Props>(
+export const EditTraitValueModal = NiceModal.create<Props>(
   ({ traitValue, invalidate }) => {
     const { visible, hide } = NiceModal.useModal();
     const serverUpdate = useServerFn(updateTraitValueFn);
