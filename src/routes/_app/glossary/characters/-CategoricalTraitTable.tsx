@@ -1,6 +1,7 @@
-import { Flex, IconButton, Table, Text, Tooltip } from "@radix-ui/themes";
+import { Flex, IconButton, Table, Text } from "@radix-ui/themes";
 import { useMemo } from "react";
 import { PiPencil, PiTrash } from "react-icons/pi";
+import { ResponsiveTooltip } from "../../../../components/ResponsiveTooltip";
 import { ColorBubble } from "../../../../components/state-formatting/helpers/ColorBubble";
 import type { TraitValueDTO } from "../../../../lib/domain/traits/types";
 
@@ -77,11 +78,11 @@ function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
   const deleteButton = useMemo(() => {
     if (noDeletionReason) {
       return (
-        <Tooltip content={noDeletionReason}>
+        <ResponsiveTooltip content={noDeletionReason}>
           <IconButton variant="ghost" size="1" color="tomato" disabled>
             <PiTrash />
           </IconButton>
-        </Tooltip>
+        </ResponsiveTooltip>
       );
     }
     return (

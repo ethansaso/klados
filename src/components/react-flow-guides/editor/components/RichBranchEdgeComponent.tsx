@@ -6,8 +6,8 @@ import {
   Separator,
   Text,
   TextArea,
-  Tooltip,
 } from "@radix-ui/themes";
+import { ResponsiveTooltip } from "../../../ResponsiveTooltip";
 import {
   BaseEdge,
   EdgeLabelRenderer,
@@ -164,9 +164,9 @@ const RichBranchEdgeComponent = memo((props: EdgeProps<RFRichBranchEdge>) => {
                   <div key={featureId}>
                     <Text size="1" as="div" weight="bold" mb="1">
                       {fEntry.description ? (
-                        <Tooltip content={fEntry.description}>
+                        <ResponsiveTooltip content={fEntry.description}>
                           <span className="has-information">{fEntry.name}</span>
-                        </Tooltip>
+                        </ResponsiveTooltip>
                       ) : (
                         fEntry.name
                       )}

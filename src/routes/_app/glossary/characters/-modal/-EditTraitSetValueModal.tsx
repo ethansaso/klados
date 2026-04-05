@@ -9,7 +9,6 @@ import {
   Text,
   TextArea,
   TextField,
-  Tooltip,
 } from "@radix-ui/themes";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -31,6 +30,7 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
+import { ResponsiveTooltip } from "../../../../../components/ResponsiveTooltip";
 import { updateTraitValueFn } from "../../../../../lib/api/traits/updateTraitValueFn";
 import type { TraitValueDTO } from "../../../../../lib/domain/traits/types";
 import { traitValuesQueryOptions } from "../../../../../lib/queries/traits";
@@ -276,7 +276,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
                           Canonical
                         </SegmentedControl.Item>
                         {aliasBlocked ? (
-                          <Tooltip content={aliasBlockedMsg}>
+                          <ResponsiveTooltip content={aliasBlockedMsg}>
                             <SegmentedControl.Item
                               value="alias"
                               aria-disabled
@@ -287,7 +287,7 @@ export const EditTraitSetValueModal = NiceModal.create<Props>(
                             >
                               Alias
                             </SegmentedControl.Item>
-                          </Tooltip>
+                          </ResponsiveTooltip>
                         ) : (
                           <SegmentedControl.Item value="alias">
                             Alias

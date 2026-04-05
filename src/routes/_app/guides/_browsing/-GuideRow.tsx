@@ -1,13 +1,8 @@
-import {
-  Flex,
-  Link as RadixLink,
-  Table,
-  Text,
-  Tooltip,
-} from "@radix-ui/themes";
+import { Flex, Link as RadixLink, Table, Text } from "@radix-ui/themes";
 import { Link as NavLink } from "@tanstack/react-router";
 import { PiSealCheckFill, PiSealQuestionFill } from "react-icons/pi";
 import type { GuideStatus } from "../../../../../db/schema/schema";
+import { ResponsiveTooltip } from "../../../../components/ResponsiveTooltip";
 import { RoleBadge } from "../../../../components/UserBadge";
 import { UserHoverCard } from "../../../../components/UserHoverCard";
 import type { GuideDTO } from "../../../../lib/domain/guides/types";
@@ -51,11 +46,11 @@ export const GuideRow = ({ rowData }: GuideRowProps) => {
             </NavLink>
           </RadixLink>
           {resolvedMeta && (
-            <Tooltip content={resolvedMeta.tooltip}>
+            <ResponsiveTooltip content={resolvedMeta.tooltip}>
               <Text color={resolvedMeta.color} asChild>
                 <resolvedMeta.icon />
               </Text>
-            </Tooltip>
+            </ResponsiveTooltip>
           )}
         </Flex>
       </Table.RowHeaderCell>

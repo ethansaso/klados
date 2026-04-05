@@ -1,5 +1,6 @@
-import { Flex, Text, Tooltip } from "@radix-ui/themes";
+import { Flex, Text } from "@radix-ui/themes";
 import { memo } from "react";
+import { ResponsiveTooltip } from "../../ResponsiveTooltip";
 import { formatModifierValue, formatTraitLabel } from "../formatting";
 import type { UITrait } from "../types";
 import { ColorBubble } from "./ColorBubble";
@@ -26,9 +27,9 @@ export const TraitToken = memo(
     const text = formatTraitLabel(trait.label, index, prefixes.length > 0);
 
     const labelNode = trait.description ? (
-      <Tooltip content={trait.description}>
+      <ResponsiveTooltip content={trait.description}>
         <span className="has-information">{text}</span>
-      </Tooltip>
+      </ResponsiveTooltip>
     ) : (
       text
     );

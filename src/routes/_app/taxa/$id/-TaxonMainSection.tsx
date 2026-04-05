@@ -5,13 +5,13 @@ import {
   Flex,
   Link as RadixLink,
   Text,
-  Tooltip,
 } from "@radix-ui/themes";
 import { Link, type UseNavigateResult } from "@tanstack/react-router";
 import { PiPencilSimple, PiTreeStructureFill } from "react-icons/pi";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ExGbif } from "../../../../components/icons/individual/ExGbif";
 import { ExInat } from "../../../../components/icons/individual/ExInat";
+import { ResponsiveTooltip } from "../../../../components/ResponsiveTooltip";
 import type { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
 import { TaxonImageBrowser } from "./-TaxonImageBrowser";
 
@@ -99,7 +99,7 @@ export const TaxonMainSection = ({
               Create Guide
             </Button>
           ) : (
-            <Tooltip content="This taxon has no subtaxa.">
+            <ResponsiveTooltip content="This taxon has no subtaxa.">
               <Button
                 type="button"
                 disabled
@@ -114,7 +114,7 @@ export const TaxonMainSection = ({
                 <PiTreeStructureFill size={12} />
                 Create Guide
               </Button>
-            </Tooltip>
+            </ResponsiveTooltip>
           )}
           <Button
             type="button"

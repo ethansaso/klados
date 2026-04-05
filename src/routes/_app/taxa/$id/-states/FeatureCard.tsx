@@ -1,19 +1,13 @@
-import {
-  Card,
-  DataList,
-  Heading,
-  Separator,
-  Text,
-  Tooltip,
-} from "@radix-ui/themes";
+import { Card, DataList, Heading, Separator, Text } from "@radix-ui/themes";
+import { ResponsiveTooltip } from "../../../../../components/ResponsiveTooltip";
 import { CharacterStateDisplay } from "../../../../../components/state-formatting/CharacterStateDisplay";
 import type { FeatureStateDTO } from "../../../../../lib/domain/states/types";
 
 export const FeatureCard = ({ feature }: { feature: FeatureStateDTO }) => {
   const cardHeaderComponent = feature.featureDescription ? (
-    <Tooltip content={feature.featureDescription}>
+    <ResponsiveTooltip content={feature.featureDescription}>
       <span className="has-information">{feature.featureLabel}</span>
-    </Tooltip>
+    </ResponsiveTooltip>
   ) : (
     feature.featureLabel
   );
@@ -26,9 +20,9 @@ export const FeatureCard = ({ feature }: { feature: FeatureStateDTO }) => {
         <DataList.Root size={{ initial: "1", sm: "2" }}>
           {feature.states.map((state) => {
             const dlLabel = state.characterDescription ? (
-              <Tooltip content={state.characterDescription}>
+              <ResponsiveTooltip content={state.characterDescription}>
                 <span className="has-information">{state.characterLabel}</span>
-              </Tooltip>
+              </ResponsiveTooltip>
             ) : (
               state.characterLabel
             );
