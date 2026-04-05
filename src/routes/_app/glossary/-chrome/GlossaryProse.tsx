@@ -13,7 +13,17 @@ const Text_ = ({ children }: PropsWithChildren) => {
   );
 };
 
+const List = ({ children }: PropsWithChildren) => {
+  return <ul>{children}</ul>;
+};
+
+const ListItem = ({ children }: PropsWithChildren) => {
+  return <li>{children}</li>;
+};
+
 export const GlossaryProse = {
   Header,
   Text: Text_,
+  List,
+  ListItem,
 };
