@@ -8,7 +8,7 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { PiCheck, PiTrash, PiX } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
@@ -53,6 +53,11 @@ export const EditingFeatureCard = memo(
     const [confirmingDelete, setConfirmingDelete] = useState(false);
     const [lastAdded, setLastAdded] = useState<LastAdded | null>(null);
     const [autoOpenFor, setAutoOpenFor] = useState<LastAdded | null>(null);
+    const searchInputId = useId();
+
+    const focusSearch = useCallback(() => {
+      document.getElementById(searchInputId)?.focus();
+    }, [searchInputId]);
 
     const { data, isLoading, isError } = useQuery({
       ...featureQueryOptions(feature.featureId),
@@ -174,6 +179,7 @@ export const EditingFeatureCard = memo(
             featureId={feature.featureId}
             onSelect={handleSuggestionSelect}
             modifyHint={lastAdded?.label}
+            inputId={searchInputId}
             onModifyShortcut={
               lastAdded
                 ? () => {
@@ -216,6 +222,7 @@ export const EditingFeatureCard = memo(
                   autoOpenFor?.characterId === c.id ? autoOpenFor : undefined
                 }
                 onAutoOpenHandled={handleAutoOpenHandled}
+                onReturnToSearch={focusSearch}
               />
             ))}
           </DataList.Root>

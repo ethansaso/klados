@@ -106,7 +106,7 @@ const TaxonColumnHeader = ({ taxon }: { taxon: TaxonDTO }) => {
 const ModalContent = ({ data }: { data: LookalikeComparisonDetailDTO }) => {
   return (
     <Box>
-      <Table.Root style={{ tableLayout: "fixed" }}>
+      <Table.Root className="lookalike-table">
         <colgroup>
           <col style={{ width: "20%" }} />
           <col style={{ width: "40%" }} />

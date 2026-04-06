@@ -18,6 +18,8 @@ type FeatureStateSearchProps = {
   onModifyShortcut?: () => void;
   /** Called when the user starts typing a new query (clears the hint). */
   onQueryActive?: () => void;
+  /** Stable HTML id for the search input (used for external focus). */
+  inputId?: string;
 };
 
 export function CharacterStateSearch({
@@ -27,6 +29,7 @@ export function CharacterStateSearch({
   modifyHint,
   onModifyShortcut,
   onQueryActive,
+  inputId,
 }: FeatureStateSearchProps) {
   const [suggestions, setSuggestions] = useState<TraitSuggestion[]>([]);
   const [options, setOptions] = useState<ComboboxOption[]>([]);
@@ -108,7 +111,8 @@ export function CharacterStateSearch({
     [suggestions, onSelect],
   );
 
-  const rootId = useId();
+  const fallbackId = useId();
+  const rootId = inputId ?? fallbackId;
 
   return (
     <Box>

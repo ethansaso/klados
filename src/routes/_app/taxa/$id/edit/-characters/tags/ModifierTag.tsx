@@ -14,6 +14,8 @@ type ModifierTagProps = {
   autoOpen?: boolean;
   /** Called when the popover closes after an auto-open (so parent can reset). */
   onAutoOpenHandled?: () => void;
+  /** Called when the user presses Enter on an empty modifier search to return to the main input. */
+  onReturnToSearch?: () => void;
 };
 
 /**
@@ -26,6 +28,7 @@ export function ModifierTag({
   onModifiersChange,
   autoOpen,
   onAutoOpenHandled,
+  onReturnToSearch,
 }: ModifierTagProps) {
   const [open, setOpen] = useState(false);
   const filterInputRef = useRef<HTMLInputElement>(null);
@@ -82,6 +85,14 @@ export function ModifierTag({
           onAdd={(m) => onModifiersChange([...modifiers, m])}
           onRemove={(id) =>
             onModifiersChange(modifiers.filter((m) => m.id !== id))
+          }
+          onDismiss={
+            onReturnToSearch
+              ? () => {
+                  setOpen(false);
+                  onReturnToSearch();
+                }
+              : undefined
           }
         />
       </Popover.Content>

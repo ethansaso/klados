@@ -27,6 +27,8 @@ type CharacterStateRowProps = {
   /** If set, auto-opens the modifier popover for the matching tag. */
   autoOpenModifierFor?: AutoOpenTarget;
   onAutoOpenHandled?: () => void;
+  /** Called when the user presses Enter on an empty modifier search. */
+  onReturnToSearch?: () => void;
 };
 
 export const CharacterStateRow = memo(
@@ -39,6 +41,7 @@ export const CharacterStateRow = memo(
     onUpdateNumericModifiers,
     autoOpenModifierFor,
     onAutoOpenHandled,
+    onReturnToSearch,
   }: CharacterStateRowProps) => {
     const content = useMemo(() => {
       if (!state) {
@@ -64,6 +67,7 @@ export const CharacterStateRow = memo(
                 autoOpenModifierFor.traitValueId === tv.id
               }
               onAutoOpenHandled={onAutoOpenHandled}
+              onReturnToSearch={onReturnToSearch}
             >
               <CharacterStateDisplay
                 state={{ kind: "categorical", traitValues: [tv] }}
@@ -85,6 +89,7 @@ export const CharacterStateRow = memo(
                 autoOpenModifierFor.traitValueId === undefined
               }
               onAutoOpenHandled={onAutoOpenHandled}
+              onReturnToSearch={onReturnToSearch}
             >
               <CharacterStateDisplay
                 state={{
@@ -111,6 +116,7 @@ export const CharacterStateRow = memo(
                 autoOpenModifierFor.traitValueId === undefined
               }
               onAutoOpenHandled={onAutoOpenHandled}
+              onReturnToSearch={onReturnToSearch}
             >
               <CharacterStateDisplay
                 state={{
@@ -137,6 +143,7 @@ export const CharacterStateRow = memo(
       onUpdateNumericModifiers,
       autoOpenModifierFor,
       onAutoOpenHandled,
+      onReturnToSearch,
     ]);
 
     return (
