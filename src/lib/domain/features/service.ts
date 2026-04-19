@@ -5,6 +5,7 @@ import {
   fetchFeatureDetailById,
   insertFeature,
   listFeaturesQuery,
+  selectAllFeatureLabels,
   selectFeaturesByIds,
   setCharacterFeatureRows,
   updateFeatureRow,
@@ -154,5 +155,16 @@ export async function deleteFeature(args: {
 
     const deleted = await deleteFeatureById(tx, id);
     return deleted;
+  });
+}
+
+/**
+ * List all feature labels (unpaginated).
+ */
+export async function listAllFeatureLabels(): Promise<
+  Pick<FeatureDTO, "id" | "label" | "description">[]
+> {
+  return db.transaction(async (tx) => {
+    return selectAllFeatureLabels(tx);
   });
 }

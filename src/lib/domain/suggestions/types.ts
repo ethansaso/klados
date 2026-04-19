@@ -58,5 +58,10 @@ export type ModifierSuggestion = {
   affixType: "prefix" | "suffix";
   groupId: number;
   groupLabel: string; // e.g. "Position"
-  groupClass: "positional" | "reliability" | "demographic" | "reactive";
+  groupClass:
+    | "positional"
+    | "reliability"
+    | "demographic"
+    | "reactive"
+    | "intensity";
 };

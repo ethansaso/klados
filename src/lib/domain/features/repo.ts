@@ -404,3 +404,19 @@ export async function deleteFeatureById(
 
   return deleted ?? null;
 }
+
+/**
+ * Select all feature labels (unpaginated, canonical only).
+ */
+export async function selectAllFeatureLabels(
+  tx: Transaction,
+): Promise<Pick<FeatureDTO, "id" | "label" | "description">[]> {
+  return tx
+    .select({
+      id: featuresTbl.id,
+      label: featuresTbl.label,
+      description: featuresTbl.description,
+    })
+    .from(featuresTbl)
+    .orderBy(asc(featuresTbl.label));
+}

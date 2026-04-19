@@ -1,10 +1,9 @@
-import { sentryTanstackStart } from "@sentry/tanstackstart-react";
+import { sentryTanstackStart } from "@sentry/tanstackstart-react/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
 import svgr from "vite-plugin-svgr";
-import tsConfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   server: {
@@ -17,7 +16,6 @@ export default defineConfig({
     exclude: ["./scripts"],
   },
   plugins: [
-    tsConfigPaths(),
     tanstackStart({
       customViteReactPlugin: true,
     }),
@@ -44,4 +42,7 @@ export default defineConfig({
       },
     }),
   ],
+  resolve: {
+    tsConfigPaths: true,
+  },
 });

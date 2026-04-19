@@ -2,6 +2,7 @@ import { db } from "../../../../db/client";
 import {
   deleteTraitValueById,
   insertTraitValueRow,
+  selectAllTraitValuesByCharacters,
   selectMinimalTraitValueRowById,
   selectTraitValueDtoById,
   selectTraitValueDtosByIds,
@@ -200,5 +201,17 @@ export async function listTraitValuesByCharacter(args: {
       args.pageSize,
       { canonicalOnly: args.canonicalOnly, q: args.q },
     );
+  });
+}
+
+/**
+ * List all canonical trait values for the given characters (unpaginated),
+ * grouped by character ID.
+ */
+export async function listAllTraitValuesByCharacters(
+  characterIds: number[],
+): Promise<ReturnType<typeof selectAllTraitValuesByCharacters>> {
+  return db.transaction(async (tx) => {
+    return selectAllTraitValuesByCharacters(tx, characterIds);
   });
 }

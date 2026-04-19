@@ -479,3 +479,28 @@ export async function updateModifierRow(
 
   return updated ?? null;
 }
+
+/**
+ * Select all canonical modifiers with their group labels (unpaginated).
+ */
+export async function selectAllModifiersWithGroups(tx: Transaction): Promise<
+  (Pick<ModifierDTO, "id" | "value" | "affixType" | "groupId"> & {
+    groupLabel: string;
+  })[]
+> {
+  return tx
+    .select({
+      id: modifierValueTbl.id,
+      value: modifierValueTbl.value,
+      affixType: modifierValueTbl.affixType,
+      groupId: modifierValueTbl.groupId,
+      groupLabel: modifierGroupTbl.label,
+    })
+    .from(modifierValueTbl)
+    .innerJoin(
+      modifierGroupTbl,
+      eq(modifierValueTbl.groupId, modifierGroupTbl.id),
+    )
+    .where(isNull(modifierValueTbl.canonicalValueId))
+    .orderBy(asc(modifierGroupTbl.label), asc(modifierValueTbl.value));
+}

@@ -1,5 +1,5 @@
 import NiceModal from "@ebay/nice-modal-react";
-import { Button, Dialog, Flex, Spinner, Table, Text } from "@radix-ui/themes";
+import { Button, Dialog, Flex, Spinner, Text } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
 import z from "zod";
 import type { NameItem } from "../../../../../../lib/domain/taxon-names/validation";
@@ -100,8 +100,6 @@ export const InatNamesModal = NiceModal.create<Props>(
               </Flex>
             ) : error ? (
               <Text color="red">{error}</Text>
-            ) : names ? (
-              <Table.Root></Table.Root>
             ) : null}
           </Flex>
           <Flex mt="5" justify="end" gap="2">

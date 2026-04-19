@@ -37,6 +37,7 @@ import { Route as AppTaxaIndexRouteImport } from './routes/_app/taxa/index'
 import { Route as AppGlossaryIndexRouteImport } from './routes/_app/glossary/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiUnauthenticatedTaxaRouteImport } from './routes/api/_unauthenticated/taxa'
+import { Route as ApiUnauthenticatedExtractionRouteImport } from './routes/api/_unauthenticated/extraction'
 import { Route as AppTaxaNewRouteImport } from './routes/_app/taxa/new'
 import { Route as AppTaxaDraftsRouteImport } from './routes/_app/taxa/drafts'
 import { Route as AppTaxaIdRouteRouteImport } from './routes/_app/taxa/$id/route'
@@ -203,6 +204,12 @@ const ApiUnauthenticatedTaxaRoute = ApiUnauthenticatedTaxaRouteImport.update({
   path: '/taxa',
   getParentRoute: () => ApiUnauthenticatedRouteRoute,
 } as any)
+const ApiUnauthenticatedExtractionRoute =
+  ApiUnauthenticatedExtractionRouteImport.update({
+    id: '/extraction',
+    path: '/extraction',
+    getParentRoute: () => ApiUnauthenticatedRouteRoute,
+  } as any)
 const AppTaxaNewRoute = AppTaxaNewRouteImport.update({
   id: '/taxa/new',
   path: '/taxa/new',
@@ -367,6 +374,7 @@ export interface FileRoutesByFullPath {
   '/taxa/$id': typeof AppTaxaIdRouteRouteWithChildren
   '/taxa/drafts': typeof AppTaxaDraftsRoute
   '/taxa/new': typeof AppTaxaNewRoute
+  '/api/extraction': typeof ApiUnauthenticatedExtractionRoute
   '/api/taxa': typeof ApiUnauthenticatedTaxaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/glossary/': typeof AppGlossaryIndexRoute
@@ -411,6 +419,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/taxa/drafts': typeof AppTaxaDraftsRoute
   '/taxa/new': typeof AppTaxaNewRoute
+  '/api/extraction': typeof ApiUnauthenticatedExtractionRoute
   '/api/taxa': typeof ApiUnauthenticatedTaxaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/glossary': typeof AppGlossaryIndexRoute
@@ -463,6 +472,7 @@ export interface FileRoutesById {
   '/_app/taxa/$id': typeof AppTaxaIdRouteRouteWithChildren
   '/_app/taxa/drafts': typeof AppTaxaDraftsRoute
   '/_app/taxa/new': typeof AppTaxaNewRoute
+  '/api/_unauthenticated/extraction': typeof ApiUnauthenticatedExtractionRoute
   '/api/_unauthenticated/taxa': typeof ApiUnauthenticatedTaxaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_app/glossary/': typeof AppGlossaryIndexRoute
@@ -518,6 +528,7 @@ export interface FileRouteTypes {
     | '/taxa/$id'
     | '/taxa/drafts'
     | '/taxa/new'
+    | '/api/extraction'
     | '/api/taxa'
     | '/api/auth/$'
     | '/glossary/'
@@ -562,6 +573,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/taxa/drafts'
     | '/taxa/new'
+    | '/api/extraction'
     | '/api/taxa'
     | '/api/auth/$'
     | '/glossary'
@@ -613,6 +625,7 @@ export interface FileRouteTypes {
     | '/_app/taxa/$id'
     | '/_app/taxa/drafts'
     | '/_app/taxa/new'
+    | '/api/_unauthenticated/extraction'
     | '/api/_unauthenticated/taxa'
     | '/api/auth/$'
     | '/_app/glossary/'
@@ -844,6 +857,13 @@ declare module '@tanstack/react-router' {
       path: '/taxa'
       fullPath: '/api/taxa'
       preLoaderRoute: typeof ApiUnauthenticatedTaxaRouteImport
+      parentRoute: typeof ApiUnauthenticatedRouteRoute
+    }
+    '/api/_unauthenticated/extraction': {
+      id: '/api/_unauthenticated/extraction'
+      path: '/extraction'
+      fullPath: '/api/extraction'
+      preLoaderRoute: typeof ApiUnauthenticatedExtractionRouteImport
       parentRoute: typeof ApiUnauthenticatedRouteRoute
     }
     '/_app/taxa/new': {
@@ -1280,11 +1300,13 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 )
 
 interface ApiUnauthenticatedRouteRouteChildren {
+  ApiUnauthenticatedExtractionRoute: typeof ApiUnauthenticatedExtractionRoute
   ApiUnauthenticatedTaxaRoute: typeof ApiUnauthenticatedTaxaRoute
 }
 
 const ApiUnauthenticatedRouteRouteChildren: ApiUnauthenticatedRouteRouteChildren =
   {
+    ApiUnauthenticatedExtractionRoute: ApiUnauthenticatedExtractionRoute,
     ApiUnauthenticatedTaxaRoute: ApiUnauthenticatedTaxaRoute,
   }
 

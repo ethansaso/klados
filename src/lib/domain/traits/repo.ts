@@ -368,3 +368,48 @@ export async function selectTraitValuesByCharacterPaginated(
 
   return { items, page, pageSize, total };
 }
+
+/**
+ * Select all canonical trait values for the given characters (unpaginated).
+ */
+export type ExtractionTraitValue = {
+  id: number;
+  label: string;
+  hexCode: string | null;
+  canonicalValueId: number | null;
+};
+
+export async function selectAllTraitValuesByCharacters(
+  tx: Transaction,
+  characterIds: number[],
+): Promise<Map<number, ExtractionTraitValue[]>> {
+  if (!characterIds.length) return new Map();
+
+  const rows = await tx
+    .select({
+      id: valsTbl.id,
+      characterId: valsTbl.characterId,
+      label: valsTbl.label,
+      hexCode: valsTbl.hexCode,
+      canonicalValueId: valsTbl.canonicalValueId,
+    })
+    .from(valsTbl)
+    .where(inArray(valsTbl.characterId, characterIds))
+    .orderBy(asc(valsTbl.characterId), asc(valsTbl.label));
+
+  const grouped = new Map<number, ExtractionTraitValue[]>();
+  for (const row of rows) {
+    let list = grouped.get(row.characterId);
+    if (!list) {
+      list = [];
+      grouped.set(row.characterId, list);
+    }
+    list.push({
+      id: row.id,
+      label: row.label,
+      hexCode: row.hexCode,
+      canonicalValueId: row.canonicalValueId,
+    });
+  }
+  return grouped;
+}

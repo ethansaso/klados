@@ -1,10 +1,12 @@
-import { Box } from "@radix-ui/themes";
+import { Box, Button } from "@radix-ui/themes";
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
+import { PiTextAlignLeft } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
 import { EditingFeatureCard } from "./EditingFeatureCard";
+import { selectExtraction } from "./ExtractionModal";
 import { FeatureSearch } from "./search/FeatureSearch";
 import {
   removeCategoricalTraitValue,
@@ -68,6 +70,23 @@ export function CharacterEditingForm({
     <FormDescriptor
       title="Characters"
       description="To add a character, first use the group search to add a character group. Once added, you can select trait values for the characters in that group."
+      actions={
+        <Button
+          type="button"
+          radius="full"
+          size="1"
+          onClick={async () => {
+            const result = await selectExtraction();
+            if (result) {
+              console.log("Extraction result:", result);
+            }
+          }}
+          aria-label="Extract states from text description"
+        >
+          <PiTextAlignLeft size="16" />
+          Import text description
+        </Button>
+      }
     >
       <Box>
         <Box mb="4">

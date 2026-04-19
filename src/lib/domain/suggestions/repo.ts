@@ -56,7 +56,12 @@ export type ModifierSuggestionRow = {
   affixType: "prefix" | "suffix";
   groupId: number;
   groupLabel: string;
-  groupClass: "positional" | "reliability" | "demographic" | "reactive";
+  groupClass:
+    | "positional"
+    | "reliability"
+    | "demographic"
+    | "reactive"
+    | "intensity";
   similarityScore: number;
 };
 

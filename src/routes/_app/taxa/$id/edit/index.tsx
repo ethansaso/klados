@@ -171,10 +171,8 @@ function RouteComponent() {
     control,
     handleSubmit,
     reset,
-    formState: { errors, isDirty, isSubmitting },
+    formState: { isDirty, isSubmitting },
   } = methods;
-
-  console.log(errors);
 
   const [isDeleting, setIsDeleting] = useState(false);
   // For media fetching
@@ -322,7 +320,6 @@ function RouteComponent() {
       <FormProvider {...methods}>
         <Form.Root onSubmit={handleSubmit(onSave)}>
           <Separator size="4" my="4" />
-          {/* TODO: sync accepted name */}
           {/* Basic meta (rank, parent, source IDs) */}
           <MetaForm id={id} acceptedName={initialTaxon.acceptedName} />
 
