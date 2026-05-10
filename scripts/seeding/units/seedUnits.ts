@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { db } from "../../../db/client";
-import { unit, unitFamily } from "../../../db/schema/characters/units";
+import { unit, unitFamily } from "../../../db/schema/schema";
 import type { Transaction } from "../../../src/lib/utils/transactionType";
 import { askYesNo } from "../../utils/askYesNo";
 

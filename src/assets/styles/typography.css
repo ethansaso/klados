@@ -2,5 +2,6 @@
   display: inline-block;
   text-decoration: underline;
   text-decoration-style: dotted;
+  text-decoration-color: var(--gray-a11);
   cursor: help;
 }
