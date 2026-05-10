@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
-import { listTraitValuesFn } from "../api/traits/listTraitValuesFn";
 import type { TraitValuePaginatedResult } from "../domain/traits/types";
+import { listTraitValuesFn } from "../server-fns/traits/listTraitValuesFn";
 
 export const traitValuesQueryOptions = (
   characterId: number,

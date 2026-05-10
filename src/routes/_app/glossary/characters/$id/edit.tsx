@@ -26,7 +26,6 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
-import { updateCharacterFn } from "../../../../../lib/api/characters/updateCharacterFn";
 import {
   generateLoginRedirectFromLocation,
   roleHasCuratorRights,
@@ -36,6 +35,7 @@ import {
   type UpdateCharacterInput,
 } from "../../../../../lib/domain/characters/validation";
 import { characterQueryOptions } from "../../../../../lib/queries/characters";
+import { updateCharacterFn } from "../../../../../lib/server-fns/characters/updateCharacterFn";
 import { capitalizeFirstLetter } from "../../../../../lib/utils/formatting/casing";
 import { toast } from "../../../../../lib/utils/toast";
 

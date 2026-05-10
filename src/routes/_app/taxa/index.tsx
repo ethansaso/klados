@@ -11,9 +11,9 @@ import {
 } from "../../../lib/domain/taxa/search";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
 import { routeSeo } from "../../../lib/utils/head/routeSeo";
-import { TaxaFilterPopover } from "./-TaxonFilterPopover";
-import { TaxonGrid } from "./-TaxonGrid";
-import { useTaxonSearchControls } from "./-useTaxonSearchControls";
+import { TaxaFilterPopover } from "./-components/TaxonFilterPopover";
+import { TaxonGrid } from "./-components/TaxonGrid";
+import { useTaxonSearchControls } from "./-hooks/useTaxonSearchControls";
 
 export const Route = createFileRoute("/_app/taxa/")({
   validateSearch: TaxonSearchSchema,

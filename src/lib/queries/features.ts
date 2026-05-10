@@ -1,10 +1,10 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getFeatureFn } from "../api/features/getFeatureFn";
-import { listFeaturesFn } from "../api/features/listFeaturesFn";
 import type {
   FeatureDetailDTO,
   FeaturePaginatedResult,
 } from "../domain/features/types";
+import { getFeatureFn } from "../server-fns/features/getFeatureFn";
+import { listFeaturesFn } from "../server-fns/features/listFeaturesFn";
 
 export const featuresQueryOptions = (
   page: number,

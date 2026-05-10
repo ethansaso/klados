@@ -20,9 +20,9 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
-import { createFeatureFn } from "../../../../lib/api/features/createFeatureFn";
 import { createFeatureSchema } from "../../../../lib/domain/features/validation";
 import { featuresQueryOptions } from "../../../../lib/queries/features";
+import { createFeatureFn } from "../../../../lib/server-fns/features/createFeatureFn";
 import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../lib/utils/toast";
 

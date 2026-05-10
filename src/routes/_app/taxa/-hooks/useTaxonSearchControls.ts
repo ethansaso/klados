@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import { type TaxonSearchParams } from "../../../lib/domain/taxa/search";
-import { Route } from "./index";
+import { type TaxonSearchParams } from "../../../../lib/domain/taxa/search";
+import { Route } from "../index";
 
 export function useTaxonSearchControls() {
   const search: TaxonSearchParams = Route.useSearch();

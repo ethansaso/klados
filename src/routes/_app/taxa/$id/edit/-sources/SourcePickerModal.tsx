@@ -12,9 +12,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { SelectCombobox } from "../../../../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
-import { createSourceFn } from "../../../../../../lib/api/sources/createSourceFn";
 import type { SourceDTO } from "../../../../../../lib/domain/sources/types";
 import { sourcesQueryOptions } from "../../../../../../lib/queries/sources";
+import { createSourceFn } from "../../../../../../lib/server-fns/sources/createSourceFn";
 import { formatPublication } from "../../../../../../lib/utils/formatting/formatPublication";
 
 // ! This component is only responsible for picking or creating a source, i.e. from the 'source' table.

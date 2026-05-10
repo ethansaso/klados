@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
-import { listModifierStateSuggestionsFn } from "../api/character-suggestions/listModifierStateSuggestionsFn";
 import type { ModifierSuggestion } from "../domain/suggestions/types";
+import { listModifierStateSuggestionsFn } from "../server-fns/character-suggestions/listModifierStateSuggestionsFn";
 
 export const modifierSuggestionsQueryOptions = (q: string) =>
   queryOptions({

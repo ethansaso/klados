@@ -32,16 +32,16 @@ import {
 import z from "zod";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
 import { ContentContainer } from "../../../../../components/ContentContainer";
-import { getTaxonCharacterStatesFn } from "../../../../../lib/api/character-states/getTaxonCharacterStatesFn";
-import { deleteTaxonFn } from "../../../../../lib/api/taxa/deleteTaxonFn";
-import { getTaxonFn } from "../../../../../lib/api/taxa/getTaxonFn";
-import { publishTaxonFn } from "../../../../../lib/api/taxa/publishFn";
-import { updateTaxonFn } from "../../../../../lib/api/taxa/updateTaxonFn";
-import { getSourcesForTaxonFn } from "../../../../../lib/api/taxon-sources/getSourcesForTaxonFn";
 import type { SourceDTO } from "../../../../../lib/domain/sources/types";
 import type { CharacterByFeatureUpdate } from "../../../../../lib/domain/states/validation";
 import { mediaItemSchema } from "../../../../../lib/domain/taxa/validation";
 import { setTaxonSourcesSchema } from "../../../../../lib/domain/taxon-sources/validation";
+import { getTaxonCharacterStatesFn } from "../../../../../lib/server-fns/character-states/getTaxonCharacterStatesFn";
+import { deleteTaxonFn } from "../../../../../lib/server-fns/taxa/deleteTaxonFn";
+import { getTaxonFn } from "../../../../../lib/server-fns/taxa/getTaxonFn";
+import { publishTaxonFn } from "../../../../../lib/server-fns/taxa/publishFn";
+import { updateTaxonFn } from "../../../../../lib/server-fns/taxa/updateTaxonFn";
+import { getSourcesForTaxonFn } from "../../../../../lib/server-fns/taxon-sources/getSourcesForTaxonFn";
 import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { routeSeo } from "../../../../../lib/utils/head/routeSeo";
 import { toast } from "../../../../../lib/utils/toast";
@@ -171,8 +171,10 @@ function RouteComponent() {
     control,
     handleSubmit,
     reset,
-    formState: { isDirty, isSubmitting },
+    formState: { errors, isDirty, isSubmitting },
   } = methods;
+
+  console.log(errors);
 
   const [isDeleting, setIsDeleting] = useState(false);
   // For media fetching

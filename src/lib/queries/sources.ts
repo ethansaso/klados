@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
-import { listSourcesFn } from "../api/sources/listSourcesFn";
 import type { SourceFilters } from "../domain/sources/search";
 import type { SourcePaginatedResult } from "../domain/sources/types";
+import { listSourcesFn } from "../server-fns/sources/listSourcesFn";
 
 export const sourcesQueryOptions = ({
   page,

@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getGuideFn } from "../api/guides/getGuideFn";
-import { listGuidesFn } from "../api/guides/listGuidesFn";
 import type { GuidePaginatedResult } from "../domain/guides/types";
+import { getGuideFn } from "../server-fns/guides/getGuideFn";
+import { listGuidesFn } from "../server-fns/guides/listGuidesFn";
 
 export function guideQueryOptions(id: number) {
   return queryOptions({

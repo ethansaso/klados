@@ -583,6 +583,43 @@ async function replaceCategoricalStatesForFeatureState(
   }
 }
 
+function modifierSetSignature(modifierIds: number[]): string {
+  const uniqueSorted = Array.from(new Set(modifierIds)).sort((a, b) => a - b);
+  return uniqueSorted.join(",");
+}
+
+function formatModifierSet(modifierIds: number[]): string {
+  const signature = modifierSetSignature(modifierIds);
+  return signature.length ? signature : "none";
+}
+
+/**
+ * Checks that there are no duplicate modifier sets for the same character. For example:
+ * * "12 mm" + "14 mm at base" -> PASS
+ * * "14 mm at apex" + "14 mm at base" -> PASS
+ * * "12 mm" + "14 mm" -> FAIL
+ * * "12 mm at apex" + "14 mm at apex" -> FAIL
+ */
+function assertNoDuplicateModifierSetsByCharacter(
+  updates: Array<{ characterId: number; modifierIds: number[] }>,
+  stateKindLabel: "number" | "range",
+): void {
+  const seen = new Set<string>();
+
+  for (const update of updates) {
+    const signature = modifierSetSignature(update.modifierIds);
+    const dedupeKey = `${update.characterId}|${signature}`;
+
+    if (seen.has(dedupeKey)) {
+      throw new Error(
+        `Duplicate ${stateKindLabel} state for character ${update.characterId}: a state with modifiers [${formatModifierSet(update.modifierIds)}] already exists.`,
+      );
+    }
+
+    seen.add(dedupeKey);
+  }
+}
+
 /** Replace numeric single-value states for a single taxon-feature-state. */
 async function replaceNumberStatesForFeatureState(
   tx: Transaction,
@@ -596,11 +633,9 @@ async function replaceNumberStatesForFeatureState(
 
   if (updates.length === 0) return;
 
-  const byCharacter = new Map<number, NumberCharacterUpdate>();
-  for (const u of updates) byCharacter.set(u.characterId, u);
+  assertNoDuplicateModifierSetsByCharacter(updates, "number");
 
-  const normalized = Array.from(byCharacter.values());
-  const characterIds = normalized.map((c) => c.characterId);
+  const characterIds = Array.from(new Set(updates.map((c) => c.characterId)));
 
   const metas = await tx
     .select({
@@ -613,7 +648,7 @@ async function replaceNumberStatesForFeatureState(
 
   const metaByCharacter = new Map(metas.map((m) => [m.characterId, m]));
 
-  const rows = normalized.map((c) => {
+  const rows = updates.map((c) => {
     const meta = metaByCharacter.get(c.characterId);
     if (!meta || meta.kind !== "single") {
       throw new Error(
@@ -637,7 +672,7 @@ async function replaceNumberStatesForFeatureState(
       .returning({ id: numStateTbl.id });
 
     const numModJunctionRows = insertedNumStates.flatMap((state, i) =>
-      normalized[i]!.modifierIds.map((modifierId) => ({
+      updates[i]!.modifierIds.map((modifierId) => ({
         taxonCharacterStateNumberId: state.id,
         modifierId,
       })),
@@ -662,11 +697,9 @@ async function replaceRangeStatesForFeatureState(
 
   if (updates.length === 0) return;
 
-  const byCharacter = new Map<number, RangeCharacterUpdate>();
-  for (const u of updates) byCharacter.set(u.characterId, u);
+  assertNoDuplicateModifierSetsByCharacter(updates, "range");
 
-  const normalized = Array.from(byCharacter.values());
-  const characterIds = normalized.map((c) => c.characterId);
+  const characterIds = Array.from(new Set(updates.map((c) => c.characterId)));
 
   const metas = await tx
     .select({
@@ -679,16 +712,22 @@ async function replaceRangeStatesForFeatureState(
 
   const metaByCharacter = new Map(metas.map((m) => [m.characterId, m]));
 
-  const rows = normalized.map((c) => {
+  const rows = updates.map((c) => {
     const meta = metaByCharacter.get(c.characterId);
     if (!meta || meta.kind !== "range") {
       throw new Error(`Character ${c.characterId} is not a range character.`);
     }
 
     if (c.siBaseMin === null && c.siBaseMax === null) {
-      throw new Error(`Character ${c.characterId}: at least one bound must be set.`);
+      throw new Error(
+        `Character ${c.characterId}: at least one bound must be set.`,
+      );
     }
-    if (c.siBaseMin !== null && c.siBaseMax !== null && c.siBaseMin > c.siBaseMax) {
+    if (
+      c.siBaseMin !== null &&
+      c.siBaseMax !== null &&
+      c.siBaseMin > c.siBaseMax
+    ) {
       throw new Error(`Character ${c.characterId}: min must be <= max.`);
     }
 
@@ -709,7 +748,7 @@ async function replaceRangeStatesForFeatureState(
       .returning({ id: rangeStateTbl.id });
 
     const rangeModJunctionRows = insertedRangeStates.flatMap((state, i) =>
-      normalized[i]!.modifierIds.map((modifierId) => ({
+      updates[i]!.modifierIds.map((modifierId) => ({
         taxonCharacterStateRangeId: state.id,
         modifierId,
       })),

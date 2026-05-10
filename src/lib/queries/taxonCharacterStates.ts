@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getTaxonCharacterStatesFn } from "../api/character-states/getTaxonCharacterStatesFn";
+import { getTaxonCharacterStatesFn } from "../server-fns/character-states/getTaxonCharacterStatesFn";
 
 export const taxonCharacterStatesQueryOptions = (taxonId: number) =>
   queryOptions({

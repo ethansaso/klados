@@ -8,10 +8,7 @@ import type { ComboboxOption } from "../../../../../../components/inputs/combobo
 import { EditingFeatureCard } from "./EditingFeatureCard";
 import { selectExtraction } from "./ExtractionModal";
 import { FeatureSearch } from "./search/FeatureSearch";
-import {
-  removeCategoricalTraitValue,
-  removeCharacterState,
-} from "./stateUtils";
+import { removeCategoricalTraitValue } from "./stateUtils";
 import type { GroupedCharacterFormValue } from "./validation";
 
 type CharacterEditingFormProps = {
@@ -57,15 +54,6 @@ export function CharacterEditingForm({
     [getValues, onChange],
   );
 
-  const handleRemoveState = useCallback(
-    (groupId: number, characterId: number) => {
-      const prev = getValues("states");
-      const next = removeCharacterState(prev, groupId, characterId);
-      onChange(next);
-    },
-    [getValues, onChange],
-  );
-
   return (
     <FormDescriptor
       title="Characters"
@@ -100,7 +88,6 @@ export function CharacterEditingForm({
               onChange={onChange}
               onDelete={() => handleDeleteGroup(group.featureId)}
               onRemoveCategoricalValue={handleRemoveCategoricalTrait}
-              onRemoveState={handleRemoveState}
             />
           ))}
         </div>

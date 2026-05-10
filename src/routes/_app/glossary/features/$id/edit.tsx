@@ -35,13 +35,13 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
-import { updateFeatureFn } from "../../../../../lib/api/features/updateFeatureFn";
 import type { FeatureDetailDTO } from "../../../../../lib/domain/features/types";
 import { charactersQueryOptions } from "../../../../../lib/queries/characters";
 import {
   featureQueryOptions,
   featuresQueryOptions,
 } from "../../../../../lib/queries/features";
+import { updateFeatureFn } from "../../../../../lib/server-fns/features/updateFeatureFn";
 import { toast } from "../../../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/glossary/features/$id/edit")({
@@ -178,10 +178,11 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
     (opt: ComboboxOption | null) => {
       if (!opt) return;
       if (linkedIds.has(Number(opt.id))) return;
-      setValue("characters", [
-        ...characters,
-        { id: Number(opt.id), label: opt.label },
-      ], { shouldDirty: true });
+      setValue(
+        "characters",
+        [...characters, { id: Number(opt.id), label: opt.label }],
+        { shouldDirty: true },
+      );
     },
     [characters, linkedIds, setValue],
   );

@@ -1,12 +1,12 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getModifierGroupFn } from "../api/modifiers/getModifierGroupFn";
-import { listModifierGroupsFn } from "../api/modifiers/listModifierGroupsFn";
-import { listModifiersFn } from "../api/modifiers/listModifiersFn";
 import type {
   ModifierGroupDetailDTO,
   ModifierGroupPaginatedResult,
   ModifierPaginatedResult,
 } from "../domain/modifiers/types";
+import { getModifierGroupFn } from "../server-fns/modifiers/getModifierGroupFn";
+import { listModifierGroupsFn } from "../server-fns/modifiers/listModifierGroupsFn";
+import { listModifiersFn } from "../server-fns/modifiers/listModifiersFn";
 
 export const modifierGroupsQueryOptions = (
   page: number,

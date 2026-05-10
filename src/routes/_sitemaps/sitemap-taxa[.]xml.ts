@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTaxaSitemapEntriesFn } from "../../lib/api/sitemap/getTaxaSitemapEntriesFn";
+import { getTaxaSitemapEntriesFn } from "../../lib/server-fns/sitemap/getTaxaSitemapEntriesFn";
 import { renderSitemapXml } from "./-renderSitemapXml";
 
 export const Route = createFileRoute("/_sitemaps/sitemap-taxa.xml")({

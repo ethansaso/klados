@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getCharacterFn } from "../api/characters/getCharacterFn";
-import { listCharactersFn } from "../api/characters/listCharactersFn";
 import type { CharacterPaginatedResult } from "../domain/characters/types";
+import { getCharacterFn } from "../server-fns/characters/getCharacterFn";
+import { listCharactersFn } from "../server-fns/characters/listCharactersFn";
 
 export const charactersQueryOptions = (
   page: number,

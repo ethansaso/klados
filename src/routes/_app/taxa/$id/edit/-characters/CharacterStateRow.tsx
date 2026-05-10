@@ -12,9 +12,9 @@ type AutoOpenTarget = { characterId: number; traitValueId?: number };
 
 type CharacterStateRowProps = {
   character: FeatureDetailDTO["characters"][number];
-  state?: CharacterStateFormValue;
+  states: CharacterStateFormValue[];
   onRemoveCategoricalTrait: (characterId: number, traitValueId: number) => void;
-  onRemoveState: (characterId: number) => void;
+  onRemoveNumericState: (characterId: number, stateIndex: number) => void;
   onUpdateCategoricalModifiers: (
     characterId: number,
     traitValueId: number,
@@ -22,6 +22,7 @@ type CharacterStateRowProps = {
   ) => void;
   onUpdateNumericModifiers: (
     characterId: number,
+    stateIndex: number,
     mods: ModifierTokenFormValue[],
   ) => void;
   /** If set, auto-opens the modifier popover for the matching tag. */
@@ -34,9 +35,9 @@ type CharacterStateRowProps = {
 export const CharacterStateRow = memo(
   ({
     character,
-    state,
+    states,
     onRemoveCategoricalTrait,
-    onRemoveState,
+    onRemoveNumericState,
     onUpdateCategoricalModifiers,
     onUpdateNumericModifiers,
     autoOpenModifierFor,
@@ -44,7 +45,7 @@ export const CharacterStateRow = memo(
     onReturnToSearch,
   }: CharacterStateRowProps) => {
     const content = useMemo(() => {
-      if (!state) {
+      if (!states.length) {
         return (
           <Text color="gray" size="1">
             —
@@ -52,93 +53,116 @@ export const CharacterStateRow = memo(
         );
       }
 
-      switch (state.kind) {
-        case "categorical":
-          return state.traitValues.map((tv) => (
-            <ModifierTag
-              key={tv.id}
-              modifiers={tv.modifiers}
-              onModifiersChange={(mods) =>
-                onUpdateCategoricalModifiers(character.id, tv.id, mods)
-              }
-              onRemove={() => onRemoveCategoricalTrait(character.id, tv.id)}
-              autoOpen={
-                autoOpenModifierFor?.characterId === character.id &&
-                autoOpenModifierFor.traitValueId === tv.id
-              }
-              onAutoOpenHandled={onAutoOpenHandled}
-              onReturnToSearch={onReturnToSearch}
-            >
-              <CharacterStateDisplay
-                state={{ kind: "categorical", traitValues: [tv] }}
-                highlightAffixes
-              />
-            </ModifierTag>
-          ));
+      const numericStates = states.filter(
+        (
+          state,
+        ): state is Extract<
+          CharacterStateFormValue,
+          { kind: "number" | "range" }
+        > => state.kind === "number" || state.kind === "range",
+      );
 
-        case "number":
-          return (
-            <ModifierTag
-              modifiers={state.modifiers}
-              onModifiersChange={(mods) =>
-                onUpdateNumericModifiers(character.id, mods)
-              }
-              onRemove={() => onRemoveState(character.id)}
-              autoOpen={
-                autoOpenModifierFor?.characterId === character.id &&
-                autoOpenModifierFor.traitValueId === undefined
-              }
-              onAutoOpenHandled={onAutoOpenHandled}
-              onReturnToSearch={onReturnToSearch}
-            >
-              <CharacterStateDisplay
-                state={{
-                  kind: "number",
-                  siBaseValue: state.siBaseValue,
-                  unit: state.unit,
-                  modifiers: state.modifiers,
-                }}
-                highlightAffixes
-              />
-            </ModifierTag>
-          );
+      return states.flatMap((state) => {
+        switch (state.kind) {
+          case "categorical":
+            return state.traitValues.map((tv) => (
+              <ModifierTag
+                key={`categorical:${tv.id}`}
+                modifiers={tv.modifiers}
+                onModifiersChange={(mods) =>
+                  onUpdateCategoricalModifiers(character.id, tv.id, mods)
+                }
+                onRemove={() => onRemoveCategoricalTrait(character.id, tv.id)}
+                autoOpen={
+                  autoOpenModifierFor?.characterId === character.id &&
+                  autoOpenModifierFor.traitValueId === tv.id
+                }
+                onAutoOpenHandled={onAutoOpenHandled}
+                onReturnToSearch={onReturnToSearch}
+              >
+                <CharacterStateDisplay
+                  state={{ kind: "categorical", traitValues: [tv] }}
+                  highlightAffixes
+                />
+              </ModifierTag>
+            ));
 
-        case "range":
-          return (
-            <ModifierTag
-              modifiers={state.modifiers}
-              onModifiersChange={(mods) =>
-                onUpdateNumericModifiers(character.id, mods)
-              }
-              onRemove={() => onRemoveState(character.id)}
-              autoOpen={
-                autoOpenModifierFor?.characterId === character.id &&
-                autoOpenModifierFor.traitValueId === undefined
-              }
-              onAutoOpenHandled={onAutoOpenHandled}
-              onReturnToSearch={onReturnToSearch}
-            >
-              <CharacterStateDisplay
-                state={{
-                  kind: "range",
-                  siBaseMin: state.siBaseMin,
-                  siBaseMax: state.siBaseMax,
-                  unit: state.unit,
-                  modifiers: state.modifiers,
-                }}
-                highlightAffixes
-              />
-            </ModifierTag>
-          );
+          case "number": {
+            const numericIndex = numericStates.indexOf(state);
+            return (
+              <ModifierTag
+                key={`number:${numericIndex}:${state.siBaseValue}`}
+                modifiers={state.modifiers}
+                onModifiersChange={(mods) =>
+                  onUpdateNumericModifiers(character.id, numericIndex, mods)
+                }
+                onRemove={() =>
+                  onRemoveNumericState(character.id, numericIndex)
+                }
+                autoOpen={
+                  autoOpenModifierFor?.characterId === character.id &&
+                  autoOpenModifierFor.traitValueId === undefined &&
+                  numericIndex === numericStates.length - 1
+                }
+                onAutoOpenHandled={onAutoOpenHandled}
+                onReturnToSearch={onReturnToSearch}
+              >
+                <CharacterStateDisplay
+                  state={{
+                    kind: "number",
+                    siBaseValue: state.siBaseValue,
+                    unit: state.unit,
+                    modifiers: state.modifiers,
+                  }}
+                  highlightAffixes
+                />
+              </ModifierTag>
+            );
+          }
 
-        default:
-          return "Unsupported kind";
-      }
+          case "range": {
+            const numericIndex = numericStates.indexOf(state);
+            return (
+              <ModifierTag
+                key={`range:${numericIndex}:${state.siBaseMin ?? ""}:${state.siBaseMax ?? ""}`}
+                modifiers={state.modifiers}
+                onModifiersChange={(mods) =>
+                  onUpdateNumericModifiers(character.id, numericIndex, mods)
+                }
+                onRemove={() =>
+                  onRemoveNumericState(character.id, numericIndex)
+                }
+                autoOpen={
+                  autoOpenModifierFor?.characterId === character.id &&
+                  autoOpenModifierFor.traitValueId === undefined &&
+                  numericIndex === numericStates.length - 1
+                }
+                onAutoOpenHandled={onAutoOpenHandled}
+                onReturnToSearch={onReturnToSearch}
+              >
+                <CharacterStateDisplay
+                  state={{
+                    kind: "range",
+                    siBaseMin: state.siBaseMin,
+                    siBaseMax: state.siBaseMax,
+                    unit: state.unit,
+                    modifiers: state.modifiers,
+                  }}
+                  highlightAffixes
+                />
+              </ModifierTag>
+            );
+          }
+
+          default:
+            return [];
+        }
+      });
     }, [
-      state,
+      states,
       character.id,
       onRemoveCategoricalTrait,
-      onRemoveState,
+      onRemoveNumericState,
       onUpdateCategoricalModifiers,
       onUpdateNumericModifiers,
       autoOpenModifierFor,

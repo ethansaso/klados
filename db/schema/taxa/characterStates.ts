@@ -110,7 +110,7 @@ export const taxonCharacterStateNumber = pgTable(
     featureId: integer("feature_id").notNull(),
   }),
   (t) => [
-    uniqueIndex("tcn_feature_state_char_uq").on(
+    index("tcn_feature_state_char_idx").on(
       t.taxonFeatureStateId,
       t.characterId,
     ),
@@ -162,7 +162,7 @@ export const taxonCharacterStateRange = pgTable(
     featureId: integer("feature_id").notNull(),
   }),
   (t) => [
-    uniqueIndex("tcnr_feature_state_char_uq").on(
+    index("tcnr_feature_state_char_idx").on(
       t.taxonFeatureStateId,
       t.characterId,
     ),

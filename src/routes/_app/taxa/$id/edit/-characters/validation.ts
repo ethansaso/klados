@@ -1,5 +1,14 @@
 import z from "zod";
 
+// utils
+
+function modifierSetSignature(modifierIds: number[]): string {
+  const uniqueSorted = Array.from(new Set(modifierIds)).sort((a, b) => a - b);
+  return uniqueSorted.join(",");
+}
+
+// misc
+
 const modifierTokenSchema = z.object({
   id: z.number().int(),
   value: z.string(),
@@ -64,17 +73,38 @@ export const featureFormSchema = z
     characters: z.array(characterStateFormSchema),
   })
   .superRefine((feature, ctx) => {
-    // Enforce unique characterId within a feature
-    const seen = new Set<number>();
-    for (const c of feature.characters) {
-      if (seen.has(c.characterId)) {
-        ctx.addIssue({
-          code: "custom",
-          message: `Duplicate characterId ${c.characterId} in feature ${feature.featureId}.`,
-          path: ["characters"],
-        });
+    const seenCategoricalByCharacter = new Set<number>();
+    const seenNumericModifierSets = new Set<string>();
+
+    for (const [idx, c] of feature.characters.entries()) {
+      if (c.kind === "categorical") {
+        if (seenCategoricalByCharacter.has(c.characterId)) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Duplicate categorical characterId ${c.characterId} in feature ${feature.featureId}.`,
+            path: ["characters", idx],
+          });
+        }
+        seenCategoricalByCharacter.add(c.characterId);
       }
-      seen.add(c.characterId);
+
+      if (c.kind === "number" || c.kind === "range") {
+        const signature = modifierSetSignature(c.modifiers.map((m) => m.id));
+        const key = `${c.kind}|${c.characterId}|${signature}`;
+
+        if (seenNumericModifierSets.has(key)) {
+          const modifierText = signature.length ? signature : "none";
+          ctx.addIssue({
+            code: "custom",
+            message:
+              `Duplicate ${c.kind} state for character ${c.characterId}: ` +
+              `modifier set [${modifierText}] is already used.`,
+            path: ["characters", idx],
+          });
+        }
+
+        seenNumericModifierSets.add(key);
+      }
 
       if (c.kind === "range") {
         if (c.siBaseMin === null && c.siBaseMax === null) {

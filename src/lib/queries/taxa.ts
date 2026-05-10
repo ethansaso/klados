@@ -1,8 +1,8 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getTaxonFn } from "../api/taxa/getTaxonFn";
-import { listTaxaFn } from "../api/taxa/listTaxaFn";
 import type { TaxonFilters } from "../domain/taxa/search";
 import type { TaxonPaginatedResult } from "../domain/taxa/types";
+import { getTaxonFn } from "../server-fns/taxa/getTaxonFn";
+import { listTaxaFn } from "../server-fns/taxa/listTaxaFn";
 
 export const taxonQueryOptions = (id: number) =>
   queryOptions({

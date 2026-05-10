@@ -18,15 +18,15 @@ import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../components/dialogs/ConfirmDeleteModal";
 import { ModifierIcon } from "../../../../components/icons/modular/ModifierIcon";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
-import { createModifierFn } from "../../../../lib/api/modifiers/createModifierFn";
-import { deleteModifierFn } from "../../../../lib/api/modifiers/deleteModifierFn";
-import { deleteModifierGroupFn } from "../../../../lib/api/modifiers/deleteModifierGroupFn";
 import { roleHasCuratorRights } from "../../../../lib/auth/utils";
 import type { ModifierDTO } from "../../../../lib/domain/modifiers/types";
 import {
   modifierGroupQueryOptions,
   modifiersQueryOptions,
 } from "../../../../lib/queries/modifiers";
+import { createModifierFn } from "../../../../lib/server-fns/modifiers/createModifierFn";
+import { deleteModifierFn } from "../../../../lib/server-fns/modifiers/deleteModifierFn";
+import { deleteModifierGroupFn } from "../../../../lib/server-fns/modifiers/deleteModifierGroupFn";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
 import { toast } from "../../../../lib/utils/toast";
 import ModifierTable from "./-ModifierTable";

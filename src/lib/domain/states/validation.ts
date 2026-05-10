@@ -39,7 +39,10 @@ const rangeCharacterUpdateSchema = z
       d.siBaseMin === null ||
       d.siBaseMax === null ||
       d.siBaseMin <= d.siBaseMax,
-    { message: "Minimum must be less than or equal to maximum.", path: ["siBaseMin"] },
+    {
+      message: "Minimum must be less than or equal to maximum.",
+      path: ["siBaseMin"],
+    },
   );
 
 const characterUpdateSchema = z.discriminatedUnion("kind", [
@@ -48,23 +51,49 @@ const characterUpdateSchema = z.discriminatedUnion("kind", [
   rangeCharacterUpdateSchema,
 ]);
 
+function modifierSetSignature(modifierIds: number[]): string {
+  const uniqueSorted = Array.from(new Set(modifierIds)).sort((a, b) => a - b);
+  return uniqueSorted.join(",");
+}
+
 const featureUpdateSchema = z
   .object({
     featureId: z.number().int(),
     characters: z.array(characterUpdateSchema),
   })
   .superRefine((group, ctx) => {
-    // Ensure no duplicate characterIds within the group
-    const seen = new Set<number>();
-    for (const c of group.characters) {
-      if (seen.has(c.characterId)) {
-        ctx.addIssue({
-          code: "custom",
-          message: `Duplicate characterId ${c.characterId} in group ${group.featureId}.`,
-          path: ["characters"],
-        });
+    // Ensure no duplicate categorical characterIds within the group
+    const seenCategorical = new Set<number>();
+    // For numeric/range: track (characterId, modifierSignature) pairs to allow different modifier sets
+    const seenNumericModifierSets = new Set<string>();
+
+    for (const [idx, c] of group.characters.entries()) {
+      if (c.kind === "categorical") {
+        if (seenCategorical.has(c.characterId)) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Duplicate categorical characterId ${c.characterId} in group ${group.featureId}.`,
+            path: ["characters", idx],
+          });
+        }
+        seenCategorical.add(c.characterId);
+      } else if (c.kind === "number" || c.kind === "range") {
+        const signature = modifierSetSignature(c.modifierIds);
+        const key = `${c.kind}|${c.characterId}|${signature}`;
+
+        if (seenNumericModifierSets.has(key)) {
+          const modifierText = signature.length ? signature : "none";
+          ctx.addIssue({
+            code: "custom",
+            message:
+              `Duplicate ${c.kind} state for character ${c.characterId}: ` +
+              `modifier set [${modifierText}] is already used.`,
+            path: ["characters", idx],
+          });
+        }
+
+        seenNumericModifierSets.add(key);
       }
-      seen.add(c.characterId);
     }
   });
 

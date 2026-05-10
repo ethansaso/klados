@@ -78,15 +78,10 @@ export function addNumericSingleStateFromSuggestion(
   suggestion: NumericSingleSuggestion,
 ): GroupedCharacterFormValue {
   return updateFeature(featureStates, suggestion.featureId, (current) => {
-    // Remove any existing state for this character (replace semantics)
-    const filtered = current.filter(
-      (row) => row.characterId !== suggestion.characterId,
-    );
-
     // Unitless (dimensionless) character
     if (suggestion.displayUnitId === null) {
       return [
-        ...filtered,
+        ...current,
         {
           kind: "number",
           characterId: suggestion.characterId,
@@ -107,7 +102,7 @@ export function addNumericSingleStateFromSuggestion(
     const siBaseValue = convertToSI(suggestion.value, suggestion.unitScale);
 
     return [
-      ...filtered,
+      ...current,
       {
         kind: "number",
         characterId: suggestion.characterId,
@@ -129,15 +124,10 @@ export function addNumericRangeStateFromSuggestion(
   suggestion: NumericRangeSuggestion,
 ): GroupedCharacterFormValue {
   return updateFeature(featureStates, suggestion.featureId, (current) => {
-    // Remove any existing state for this character (replace semantics)
-    const filtered = current.filter(
-      (row) => row.characterId !== suggestion.characterId,
-    );
-
     // Unitless (dimensionless) character
     if (suggestion.displayUnitId === null) {
       return [
-        ...filtered,
+        ...current,
         {
           kind: "range",
           characterId: suggestion.characterId,
@@ -166,7 +156,7 @@ export function addNumericRangeStateFromSuggestion(
         : null;
 
     return [
-      ...filtered,
+      ...current,
       {
         kind: "range",
         characterId: suggestion.characterId,
@@ -244,34 +234,5 @@ export function updateCategoricalTraitValueModifiers(
         ),
       };
     }),
-  );
-}
-
-export function updateNumericStateModifiers(
-  featureStates: GroupedCharacterFormValue,
-  featureId: number,
-  characterId: number,
-  modifiers: ModifierTokenFormValue[],
-): GroupedCharacterFormValue {
-  return updateFeature(featureStates, featureId, (current) =>
-    current.map((row) => {
-      if (
-        row.characterId !== characterId ||
-        (row.kind !== "number" && row.kind !== "range")
-      ) {
-        return row;
-      }
-      return { ...row, modifiers };
-    }),
-  );
-}
-
-export function removeCharacterState(
-  featureStates: GroupedCharacterFormValue,
-  groupId: number,
-  characterId: number,
-): GroupedCharacterFormValue {
-  return updateFeature(featureStates, groupId, (current) =>
-    current.filter((row) => row.characterId !== characterId),
   );
 }

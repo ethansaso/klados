@@ -4,12 +4,12 @@ import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { PiHammer } from "react-icons/pi";
 import { ResponsiveTooltip } from "../../../components/ResponsiveTooltip";
-import { banUserAdminFn } from "../../../lib/api/users/banUserAdminFn";
-import { unbanUserAdminFn } from "../../../lib/api/users/unbanUserAdminFn";
 import {
   userQueryOptions,
   usersAdminViewQueryOptions,
 } from "../../../lib/queries/users";
+import { banUserAdminFn } from "../../../lib/server-fns/users/banUserAdminFn";
+import { unbanUserAdminFn } from "../../../lib/server-fns/users/unbanUserAdminFn";
 import { SearchSchema } from "../../../lib/validation/search";
 
 export const Route = createFileRoute("/admin/users/")({

@@ -1,13 +1,13 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getMeFn } from "../api/users/getMeFn";
-import { getUserFn } from "../api/users/getUserFn";
-import { listUsersAdminFn } from "../api/users/listUsersAdminFn";
-import { listUsersFn } from "../api/users/listUsersFn";
 import type {
   UserAdminViewPaginatedResult,
   UserDTO,
   UserPaginatedResult,
 } from "../domain/users/types";
+import { getMeFn } from "../server-fns/users/getMeFn";
+import { getUserFn } from "../server-fns/users/getUserFn";
+import { listUsersAdminFn } from "../server-fns/users/listUsersAdminFn";
+import { listUsersFn } from "../server-fns/users/listUsersFn";
 
 /**
  * Query options for fetching multiple users.

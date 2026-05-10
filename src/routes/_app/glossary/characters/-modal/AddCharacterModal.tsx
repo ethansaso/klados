@@ -10,11 +10,11 @@ import {
   useForm,
   useWatch,
 } from "react-hook-form";
-import { createCharacterFn } from "../../../../../lib/api/characters/createCharacterFn";
 import {
   type CreateCharacterInput,
   createCharacterSchema,
 } from "../../../../../lib/domain/characters/validation";
+import { createCharacterFn } from "../../../../../lib/server-fns/characters/createCharacterFn";
 import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../../lib/utils/toast";
 import { AddCategoricalCharacterForm } from "./AddCategoricalCharacterForm";

@@ -14,8 +14,8 @@ import { PiPencil, PiTrash } from "react-icons/pi";
 import { Fragment } from "react/jsx-runtime";
 import { CuratorOnly } from "../../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
-import { deleteFeatureFn } from "../../../../../lib/api/features/deleteFeatureFn";
 import { featureQueryOptions } from "../../../../../lib/queries/features";
+import { deleteFeatureFn } from "../../../../../lib/server-fns/features/deleteFeatureFn";
 import { toast } from "../../../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/glossary/features/$id/")({
@@ -73,7 +73,11 @@ function RouteComponent() {
                 <PiPencil />
               </Link>
             </IconButton>
-            <IconButton size="1" onClick={handleFeatureDeleteClick} color="tomato">
+            <IconButton
+              size="1"
+              onClick={handleFeatureDeleteClick}
+              color="tomato"
+            >
               <PiTrash />
             </IconButton>
           </Flex>

@@ -31,9 +31,9 @@ import {
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
 import { ResponsiveTooltip } from "../../../../../components/ResponsiveTooltip";
-import { updateTraitValueFn } from "../../../../../lib/api/traits/updateTraitValueFn";
 import type { TraitValueDTO } from "../../../../../lib/domain/traits/types";
 import { traitValuesQueryOptions } from "../../../../../lib/queries/traits";
+import { updateTraitValueFn } from "../../../../../lib/server-fns/traits/updateTraitValueFn";
 import { toast } from "../../../../../lib/utils/toast";
 import {
   trimmed,

@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getSourcesForTaxonFn } from "../api/taxon-sources/getSourcesForTaxonFn";
+import { getSourcesForTaxonFn } from "../server-fns/taxon-sources/getSourcesForTaxonFn";
 
 export const sourcesForTaxonQueryOptions = (id: number) =>
   queryOptions({

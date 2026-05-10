@@ -18,11 +18,11 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
-import { createModifierGroupFn } from "../../../../lib/api/modifiers/createModifierGroupFn";
 import {
   type CreateModifierGroupInput,
   createModifierGroupSchema,
 } from "../../../../lib/domain/modifiers/validation";
+import { createModifierGroupFn } from "../../../../lib/server-fns/modifiers/createModifierGroupFn";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
 import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../lib/utils/toast";

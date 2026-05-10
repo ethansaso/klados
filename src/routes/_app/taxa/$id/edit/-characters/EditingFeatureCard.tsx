@@ -19,7 +19,6 @@ import { CharacterStateSearch } from "./search/CharacterStateSearch";
 import {
   addStateFromSuggestion,
   updateCategoricalTraitValueModifiers,
-  updateNumericStateModifiers,
 } from "./stateUtils";
 import type { FeatureFormValue, ModifierTokenFormValue } from "./validation";
 
@@ -31,24 +30,17 @@ type LastAdded = {
 
 type Props = {
   feature: FeatureFormValue;
-  onChange: (nextGroups: FeatureFormValue[]) => void;
+  onChange: (nextFeatures: FeatureFormValue[]) => void;
   onDelete: () => void;
   onRemoveCategoricalValue: (
     featureId: number,
     characterId: number,
     traitValueId: number,
   ) => void;
-  onRemoveState: (featureId: number, characterId: number) => void;
 };
 
 export const EditingFeatureCard = memo(
-  ({
-    feature,
-    onChange,
-    onDelete,
-    onRemoveCategoricalValue,
-    onRemoveState,
-  }: Props) => {
+  ({ feature, onChange, onDelete, onRemoveCategoricalValue }: Props) => {
     const { getValues } = useFormContext<TaxonEditFormValues>();
     const [confirmingDelete, setConfirmingDelete] = useState(false);
     const [lastAdded, setLastAdded] = useState<LastAdded | null>(null);
@@ -114,14 +106,64 @@ export const EditingFeatureCard = memo(
     );
 
     const handleUpdateNumericModifiers = useCallback(
-      (characterId: number, mods: ModifierTokenFormValue[]) => {
+      (
+        characterId: number,
+        stateIndex: number,
+        mods: ModifierTokenFormValue[],
+      ) => {
         const prev = getValues("states");
-        const next = updateNumericStateModifiers(
-          prev,
-          feature.featureId,
-          characterId,
-          mods,
-        );
+        const next = prev.map((group) => {
+          if (group.featureId !== feature.featureId) return group;
+
+          let numericSeen = -1;
+
+          return {
+            ...group,
+            characters: group.characters.map((row) => {
+              if (
+                row.characterId !== characterId ||
+                (row.kind !== "number" && row.kind !== "range")
+              ) {
+                return row;
+              }
+
+              numericSeen += 1;
+              if (numericSeen !== stateIndex) return row;
+
+              return { ...row, modifiers: mods };
+            }),
+          };
+        });
+
+        onChange(next);
+      },
+      [getValues, onChange, feature.featureId],
+    );
+
+    const handleRemoveNumericState = useCallback(
+      (characterId: number, stateIndex: number) => {
+        const prev = getValues("states");
+        const next = prev.map((group) => {
+          if (group.featureId !== feature.featureId) return group;
+
+          let numericSeen = -1;
+
+          return {
+            ...group,
+            characters: group.characters.filter((row) => {
+              if (
+                row.characterId !== characterId ||
+                (row.kind !== "number" && row.kind !== "range")
+              ) {
+                return true;
+              }
+
+              numericSeen += 1;
+              return numericSeen !== stateIndex;
+            }),
+          };
+        });
+
         onChange(next);
       },
       [getValues, onChange, feature.featureId],
@@ -201,30 +243,36 @@ export const EditingFeatureCard = memo(
 
         {data && (
           <DataList.Root size="1">
-            {data.characters.map((c) => (
-              <CharacterStateRow
-                key={c.id}
-                character={c}
-                state={feature.characters.find((s) => s.characterId === c.id)}
-                onRemoveCategoricalTrait={(characterId, traitValueId) =>
-                  onRemoveCategoricalValue(
-                    feature.featureId,
-                    characterId,
-                    traitValueId,
-                  )
-                }
-                onRemoveState={(characterId) =>
-                  onRemoveState(feature.featureId, characterId)
-                }
-                onUpdateCategoricalModifiers={handleUpdateCategoricalModifiers}
-                onUpdateNumericModifiers={handleUpdateNumericModifiers}
-                autoOpenModifierFor={
-                  autoOpenFor?.characterId === c.id ? autoOpenFor : undefined
-                }
-                onAutoOpenHandled={handleAutoOpenHandled}
-                onReturnToSearch={focusSearch}
-              />
-            ))}
+            {data.characters.map((c) => {
+              const statesForCharacter = feature.characters.filter(
+                (state) => state.characterId === c.id,
+              );
+
+              return (
+                <CharacterStateRow
+                  key={c.id}
+                  character={c}
+                  states={statesForCharacter}
+                  onRemoveCategoricalTrait={(characterId, traitValueId) =>
+                    onRemoveCategoricalValue(
+                      feature.featureId,
+                      characterId,
+                      traitValueId,
+                    )
+                  }
+                  onRemoveNumericState={handleRemoveNumericState}
+                  onUpdateCategoricalModifiers={
+                    handleUpdateCategoricalModifiers
+                  }
+                  onUpdateNumericModifiers={handleUpdateNumericModifiers}
+                  autoOpenModifierFor={
+                    autoOpenFor?.characterId === c.id ? autoOpenFor : undefined
+                  }
+                  onAutoOpenHandled={handleAutoOpenHandled}
+                  onReturnToSearch={focusSearch}
+                />
+              );
+            })}
           </DataList.Root>
         )}
       </Card>

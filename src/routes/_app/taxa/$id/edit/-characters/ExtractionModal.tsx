@@ -4,8 +4,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { CharacterStateDisplay } from "../../../../../../components/state-formatting/CharacterStateDisplay";
-import { extractStatesFn } from "../../../../../../lib/api/extraction/extractStatesFn";
 import type { ExtractionOutput } from "../../../../../../lib/domain/extraction/service";
+import { extractStatesFn } from "../../../../../../lib/server-fns/extraction/extractStatesFn";
 
 type Props = {
   onConfirm: (result: ExtractionOutput) => void;

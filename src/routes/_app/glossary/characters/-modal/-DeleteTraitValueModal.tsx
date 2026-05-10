@@ -1,8 +1,8 @@
 import NiceModal, { useModal } from "@ebay/nice-modal-react";
 import { AlertDialog, Button, Flex, Text } from "@radix-ui/themes";
 import { useServerFn } from "@tanstack/react-start";
-import { deleteTraitValueFn } from "../../../../../lib/api/traits/deleteTraitValueFn";
 import type { TraitValueDTO } from "../../../../../lib/domain/traits/types";
+import { deleteTraitValueFn } from "../../../../../lib/server-fns/traits/deleteTraitValueFn";
 import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../../lib/utils/toast";
 
