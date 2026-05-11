@@ -17,11 +17,10 @@ const modifierTokenSchema = z.object({
   groupLabel: z.string(),
 });
 
-const traitValueSchema = z.object({
+const traitSchema = z.object({
   id: z.number().int().positive(),
   label: z.string(),
   hexCode: z.string().optional(),
-  modifiers: z.array(modifierTokenSchema).default([]),
 });
 
 const unitSchema = z.object({
@@ -36,7 +35,8 @@ export const categoricalCharacterFormSchema = z.object({
   kind: z.literal("categorical"),
   characterId: z.number().int().positive(),
   characterLabel: z.string(),
-  traitValues: z.array(traitValueSchema),
+  trait: traitSchema,
+  modifiers: z.array(modifierTokenSchema).default([]),
 });
 
 export const numberCharacterFormSchema = z.object({
@@ -73,19 +73,21 @@ export const featureFormSchema = z
     characters: z.array(characterStateFormSchema),
   })
   .superRefine((feature, ctx) => {
-    const seenCategoricalByCharacter = new Set<number>();
+    const seenCategorical = new Set<string>();
     const seenNumericModifierSets = new Set<string>();
 
     for (const [idx, c] of feature.characters.entries()) {
       if (c.kind === "categorical") {
-        if (seenCategoricalByCharacter.has(c.characterId)) {
+        const signature = modifierSetSignature(c.modifiers.map((m) => m.id));
+        const key = `${c.characterId}|${c.trait.id}|${signature}`;
+        if (seenCategorical.has(key)) {
           ctx.addIssue({
             code: "custom",
-            message: `Duplicate categorical characterId ${c.characterId} in feature ${feature.featureId}.`,
+            message: `Duplicate trait ${c.trait.id} for character ${c.characterId} in feature ${feature.featureId} with the same modifiers.`,
             path: ["characters", idx],
           });
         }
-        seenCategoricalByCharacter.add(c.characterId);
+        seenCategorical.add(key);
       }
 
       if (c.kind === "number" || c.kind === "range") {

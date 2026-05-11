@@ -1,7 +1,7 @@
 import { Card, DataList, Heading, Separator, Text } from "@radix-ui/themes";
 import { ResponsiveTooltip } from "../../../../../components/ResponsiveTooltip";
 import { CharacterStateDisplay } from "../../../../../components/state-formatting/CharacterStateDisplay";
-import type { FeatureStateDTO } from "../../../../../lib/domain/states/types";
+import type { CharacterStateDTO, FeatureStateDTO } from "../../../../../lib/domain/states/types";
 
 export const FeatureCard = ({ feature }: { feature: FeatureStateDTO }) => {
   const cardHeaderComponent = feature.featureDescription ? (
@@ -12,26 +12,37 @@ export const FeatureCard = ({ feature }: { feature: FeatureStateDTO }) => {
     feature.featureLabel
   );
 
+  // Group states by characterId, preserving order of first appearance.
+  const characterGroups = new Map<number, { label: string; description: string; states: CharacterStateDTO[] }>();
+  for (const state of feature.states) {
+    let group = characterGroups.get(state.characterId);
+    if (!group) {
+      group = { label: state.characterLabel, description: state.characterDescription, states: [] };
+      characterGroups.set(state.characterId, group);
+    }
+    group.states.push(state);
+  }
+
   return (
     <Card size="2">
       <Heading size="2">{cardHeaderComponent}</Heading>
       <Separator size="4" mt="1" mb="3" />
-      {feature.states.length > 0 ? (
+      {characterGroups.size > 0 ? (
         <DataList.Root size={{ initial: "1", sm: "2" }}>
-          {feature.states.map((state) => {
-            const dlLabel = state.characterDescription ? (
-              <ResponsiveTooltip content={state.characterDescription}>
-                <span className="has-information">{state.characterLabel}</span>
+          {Array.from(characterGroups.entries()).map(([characterId, { label, description, states }]) => {
+            const dlLabel = description ? (
+              <ResponsiveTooltip content={description}>
+                <span className="has-information">{label}</span>
               </ResponsiveTooltip>
             ) : (
-              state.characterLabel
+              label
             );
 
             return (
-              <DataList.Item key={state.characterId}>
+              <DataList.Item key={characterId}>
                 <DataList.Label>{dlLabel}</DataList.Label>
                 <DataList.Value>
-                  <CharacterStateDisplay state={state} />
+                  <CharacterStateDisplay states={states} />
                 </DataList.Value>
               </DataList.Item>
             );

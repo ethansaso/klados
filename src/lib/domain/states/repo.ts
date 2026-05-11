@@ -164,31 +164,24 @@ export async function selectTaxonStatesByTaxonIds(
     const feature = featuresById.get(row.featureId);
     if (!feature) continue;
 
-    let state = feature.states.find(
-      (s) => s.kind === "categorical" && s.characterId === row.characterId,
-    ) as CategoricalStateDTO | undefined;
-
-    if (!state) {
-      state = {
-        kind: "categorical",
-        characterId: row.characterId,
-        characterLabel: row.characterLabel,
-        characterDescription: row.characterDescription,
-        traitValues: [],
-      };
-      feature.states.push(state);
-    }
-
     const canonicalId = row.canonicalValueId ?? row.traitValueId;
 
-    state.traitValues.push({
-      id: row.traitValueId,
-      canonicalId,
-      label: row.traitValueLabel,
-      description: descriptionByCanonicalId.get(canonicalId) ?? "",
-      hexCode: hexByCanonicalId.get(canonicalId) || undefined,
+    const state: CategoricalStateDTO = {
+      kind: "categorical",
+      characterId: row.characterId,
+      characterLabel: row.characterLabel,
+      characterDescription: row.characterDescription,
+      trait: {
+        id: row.traitValueId,
+        canonicalId,
+        label: row.traitValueLabel,
+        description: descriptionByCanonicalId.get(canonicalId) ?? "",
+        hexCode: hexByCanonicalId.get(canonicalId) || undefined,
+      },
       modifiers: modifiersByCatStateId.get(row.stateId) ?? [],
-    });
+    };
+
+    feature.states.push(state);
   }
 
   // Number states
@@ -479,25 +472,28 @@ async function replaceCategoricalStatesForFeatureState(
 
   if (updates.length === 0) return;
 
-  // Deduplicate by characterId; last modifierIds list for a given traitValueId wins.
-  const byCharacter = new Map<number, Map<number, number[]>>();
+  // Deduplicate by (characterId, traitValueId, modifierSet); last wins.
+  const seen = new Map<string, CategoricalCharacterUpdate>();
   for (const u of updates) {
-    const tvMap = byCharacter.get(u.characterId) ?? new Map<number, number[]>();
-    for (const tv of u.traitValues) tvMap.set(tv.id, tv.modifierIds);
-    byCharacter.set(u.characterId, tvMap);
+    const sig = Array.from(new Set(u.modifierIds))
+      .sort((a, b) => a - b)
+      .join(",");
+    seen.set(`${u.characterId}|${u.traitValueId}|${sig}`, u);
+  }
+  const normalized = Array.from(seen.values());
+
+  // Count trait values per character for multi-select validation.
+  const countByCharacter = new Map<number, number>();
+  for (const u of normalized) {
+    countByCharacter.set(
+      u.characterId,
+      (countByCharacter.get(u.characterId) ?? 0) + 1,
+    );
   }
 
-  const normalized = Array.from(byCharacter.entries()).map(
-    ([characterId, tvMap]) => ({
-      characterId,
-      traitValues: Array.from(tvMap.entries()).map(([id, modifierIds]) => ({
-        id,
-        modifierIds,
-      })),
-    }),
+  const characterIds = Array.from(
+    new Set(normalized.map((u) => u.characterId)),
   );
-
-  const characterIds = normalized.map((c) => c.characterId);
 
   const metas = await tx
     .select({
@@ -510,7 +506,7 @@ async function replaceCategoricalStatesForFeatureState(
   const metaByCharacter = new Map(metas.map((m) => [m.characterId, m]));
 
   const allTraitValueIds = Array.from(
-    new Set(normalized.flatMap((c) => c.traitValues.map((tv) => tv.id))),
+    new Set(normalized.map((u) => u.traitValueId)),
   );
 
   const traitValueRows = await tx
@@ -523,7 +519,6 @@ async function replaceCategoricalStatesForFeatureState(
 
   const traitValueById = new Map(traitValueRows.map((v) => [v.id, v]));
 
-  // Build insert rows in stable order; track modifier IDs alongside each.
   const stateRows: Array<{
     taxonFeatureStateId: number;
     characterId: number;
@@ -532,36 +527,34 @@ async function replaceCategoricalStatesForFeatureState(
   }> = [];
   const modifierIdsByRow: number[][] = [];
 
-  for (const c of normalized) {
-    const meta = metaByCharacter.get(c.characterId);
+  for (const u of normalized) {
+    const meta = metaByCharacter.get(u.characterId);
     if (!meta) {
-      throw new Error(`Character ${c.characterId} is not categorical.`);
+      throw new Error(`Character ${u.characterId} is not categorical.`);
     }
 
-    if (!meta.isMultiSelect && c.traitValues.length > 1) {
+    if (!meta.isMultiSelect && (countByCharacter.get(u.characterId) ?? 1) > 1) {
       throw new Error(
-        `Character ${c.characterId} does not allow multiple values.`,
+        `Character ${u.characterId} does not allow multiple values.`,
       );
     }
 
-    for (const tv of c.traitValues) {
-      const row = traitValueById.get(tv.id);
-      if (!row) throw new Error(`Unknown trait value ${tv.id}.`);
+    const traitValue = traitValueById.get(u.traitValueId);
+    if (!traitValue) throw new Error(`Unknown trait value ${u.traitValueId}.`);
 
-      if (row.characterId !== c.characterId) {
-        throw new Error(
-          `Trait value ${tv.id} does not belong to character ${c.characterId}.`,
-        );
-      }
-
-      stateRows.push({
-        taxonFeatureStateId,
-        characterId: c.characterId,
-        traitValueId: tv.id,
-        featureId,
-      });
-      modifierIdsByRow.push(tv.modifierIds);
+    if (traitValue.characterId !== u.characterId) {
+      throw new Error(
+        `Trait value ${u.traitValueId} does not belong to character ${u.characterId}.`,
+      );
     }
+
+    stateRows.push({
+      taxonFeatureStateId,
+      characterId: u.characterId,
+      traitValueId: u.traitValueId,
+      featureId,
+    });
+    modifierIdsByRow.push(u.modifierIds);
   }
 
   if (stateRows.length === 0) return;

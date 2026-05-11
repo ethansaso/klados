@@ -1,8 +1,10 @@
 import { v4 as uuidv4 } from "uuid";
 import type { TaxonEditFormValues } from ".";
 import type {
-  CharacterStateDTO,
+  CategoricalStateDTO,
   FeatureStateDTO,
+  NumberStateDTO,
+  RangeStateDTO,
 } from "../../../../../lib/domain/states/types";
 import type { TaxonDetailDTO } from "../../../../../lib/domain/taxa/types";
 import type { TaxonSourceDTO } from "../../../../../lib/domain/taxon-sources/types";
@@ -20,75 +22,53 @@ const seedSources = (rows: TaxonSourceDTO[]): TaxonSourceUpsertItem[] =>
     note: r.note ?? "",
   }));
 
-const seedCharacterState = (
-  dto: CharacterStateDTO,
-): CharacterStateFormValue => {
-  switch (dto.kind) {
-    case "categorical":
-      return {
-        kind: "categorical",
-        characterId: dto.characterId,
-        characterLabel: dto.characterLabel,
-        traitValues: dto.traitValues.map((tv) => ({
-          id: tv.id,
-          label: tv.label,
-          hexCode: tv.hexCode,
-          modifiers: tv.modifiers.map((m) => ({
-            id: m.id,
-            value: m.value,
-            affixType: m.affixType,
-            groupId: m.groupId,
-            groupLabel: m.groupLabel,
-          })),
-        })),
-      };
+function seedModifier(m: CategoricalStateDTO["modifiers"][number]) {
+  return {
+    id: m.id,
+    value: m.value,
+    affixType: m.affixType,
+    groupId: m.groupId,
+    groupLabel: m.groupLabel,
+  };
+}
 
-    case "number":
-      return {
-        kind: "number",
-        characterId: dto.characterId,
-        characterLabel: dto.characterLabel,
-        unit: dto.unit
-          ? {
-              id: dto.unit.id,
-              symbol: dto.unit.symbol,
-              scale: dto.unit.scale,
-            }
-          : null,
-        siBaseValue: dto.siBaseValue,
-        modifiers: dto.modifiers.map((m) => ({
-          id: m.id,
-          value: m.value,
-          affixType: m.affixType,
-          groupId: m.groupId,
-          groupLabel: m.groupLabel,
-        })),
-      };
+function seedCategoricalState(dto: CategoricalStateDTO): CharacterStateFormValue {
+  return {
+    kind: "categorical",
+    characterId: dto.characterId,
+    characterLabel: dto.characterLabel,
+    trait: {
+      id: dto.trait.id,
+      label: dto.trait.label,
+      hexCode: dto.trait.hexCode,
+    },
+    modifiers: dto.modifiers.map(seedModifier),
+  };
+}
 
-    case "range":
-      return {
-        kind: "range",
-        characterId: dto.characterId,
-        characterLabel: dto.characterLabel,
-        unit: dto.unit
-          ? {
-              id: dto.unit.id,
-              symbol: dto.unit.symbol,
-              scale: dto.unit.scale,
-            }
-          : null,
-        siBaseMin: dto.siBaseMin,
-        siBaseMax: dto.siBaseMax,
-        modifiers: dto.modifiers.map((m) => ({
-          id: m.id,
-          value: m.value,
-          affixType: m.affixType,
-          groupId: m.groupId,
-          groupLabel: m.groupLabel,
-        })),
-      };
-  }
-};
+function seedNumericState(
+  dto: NumberStateDTO | RangeStateDTO,
+): CharacterStateFormValue {
+  const shared = {
+    characterId: dto.characterId,
+    characterLabel: dto.characterLabel,
+    unit: dto.unit
+      ? { id: dto.unit.id, symbol: dto.unit.symbol, scale: dto.unit.scale }
+      : null,
+    modifiers: dto.modifiers.map(seedModifier),
+  };
+  return dto.kind === "number"
+    ? { kind: "number", ...shared, siBaseValue: dto.siBaseValue }
+    : { kind: "range", ...shared, siBaseMin: dto.siBaseMin, siBaseMax: dto.siBaseMax };
+}
+
+function seedFeatureStates(
+  states: FeatureStateDTO["states"],
+): CharacterStateFormValue[] {
+  return states.map((s) =>
+    s.kind === "categorical" ? seedCategoricalState(s) : seedNumericState(s),
+  );
+}
 
 const seedCharacterGroups = (
   features: FeatureStateDTO[],
@@ -96,7 +76,7 @@ const seedCharacterGroups = (
   features.map((feature) => ({
     featureId: feature.featureId,
     featureLabel: feature.featureLabel,
-    characters: feature.states.map(seedCharacterState),
+    characters: seedFeatureStates(feature.states),
   }));
 
 const seedNames = (names: TaxonDetailDTO["names"]) => {

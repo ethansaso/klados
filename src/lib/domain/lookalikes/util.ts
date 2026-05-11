@@ -1,4 +1,8 @@
-import type { CharacterStateDTO, FeatureStateDTO } from "../states/types";
+import type {
+  CategoricalStateDTO,
+  CharacterStateDTO,
+  FeatureStateDTO,
+} from "../states/types";
 import type {
   LookalikeComparisonAnnotatedCategoricalState,
   LookalikeComparisonAnnotatedCategoricalTrait,
@@ -15,18 +19,18 @@ function traitKey(tv: { canonicalId: number }) {
 
 /** Treats as overlapping if trait values have any overlap. */
 function buildAnnotatedCategoricalState(
-  aState: CharacterStateDTO | undefined,
-  bState: CharacterStateDTO | undefined,
+  aStates: CategoricalStateDTO[] | undefined,
+  bStates: CategoricalStateDTO[] | undefined,
 ): {
   aAnnotated: LookalikeComparisonAnnotatedCategoricalState | null;
   bAnnotated: LookalikeComparisonAnnotatedCategoricalState | null;
 } {
-  if (aState?.kind !== "categorical" && bState?.kind !== "categorical") {
+  if (!aStates?.length && !bStates?.length) {
     return { aAnnotated: null, bAnnotated: null };
   }
 
-  const aVals = aState?.kind === "categorical" ? aState.traitValues : [];
-  const bVals = bState?.kind === "categorical" ? bState.traitValues : [];
+  const aVals = (aStates ?? []).map((s) => s.trait);
+  const bVals = (bStates ?? []).map((s) => s.trait);
 
   const aSet = new Set(aVals.map(traitKey));
   const bSet = new Set(bVals.map(traitKey));
@@ -54,40 +58,45 @@ function buildAnnotatedCategoricalState(
 }
 
 function buildAnnotatedNumberState(
-  aState: CharacterStateDTO | undefined,
-  bState: CharacterStateDTO | undefined,
+  aStates: CharacterStateDTO[] | undefined,
+  bStates: CharacterStateDTO[] | undefined,
 ): {
   aAnnotated: LookalikeComparisonAnnotatedNumberState | null;
   bAnnotated: LookalikeComparisonAnnotatedNumberState | null;
 } {
-  if (aState?.kind !== "number" && bState?.kind !== "number") {
+  const aNumbers = (aStates ?? []).filter((s) => s.kind === "number");
+  const bNumbers = (bStates ?? []).filter((s) => s.kind === "number");
+
+  if (aNumbers.length === 0 && bNumbers.length === 0) {
     return { aAnnotated: null, bAnnotated: null };
   }
 
-  const aValue = aState?.kind === "number" ? aState.siBaseValue : null;
-  const bValue = bState?.kind === "number" ? bState.siBaseValue : null;
-
-  // epsilon check for identicality (thanks JS)
-  const isOverlapping =
-    aValue !== null && bValue !== null && Math.abs(aValue - bValue) < 1e-10;
+  const aValues = new Set(aNumbers.map((s) => s.siBaseValue));
+  const bValues = new Set(bNumbers.map((s) => s.siBaseValue));
 
   const aAnnotated: LookalikeComparisonAnnotatedNumberState | null =
-    aState?.kind === "number"
+    aNumbers.length > 0
       ? {
           kind: "number",
-          siBaseValue: aState.siBaseValue,
-          unit: aState.unit,
-          isOverlapping,
+          entries: aNumbers.map((s) => ({
+            siBaseValue: s.siBaseValue,
+            unit: s.unit,
+            modifiers: s.modifiers,
+            isOverlapping: bValues.has(s.siBaseValue),
+          })),
         }
       : null;
 
   const bAnnotated: LookalikeComparisonAnnotatedNumberState | null =
-    bState?.kind === "number"
+    bNumbers.length > 0
       ? {
           kind: "number",
-          siBaseValue: bState.siBaseValue,
-          unit: bState.unit,
-          isOverlapping,
+          entries: bNumbers.map((s) => ({
+            siBaseValue: s.siBaseValue,
+            unit: s.unit,
+            modifiers: s.modifiers,
+            isOverlapping: aValues.has(s.siBaseValue),
+          })),
         }
       : null;
 
@@ -95,49 +104,60 @@ function buildAnnotatedNumberState(
 }
 
 function buildAnnotatedRangeState(
-  aState: CharacterStateDTO | undefined,
-  bState: CharacterStateDTO | undefined,
+  aStates: CharacterStateDTO[] | undefined,
+  bStates: CharacterStateDTO[] | undefined,
 ): {
   aAnnotated: LookalikeComparisonAnnotatedRangeState | null;
   bAnnotated: LookalikeComparisonAnnotatedRangeState | null;
 } {
-  if (aState?.kind !== "range" && bState?.kind !== "range") {
+  const aRanges = (aStates ?? []).filter((s) => s.kind === "range");
+  const bRanges = (bStates ?? []).filter((s) => s.kind === "range");
+
+  if (aRanges.length === 0 && bRanges.length === 0) {
     return { aAnnotated: null, bAnnotated: null };
   }
 
-  const aMin = aState?.kind === "range" ? aState.siBaseMin : null;
-  const aMax = aState?.kind === "range" ? aState.siBaseMax : null;
-  const bMin = bState?.kind === "range" ? bState.siBaseMin : null;
-  const bMax = bState?.kind === "range" ? bState.siBaseMax : null;
-
-  // Ranges overlap if: aMin <= bMax AND bMin <= aMax
-  const isOverlapping =
-    aMin !== null &&
-    aMax !== null &&
-    bMin !== null &&
-    bMax !== null &&
-    aMin <= bMax &&
-    bMin <= aMax;
+  // Two ranges overlap if aMin <= bMax AND bMin <= aMax
+  function overlapsAny(
+    s: (typeof aRanges)[number],
+    others: typeof bRanges,
+  ): boolean {
+    return others.some(
+      (o) =>
+        s.siBaseMin !== null &&
+        s.siBaseMax !== null &&
+        o.siBaseMin !== null &&
+        o.siBaseMax !== null &&
+        s.siBaseMin <= o.siBaseMax &&
+        o.siBaseMin <= s.siBaseMax,
+    );
+  }
 
   const aAnnotated: LookalikeComparisonAnnotatedRangeState | null =
-    aState?.kind === "range"
+    aRanges.length > 0
       ? {
           kind: "range",
-          siBaseMin: aState.siBaseMin,
-          siBaseMax: aState.siBaseMax,
-          unit: aState.unit,
-          isOverlapping,
+          entries: aRanges.map((s) => ({
+            siBaseMin: s.siBaseMin,
+            siBaseMax: s.siBaseMax,
+            unit: s.unit,
+            modifiers: s.modifiers,
+            isOverlapping: overlapsAny(s, bRanges),
+          })),
         }
       : null;
 
   const bAnnotated: LookalikeComparisonAnnotatedRangeState | null =
-    bState?.kind === "range"
+    bRanges.length > 0
       ? {
           kind: "range",
-          siBaseMin: bState.siBaseMin,
-          siBaseMax: bState.siBaseMax,
-          unit: bState.unit,
-          isOverlapping,
+          entries: bRanges.map((s) => ({
+            siBaseMin: s.siBaseMin,
+            siBaseMax: s.siBaseMax,
+            unit: s.unit,
+            modifiers: s.modifiers,
+            isOverlapping: overlapsAny(s, aRanges),
+          })),
         }
       : null;
 
@@ -146,13 +166,23 @@ function buildAnnotatedRangeState(
 
 /** Switch-cased dispatcher for each state kind. */
 function buildAnnotatedState(
-  aState: CharacterStateDTO | undefined,
-  bState: CharacterStateDTO | undefined,
+  aStatesByKind: {
+    categorical?: CategoricalStateDTO[];
+    others?: CharacterStateDTO[];
+  },
+  bStatesByKind: {
+    categorical?: CategoricalStateDTO[];
+    others?: CharacterStateDTO[];
+  },
 ): {
   aAnnotated: LookalikeComparisonAnnotatedState | null;
   bAnnotated: LookalikeComparisonAnnotatedState | null;
 } {
-  const kind = aState?.kind ?? bState?.kind;
+  const kind =
+    (aStatesByKind.categorical?.length ? "categorical" : undefined) ??
+    (bStatesByKind.categorical?.length ? "categorical" : undefined) ??
+    aStatesByKind.others?.[0]?.kind ??
+    bStatesByKind.others?.[0]?.kind;
 
   if (!kind) {
     return { aAnnotated: null, bAnnotated: null };
@@ -160,11 +190,20 @@ function buildAnnotatedState(
 
   switch (kind) {
     case "categorical":
-      return buildAnnotatedCategoricalState(aState, bState);
+      return buildAnnotatedCategoricalState(
+        aStatesByKind.categorical,
+        bStatesByKind.categorical,
+      );
     case "number":
-      return buildAnnotatedNumberState(aState, bState);
+      return buildAnnotatedNumberState(
+        aStatesByKind.others,
+        bStatesByKind.others,
+      );
     case "range":
-      return buildAnnotatedRangeState(aState, bState);
+      return buildAnnotatedRangeState(
+        aStatesByKind.others,
+        bStatesByKind.others,
+      );
   }
 }
 
@@ -193,8 +232,41 @@ export function buildGroupedLookalikeStates(args: {
     let bCharacters: LookalikeComparisonCharacter[] | null = null;
 
     if (aStates !== null || bStates !== null) {
-      const aByChar = new Map((aStates ?? []).map((s) => [s.characterId, s]));
-      const bByChar = new Map((bStates ?? []).map((s) => [s.characterId, s]));
+      // Group categorical states by characterId (flat model: one trait per DTO)
+      const aByChar = new Map<
+        number,
+        {
+          categorical?: CategoricalStateDTO[];
+          others?: CharacterStateDTO[];
+          label: string;
+        }
+      >();
+      const bByChar = new Map<
+        number,
+        {
+          categorical?: CategoricalStateDTO[];
+          others?: CharacterStateDTO[];
+          label: string;
+        }
+      >();
+
+      function collectIntoMap(
+        map: typeof aByChar,
+        states: CharacterStateDTO[],
+      ) {
+        for (const s of states) {
+          const entry = map.get(s.characterId) ?? { label: s.characterLabel };
+          if (s.kind === "categorical") {
+            entry.categorical = [...(entry.categorical ?? []), s];
+          } else {
+            entry.others = [...(entry.others ?? []), s];
+          }
+          map.set(s.characterId, entry);
+        }
+      }
+
+      collectIntoMap(aByChar, aStates ?? []);
+      collectIntoMap(bByChar, bStates ?? []);
 
       const allCharacterIds = new Set<number>([
         ...aByChar.keys(),
@@ -205,23 +277,25 @@ export function buildGroupedLookalikeStates(args: {
       bCharacters = [];
 
       for (const characterId of allCharacterIds) {
-        const aState = aByChar.get(characterId);
-        const bState = bByChar.get(characterId);
+        const aEntry = aByChar.get(characterId);
+        const bEntry = bByChar.get(characterId);
 
-        const metaState = aState ?? bState;
-        if (!metaState) continue; // defensive, should not happen
+        const characterLabel = (aEntry ?? bEntry)!.label;
 
-        const { aAnnotated, bAnnotated } = buildAnnotatedState(aState, bState);
+        const { aAnnotated, bAnnotated } = buildAnnotatedState(
+          { categorical: aEntry?.categorical, others: aEntry?.others },
+          { categorical: bEntry?.categorical, others: bEntry?.others },
+        );
 
         aCharacters.push({
           characterId,
-          characterLabel: metaState.characterLabel,
+          characterLabel,
           state: aAnnotated,
         });
 
         bCharacters.push({
           characterId,
-          characterLabel: metaState.characterLabel,
+          characterLabel,
           state: bAnnotated,
         });
       }

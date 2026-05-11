@@ -20,6 +20,7 @@
   .modifier-tag {
     padding-right: calc(var(--space-4) + var(--space-1));
     max-width: 100%;
+    text-wrap: wrap;
 
     &:hover,
     &:focus-visible {

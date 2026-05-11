@@ -18,11 +18,11 @@ import {
 } from "@xyflow/react";
 import { memo, useCallback, useRef, useState } from "react";
 import type { HydratedCharacterEntry } from "../../../../keygen/hydration/types";
-import { TraitToken } from "../../../state-formatting/helpers/TraitToken";
+import { CategoricalStateDisplay } from "../../../state-formatting/displays/CategoricalStateDisplay";
 import type { RFRichBranchEdge } from "../../editor/data/types";
 import { useGuideEditorStore } from "../../editor/data/useGuideEditorStore";
 
-/** Flatten all character entries for a feature into badged TraitToken nodes. */
+/** Flatten all character entries for a feature into badged trait nodes. */
 function flattenChips(
   characters: Record<number, HydratedCharacterEntry>,
 ): React.ReactNode[] {
@@ -31,14 +31,19 @@ function flattenChips(
     if (charEntry.inverted) {
       chips.push(
         <Badge color="gray" variant="outline" key={`${charId}-other`}>
-          <TraitToken trait={{ id: -1, label: "Other" }} isLast />
+          <CategoricalStateDisplay
+            state={{ kind: "categorical", trait: { id: -1, label: "Other" }, modifiers: [] }}
+          />
         </Badge>,
       );
     } else {
       charEntry.traits.forEach((trait, idx) => {
         chips.push(
           <Badge color="gray" variant="outline" key={`${charId}-${trait.id}`}>
-            <TraitToken trait={trait} index={idx} isLast />
+            <CategoricalStateDisplay
+              state={{ kind: "categorical", trait, modifiers: [] }}
+              lowercaseFirst={idx > 0}
+            />
           </Badge>,
         );
       });

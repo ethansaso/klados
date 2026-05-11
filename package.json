@@ -21,7 +21,7 @@
     "test:keygen": "tsx scripts/runKeygen.ts",
     "test": "vitest run",
     "lint": "eslint src --max-warnings=0",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsgo --noEmit"
   },
   "keywords": [],
   "author": "",

@@ -16,7 +16,6 @@ export type Trait = {
   label: string;
   description: string;
   hexCode?: string;
-  modifiers: ModifierStateDTO[];
 };
 
 type CharacterStateBase = {
@@ -31,7 +30,8 @@ type CharacterNumericStateBase = CharacterStateBase & {
 
 export type CategoricalStateDTO = CharacterStateBase & {
   kind: "categorical";
-  traitValues: Trait[];
+  trait: Trait;
+  modifiers: ModifierStateDTO[];
 };
 export type NumberStateDTO = CharacterNumericStateBase & {
   kind: "number";

@@ -8,16 +8,16 @@ import type {
   ModifierTokenFormValue,
 } from "./validation";
 
-type AutoOpenTarget = { characterId: number; traitValueId?: number };
+type AutoOpenTarget = { characterId: number; traitIndex?: number };
 
 type CharacterStateRowProps = {
   character: FeatureDetailDTO["characters"][number];
   states: CharacterStateFormValue[];
-  onRemoveCategoricalTrait: (characterId: number, traitValueId: number) => void;
+  onRemoveCategoricalTrait: (characterId: number, stateIndex: number) => void;
   onRemoveNumericState: (characterId: number, stateIndex: number) => void;
   onUpdateCategoricalModifiers: (
     characterId: number,
-    traitValueId: number,
+    stateIndex: number,
     mods: ModifierTokenFormValue[],
   ) => void;
   onUpdateNumericModifiers: (
@@ -62,30 +62,34 @@ export const CharacterStateRow = memo(
         > => state.kind === "number" || state.kind === "range",
       );
 
+      const categoricalStates = states.filter((s) => s.kind === "categorical");
+
       return states.flatMap((state) => {
         switch (state.kind) {
-          case "categorical":
-            return state.traitValues.map((tv) => (
+          case "categorical": {
+            const catIdx = categoricalStates.indexOf(state);
+            return (
               <ModifierTag
-                key={`categorical:${tv.id}`}
-                modifiers={tv.modifiers}
+                key={`categorical:${catIdx}`}
+                modifiers={state.modifiers}
                 onModifiersChange={(mods) =>
-                  onUpdateCategoricalModifiers(character.id, tv.id, mods)
+                  onUpdateCategoricalModifiers(character.id, catIdx, mods)
                 }
-                onRemove={() => onRemoveCategoricalTrait(character.id, tv.id)}
+                onRemove={() => onRemoveCategoricalTrait(character.id, catIdx)}
                 autoOpen={
                   autoOpenModifierFor?.characterId === character.id &&
-                  autoOpenModifierFor.traitValueId === tv.id
+                  autoOpenModifierFor.traitIndex === catIdx
                 }
                 onAutoOpenHandled={onAutoOpenHandled}
                 onReturnToSearch={onReturnToSearch}
               >
                 <CharacterStateDisplay
-                  state={{ kind: "categorical", traitValues: [tv] }}
+                  states={[{ kind: "categorical", trait: state.trait, modifiers: state.modifiers }]}
                   highlightAffixes
                 />
               </ModifierTag>
-            ));
+            );
+          }
 
           case "number": {
             const numericIndex = numericStates.indexOf(state);
@@ -101,19 +105,19 @@ export const CharacterStateRow = memo(
                 }
                 autoOpen={
                   autoOpenModifierFor?.characterId === character.id &&
-                  autoOpenModifierFor.traitValueId === undefined &&
+                  autoOpenModifierFor.traitIndex === undefined &&
                   numericIndex === numericStates.length - 1
                 }
                 onAutoOpenHandled={onAutoOpenHandled}
                 onReturnToSearch={onReturnToSearch}
               >
                 <CharacterStateDisplay
-                  state={{
+                  states={[{
                     kind: "number",
                     siBaseValue: state.siBaseValue,
                     unit: state.unit,
                     modifiers: state.modifiers,
-                  }}
+                  }]}
                   highlightAffixes
                 />
               </ModifierTag>
@@ -134,20 +138,20 @@ export const CharacterStateRow = memo(
                 }
                 autoOpen={
                   autoOpenModifierFor?.characterId === character.id &&
-                  autoOpenModifierFor.traitValueId === undefined &&
+                  autoOpenModifierFor.traitIndex === undefined &&
                   numericIndex === numericStates.length - 1
                 }
                 onAutoOpenHandled={onAutoOpenHandled}
                 onReturnToSearch={onReturnToSearch}
               >
                 <CharacterStateDisplay
-                  state={{
+                  states={[{
                     kind: "range",
                     siBaseMin: state.siBaseMin,
                     siBaseMax: state.siBaseMax,
                     unit: state.unit,
                     modifiers: state.modifiers,
-                  }}
+                  }]}
                   highlightAffixes
                 />
               </ModifierTag>

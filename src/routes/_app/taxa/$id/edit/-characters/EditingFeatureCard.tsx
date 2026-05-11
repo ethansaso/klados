@@ -24,7 +24,7 @@ import type { FeatureFormValue, ModifierTokenFormValue } from "./validation";
 
 type LastAdded = {
   characterId: number;
-  traitValueId?: number;
+  traitIndex?: number;
   label: string;
 };
 
@@ -35,7 +35,7 @@ type Props = {
   onRemoveCategoricalValue: (
     featureId: number,
     characterId: number,
-    traitValueId: number,
+    stateIndex: number,
   ) => void;
 };
 
@@ -67,15 +67,22 @@ export const EditingFeatureCard = memo(
 
         const label =
           s.kind === "categorical-value" ? s.traitValueLabel : s.displayValue;
-        setLastAdded(
-          s.kind === "categorical-value"
-            ? {
-                characterId: s.characterId,
-                traitValueId: s.traitValueId,
-                label,
-              }
-            : { characterId: s.characterId, label },
-        );
+        if (s.kind === "categorical-value") {
+          const catStatesForChar =
+            next
+              .find((g) => g.featureId === s.featureId)
+              ?.characters.filter(
+                (c) =>
+                  c.characterId === s.characterId && c.kind === "categorical",
+              ) ?? [];
+          setLastAdded({
+            characterId: s.characterId,
+            traitIndex: catStatesForChar.length - 1,
+            label,
+          });
+        } else {
+          setLastAdded({ characterId: s.characterId, label });
+        }
         setAutoOpenFor(null);
       },
       [getValues, onChange],
@@ -89,7 +96,7 @@ export const EditingFeatureCard = memo(
     const handleUpdateCategoricalModifiers = useCallback(
       (
         characterId: number,
-        traitValueId: number,
+        stateIndex: number,
         mods: ModifierTokenFormValue[],
       ) => {
         const prev = getValues("states");
@@ -97,7 +104,7 @@ export const EditingFeatureCard = memo(
           prev,
           feature.featureId,
           characterId,
-          traitValueId,
+          stateIndex,
           mods,
         );
         onChange(next);
@@ -253,11 +260,11 @@ export const EditingFeatureCard = memo(
                   key={c.id}
                   character={c}
                   states={statesForCharacter}
-                  onRemoveCategoricalTrait={(characterId, traitValueId) =>
+                  onRemoveCategoricalTrait={(characterId, stateIndex) =>
                     onRemoveCategoricalValue(
                       feature.featureId,
                       characterId,
-                      traitValueId,
+                      stateIndex,
                     )
                   }
                   onRemoveNumericState={handleRemoveNumericState}
@@ -266,7 +273,12 @@ export const EditingFeatureCard = memo(
                   }
                   onUpdateNumericModifiers={handleUpdateNumericModifiers}
                   autoOpenModifierFor={
-                    autoOpenFor?.characterId === c.id ? autoOpenFor : undefined
+                    autoOpenFor?.characterId === c.id
+                      ? {
+                          characterId: autoOpenFor.characterId,
+                          traitIndex: autoOpenFor.traitIndex,
+                        }
+                      : undefined
                   }
                   onAutoOpenHandled={handleAutoOpenHandled}
                   onReturnToSearch={focusSearch}

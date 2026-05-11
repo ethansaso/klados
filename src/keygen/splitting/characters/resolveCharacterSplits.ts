@@ -12,7 +12,7 @@ import { scoreCharacterSplit } from "./scoreCharacterSplit";
 
 type CharEntry = {
   taxon: HierarchyTaxonNode;
-  state: CategoricalStateDTO;
+  states: CategoricalStateDTO[];
   featureId: number;
 };
 
@@ -56,11 +56,16 @@ function buildCharacterIndex(taxa: HierarchyTaxonNode[]): ByCharacter {
           byCharacter.set(key, byTaxon);
         }
 
-        byTaxon.set(taxon.id, {
-          taxon,
-          state,
-          featureId: group.featureId,
-        });
+        const existing = byTaxon.get(taxon.id);
+        if (existing) {
+          existing.states.push(state);
+        } else {
+          byTaxon.set(taxon.id, {
+            taxon,
+            states: [state],
+            featureId: group.featureId,
+          });
+        }
       }
     }
   }
@@ -85,8 +90,8 @@ function normalizeTraitSetsForCharacter(
     const entry = byTaxon.get(taxon.id);
     if (!entry) return null;
 
-    const { state, featureId: entryFeatureId } = entry;
-    const traits = state.traitValues ?? [];
+    const { states, featureId: entryFeatureId } = entry;
+    const traits = states.map((s) => s.trait);
     if (traits.length === 0) return null;
 
     // Record featureId once for downstream clause construction.
@@ -376,7 +381,7 @@ export function resolveCharacterSplits(
   for (const [_key, byTaxon] of byCharacter) {
     void _key;
     const firstEntry = byTaxon.values().next().value!;
-    const characterId = firstEntry.state.characterId;
+    const characterId = firstEntry.states[0]!.characterId;
 
     // Only operate on taxa that have data for this character.
     // Taxa missing from byTaxon have no states for this character and will
@@ -386,7 +391,7 @@ export function resolveCharacterSplits(
       const missing = taxa
         .filter((t) => !byTaxon.has(t.id))
         .map((t) => `${t.id}(${t.acceptedName})`);
-      const charLabel = firstEntry.state.characterLabel;
+      const charLabel = firstEntry.states[0]!.characterLabel;
       console.log(
         `[KEYGEN] char ${characterId}(${charLabel}): skipped at normalize — missing taxa: [${missing.join(", ")}]`,
       );
@@ -396,7 +401,7 @@ export function resolveCharacterSplits(
     // 1) normalize trait-sets for the described subset
     const normalized = normalizeTraitSetsForCharacter(describedTaxa, byTaxon);
     if (!normalized) {
-      const charLabel = firstEntry.state.characterLabel;
+      const charLabel = firstEntry.states[0]!.characterLabel;
       console.log(
         `[KEYGEN] char ${characterId}(${charLabel}): skipped at normalize (empty traits)`,
       );
@@ -406,7 +411,7 @@ export function resolveCharacterSplits(
     // 2) build disjoint groups + notTaxa
     const groupsResult = buildGroupsWithDeadTags(describedTaxa, normalized);
     if (!groupsResult) {
-      const charLabel = firstEntry.state.characterLabel;
+      const charLabel = firstEntry.states[0]!.characterLabel;
       console.log(
         `[KEYGEN] char ${characterId}(${charLabel}): skipped at buildGroups`,
       );

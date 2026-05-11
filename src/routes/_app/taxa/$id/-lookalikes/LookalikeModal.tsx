@@ -22,29 +22,43 @@ import { lookalikeDetailsQueryOptions } from "../../../../../lib/queries/lookali
 
 function toUIState(
   annotated: LookalikeComparisonAnnotatedState,
-): UICharacterState {
+): UICharacterState[] {
   switch (annotated.kind) {
     case "categorical":
-      return {
-        ...annotated,
-        traitValues: annotated.traits.map((t) => ({
-          ...t,
-          weight: t.isOverlapping ? undefined : "bold",
-        })),
-      };
+      return annotated.traits.map((t) => ({
+        kind: "categorical" as const,
+        trait: {
+          id: t.id,
+          label: t.label,
+          description: t.description ?? undefined,
+          hexCode: t.hexCode,
+          weight: t.isOverlapping ? undefined : ("bold" as const),
+        },
+        modifiers: [],
+      }));
 
     case "number":
-    case "range":
-      return {
-        ...annotated,
-        unit: annotated.unit
-          ? {
-              symbol: annotated.unit.symbol,
-              scale: annotated.unit.scale,
-            }
+      return annotated.entries.map((e) => ({
+        kind: "number" as const,
+        siBaseValue: e.siBaseValue,
+        unit: e.unit
+          ? { symbol: e.unit.symbol, scale: e.unit.scale }
           : null,
-        weight: annotated.isOverlapping ? undefined : "bold",
-      };
+        modifiers: e.modifiers,
+        weight: e.isOverlapping ? undefined : ("bold" as const),
+      }));
+
+    case "range":
+      return annotated.entries.map((e) => ({
+        kind: "range" as const,
+        siBaseMin: e.siBaseMin,
+        siBaseMax: e.siBaseMax,
+        unit: e.unit
+          ? { symbol: e.unit.symbol, scale: e.unit.scale }
+          : null,
+        modifiers: e.modifiers,
+        weight: e.isOverlapping ? undefined : ("bold" as const),
+      }));
   }
 }
 
@@ -65,7 +79,7 @@ function GroupDataList({
           <DataList.Item key={it.characterId}>
             <DataList.Label>{it.characterLabel}</DataList.Label>
             <DataList.Value>
-              <CharacterStateDisplay state={toUIState(it.state)} />
+              <CharacterStateDisplay states={toUIState(it.state)} />
             </DataList.Value>
           </DataList.Item>
         );

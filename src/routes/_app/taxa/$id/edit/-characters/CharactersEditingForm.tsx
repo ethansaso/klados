@@ -41,13 +41,13 @@ export function CharacterEditingForm({
 
   // getValues is stable, so these callbacks are stable
   const handleRemoveCategoricalTrait = useCallback(
-    (groupId: number, characterId: number, traitValueId: number) => {
+    (groupId: number, characterId: number, stateIndex: number) => {
       const prev = getValues("states");
       const next = removeCategoricalTraitValue(
         prev,
         groupId,
         characterId,
-        traitValueId,
+        stateIndex,
       );
       onChange(next);
     },

@@ -4,12 +4,22 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { CharacterStateDisplay } from "../../../../../../components/state-formatting/CharacterStateDisplay";
+import type { UICharacterState } from "../../../../../../components/state-formatting/types";
 import type { ExtractionOutput } from "../../../../../../lib/domain/extraction/service";
 import { extractStatesFn } from "../../../../../../lib/server-fns/extraction/extractStatesFn";
+import type { CharacterStateFormValue } from "./validation";
 
 type Props = {
   onConfirm: (result: ExtractionOutput) => void;
 };
+
+function formValueToUIStates(char: CharacterStateFormValue): UICharacterState[] {
+  if (char.kind === "categorical") {
+    return [{ kind: "categorical", trait: char.trait, modifiers: char.modifiers }];
+  }
+  return [{ ...char, unit: char.unit ?? null }];
+}
+
 
 const ExtractionModal = NiceModal.create<Props>(({ onConfirm }) => {
   const { visible, hide } = NiceModal.useModal();
@@ -88,7 +98,7 @@ const ExtractionModal = NiceModal.create<Props>(({ onConfirm }) => {
                         <Text size="1" color="gray" style={{ minWidth: 100 }}>
                           {char.characterLabel}
                         </Text>
-                        <CharacterStateDisplay state={char} highlightAffixes />
+                        <CharacterStateDisplay states={formValueToUIStates(char)} highlightAffixes />
                       </Flex>
                     ))}
                   </Flex>

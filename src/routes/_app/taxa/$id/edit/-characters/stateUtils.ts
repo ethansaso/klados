@@ -26,50 +26,20 @@ export function addCategoricalStateFromSuggestion(
   suggestion: CategoricalValueSuggestion,
 ): GroupedCharacterFormValue {
   return updateFeature(featureStates, suggestion.featureId, (current) => {
-    const existing = current.find(
-      (row): row is Extract<CharacterStateFormValue, { kind: "categorical" }> =>
-        row.kind === "categorical" &&
-        row.characterId === suggestion.characterId,
-    );
-
-    // Already has this trait value
-    if (existing?.traitValues.some((tv) => tv.id === suggestion.traitValueId)) {
-      return current;
-    }
-
-    const newTraitValue = {
-      id: suggestion.traitValueId,
-      label: suggestion.traitValueLabel,
-      hexCode: suggestion.traitValueHexCode ?? undefined,
-      modifiers: [] as ModifierTokenFormValue[],
-    };
-
-    // Create new categorical state
-    if (!existing) {
-      return [
-        ...current,
-        {
-          kind: "categorical",
-          characterId: suggestion.characterId,
-          characterLabel: suggestion.characterLabel,
-          traitValues: [newTraitValue],
+    return [
+      ...current,
+      {
+        kind: "categorical",
+        characterId: suggestion.characterId,
+        characterLabel: suggestion.characterLabel,
+        trait: {
+          id: suggestion.traitValueId,
+          label: suggestion.traitValueLabel,
+          hexCode: suggestion.traitValueHexCode ?? undefined,
         },
-      ];
-    }
-
-    // Add to existing categorical state
-    return current.map((row) => {
-      if (
-        row.kind === "categorical" &&
-        row.characterId === suggestion.characterId
-      ) {
-        return {
-          ...row,
-          traitValues: [...row.traitValues, newTraitValue],
-        };
-      }
-      return row;
-    });
+        modifiers: [] as ModifierTokenFormValue[],
+      },
+    ];
   });
 }
 
@@ -192,47 +162,32 @@ export function removeCategoricalTraitValue(
   featureStates: GroupedCharacterFormValue,
   groupId: number,
   characterId: number,
-  traitValueId: number,
+  stateIndex: number,
 ): GroupedCharacterFormValue {
-  return updateFeature(featureStates, groupId, (current) =>
-    current
-      .map((row) => {
-        if (row.kind !== "categorical" || row.characterId !== characterId) {
-          return row;
-        }
-        return {
-          ...row,
-          traitValues: row.traitValues.filter((tv) => tv.id !== traitValueId),
-        };
-      })
-      .filter((row) => {
-        // Remove categorical rows with no trait values
-        if (row.kind === "categorical") {
-          return row.traitValues.length > 0;
-        }
-        return true;
-      }),
-  );
+  return updateFeature(featureStates, groupId, (current) => {
+    let catSeen = -1;
+    return current.filter((row) => {
+      if (row.kind !== "categorical" || row.characterId !== characterId) return true;
+      catSeen += 1;
+      return catSeen !== stateIndex;
+    });
+  });
 }
 
 export function updateCategoricalTraitValueModifiers(
   featureStates: GroupedCharacterFormValue,
   featureId: number,
   characterId: number,
-  traitValueId: number,
+  stateIndex: number,
   modifiers: ModifierTokenFormValue[],
 ): GroupedCharacterFormValue {
-  return updateFeature(featureStates, featureId, (current) =>
-    current.map((row) => {
-      if (row.kind !== "categorical" || row.characterId !== characterId) {
-        return row;
-      }
-      return {
-        ...row,
-        traitValues: row.traitValues.map((tv) =>
-          tv.id === traitValueId ? { ...tv, modifiers } : tv,
-        ),
-      };
-    }),
-  );
+  return updateFeature(featureStates, featureId, (current) => {
+    let catSeen = -1;
+    return current.map((row) => {
+      if (row.kind !== "categorical" || row.characterId !== characterId) return row;
+      catSeen += 1;
+      if (catSeen !== stateIndex) return row;
+      return { ...row, modifiers };
+    });
+  });
 }

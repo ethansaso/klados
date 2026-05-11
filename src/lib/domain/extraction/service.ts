@@ -1361,16 +1361,11 @@ function buildExtractedSummary(states: GroupedCharacterFormValue): string {
     for (const char of group.characters) {
       switch (char.kind) {
         case "categorical": {
-          const vals = char.traitValues
-            .map((tv) => {
-              const mods =
-                tv.modifiers.length > 0
-                  ? ` (${tv.modifiers.map((m) => m.value).join(", ")})`
-                  : "";
-              return `${tv.label}${mods}`;
-            })
-            .join(", ");
-          lines.push(`  ${char.characterLabel}: ${vals}`);
+          const mods =
+            char.modifiers.length > 0
+              ? ` (${char.modifiers.map((m) => m.value).join(", ")})`
+              : "";
+          lines.push(`  ${char.characterLabel}: ${char.trait.label}${mods}`);
           break;
         }
         case "number": {
@@ -1484,7 +1479,6 @@ function hydrateCharacters(
           ),
         );
 
-        const tvMap = new Map<number, (typeof hydratedTraitValues)[number]>();
         const hydratedTraitValues = (rawChar.traitValues ?? [])
           .filter((tv) => validTvIds.has(tv.traitValueId))
           .map((tv) => {
@@ -1505,19 +1499,12 @@ function hydrateCharacters(
           .filter((tv) => tv !== null);
 
         for (const tv of hydratedTraitValues) {
-          const existing = tvMap.get(tv.id);
-          if (!existing || tv.modifiers.length > existing.modifiers.length) {
-            tvMap.set(tv.id, tv);
-          }
-        }
-        const traitValues = [...tvMap.values()];
-
-        if (traitValues.length > 0) {
           characters.push({
             kind: "categorical",
             characterId: rawChar.characterId,
             characterLabel: charMeta.label,
-            traitValues,
+            trait: { id: tv.id, label: tv.label, hexCode: tv.hexCode },
+            modifiers: tv.modifiers,
           });
         }
         break;

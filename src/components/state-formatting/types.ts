@@ -10,12 +10,11 @@ type Weight = "light" | "regular" | "medium" | "bold";
 
 export type UITrait = Omit<
   Trait,
-  "description" | "hexCode" | "canonicalId" | "modifiers"
+  "description" | "hexCode" | "canonicalId"
 > & {
   description?: string;
   hexCode?: string | null;
   weight?: Weight;
-  modifiers?: UIModifier[];
 };
 
 export type UIUnit = Pick<UnitDTO, "symbol" | "scale">;
@@ -35,7 +34,8 @@ export type UICategoricalState = Pick<
   Extract<CharacterStateDTO, { kind: "categorical" }>,
   "kind"
 > & {
-  traitValues: UITrait[];
+  trait: UITrait;
+  modifiers: UIModifier[];
 };
 
 export type UINumberState = Pick<

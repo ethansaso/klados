@@ -30,7 +30,7 @@ function extractPgError(e: unknown): PgDatabaseError | null {
 }
 
 const PG_ERROR_MESSAGES: Record<string, string> = {
-  "23505": "A record with that value already exists.",
+  "23505": "An item with that value already exists.",
   "23503": "This action would violate a relationship constraint.",
   "23502": "A required field is missing a value.",
   "23514": "A value failed a check constraint.",

@@ -7,7 +7,6 @@ import {
   numeric,
   pgTable,
   serial,
-  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
 import { categoricalTraitValue } from "../glossary/categoricalTraits";
@@ -42,7 +41,7 @@ export const taxonCharacterStateCategorical = pgTable(
     featureId: integer("feature_id").notNull(),
   }),
   (t) => [
-    uniqueIndex("tcs_cat_feature_state_char_trait_uq").on(
+    index("tcs_cat_feature_state_char_trait_idx").on(
       t.taxonFeatureStateId,
       t.characterId,
       t.traitValueId,

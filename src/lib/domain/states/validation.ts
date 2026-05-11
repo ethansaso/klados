@@ -3,14 +3,8 @@ import z from "zod";
 const categoricalCharacterUpdateSchema = z.object({
   kind: z.literal("categorical"),
   characterId: z.number(),
-  traitValues: z
-    .array(
-      z.object({
-        id: z.number(),
-        modifierIds: z.array(z.number()).default([]),
-      }),
-    )
-    .nonempty(),
+  traitValueId: z.number().int().positive(),
+  modifierIds: z.array(z.number()).default([]),
 });
 
 const numberCharacterUpdateSchema = z.object({
@@ -62,21 +56,23 @@ const featureUpdateSchema = z
     characters: z.array(characterUpdateSchema),
   })
   .superRefine((group, ctx) => {
-    // Ensure no duplicate categorical characterIds within the group
-    const seenCategorical = new Set<number>();
+    // Duplicates allowed when modifier sets differ (same trait value, different modifiers = valid multi-entry)
+    const seenCategorical = new Set<string>();
     // For numeric/range: track (characterId, modifierSignature) pairs to allow different modifier sets
     const seenNumericModifierSets = new Set<string>();
 
     for (const [idx, c] of group.characters.entries()) {
       if (c.kind === "categorical") {
-        if (seenCategorical.has(c.characterId)) {
+        const signature = modifierSetSignature(c.modifierIds);
+        const key = `${c.characterId}|${c.traitValueId}|${signature}`;
+        if (seenCategorical.has(key)) {
           ctx.addIssue({
             code: "custom",
-            message: `Duplicate categorical characterId ${c.characterId} in group ${group.featureId}.`,
+            message: `Duplicate categorical characterId ${c.characterId} in group ${group.featureId} with the same modifiers.`,
             path: ["characters", idx],
           });
         }
-        seenCategorical.add(c.characterId);
+        seenCategorical.add(key);
       } else if (c.kind === "number" || c.kind === "range") {
         const signature = modifierSetSignature(c.modifierIds);
         const key = `${c.kind}|${c.characterId}|${signature}`;

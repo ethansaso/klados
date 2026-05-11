@@ -79,10 +79,8 @@ const convertToServerCharacterValues = (
           return {
             kind: "categorical",
             characterId: v.characterId,
-            traitValues: v.traitValues.map((tv) => ({
-              id: tv.id,
-              modifierIds: tv.modifiers.map((m) => m.id),
-            })),
+            traitValueId: v.trait.id,
+            modifierIds: v.modifiers.map((m) => m.id),
           };
 
         case "number":

@@ -2,6 +2,7 @@ import type { TaxonRank } from "../../../../db/schema/schema";
 import type { Prettify } from "../../utils/types/prettify";
 import type {
   CategoricalStateDTO,
+  ModifierStateDTO,
   NumberStateDTO,
   RangeStateDTO,
   Trait,
@@ -38,15 +39,27 @@ export type LookalikeComparisonAnnotatedCategoricalState = Prettify<
   }
 >;
 
-export type LookalikeComparisonAnnotatedNumberState = Prettify<
-  Pick<NumberStateDTO, "kind" | "siBaseValue" | "unit">
+export type LookalikeComparisonAnnotatedNumberEntry = Pick<
+  NumberStateDTO,
+  "siBaseValue" | "unit" | "modifiers"
 > &
   OverlapAnnotation;
 
-export type LookalikeComparisonAnnotatedRangeState = Prettify<
-  Pick<RangeStateDTO, "kind" | "siBaseMin" | "siBaseMax" | "unit">
+export type LookalikeComparisonAnnotatedRangeEntry = Pick<
+  RangeStateDTO,
+  "siBaseMin" | "siBaseMax" | "unit" | "modifiers"
 > &
   OverlapAnnotation;
+
+export type LookalikeComparisonAnnotatedNumberState = Prettify<{
+  kind: "number";
+  entries: LookalikeComparisonAnnotatedNumberEntry[];
+}>;
+
+export type LookalikeComparisonAnnotatedRangeState = Prettify<{
+  kind: "range";
+  entries: LookalikeComparisonAnnotatedRangeEntry[];
+}>;
 
 export type LookalikeComparisonAnnotatedState =
   | LookalikeComparisonAnnotatedCategoricalState
