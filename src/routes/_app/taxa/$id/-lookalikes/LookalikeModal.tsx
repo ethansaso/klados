@@ -22,43 +22,41 @@ import { lookalikeDetailsQueryOptions } from "../../../../../lib/queries/lookali
 
 function toUIState(
   annotated: LookalikeComparisonAnnotatedState,
-): UICharacterState[] {
+): UICharacterState {
   switch (annotated.kind) {
     case "categorical":
-      return annotated.traits.map((t) => ({
-        kind: "categorical" as const,
+      return {
+        kind: "categorical",
         trait: {
-          id: t.id,
-          label: t.label,
-          description: t.description ?? undefined,
-          hexCode: t.hexCode,
-          weight: t.isOverlapping ? undefined : ("bold" as const),
+          id: annotated.trait.id,
+          label: annotated.trait.label,
+          description: annotated.trait.description ?? undefined,
+          hexCode: annotated.trait.hexCode,
+          weight: annotated.isOverlapping ? undefined : ("bold" as const),
         },
-        modifiers: [],
-      }));
-
+        modifiers: annotated.modifiers,
+      };
     case "number":
-      return annotated.entries.map((e) => ({
-        kind: "number" as const,
-        siBaseValue: e.siBaseValue,
-        unit: e.unit
-          ? { symbol: e.unit.symbol, scale: e.unit.scale }
+      return {
+        kind: "number",
+        siBaseValue: annotated.siBaseValue,
+        unit: annotated.unit
+          ? { symbol: annotated.unit.symbol, scale: annotated.unit.scale }
           : null,
-        modifiers: e.modifiers,
-        weight: e.isOverlapping ? undefined : ("bold" as const),
-      }));
-
+        modifiers: annotated.modifiers,
+        weight: annotated.isOverlapping ? undefined : ("bold" as const),
+      };
     case "range":
-      return annotated.entries.map((e) => ({
-        kind: "range" as const,
-        siBaseMin: e.siBaseMin,
-        siBaseMax: e.siBaseMax,
-        unit: e.unit
-          ? { symbol: e.unit.symbol, scale: e.unit.scale }
+      return {
+        kind: "range",
+        siBaseMin: annotated.siBaseMin,
+        siBaseMax: annotated.siBaseMax,
+        unit: annotated.unit
+          ? { symbol: annotated.unit.symbol, scale: annotated.unit.scale }
           : null,
-        modifiers: e.modifiers,
-        weight: e.isOverlapping ? undefined : ("bold" as const),
-      }));
+        modifiers: annotated.modifiers,
+        weight: annotated.isOverlapping ? undefined : ("bold" as const),
+      };
   }
 }
 
@@ -73,13 +71,13 @@ function GroupDataList({
   return (
     <DataList.Root size="2" orientation="vertical">
       {items.map((it) => {
-        if (!it.state) return null;
+        if (!it.states.length) return null;
 
         return (
           <DataList.Item key={it.characterId}>
             <DataList.Label>{it.characterLabel}</DataList.Label>
             <DataList.Value>
-              <CharacterStateDisplay states={toUIState(it.state)} />
+              <CharacterStateDisplay states={it.states.map(toUIState)} />
             </DataList.Value>
           </DataList.Item>
         );

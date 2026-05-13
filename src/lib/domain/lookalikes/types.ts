@@ -1,11 +1,8 @@
 import type { TaxonRank } from "../../../../db/schema/schema";
-import type { Prettify } from "../../utils/types/prettify";
 import type {
   CategoricalStateDTO,
-  ModifierStateDTO,
   NumberStateDTO,
   RangeStateDTO,
-  Trait,
 } from "../states/types";
 import type { TaxonDTO } from "../taxa/types";
 import type { MediaItem } from "../taxa/validation";
@@ -30,36 +27,14 @@ type OverlapAnnotation = {
   isOverlapping: boolean;
 };
 
-export type LookalikeComparisonAnnotatedCategoricalTrait = Trait &
+export type LookalikeComparisonAnnotatedCategoricalState =
+  CategoricalStateDTO & OverlapAnnotation;
+
+export type LookalikeComparisonAnnotatedNumberState = NumberStateDTO &
   OverlapAnnotation;
 
-export type LookalikeComparisonAnnotatedCategoricalState = Prettify<
-  Pick<CategoricalStateDTO, "kind"> & {
-    traits: LookalikeComparisonAnnotatedCategoricalTrait[];
-  }
->;
-
-export type LookalikeComparisonAnnotatedNumberEntry = Pick<
-  NumberStateDTO,
-  "siBaseValue" | "unit" | "modifiers"
-> &
+export type LookalikeComparisonAnnotatedRangeState = RangeStateDTO &
   OverlapAnnotation;
-
-export type LookalikeComparisonAnnotatedRangeEntry = Pick<
-  RangeStateDTO,
-  "siBaseMin" | "siBaseMax" | "unit" | "modifiers"
-> &
-  OverlapAnnotation;
-
-export type LookalikeComparisonAnnotatedNumberState = Prettify<{
-  kind: "number";
-  entries: LookalikeComparisonAnnotatedNumberEntry[];
-}>;
-
-export type LookalikeComparisonAnnotatedRangeState = Prettify<{
-  kind: "range";
-  entries: LookalikeComparisonAnnotatedRangeEntry[];
-}>;
 
 export type LookalikeComparisonAnnotatedState =
   | LookalikeComparisonAnnotatedCategoricalState
@@ -69,7 +44,7 @@ export type LookalikeComparisonAnnotatedState =
 export type LookalikeComparisonCharacter = {
   characterId: number;
   characterLabel: string;
-  state: LookalikeComparisonAnnotatedState | null;
+  states: LookalikeComparisonAnnotatedState[];
 };
 
 export type LookalikeComparisonGroup = {

@@ -20,6 +20,7 @@ import { Route as AppSignupRouteImport } from './routes/_app/signup'
 import { Route as AppMonitoringRouteImport } from './routes/_app/monitoring'
 import { Route as AppLogoutRouteImport } from './routes/_app/logout'
 import { Route as AppLoginRouteImport } from './routes/_app/login'
+import { Route as AppImageTestRouteImport } from './routes/_app/image-test'
 import { Route as AppHealthRouteImport } from './routes/_app/health'
 import { Route as AppDonateRouteImport } from './routes/_app/donate'
 import { Route as AppDmcaRouteImport } from './routes/_app/dmca'
@@ -117,6 +118,11 @@ const AppLogoutRoute = AppLogoutRouteImport.update({
 const AppLoginRoute = AppLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppImageTestRoute = AppImageTestRouteImport.update({
+  id: '/image-test',
+  path: '/image-test',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppHealthRoute = AppHealthRouteImport.update({
@@ -360,6 +366,7 @@ export interface FileRoutesByFullPath {
   '/dmca': typeof AppDmcaRoute
   '/donate': typeof AppDonateRoute
   '/health': typeof AppHealthRoute
+  '/image-test': typeof AppImageTestRoute
   '/login': typeof AppLoginRoute
   '/logout': typeof AppLogoutRoute
   '/monitoring': typeof AppMonitoringRoute
@@ -408,6 +415,7 @@ export interface FileRoutesByTo {
   '/dmca': typeof AppDmcaRoute
   '/donate': typeof AppDonateRoute
   '/health': typeof AppHealthRoute
+  '/image-test': typeof AppImageTestRoute
   '/login': typeof AppLoginRoute
   '/logout': typeof AppLogoutRoute
   '/monitoring': typeof AppMonitoringRoute
@@ -456,6 +464,7 @@ export interface FileRoutesById {
   '/_app/dmca': typeof AppDmcaRoute
   '/_app/donate': typeof AppDonateRoute
   '/_app/health': typeof AppHealthRoute
+  '/_app/image-test': typeof AppImageTestRoute
   '/_app/login': typeof AppLoginRoute
   '/_app/logout': typeof AppLogoutRoute
   '/_app/monitoring': typeof AppMonitoringRoute
@@ -514,6 +523,7 @@ export interface FileRouteTypes {
     | '/dmca'
     | '/donate'
     | '/health'
+    | '/image-test'
     | '/login'
     | '/logout'
     | '/monitoring'
@@ -562,6 +572,7 @@ export interface FileRouteTypes {
     | '/dmca'
     | '/donate'
     | '/health'
+    | '/image-test'
     | '/login'
     | '/logout'
     | '/monitoring'
@@ -609,6 +620,7 @@ export interface FileRouteTypes {
     | '/_app/dmca'
     | '/_app/donate'
     | '/_app/health'
+    | '/_app/image-test'
     | '/_app/login'
     | '/_app/logout'
     | '/_app/monitoring'
@@ -738,6 +750,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof AppLoginRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/image-test': {
+      id: '/_app/image-test'
+      path: '/image-test'
+      fullPath: '/image-test'
+      preLoaderRoute: typeof AppImageTestRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/health': {
@@ -1222,6 +1241,7 @@ interface AppRouteRouteChildren {
   AppDmcaRoute: typeof AppDmcaRoute
   AppDonateRoute: typeof AppDonateRoute
   AppHealthRoute: typeof AppHealthRoute
+  AppImageTestRoute: typeof AppImageTestRoute
   AppLoginRoute: typeof AppLoginRoute
   AppLogoutRoute: typeof AppLogoutRoute
   AppMonitoringRoute: typeof AppMonitoringRoute
@@ -1243,6 +1263,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppDmcaRoute: AppDmcaRoute,
   AppDonateRoute: AppDonateRoute,
   AppHealthRoute: AppHealthRoute,
+  AppImageTestRoute: AppImageTestRoute,
   AppLoginRoute: AppLoginRoute,
   AppLogoutRoute: AppLogoutRoute,
   AppMonitoringRoute: AppMonitoringRoute,

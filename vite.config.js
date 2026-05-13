@@ -32,6 +32,11 @@ export default defineConfig({
           dir: "public",
           maxAge: 60 * 60 * 24 * 365, // 1 year
         },
+        {
+          baseURL: "/uploads",
+          dir: "./uploads",
+          maxAge: 0,
+        },
       ],
     }),
     viteReact(),
