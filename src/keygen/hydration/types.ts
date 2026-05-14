@@ -1,11 +1,11 @@
+import type { MediaDTO } from "../../lib/domain/media/types";
 import type { Trait } from "../../lib/domain/states/types";
-import type { MediaItem } from "../../lib/domain/taxa/validation";
 import type { KeyDiffNode, KeyTaxonNode } from "../key-building/types";
 
 export type HydratedTaxonNode = Omit<KeyTaxonNode, "branches"> & {
   sciName: string;
   commonName?: string;
-  primaryMedia?: MediaItem;
+  primaryMedia?: MediaDTO;
 };
 
 export type HydratedDiffNode = Omit<KeyDiffNode, "branches"> & {};

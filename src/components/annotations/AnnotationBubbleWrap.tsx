@@ -4,9 +4,11 @@ import {
   HUMAN_CASED_MEDIA_LICENSES,
   MEDIA_LICENSES,
 } from "../../../db/utils/mediaLicense";
-import type { MediaItem } from "../../lib/domain/taxa/validation";
+import type { MediaDTO } from "../../lib/domain/media/types";
 import type { ResponsiveSize, Size } from "../../lib/utils/responsiveSize";
 import { spacingClasses } from "./spacingClasses";
+
+type MediaAnnotation = Pick<MediaDTO, "owner" | "license" | "source">;
 
 const LICENSE_LINKS: Record<(typeof MEDIA_LICENSES)[number], string | null> = {
   unknown: null,
@@ -21,7 +23,7 @@ const LICENSE_LINKS: Record<(typeof MEDIA_LICENSES)[number], string | null> = {
 };
 
 type AnnotationBubbleWrapProps = {
-  media?: MediaItem | null;
+  media?: MediaAnnotation | null;
   spacing?: Size | ResponsiveSize;
   children: React.ReactNode;
 };

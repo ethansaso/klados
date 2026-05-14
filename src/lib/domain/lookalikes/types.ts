@@ -1,18 +1,18 @@
 import type { TaxonRank } from "../../../../db/schema/schema";
+import type { MediaDTO } from "../media/types";
 import type {
   CategoricalStateDTO,
   NumberStateDTO,
   RangeStateDTO,
 } from "../states/types";
 import type { TaxonDTO } from "../taxa/types";
-import type { MediaItem } from "../taxa/validation";
 
 export type TaxonLookalikeDTO = {
   id: number;
   rank: TaxonRank;
   acceptedName: string;
   preferredCommonName: string | null;
-  media: MediaItem[];
+  media: MediaDTO[];
 
   sharedCount: number;
   jaccard: number;
@@ -27,8 +27,8 @@ type OverlapAnnotation = {
   isOverlapping: boolean;
 };
 
-export type LookalikeComparisonAnnotatedCategoricalState =
-  CategoricalStateDTO & OverlapAnnotation;
+export type LookalikeComparisonAnnotatedCategoricalState = CategoricalStateDTO &
+  OverlapAnnotation;
 
 export type LookalikeComparisonAnnotatedNumberState = NumberStateDTO &
   OverlapAnnotation;

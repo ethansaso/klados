@@ -19,6 +19,7 @@ import type {
 } from "../../../../../lib/domain/lookalikes/types";
 import type { TaxonDTO } from "../../../../../lib/domain/taxa/types";
 import { lookalikeDetailsQueryOptions } from "../../../../../lib/queries/lookalikes";
+import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 
 function toUIState(
   annotated: LookalikeComparisonAnnotatedState,
@@ -96,7 +97,11 @@ const TaxonColumnHeader = ({ taxon }: { taxon: TaxonDTO }) => {
       </Heading>
       <AspectRatio ratio={1}>
         <img
-          src={primaryMedia?.url ?? "/logos/LogoDotted.svg"}
+          src={
+            primaryMedia
+              ? getMediaUrl(primaryMedia.storageKey)
+              : "/logos/LogoDotted.svg"
+          }
           alt={taxon.acceptedName}
           loading="lazy"
           onError={(e) => {

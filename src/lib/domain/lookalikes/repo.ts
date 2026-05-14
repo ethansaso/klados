@@ -9,6 +9,7 @@ import {
   categoricalTraitValue as traitValTbl,
 } from "../../../../db/schema/schema";
 import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
+import { selectMediaByTaxonIds } from "../media/repo";
 import type { TaxonLookalikeDTO } from "./types";
 
 export async function computeTaxonLookalikesByCategoricalOverlap(args: {
@@ -133,7 +134,6 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
       rank: taxaTbl.rank,
       acceptedName: sci.value,
       preferredCommonName: common.value,
-      media: taxaTbl.media,
 
       sharedCount: shared.sharedCnt,
       jaccard: jaccardExpr,
@@ -168,5 +168,7 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
     .orderBy(desc(jaccardExpr), desc(shared.sharedCnt), taxaTbl.id)
     .limit(limit);
 
-  return rows;
+  const mediaMap = await selectMediaByTaxonIds(rows.map((r) => r.id));
+
+  return rows.map((r) => ({ ...r, media: mediaMap.get(r.id) ?? [] }));
 }

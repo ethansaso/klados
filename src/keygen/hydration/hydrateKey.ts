@@ -1,8 +1,8 @@
 import { getCharactersByIds } from "../../lib/domain/characters/service";
 import { getFeaturesByIds } from "../../lib/domain/features/service";
+import type { MediaDTO } from "../../lib/domain/media/types";
 import type { Trait } from "../../lib/domain/states/types";
 import { getTaxaByIds } from "../../lib/domain/taxa/service";
-import type { MediaItem } from "../../lib/domain/taxa/validation";
 import { getTraitValuesByIds } from "../../lib/domain/traits/service";
 import type {
   KeyBranch,
@@ -31,7 +31,7 @@ type TaxonMeta = {
   id: number;
   sciName: string;
   commonName?: string;
-  primaryMedia?: MediaItem;
+  primaryMedia?: MediaDTO;
 };
 
 type HydrationMeta = {

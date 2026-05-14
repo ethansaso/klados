@@ -1,7 +1,8 @@
 import { Box, Card, Flex, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import { memo, type PropsWithChildren } from "react";
-import type { MediaItem } from "../lib/domain/taxa/validation";
+import type { MediaDTO } from "../lib/domain/media/types";
+import { getMediaUrl } from "../lib/storage/getMediaUrl";
 import { capitalizeFirstLetter } from "../lib/utils/formatting/casing";
 import { AnnotationBubbleWrap } from "./annotations/AnnotationBubbleWrap";
 
@@ -10,7 +11,7 @@ interface TaxonCardProps {
   rank: string;
   acceptedName: string;
   preferredCommonName?: string | null;
-  thumbnail?: MediaItem | null;
+  thumbnail?: MediaDTO | null;
   serveAsLink?: boolean;
   onClick?: (e: React.MouseEvent) => void;
 }
@@ -29,7 +30,11 @@ export const TaxonCard = memo(
     const content = (
       <>
         <img
-          src={thumbnail?.url ?? "/logos/LogoDotted.svg"}
+          src={
+            thumbnail
+              ? getMediaUrl(thumbnail.storageKey)
+              : "/logos/LogoDotted.svg"
+          }
           alt={acceptedName}
           loading="lazy"
           onError={(e) => {

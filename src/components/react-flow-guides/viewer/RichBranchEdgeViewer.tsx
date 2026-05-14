@@ -76,7 +76,7 @@ const RichBranchEdgeViewer = memo((props: EdgeProps<RFRichBranchEdge>) => {
                             ) : (
                               <CharacterStateDisplay
                                 states={charEntry.traits.map((trait) => ({
-                                  kind: "categorical" as const,
+                                  kind: "categorical",
                                   trait,
                                   modifiers: [],
                                 }))}

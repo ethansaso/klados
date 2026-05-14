@@ -14,7 +14,7 @@ type Props = {
   isLast?: boolean;
   /** When true, suppresses capitalization of the first rendered character (prefix or label). */
   lowercaseFirst?: boolean;
-  /** When provided, renders a color swatch before all other content (including prefix modifiers). */
+  /** When provided, renders a color swatch before content. */
   hexCode?: string | null;
   children: ReactNode;
 };

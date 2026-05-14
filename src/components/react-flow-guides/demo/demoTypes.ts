@@ -1,14 +1,21 @@
 import type { Node, NodeTypes } from "@xyflow/react";
-import type { MediaItem } from "../../../lib/domain/taxa/validation";
 import type { AssertedEdge } from "../util/assertedEdge";
+import { MEDIA_LICENSES } from "../../../../db/utils/mediaLicense";
 import DemoDiffNodeComponent from "./DemoDiffNodeComponent";
 import DemoEdgeComponent from "./DemoEdgeComponent";
 import { DemoTaxonNodeComponent } from "./DemoTaxonNodeComponent";
 
+export type DemoMediaItem = {
+  url: string;
+  license: (typeof MEDIA_LICENSES)[number];
+  owner: string;
+  source: string;
+};
+
 export type DemoTaxonNodeData = {
   sciName: string;
   commonName?: string;
-  primaryMedia?: MediaItem;
+  primaryMedia?: DemoMediaItem;
 };
 export type DemoDiffNodeData = Record<string, unknown>;
 

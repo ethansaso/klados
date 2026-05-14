@@ -1,7 +1,8 @@
 import { Box, Flex } from "@radix-ui/themes";
 import { useState } from "react";
 import { AnnotationBubbleWrap } from "../../../../components/annotations/AnnotationBubbleWrap";
-import type { MediaItem } from "../../../../lib/domain/taxa/validation";
+import type { MediaDTO } from "../../../../lib/domain/media/types";
+import { getMediaUrl } from "../../../../lib/storage/getMediaUrl";
 
 const THUMB_SIZE = 48;
 
@@ -11,7 +12,7 @@ export const TaxonImageBrowser = ({
   media,
 }: {
   taxonName: string;
-  media: MediaItem[];
+  media: MediaDTO[];
 }) => {
   const [selectedMediaIdx, setSelectedMediaIdx] = useState(0);
   const displayedMediaItem = media.at(selectedMediaIdx);
@@ -20,7 +21,11 @@ export const TaxonImageBrowser = ({
     <Box className="taxon-image-browser">
       <AnnotationBubbleWrap media={displayedMediaItem} spacing="2">
         <img
-          src={displayedMediaItem?.url ?? "/logos/LogoDotted.svg"}
+          src={
+            displayedMediaItem
+              ? getMediaUrl(displayedMediaItem.storageKey)
+              : "/logos/LogoDotted.svg"
+          }
           alt={
             displayedMediaItem
               ? `${taxonName}, copyright ${displayedMediaItem.owner}`
@@ -42,9 +47,9 @@ export const TaxonImageBrowser = ({
       >
         <ul>
           {media.map((mediaItem, idx) => (
-            <li key={mediaItem.url}>
+            <li key={mediaItem.id}>
               <img
-                src={mediaItem.url}
+                src={getMediaUrl(mediaItem.storageKey)}
                 alt={`${taxonName} thumbnail ${idx + 1}`}
                 onClick={() => setSelectedMediaIdx(idx)}
                 style={{

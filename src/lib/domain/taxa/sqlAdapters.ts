@@ -28,7 +28,6 @@ export const taxonSelector = {
   sourceGbifId: taxaTbl.sourceGbifId,
   sourceInatId: taxaTbl.sourceInatId,
   status: taxaTbl.status,
-  media: taxaTbl.media,
   notes: taxaTbl.notes,
   acceptedName: sci.value,
   preferredCommonName: common.value,

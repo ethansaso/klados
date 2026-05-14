@@ -1,5 +1,6 @@
 import { Box, Card, Flex, Text } from "@radix-ui/themes";
 import { Handle, type NodeProps, Position } from "@xyflow/react";
+import { getMediaUrl } from "../../../lib/storage/getMediaUrl";
 import { AnnotationBubbleWrap } from "../../annotations/AnnotationBubbleWrap";
 import type { RFTaxonNode } from "../editor/data/types";
 
@@ -11,7 +12,11 @@ export default function TaxonNodeViewer({ data }: NodeProps<RFTaxonNode>) {
     <AnnotationBubbleWrap media={primaryMedia} spacing="4">
       <Card className="taxon-node">
         <img
-          src={primaryMedia?.url ?? "/logos/LogoDotted.svg"}
+          src={
+            primaryMedia
+              ? getMediaUrl(primaryMedia.storageKey)
+              : "/logos/LogoDotted.svg"
+          }
           alt={commonName ?? sciName}
           loading="lazy"
           style={{ border: "1px solid var(--gray-5)" }}
