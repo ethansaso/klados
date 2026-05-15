@@ -10,6 +10,8 @@ export const media = pgTable(
 
     storageKey: text("storage_key").notNull(),
     contentType: text("content_type").notNull(),
+    contentHash: text("content_hash").notNull(),
+    title: text("title").notNull().default(""),
     license: mediaLicenseEnum("license").notNull(),
     owner: text("owner").notNull().default(""),
     source: text("source").notNull().default(""),
@@ -18,5 +20,8 @@ export const media = pgTable(
       onDelete: "set null",
     }),
   }),
-  (t) => [uniqueIndex("media_storage_key_uq").on(t.storageKey)],
+  (t) => [
+    uniqueIndex("media_storage_key_uq").on(t.storageKey),
+    uniqueIndex("media_content_hash_uq").on(t.contentHash),
+  ],
 );

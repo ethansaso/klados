@@ -10,16 +10,26 @@ import {
 import { useEffect, useState } from "react";
 import z from "zod";
 import { MEDIA_LICENSES } from "../../../../../../../db/utils/mediaLicense";
-import type { MediaItem } from "../../../../../../lib/domain/taxa/validation";
+import type { MediaDTO } from "../../../../../../lib/domain/media/types";
+import { uploadMediaFn } from "../../../../../../lib/server-fns/media/uploadMediaFn";
+
+type InatPhoto = {
+  url: string;
+  license: Exclude<(typeof MEDIA_LICENSES)[number], "all-rights-reserved">;
+  owner: string;
+  source: string;
+  name: string | undefined;
+};
 
 type Props = {
   inatId: number;
-  onConfirm: (media: MediaItem[]) => void;
+  onConfirm: (media: MediaDTO[]) => void;
 };
 
 const InatTaxaResponseSchema = z.object({
   results: z.array(
     z.object({
+      name: z.string().optional(),
       taxon_photos: z
         .array(
           z.object({
@@ -47,7 +57,8 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
     const { visible, hide } = NiceModal.useModal();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [allMedia, setAllMedia] = useState<MediaItem[] | null>(null);
+    const [allMedia, setAllMedia] = useState<InatPhoto[] | null>(null);
+    const [uploading, setUploading] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(
       () => new Set(),
     );
@@ -77,7 +88,7 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
           }
           const taxonPhotos = extracted.photos;
 
-          const media: MediaItem[] = taxonPhotos
+          const media: InatPhoto[] = taxonPhotos
             .map((tp) => tp.photo)
             .flatMap((p) => {
               const lic = AllowedLicenseSchema.safeParse(p.license_code);
@@ -89,7 +100,8 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
                   license: lic.data,
                   owner: p.attribution_name ?? "",
                   source: `https://www.inaturalist.org/photos/${p.id}`,
-                } satisfies MediaItem,
+                  name: extracted.name,
+                } satisfies InatPhoto,
               ];
             })
             .slice(0, 9);
@@ -118,11 +130,30 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
       hide();
     };
 
-    const handleFinish = () => {
+    const handleFinish = async () => {
       if (!allMedia) return;
       const selectedMedia = allMedia.filter((_, idx) => selectedIds.has(idx));
-      onConfirm(selectedMedia);
-      handleExit();
+      if (!selectedMedia.length) return;
+
+      setUploading(true);
+      try {
+        const items = selectedMedia.map((m) => ({
+          type: "url" as const,
+          url: m.url,
+          license: m.license,
+          owner: m.owner,
+          source: m.source,
+          title: m.name,
+        }));
+
+        const uploaded = await uploadMediaFn({ data: { items } });
+        onConfirm(uploaded);
+        handleExit();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Upload failed.");
+      } finally {
+        setUploading(false);
+      }
     };
 
     return (
@@ -171,7 +202,11 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
             >
               Cancel
             </Button>
-            <Button disabled={!allMedia} onClick={handleFinish}>
+            <Button
+              disabled={!allMedia || uploading}
+              loading={uploading}
+              onClick={handleFinish}
+            >
               Confirm
             </Button>
           </Flex>
@@ -182,7 +217,7 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
 );
 
 export async function selectInatPhotos(inatId: number) {
-  return new Promise<MediaItem[] | null>((resolve) => {
+  return new Promise<MediaDTO[] | null>((resolve) => {
     NiceModal.show(InatPhotoSelectModal, {
       inatId,
       onConfirm: (media) => resolve(media),
@@ -195,6 +230,7 @@ function extractTaxonPhotos(data: unknown) {
   if (!parsed.success) return { kind: "invalid" as const };
   return {
     kind: "ok" as const,
+    name: parsed.data.results[0]?.name,
     photos: parsed.data.results[0]?.taxon_photos ?? [],
   };
 }

@@ -5,17 +5,6 @@ import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMe
 import type { Transaction } from "../../utils/transactionType";
 import type { InsertMediaArgs, MediaDTO } from "./types";
 
-export async function insertMedia(
-  tx: Transaction,
-  args: InsertMediaArgs,
-): Promise<MediaDTO> {
-  const [row] = await tx.insert(mediaTbl).values(args).returning();
-
-  if (!row) throw new Error("Failed to insert media row");
-
-  return row;
-}
-
 export async function selectMediaById(
   tx: Transaction,
   id: number,
@@ -96,4 +85,31 @@ export async function selectMediaByTaxonIds(
     map.set(row.taxonId, list);
   }
   return map;
+}
+
+export async function selectMediaByContentHashes(
+  hashes: string[],
+): Promise<Map<string, MediaDTO>> {
+  if (hashes.length === 0) return new Map();
+
+  const rows = await db
+    .select()
+    .from(mediaTbl)
+    .where(inArray(mediaTbl.contentHash, hashes));
+
+  const map = new Map<string, MediaDTO>();
+  for (const row of rows) {
+    if (row.contentHash) map.set(row.contentHash, row);
+  }
+  return map;
+}
+
+export async function bulkInsertMedia(
+  tx: Transaction,
+  args: InsertMediaArgs[],
+): Promise<MediaDTO[]> {
+  if (args.length === 0) return [];
+
+  const rows = await tx.insert(mediaTbl).values(args).returning();
+  return rows;
 }
