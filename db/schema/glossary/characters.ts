@@ -9,6 +9,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
+import { media } from "../media/media";
 import { unitFamily } from "./units";
 
 export const character = pgTable(
@@ -17,6 +18,9 @@ export const character = pgTable(
     id: serial("id").primaryKey(),
     label: text("label").notNull(),
     description: text("description").notNull().default(""),
+    mediaId: integer("media_id").references(() => media.id, {
+      onDelete: "set null",
+    }),
   }),
   (t) => [uniqueIndex("characters_label_uq").on(t.label)],
 );

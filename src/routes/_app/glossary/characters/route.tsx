@@ -10,7 +10,7 @@ import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { TiOutline } from "../../../../components/icons/individual/TiOutline";
 import { CharacterIcon } from "../../../../components/icons/modular/CharacterIcon";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
-import { usePaginatedSearch } from "../../../../lib/hooks/usePaginatedSearch";
+import { useRoutedPaginatedSearch } from "../../../../lib/hooks/useRoutedPaginatedSearch";
 import { charactersQueryOptions } from "../../../../lib/queries/characters";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_app/glossary/characters")({
 });
 
 function RouteComponent() {
-  const { search, setQ, next, prev } = usePaginatedSearch();
+  const { search, setQ, next, prev } = useRoutedPaginatedSearch();
   const { data: paginatedResult } = useSuspenseQuery(
     charactersQueryOptions(search.page, search.pageSize, {
       q: search.q,

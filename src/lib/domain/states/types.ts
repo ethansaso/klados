@@ -21,7 +21,7 @@ export type Trait = {
 type CharacterStateBase = {
   characterId: number;
   characterLabel: string;
-  characterDescription: string;
+  characterHasInfo: boolean;
 };
 
 type CharacterNumericStateBase = CharacterStateBase & {
@@ -53,6 +53,6 @@ export type CharacterStateDTO =
 export type FeatureStateDTO = {
   featureId: number;
   featureLabel: string;
-  featureDescription: string;
+  featureHasInfo: boolean;
   states: CharacterStateDTO[];
 };

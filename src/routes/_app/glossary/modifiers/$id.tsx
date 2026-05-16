@@ -1,6 +1,7 @@
 import NiceModal from "@ebay/nice-modal-react";
 import {
   Box,
+  Button,
   Flex,
   Heading,
   IconButton,
@@ -174,13 +175,10 @@ function RouteComponent() {
         <Flex justify="between">
           <Heading>{modifierGroup.label}</Heading>
           <CuratorOnly>
-            <IconButton
-              size="1"
-              onClick={handleDeleteGroupClick}
-              color="tomato"
-            >
+            <Button size="1" onClick={handleDeleteGroupClick} color="tomato">
               <PiTrash />
-            </IconButton>
+              Delete
+            </Button>
           </CuratorOnly>
         </Flex>
         <Flex gap="1" align="center">

@@ -15,6 +15,7 @@ import {
   characterFeature as characterFeatureTbl,
   character as charsTbl,
   feature as featuresTbl,
+  media as mediaTbl,
   numericCharacterMeta as numMetaTbl,
   taxonCharacterStateCategorical as tcsCatTbl,
   taxonCharacterStateNumber as tcsNumTbl,
@@ -24,6 +25,7 @@ import {
 } from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/likeAnywhere";
 import type { Transaction, TxOrDb } from "../../utils/transactionType";
+import type { MediaDTO } from "../media/types";
 import {
   catTraitCountSel,
   catUsageSel,
@@ -49,9 +51,13 @@ type RawCharacterRow = {
   type: "categorical" | "number" | "range";
   traitCount: number | null;
   unitFamilyId: number | null;
+  mediaId: number | null;
 };
 
-function groupRowsToCharacterDTOs(rows: RawCharacterRow[]): CharacterDTO[] {
+function groupRowsToCharacterDTOs(
+  rows: RawCharacterRow[],
+  mediaMap: Map<number, MediaDTO>,
+): CharacterDTO[] {
   const byId = new Map<number, CharacterDTO>();
 
   for (const row of rows) {
@@ -65,6 +71,7 @@ function groupRowsToCharacterDTOs(rows: RawCharacterRow[]): CharacterDTO[] {
         description: row.description,
         features: row.feature ? [row.feature] : [],
         usageCount: row.usageCount,
+        media: row.mediaId != null ? (mediaMap.get(row.mediaId) ?? null) : null,
       };
 
       if (row.type === "categorical") {
@@ -123,6 +130,7 @@ export async function fetchCharacterDetailById(
       id: charsTbl.id,
       label: charsTbl.label,
       description: charsTbl.description,
+      mediaId: charsTbl.mediaId,
     })
     .from(charsTbl)
     .where(eq(charsTbl.id, id))
@@ -130,6 +138,15 @@ export async function fetchCharacterDetailById(
     .then((rows) => rows[0]);
 
   if (!base) return null;
+
+  const media: MediaDTO | null =
+    base.mediaId != null
+      ? await tx
+          .select()
+          .from(mediaTbl)
+          .where(eq(mediaTbl.id, base.mediaId))
+          .then((rows) => rows[0] ?? null)
+      : null;
 
   // Fetch features for character
   const features = await tx
@@ -169,6 +186,7 @@ export async function fetchCharacterDetailById(
       description: base.description,
       features,
       usageCount,
+      media,
       characterId: base.id,
       type: "categorical",
       isMultiSelect: categoricalMeta.isMultiSelect,
@@ -218,6 +236,7 @@ export async function fetchCharacterDetailById(
     description: base.description,
     features,
     usageCount,
+    media,
     characterId: base.id,
     unitFamily: numericMeta.unitFamily,
   };
@@ -255,6 +274,7 @@ export async function selectCharactersByIds(
       unitFamilyId: numMetaTbl.unitFamilyId,
 
       traitCount: catTraitCountSel.traitCount,
+      mediaId: charsTbl.mediaId,
     })
     .from(charsTbl)
     .leftJoin(
@@ -275,7 +295,21 @@ export async function selectCharactersByIds(
       asc(charsTbl.id),
     )) as RawCharacterRow[];
 
-  return groupRowsToCharacterDTOs(rows);
+  const mediaIds = [
+    ...new Set(
+      rows.map((r) => r.mediaId).filter((id): id is number => id != null),
+    ),
+  ];
+  const mediaByIds = new Map<number, MediaDTO>();
+  if (mediaIds.length) {
+    const mediaRows = await tx
+      .select()
+      .from(mediaTbl)
+      .where(inArray(mediaTbl.id, mediaIds));
+    for (const m of mediaRows) mediaByIds.set(m.id, m);
+  }
+
+  return groupRowsToCharacterDTOs(rows, mediaByIds);
 }
 
 /**
@@ -337,6 +371,7 @@ export async function listCharactersQuery(args: {
         unitFamilyId: numMetaTbl.unitFamilyId,
 
         traitCount: catTraitCountSel.traitCount,
+        mediaId: charsTbl.mediaId,
       })
       .from(charsTbl)
       .leftJoin(
@@ -358,7 +393,20 @@ export async function listCharactersQuery(args: {
         asc(charsTbl.id),
       )) as RawCharacterRow[];
 
-    items = groupRowsToCharacterDTOs(rows);
+    const mediaIds = [
+      ...new Set(
+        rows.map((r) => r.mediaId).filter((id): id is number => id != null),
+      ),
+    ];
+    const mediaByIds = new Map<number, MediaDTO>();
+    if (mediaIds.length) {
+      const mediaRows = await db
+        .select()
+        .from(mediaTbl)
+        .where(inArray(mediaTbl.id, mediaIds));
+      for (const m of mediaRows) mediaByIds.set(m.id, m);
+    }
+    items = groupRowsToCharacterDTOs(rows, mediaByIds);
   }
 
   // STEP 2: total character count

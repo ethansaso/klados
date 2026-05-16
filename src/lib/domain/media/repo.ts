@@ -1,9 +1,10 @@
-import { asc, eq, inArray } from "drizzle-orm";
+import { and, asc, count, eq, ilike, inArray, or, type SQL } from "drizzle-orm";
 import { db } from "../../../../db/client";
 import { media as mediaTbl } from "../../../../db/schema/media/media";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
+import { likeAnywhere } from "../../utils/likeAnywhere";
 import type { Transaction } from "../../utils/transactionType";
-import type { InsertMediaArgs, MediaDTO } from "./types";
+import type { InsertMediaArgs, MediaDTO, MediaPaginatedResult } from "./types";
 
 export async function selectMediaById(
   tx: Transaction,
@@ -62,6 +63,7 @@ export async function deleteMediaById(
  * Returns media for each taxon in `taxonIds`, grouped by taxon ID and ordered
  * by position. Uses `db` directly since this is a read and callers typically
  * call it outside a transaction.
+ * TODO: above line is a slop gen, refactor to allow passing a transaction or db instance
  */
 export async function selectMediaByTaxonIds(
   taxonIds: number[],
@@ -112,4 +114,46 @@ export async function bulkInsertMedia(
 
   const rows = await tx.insert(mediaTbl).values(args).returning();
   return rows;
+}
+
+/**
+ * List media with optional text search, paginated.
+ */
+export async function listMediaQuery(args: {
+  q?: string;
+  page: number;
+  pageSize: number;
+}): Promise<MediaPaginatedResult> {
+  const { q, page, pageSize } = args;
+  const offset = (page - 1) * pageSize;
+
+  const like = likeAnywhere(q);
+
+  const filters: (SQL | undefined)[] = [
+    like
+      ? or(
+          ilike(mediaTbl.title, like),
+          ilike(mediaTbl.owner, like),
+          ilike(mediaTbl.source, like),
+        )
+      : undefined,
+  ];
+  const filtered = filters.filter(Boolean) as SQL[];
+  const where = filtered.length ? and(...filtered) : undefined;
+
+  const items = await db
+    .select()
+    .from(mediaTbl)
+    .where(where)
+    .orderBy(asc(mediaTbl.id))
+    .limit(pageSize)
+    .offset(offset);
+
+  const [totalRow] = await db
+    .select({ total: count() })
+    .from(mediaTbl)
+    .where(where);
+  const total = totalRow?.total ?? 0;
+
+  return { items, page, pageSize, total };
 }

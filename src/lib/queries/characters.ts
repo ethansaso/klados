@@ -11,12 +11,10 @@ export const charactersQueryOptions = (
   queryOptions<CharacterPaginatedResult>({
     queryKey: ["characters", { page, pageSize, q: opts?.q ?? null }],
     queryFn: () => listCharactersFn({ data: { page, pageSize, ...opts } }),
-    staleTime: 60_000,
   });
 
 export const characterQueryOptions = (id: number) =>
   queryOptions({
-    queryKey: ["character", id] as const,
+    queryKey: ["characters", id] as const,
     queryFn: () => getCharacterFn({ data: { id } }),
-    staleTime: 60_000,
   });

@@ -1,9 +1,9 @@
 import NiceModal from "@ebay/nice-modal-react";
 import {
   Box,
+  Button,
   Flex,
   Heading,
-  IconButton,
   Link as RadixLink,
   Text,
 } from "@radix-ui/themes";
@@ -16,6 +16,7 @@ import { CuratorOnly } from "../../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
 import { featureQueryOptions } from "../../../../../lib/queries/features";
 import { deleteFeatureFn } from "../../../../../lib/server-fns/features/deleteFeatureFn";
+import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 import { toast } from "../../../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/glossary/features/$id/")({
@@ -65,21 +66,19 @@ function RouteComponent() {
         <Heading size="6">{feature.label}</Heading>
         <CuratorOnly>
           <Flex gap="2">
-            <IconButton asChild size="1">
+            <Button asChild size="1">
               <Link
                 to="/glossary/features/$id/edit"
                 params={{ id: feature.id }}
               >
                 <PiPencil />
+                Edit
               </Link>
-            </IconButton>
-            <IconButton
-              size="1"
-              onClick={handleFeatureDeleteClick}
-              color="tomato"
-            >
+            </Button>
+            <Button size="1" onClick={handleFeatureDeleteClick} color="tomato">
               <PiTrash />
-            </IconButton>
+              Delete
+            </Button>
           </Flex>
         </CuratorOnly>
       </Flex>
@@ -90,6 +89,20 @@ function RouteComponent() {
           <Text color="gray">No description available.</Text>
         )}
       </Box>
+      {feature.media && (
+        <Box mb="3">
+          <img
+            src={getMediaUrl(feature.media.storageKey)}
+            alt={feature.media.title}
+            style={{
+              width: "128px",
+              height: "128px",
+              objectFit: "cover",
+              borderRadius: "var(--radius-2)",
+            }}
+          />
+        </Box>
+      )}
       <Box mb="3">
         <Heading size="4" mb="1">
           Hierarchy

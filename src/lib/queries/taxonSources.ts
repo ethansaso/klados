@@ -3,7 +3,6 @@ import { getSourcesForTaxonFn } from "../server-fns/taxon-sources/getSourcesForT
 
 export const sourcesForTaxonQueryOptions = (id: number) =>
   queryOptions({
-    queryKey: ["taxon", id, "sources"],
+    queryKey: ["taxa", id, "sources"],
     queryFn: () => getSourcesForTaxonFn({ data: { id } }),
-    staleTime: 5 * 60_000,
   });

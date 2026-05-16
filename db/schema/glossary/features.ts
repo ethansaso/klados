@@ -8,6 +8,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
+import { media } from "../media/media";
 
 export const feature = pgTable(
   "feature",
@@ -16,6 +17,9 @@ export const feature = pgTable(
     label: text("label").notNull(),
     description: text("description").notNull().default(""),
     parentId: integer("parent_id"),
+    mediaId: integer("media_id").references(() => media.id, {
+      onDelete: "set null",
+    }),
   }),
   (t) => [
     // ? FKs here avoids circular reference causing TS problems

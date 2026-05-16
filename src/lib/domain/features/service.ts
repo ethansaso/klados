@@ -88,13 +88,14 @@ export async function createFeature(args: {
 export async function updateFeature(
   args: UpdateFeatureInput,
 ): Promise<FeatureDetailDTO | null> {
-  const { id, label, description, parentId, characterIds } = args;
+  const { id, label, description, parentId, characterIds, mediaId } = args;
 
   return db.transaction(async (tx) => {
     const updated = await updateFeatureRow(tx, id, {
       label,
       description,
       parentId,
+      mediaId,
     });
     if (!updated) {
       return null;

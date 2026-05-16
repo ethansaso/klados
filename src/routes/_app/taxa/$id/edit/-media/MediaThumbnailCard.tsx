@@ -45,6 +45,7 @@ export const MediaThumbnailCard = ({
           radius="full"
           size="1"
           color="tomato"
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={onRemove}
         >
           <PiX size={16} />

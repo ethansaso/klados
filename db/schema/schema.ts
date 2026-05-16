@@ -7,8 +7,6 @@ export * from "./glossary/features";
 export * from "./glossary/modifiers";
 export * from "./glossary/units";
 export * from "./guides/guide";
-export * from "./media/characterMedia";
-export * from "./media/featureMedia";
 export * from "./media/media";
 export * from "./media/taxonMedia";
 export * from "./sources/source";

@@ -56,6 +56,7 @@ export async function selectTaxonStatesByTaxonIds(
       featureId: featuresTbl.id,
       featureLabel: featuresTbl.label,
       featureDescription: featuresTbl.description,
+      featureMediaId: featuresTbl.mediaId,
     })
     .from(tfsTbl)
     .innerJoin(featuresTbl, eq(featuresTbl.id, tfsTbl.featureId))
@@ -73,7 +74,7 @@ export async function selectTaxonStatesByTaxonIds(
     featuresById.set(row.featureId, {
       featureId: row.featureId,
       featureLabel: row.featureLabel,
-      featureDescription: row.featureDescription,
+      featureHasInfo: !!row.featureDescription || row.featureMediaId !== null,
       states: [],
     });
   }
@@ -89,6 +90,7 @@ export async function selectTaxonStatesByTaxonIds(
       characterId: catStateTbl.characterId,
       characterLabel: charsTbl.label,
       characterDescription: charsTbl.description,
+      characterMediaId: charsTbl.mediaId,
 
       traitValueId: catStateTbl.traitValueId,
       traitValueLabel: catValTbl.label,
@@ -170,7 +172,8 @@ export async function selectTaxonStatesByTaxonIds(
       kind: "categorical",
       characterId: row.characterId,
       characterLabel: row.characterLabel,
-      characterDescription: row.characterDescription,
+      characterHasInfo:
+        !!row.characterDescription || row.characterMediaId !== null,
       trait: {
         id: row.traitValueId,
         canonicalId,
@@ -195,6 +198,7 @@ export async function selectTaxonStatesByTaxonIds(
       characterId: numStateTbl.characterId,
       characterLabel: charsTbl.label,
       characterDescription: charsTbl.description,
+      characterMediaId: charsTbl.mediaId,
 
       siBaseValue: numStateTbl.siBaseValue,
       unitId: unitsTbl.id,
@@ -254,7 +258,8 @@ export async function selectTaxonStatesByTaxonIds(
       kind: "number",
       characterId: row.characterId,
       characterLabel: row.characterLabel,
-      characterDescription: row.characterDescription,
+      characterHasInfo:
+        !!row.characterDescription || row.characterMediaId !== null,
       siBaseValue: parseFloat(row.siBaseValue),
       unit:
         row.unitId !== null
@@ -283,6 +288,7 @@ export async function selectTaxonStatesByTaxonIds(
       characterId: rangeStateTbl.characterId,
       characterLabel: charsTbl.label,
       characterDescription: charsTbl.description,
+      characterMediaId: charsTbl.mediaId,
 
       siBaseMin: rangeStateTbl.siBaseMin,
       siBaseMax: rangeStateTbl.siBaseMax,
@@ -347,7 +353,8 @@ export async function selectTaxonStatesByTaxonIds(
       kind: "range",
       characterId: row.characterId,
       characterLabel: row.characterLabel,
-      characterDescription: row.characterDescription,
+      characterHasInfo:
+        !!row.characterDescription || row.characterMediaId !== null,
       siBaseMin: row.siBaseMin !== null ? parseFloat(row.siBaseMin) : null,
       siBaseMax: row.siBaseMax !== null ? parseFloat(row.siBaseMax) : null,
       unit:

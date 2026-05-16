@@ -6,9 +6,8 @@ import { listTaxaFn } from "../server-fns/taxa/listTaxaFn";
 
 export const taxonQueryOptions = (id: number) =>
   queryOptions({
-    queryKey: ["taxon", id],
+    queryKey: ["taxa", id],
     queryFn: () => getTaxonFn({ data: { id } }),
-    staleTime: 60_000,
   });
 
 export const taxaQueryOptions = (
@@ -18,7 +17,7 @@ export const taxaQueryOptions = (
 ) =>
   queryOptions({
     queryKey: [
-      "taxon",
+      "taxa",
       {
         page,
         pageSize,

@@ -22,7 +22,6 @@ export const modifierGroupsQueryOptions = (
       listModifierGroupsFn({
         data: { page, pageSize, q: opts?.q },
       }) as Promise<ModifierGroupPaginatedResult>,
-    staleTime: 60_000,
   });
 
 export const modifierGroupQueryOptions = (id: number) =>
@@ -32,7 +31,6 @@ export const modifierGroupQueryOptions = (id: number) =>
       getModifierGroupFn({
         data: { id },
       }) as Promise<ModifierGroupDetailDTO>,
-    staleTime: 60_000,
   });
 
 export const modifiersQueryOptions = (
@@ -51,5 +49,4 @@ export const modifiersQueryOptions = (
       listModifiersFn({
         data: { groupId, page, pageSize, q: opts?.q },
       }) as Promise<ModifierPaginatedResult>,
-    staleTime: 60_000,
   });

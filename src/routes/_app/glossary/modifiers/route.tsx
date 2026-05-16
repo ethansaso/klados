@@ -9,7 +9,7 @@ import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { ModifierIcon } from "../../../../components/icons/modular/ModifierIcon";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
-import { usePaginatedSearch } from "../../../../lib/hooks/usePaginatedSearch";
+import { useRoutedPaginatedSearch } from "../../../../lib/hooks/useRoutedPaginatedSearch";
 import { modifierGroupsQueryOptions } from "../../../../lib/queries/modifiers";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_app/glossary/modifiers")({
 });
 
 function RouteComponent() {
-  const { search, setQ, next, prev } = usePaginatedSearch();
+  const { search, setQ, next, prev } = useRoutedPaginatedSearch();
   const { data: paginatedResult } = useSuspenseQuery(
     modifierGroupsQueryOptions(search.page, search.pageSize, {
       q: search.q,

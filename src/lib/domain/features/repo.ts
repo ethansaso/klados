@@ -17,11 +17,13 @@ import {
   characterFeature as characterFeatureTbl,
   character as charsTbl,
   feature as featuresTbl,
+  media as mediaTbl,
   numericCharacterMeta as numMetaTbl,
   taxonFeatureState as tfsTbl,
 } from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/likeAnywhere";
 import { type Transaction } from "../../utils/transactionType";
+import type { MediaDTO } from "../media/types";
 import type {
   CharacterInFeatureDTO,
   FeatureDetailDTO,
@@ -40,13 +42,14 @@ export async function selectFeaturesByIds(
     return [];
   }
 
-  const items: FeatureDTO[] = await tx
+  const rawItems = await tx
     .select({
       id: featuresTbl.id,
       label: featuresTbl.label,
       description: featuresTbl.description,
       parentId: featuresTbl.parentId,
       characterCount: count(characterFeatureTbl.characterId),
+      mediaId: featuresTbl.mediaId,
     })
     .from(featuresTbl)
     .leftJoin(
@@ -57,7 +60,22 @@ export async function selectFeaturesByIds(
     .groupBy(featuresTbl.id, featuresTbl.label, featuresTbl.description)
     .orderBy(asc(featuresTbl.label), asc(featuresTbl.id));
 
-  return items;
+  const mediaIds = rawItems
+    .map((r) => r.mediaId)
+    .filter((id): id is number => id != null);
+  const mediaByIds = new Map<number, MediaDTO>();
+  if (mediaIds.length) {
+    const mediaRows = await tx
+      .select()
+      .from(mediaTbl)
+      .where(inArray(mediaTbl.id, mediaIds));
+    for (const m of mediaRows) mediaByIds.set(m.id, m);
+  }
+
+  return rawItems.map(({ mediaId, ...r }) => ({
+    ...r,
+    media: mediaId != null ? (mediaByIds.get(mediaId) ?? null) : null,
+  }));
 }
 
 /**
@@ -81,13 +99,14 @@ export async function listFeaturesQuery(args: {
   const filtered = filters.filter(Boolean) as SQL[];
   const where = filtered.length ? and(...filtered) : undefined;
 
-  const items: FeatureDTO[] = await db
+  const rawItems = await db
     .select({
       id: featuresTbl.id,
       label: featuresTbl.label,
       description: featuresTbl.description,
       parentId: featuresTbl.parentId,
       characterCount: count(characterFeatureTbl.characterId),
+      mediaId: featuresTbl.mediaId,
     })
     .from(featuresTbl)
     .leftJoin(
@@ -99,6 +118,23 @@ export async function listFeaturesQuery(args: {
     .orderBy(asc(featuresTbl.label), asc(featuresTbl.id))
     .limit(pageSize)
     .offset(offset);
+
+  const mediaIds = rawItems
+    .map((r) => r.mediaId)
+    .filter((id): id is number => id != null);
+  const mediaByIds = new Map<number, MediaDTO>();
+  if (mediaIds.length) {
+    const mediaRows = await db
+      .select()
+      .from(mediaTbl)
+      .where(inArray(mediaTbl.id, mediaIds));
+    for (const m of mediaRows) mediaByIds.set(m.id, m);
+  }
+
+  const items: FeatureDTO[] = rawItems.map(({ mediaId, ...r }) => ({
+    ...r,
+    media: mediaId != null ? (mediaByIds.get(mediaId) ?? null) : null,
+  }));
 
   const totals = await db
     .select({ total: count() })
@@ -126,6 +162,7 @@ export async function fetchFeatureDetailById(
       description: featuresTbl.description,
       parentId: parentTbl.id,
       parentLabel: parentTbl.label,
+      mediaId: featuresTbl.mediaId,
     })
     .from(featuresTbl)
     .leftJoin(parentTbl, eq(featuresTbl.parentId, parentTbl.id))
@@ -133,6 +170,15 @@ export async function fetchFeatureDetailById(
     .limit(1);
 
   if (!featureRow) return null;
+
+  const media: MediaDTO | null =
+    featureRow.mediaId != null
+      ? await tx
+          .select()
+          .from(mediaTbl)
+          .where(eq(mediaTbl.id, featureRow.mediaId))
+          .then((rows) => rows[0] ?? null)
+      : null;
 
   // Sub-features (indexed on parent_id)
   const subRows = await tx
@@ -197,6 +243,7 @@ export async function fetchFeatureDetailById(
     description: featureRow.description,
     characterCount: characters.length,
     characters,
+    media,
     parentFeature: featureRow.parentId
       ? {
           id: featureRow.parentId,
@@ -229,7 +276,7 @@ export async function insertFeature(
       characterCount: sql<number>`0`,
     });
 
-  return featureRow ?? null;
+  return featureRow ? { ...featureRow, media: null } : null;
 }
 
 export async function updateFeatureRow(
@@ -239,6 +286,7 @@ export async function updateFeatureRow(
     label?: string;
     description?: string;
     parentId?: number | null;
+    mediaId?: number | null;
   },
 ): Promise<Omit<FeatureDTO, "characterCount"> | null> {
   const [featureRow] = await tx
@@ -247,6 +295,7 @@ export async function updateFeatureRow(
       label: args.label,
       description: args.description,
       parentId: args.parentId,
+      mediaId: args.mediaId,
     })
     .where(eq(featuresTbl.id, id))
     .returning({
@@ -254,11 +303,12 @@ export async function updateFeatureRow(
       label: featuresTbl.label,
       description: featuresTbl.description,
       parentId: featuresTbl.parentId,
+      mediaId: featuresTbl.mediaId,
     });
 
   if (!featureRow) return null;
 
-  return featureRow;
+  return { ...featureRow, media: null };
 }
 
 /** Imperatively set the characters linked to a feature. */

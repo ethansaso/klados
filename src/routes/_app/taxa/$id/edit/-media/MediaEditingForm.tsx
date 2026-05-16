@@ -12,12 +12,15 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
+import NiceModal from "@ebay/nice-modal-react";
 import { Button, Flex } from "@radix-ui/themes";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { FaDove } from "react-icons/fa";
 import { PiPlus } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
+import { MediaBrowser } from "../../../../../../components/media-browser/MediaBrowser";
+import type { MediaDTO } from "../../../../../../lib/domain/media/types";
 import { toast } from "../../../../../../lib/utils/toast";
 import { selectInatPhotos } from "./InatPhotoSelectModal";
 import { MediaThumbnailCard } from "./MediaThumbnailCard";
@@ -43,6 +46,12 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
 
   const itemIds = fields.map((f) => f.rhfId);
 
+  const appendDeduped = (items: MediaDTO[]) => {
+    const existingIds = new Set(getValues("media").map((m) => m.id));
+    const newItems = items.filter((m) => !existingIds.has(m.id));
+    if (newItems.length) append(newItems);
+  };
+
   const addFromInat = async () => {
     if (!inatId) {
       toast({
@@ -53,10 +62,7 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
     }
     const picked = await selectInatPhotos(inatId);
     if (!picked?.length) return;
-
-    const existingIds = new Set(getValues("media").map((m) => m.id));
-    const newItems = picked.filter((m) => !existingIds.has(m.id));
-    if (newItems.length) append(newItems);
+    appendDeduped(picked);
   };
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
@@ -76,8 +82,24 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
       description="Drag to reorder. Import photos from iNaturalist or add them manually."
       actions={
         <>
-          {/* TODO: open media browser / direct upload */}
-          <Button type="button" radius="full" size="1" disabled>
+          <Button
+            type="button"
+            variant="ghost"
+            radius="full"
+            size="1"
+            onClick={() => remove()}
+            style={{ margin: 0 }}
+          >
+            Clear
+          </Button>
+          <Button
+            type="button"
+            radius="full"
+            size="1"
+            onClick={() =>
+              NiceModal.show(MediaBrowser, { onSelect: appendDeduped })
+            }
+          >
             <PiPlus size="16" />
             Add Media
           </Button>

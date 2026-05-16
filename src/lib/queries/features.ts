@@ -14,12 +14,10 @@ export const featuresQueryOptions = (
   queryOptions<FeaturePaginatedResult>({
     queryKey: ["features", { page, pageSize, q: opts?.q ?? null }],
     queryFn: () => listFeaturesFn({ data: { page, pageSize, ...opts } }),
-    staleTime: 60_000,
   });
 
 export const featureQueryOptions = (id: number) =>
   queryOptions({
-    queryKey: ["feature", id] as const,
+    queryKey: ["features", id] as const,
     queryFn: () => getFeatureFn({ data: { id } }) as Promise<FeatureDetailDTO>,
-    staleTime: 60_000,
   });

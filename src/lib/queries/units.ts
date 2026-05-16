@@ -6,5 +6,4 @@ export const unitFamiliesQueryOptions = (q?: string) =>
   queryOptions<UnitFamilyDTO[]>({
     queryKey: ["unitFamilies", { q }],
     queryFn: () => listUnitFamiliesFn({ data: { q } }),
-    staleTime: 60_000,
   });

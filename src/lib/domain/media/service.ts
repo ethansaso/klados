@@ -6,12 +6,25 @@ import { bulkInsertMedia, selectMediaByContentHashes } from "./repo";
 import type { InsertMediaArgs, MediaDTO } from "./types";
 import { extFromContentType } from "./utils";
 import type { MediaMeta, SupportedImageType } from "./validation";
+import { listMediaQuery } from "./repo";
+import type { MediaPaginatedResult } from "./types";
 
 export type UploadMediaInput = MediaMeta & {
   body: Buffer;
   contentType: SupportedImageType;
   uploadedBy?: string;
 };
+
+/**
+ * List media with optional text search (title / owner / source), paginated.
+ */
+export async function listMedia(args: {
+  q?: string;
+  page: number;
+  pageSize: number;
+}): Promise<MediaPaginatedResult> {
+  return listMediaQuery(args);
+}
 
 /**
  * Uploads one or more media files, deduplicating by content hash. Process for each input item:

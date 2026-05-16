@@ -23,5 +23,4 @@ export const traitValuesQueryOptions = (
       listTraitValuesFn({
         data: { characterId, page, pageSize, ...opts },
       }),
-    staleTime: 60_000,
   });

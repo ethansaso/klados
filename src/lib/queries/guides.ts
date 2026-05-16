@@ -5,11 +5,10 @@ import { listGuidesFn } from "../server-fns/guides/listGuidesFn";
 
 export function guideQueryOptions(id: number) {
   return queryOptions({
-    queryKey: ["guide", id],
+    queryKey: ["guides", id],
     queryFn: async () => {
       return getGuideFn({ data: { id } });
     },
-    staleTime: 60_000,
   });
 }
 
@@ -21,5 +20,4 @@ export const guidesQueryOptions = (
   queryOptions<GuidePaginatedResult>({
     queryKey: ["guides", { page, pageSize, q: opts?.q ?? null }],
     queryFn: () => listGuidesFn({ data: { page, pageSize, ...opts } }),
-    staleTime: 60_000,
   });

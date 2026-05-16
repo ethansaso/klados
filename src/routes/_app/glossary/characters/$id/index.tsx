@@ -1,6 +1,7 @@
 import NiceModal from "@ebay/nice-modal-react";
 import {
   Box,
+  Button,
   Flex,
   Heading,
   IconButton,
@@ -170,21 +171,23 @@ function RouteComponent() {
           <Heading size="6">{character.label}</Heading>
           <CuratorOnly>
             <Flex gap="2">
-              <IconButton size="1" asChild>
+              <Button size="1" asChild>
                 <Link
                   to="/glossary/characters/$id/edit"
                   params={{ id: character.id }}
                 >
                   <PiPencil />
+                  Edit
                 </Link>
-              </IconButton>
-              <IconButton
+              </Button>
+              <Button
                 size="1"
                 color="tomato"
                 onClick={() => handleCharacterDeleteClick(character)}
               >
                 <PiTrash />
-              </IconButton>
+                Delete
+              </Button>
             </Flex>
           </CuratorOnly>
         </Flex>

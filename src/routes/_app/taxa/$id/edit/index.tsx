@@ -204,9 +204,7 @@ function RouteComponent() {
 
   async function invalidateTaxon(id: number) {
     await Promise.all([
-      qc.invalidateQueries({ queryKey: ["taxon", id] }),
-      // For browsing lists, etc.
-      qc.invalidateQueries({ queryKey: ["taxa"] }),
+      qc.invalidateQueries({ queryKey: ["taxon"] }),
       // Invalidate all lookalike details involving this taxon
       qc.invalidateQueries({
         predicate: (q: Query) => {

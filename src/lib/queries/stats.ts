@@ -6,5 +6,4 @@ export const summaryStatsQueryOptions = () =>
   queryOptions<SummaryStatsDTO>({
     queryKey: ["summaryStats"],
     queryFn: () => getSummaryStatsFn(),
-    staleTime: 60_000,
   });

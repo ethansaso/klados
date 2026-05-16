@@ -1,5 +1,6 @@
 import { feature } from "../../../../db/schema/schema";
 import type { PaginatedResult } from "../../validation/pagination";
+import type { MediaDTO } from "../media/types";
 
 export type FeatureRow = typeof feature.$inferSelect;
 
@@ -8,6 +9,7 @@ export type FeatureDTO = Pick<
   "id" | "label" | "description" | "parentId"
 > & {
   characterCount: number;
+  media: MediaDTO | null;
 };
 
 type BaseCharacterInFeatureDTO = {

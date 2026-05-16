@@ -17,7 +17,6 @@ export const usersQueryOptions = (page: number, pageSize: number) =>
   queryOptions<UserPaginatedResult>({
     queryKey: ["users", { page, pageSize }],
     queryFn: () => listUsersFn({ data: { page, pageSize } }),
-    staleTime: 60_000,
   });
 
 /**
@@ -28,7 +27,6 @@ export const usersAdminViewQueryOptions = (page: number, pageSize: number) =>
   queryOptions<UserAdminViewPaginatedResult>({
     queryKey: ["users", "admin", { page, pageSize }],
     queryFn: () => listUsersAdminFn({ data: { page, pageSize } }),
-    staleTime: 60_000,
   });
 
 /**
@@ -36,9 +34,8 @@ export const usersAdminViewQueryOptions = (page: number, pageSize: number) =>
  */
 export const userQueryOptions = (id: string) =>
   queryOptions<UserDTO>({
-    queryKey: ["user", id],
+    queryKey: ["users", id],
     queryFn: () => getUserFn({ data: { id } }),
-    staleTime: 60_000,
   });
 
 /**
@@ -46,9 +43,8 @@ export const userQueryOptions = (id: string) =>
  */
 export const meQueryOptions = () => {
   return queryOptions({
-    queryKey: ["me"],
+    queryKey: ["users", "me"],
     queryFn: () => getMeFn(),
-    staleTime: 60_000,
     gcTime: 5 * 60_000,
   });
 };

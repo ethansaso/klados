@@ -6,6 +6,7 @@ import {
 } from "../../../../db/schema/schema";
 import type { PaginatedResult } from "../../validation/pagination";
 import type { FeatureRow } from "../features/types";
+import type { MediaDTO } from "../media/types";
 
 export type CharacterRow = typeof character.$inferSelect;
 export type CategoricalMetaRow = typeof categoricalCharacterMeta.$inferSelect;
@@ -15,6 +16,7 @@ export type UnitFamilyRow = typeof unitFamily.$inferSelect;
 type BaseCharacterDTO = Pick<CharacterRow, "id" | "label" | "description"> & {
   features: Pick<FeatureRow, "id" | "label">[];
   usageCount: number;
+  media: MediaDTO | null;
 };
 
 type BaseNumericCharacterDetailDTO = Omit<

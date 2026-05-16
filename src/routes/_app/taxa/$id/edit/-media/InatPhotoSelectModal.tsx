@@ -1,5 +1,6 @@
 import NiceModal from "@ebay/nice-modal-react";
 import {
+  Box,
   Button,
   CheckboxCards,
   Dialog,
@@ -7,6 +8,7 @@ import {
   Spinner,
   Text,
 } from "@radix-ui/themes";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import z from "zod";
 import { MEDIA_LICENSES } from "../../../../../../../db/utils/mediaLicense";
@@ -55,6 +57,7 @@ const AllowedLicenseSchema = z.enum(ALLOWED_LICENSES);
 export const InatPhotoSelectModal = NiceModal.create<Props>(
   ({ inatId, onConfirm }) => {
     const { visible, hide } = NiceModal.useModal();
+    const qc = useQueryClient();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [allMedia, setAllMedia] = useState<InatPhoto[] | null>(null);
@@ -148,6 +151,7 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
 
         const uploaded = await uploadMediaFn({ data: { items } });
         onConfirm(uploaded);
+        qc.invalidateQueries({ queryKey: ["media"] });
         handleExit();
       } catch (e) {
         setError(e instanceof Error ? e.message : "Upload failed.");
@@ -172,25 +176,47 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
             ) : error ? (
               <Text color="red">{error}</Text>
             ) : allMedia ? (
-              <CheckboxCards.Root
-                columns="3"
-                gap="1"
-                className="select-image-grid"
-                value={Array.from(selectedIds).map(String)}
-                onValueChange={(values) =>
-                  setSelectedIds(new Set(values.map(Number)))
-                }
-              >
-                {allMedia.length !== 0 ? (
-                  allMedia.map((m, i) => (
-                    <CheckboxCards.Item value={String(i)} key={m.url}>
-                      <img src={m.url} />
-                    </CheckboxCards.Item>
-                  ))
-                ) : (
-                  <Text>No photos with usable licenses found.</Text>
-                )}
-              </CheckboxCards.Root>
+              <Box>
+                <Flex>
+                  <Button
+                    variant="soft"
+                    size="2"
+                    onClick={() =>
+                      setSelectedIds(
+                        new Set(allMedia?.map((_, idx) => idx) ?? []),
+                      )
+                    }
+                  >
+                    Select all
+                  </Button>
+                  <Button
+                    variant="soft"
+                    size="2"
+                    onClick={() => setSelectedIds(new Set())}
+                  >
+                    Deselect all
+                  </Button>
+                </Flex>
+                <CheckboxCards.Root
+                  columns="3"
+                  gap="1"
+                  className="select-image-grid"
+                  value={Array.from(selectedIds).map(String)}
+                  onValueChange={(values) =>
+                    setSelectedIds(new Set(values.map(Number)))
+                  }
+                >
+                  {allMedia.length !== 0 ? (
+                    allMedia.map((m, i) => (
+                      <CheckboxCards.Item value={String(i)} key={m.url}>
+                        <img src={m.url} />
+                      </CheckboxCards.Item>
+                    ))
+                  ) : (
+                    <Text>No photos with usable licenses found.</Text>
+                  )}
+                </CheckboxCards.Root>
+              </Box>
             ) : null}
           </Flex>
           <Flex mt="5" justify="end" gap="2">
@@ -203,7 +229,7 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
               Cancel
             </Button>
             <Button
-              disabled={!allMedia || uploading}
+              disabled={!allMedia || uploading || selectedIds.size === 0}
               loading={uploading}
               onClick={handleFinish}
             >

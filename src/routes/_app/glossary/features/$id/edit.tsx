@@ -1,3 +1,4 @@
+import NiceModal from "@ebay/nice-modal-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Badge,
@@ -35,13 +36,16 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
+import { MediaBrowser } from "../../../../../components/media-browser/MediaBrowser";
 import type { FeatureDetailDTO } from "../../../../../lib/domain/features/types";
+import type { MediaDTO } from "../../../../../lib/domain/media/types";
 import { charactersQueryOptions } from "../../../../../lib/queries/characters";
 import {
   featureQueryOptions,
   featuresQueryOptions,
 } from "../../../../../lib/queries/features";
 import { updateFeatureFn } from "../../../../../lib/server-fns/features/updateFeatureFn";
+import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 import { toast } from "../../../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/glossary/features/$id/edit")({
@@ -62,6 +66,9 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
   const navigate = useNavigate();
   const [parentQuery, setParentQuery] = useState("");
   const [characterQuery, setCharacterQuery] = useState("");
+  const [currentMedia, setCurrentMedia] = useState<MediaDTO | null>(
+    feature.media ?? null,
+  );
 
   const {
     control,
@@ -83,6 +90,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
         id: c.id,
         label: c.label,
       })),
+      mediaId: feature.media?.id ?? null,
     },
     resolver: zodResolver(updateFeatureFormSchema),
   });
@@ -325,6 +333,56 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
                 </Badge>
               ))}
             </Flex>
+          )}
+        </Box>
+        <Box>
+          <Flex justify="between" align="baseline" mb="1">
+            <Label.Root>Media</Label.Root>
+            <Flex gap="2">
+              <Button
+                type="button"
+                radius="full"
+                size="1"
+                onClick={() =>
+                  NiceModal.show(MediaBrowser, {
+                    onSelect: (items) => {
+                      const m = items[0];
+                      if (!m) return;
+                      setValue("mediaId", m.id, { shouldDirty: true });
+                      setCurrentMedia(m);
+                    },
+                  })
+                }
+              >
+                Browser
+              </Button>
+              {currentMedia && (
+                <Button
+                  type="button"
+                  radius="full"
+                  size="1"
+                  color="tomato"
+                  onClick={() => {
+                    setValue("mediaId", null, { shouldDirty: true });
+                    setCurrentMedia(null);
+                  }}
+                >
+                  Remove
+                </Button>
+              )}
+            </Flex>
+          </Flex>
+          {currentMedia && (
+            <img
+              src={getMediaUrl(currentMedia.storageKey)}
+              alt={currentMedia.title}
+              style={{
+                width: "96px",
+                height: "96px",
+                objectFit: "cover",
+                borderRadius: "var(--radius-2)",
+              }}
+            />
           )}
         </Box>
         <Flex justify="end" gap="2">

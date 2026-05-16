@@ -22,6 +22,7 @@ export const updateFeatureMetaSchema = createFeatureSchema.partial().extend({
 
 export const updateFeatureSchema = updateFeatureMetaSchema.extend({
   characterIds: z.array(z.int().positive()).optional(),
+  mediaId: z.int().positive().nullable().optional(),
 });
 
 export type CreateFeatureInput = z.infer<typeof createFeatureSchema>;

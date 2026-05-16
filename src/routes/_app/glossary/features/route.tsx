@@ -8,7 +8,7 @@ import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
-import { usePaginatedSearch } from "../../../../lib/hooks/usePaginatedSearch";
+import { useRoutedPaginatedSearch } from "../../../../lib/hooks/useRoutedPaginatedSearch";
 import { featuresQueryOptions } from "../../../../lib/queries/features";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/_app/glossary/features")({
 });
 
 function RouteComponent() {
-  const { search, setQ, next, prev } = usePaginatedSearch();
+  const { search, setQ, next, prev } = useRoutedPaginatedSearch();
   const { data: paginatedResult } = useSuspenseQuery(
     featuresQueryOptions(search.page, search.pageSize, {
       q: search.q,

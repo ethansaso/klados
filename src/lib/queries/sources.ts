@@ -24,5 +24,4 @@ export const sourcesQueryOptions = ({
           orderDir: filters?.orderDir,
         },
       }) as Promise<SourcePaginatedResult>,
-    staleTime: 60_000,
   });
