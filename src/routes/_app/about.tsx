@@ -18,10 +18,11 @@ function RouteComponent() {
       <Box mb="5">
         <Heading mb="3">What is Klados?</Heading>
         <Text as="p" mb="2">
-          Klados is a community-oriented taxonomy platform that provides both a
-          free repository of morphological data and a modern interface for
-          creating and sharing flowchart-style identification guides modelled
-          after traditional resources called "dichotomous keys".
+          Klados is a free, community-driven platform for educational resources
+          surrounding the identification and morphology of organisms. It uses a
+          rich dataset of language, images, and relationships to provide
+          resources like interactive identification guides and detailed taxon
+          descriptions, all created and curated by the community.
         </Text>
         <Text as="p" size="2">
           <Em>

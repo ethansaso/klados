@@ -20,7 +20,7 @@ export const GlossaryCard: React.FC<Props> = ({
   return (
     <HoverCard.Root onOpenChange={onOpenChange}>
       <HoverCard.Trigger>{children}</HoverCard.Trigger>
-      <HoverCard.Content maxWidth="224px" size="1" align="center">
+      <HoverCard.Content maxWidth="224px" size="1" align="center" side="top">
         {info ? (
           <>
             {info.media && (
