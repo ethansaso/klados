@@ -33,6 +33,7 @@ export const createCharacterSchema = z.discriminatedUnion("type", [
 export const updateCharacterSchema = baseCharacterFields.partial().extend({
   id: z.int("Must be an integer").positive("Must be positive"),
   isMultiSelect: z.boolean().optional(),
+  mediaId: z.int().positive().nullable().optional(),
 });
 
 export type CreateCategoricalCharacterInput = z.infer<

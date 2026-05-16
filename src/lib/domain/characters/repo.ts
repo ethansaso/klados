@@ -610,7 +610,7 @@ export async function deleteCharacterById(
 export async function updateCharacterBase(
   tx: Transaction,
   id: number,
-  values: Partial<{ label: string; description: string }>,
+  values: Partial<{ label: string; description: string; mediaId: number | null }>,
 ): Promise<{
   id: number;
   label: string;

@@ -178,18 +178,20 @@ export async function deleteCharacter(args: {
 export async function updateCharacter(
   args: UpdateCharacterInput,
 ): Promise<CharacterDetailDTO | null> {
-  const { id, isMultiSelect, ...baseFields } = args;
+  const { id, isMultiSelect, mediaId, ...baseFields } = args;
 
   // Normalize the fields that were provided
   const normalized: Partial<{
     key: string;
     label: string;
     description: string;
+    mediaId: number | null;
   }> = {};
   if (baseFields.label !== undefined)
     normalized.label = baseFields.label.trim();
   if (baseFields.description !== undefined)
     normalized.description = baseFields.description.trim();
+  if (mediaId !== undefined) normalized.mediaId = mediaId;
 
   return db.transaction(async (tx) => {
     const updated = await updateCharacterBase(tx, id, normalized);

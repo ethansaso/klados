@@ -31,6 +31,7 @@ import { characterQueryOptions } from "../../../../../lib/queries/characters";
 import { traitValuesQueryOptions } from "../../../../../lib/queries/traits";
 import { deleteCharacterFn } from "../../../../../lib/server-fns/characters/deleteCharacterFn";
 import { createTraitValueFn } from "../../../../../lib/server-fns/traits/createTraitValueFn";
+import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 import { capitalizeFirstLetter } from "../../../../../lib/utils/formatting/casing";
 import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../../lib/utils/toast";
@@ -203,6 +204,20 @@ function RouteComponent() {
       <Text as="p" color={character.description ? undefined : "gray"} mb="3">
         {character.description || "No description."}
       </Text>
+      {character.media && (
+        <Box mb="3">
+          <img
+            src={getMediaUrl(character.media.storageKey)}
+            alt={character.media.title}
+            style={{
+              width: "128px",
+              height: "128px",
+              objectFit: "cover",
+              borderRadius: "var(--radius-2)",
+            }}
+          />
+        </Box>
+      )}
       {character.type === "categorical" ? (
         <Box>
           <Flex align="center" justify="between" mb="2">

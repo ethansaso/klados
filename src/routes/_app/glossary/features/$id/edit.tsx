@@ -345,9 +345,8 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
                 size="1"
                 onClick={() =>
                   NiceModal.show(MediaBrowser, {
-                    onSelect: (items) => {
-                      const m = items[0];
-                      if (!m) return;
+                    mode: "single",
+                    onSelect: (m) => {
                       setValue("mediaId", m.id, { shouldDirty: true });
                       setCurrentMedia(m);
                     },

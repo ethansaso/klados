@@ -97,7 +97,10 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
             radius="full"
             size="1"
             onClick={() =>
-              NiceModal.show(MediaBrowser, { onSelect: appendDeduped })
+              NiceModal.show(MediaBrowser, {
+                mode: "multi",
+                onSelect: appendDeduped,
+              })
             }
           >
             <PiPlus size="16" />

@@ -20,11 +20,19 @@ import { mediaQueryOptions } from "../../lib/queries/media";
 import { getMediaUrl } from "../../lib/storage/getMediaUrl";
 import { DebouncedTextField } from "../inputs/DebouncedTextField";
 
-interface Props {
-  onSelect: (media: MediaDTO[]) => void;
-}
+type SingleSelectProps = {
+  mode: "single";
+  onSelect: (media: MediaDTO) => void;
+};
 
-export const MediaBrowser = NiceModal.create<Props>(({ onSelect }) => {
+type MultiSelectProps = {
+  mode: "multi";
+  onSelect: (media: MediaDTO[]) => void;
+};
+
+type Props = SingleSelectProps | MultiSelectProps;
+
+export const MediaBrowser = NiceModal.create<Props>((props) => {
   const { visible, remove } = NiceModal.useModal();
   const { search, setQ, next, prev } = usePaginatedSearch();
   const { data: mediaItems } = useQuery(
@@ -37,6 +45,7 @@ export const MediaBrowser = NiceModal.create<Props>(({ onSelect }) => {
     const alreadySelected = selected.find((m) => m.id === media.id);
     if (!alreadySelected) setViewing(media);
     setSelected((prev) => {
+      if (props.mode === "single") return [media];
       if (prev.find((m) => m.id === media.id)) {
         return prev.filter((m) => m.id !== media.id);
       } else {
@@ -46,7 +55,13 @@ export const MediaBrowser = NiceModal.create<Props>(({ onSelect }) => {
   };
 
   const handleConfirm = () => {
-    onSelect(selected);
+    if (props.mode === "multi") {
+      props.onSelect(selected);
+    } else {
+      const m = selected[0];
+      if (!m) return;
+      props.onSelect(m);
+    }
     remove();
   };
 
