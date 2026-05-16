@@ -8,11 +8,11 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import {
+  rectSortingStrategy,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Button, Table } from "@radix-ui/themes";
+import { Button, Flex } from "@radix-ui/themes";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { FaDove } from "react-icons/fa";
 import { PiPlus } from "react-icons/pi";
@@ -20,7 +20,7 @@ import type { TaxonEditFormValues } from "..";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import { toast } from "../../../../../../lib/utils/toast";
 import { selectInatPhotos } from "./InatPhotoSelectModal";
-import { MediaTableRow } from "./MediaTableRow";
+import { MediaThumbnailCard } from "./MediaThumbnailCard";
 
 type MediaEditorProps = {
   inatId: number | null;
@@ -31,6 +31,7 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
   const { fields, append, remove, move } = useFieldArray({
     control,
     name: "media",
+    keyName: "rhfId",
   });
 
   const sensors = useSensors(
@@ -40,10 +41,7 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
     }),
   );
 
-  const itemIds = fields.map((f) => f.id);
-
-  const addRow = () =>
-    append({ url: "", license: "unknown", owner: "", source: "" });
+  const itemIds = fields.map((f) => f.rhfId);
 
   const addFromInat = async () => {
     if (!inatId) {
@@ -56,8 +54,8 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
     const picked = await selectInatPhotos(inatId);
     if (!picked?.length) return;
 
-    const existingUrls = new Set(getValues("media").map((m) => m.url));
-    const newItems = picked.filter((m) => !existingUrls.has(m.url));
+    const existingIds = new Set(getValues("media").map((m) => m.id));
+    const newItems = picked.filter((m) => !existingIds.has(m.id));
     if (newItems.length) append(newItems);
   };
 
@@ -65,8 +63,8 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
     if (!over) return;
     if (active.id === over.id) return;
 
-    const from = fields.findIndex((f) => f.id === active.id);
-    const to = fields.findIndex((f) => f.id === over.id);
+    const from = fields.findIndex((f) => f.rhfId === active.id);
+    const to = fields.findIndex((f) => f.rhfId === over.id);
     if (from === -1 || to === -1) return;
 
     move(from, to);
@@ -75,10 +73,11 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
   return (
     <FormDescriptor
       title="Media"
-      description="Media can be added manually or imported using the iNaturalist button. Remember to properly attribute media sources, and only use media you have rights to use."
+      description="Drag to reorder. Import photos from iNaturalist or add them manually."
       actions={
         <>
-          <Button type="button" radius="full" size="1" onClick={addRow}>
+          {/* TODO: open media browser / direct upload */}
+          <Button type="button" radius="full" size="1" disabled>
             <PiPlus size="16" />
             Add Media
           </Button>
@@ -96,41 +95,23 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
       }
       orientation="vertical"
     >
-      {fields.length === 0 ? null : (
+      {fields.length > 0 && (
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={onDragEnd}
         >
-          <SortableContext
-            items={itemIds}
-            strategy={verticalListSortingStrategy}
-          >
-            <Table.Root variant="surface" size="1">
-              <Table.Header>
-                <Table.Row>
-                  <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
-                  <Table.ColumnHeaderCell>Preview</Table.ColumnHeaderCell>
-                  <Table.ColumnHeaderCell>Image URL</Table.ColumnHeaderCell>
-                  <Table.ColumnHeaderCell>License</Table.ColumnHeaderCell>
-                  <Table.ColumnHeaderCell>Owner</Table.ColumnHeaderCell>
-                  <Table.ColumnHeaderCell>Source URL</Table.ColumnHeaderCell>
-                  <Table.ColumnHeaderCell>Delete</Table.ColumnHeaderCell>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {fields.map((row, i) => {
-                  return (
-                    <MediaTableRow
-                      key={row.id}
-                      id={row.id}
-                      index={i}
-                      onRemove={() => remove(i)}
-                    />
-                  );
-                })}
-              </Table.Body>
-            </Table.Root>
+          <SortableContext items={itemIds} strategy={rectSortingStrategy}>
+            <Flex gap="2" wrap="wrap">
+              {fields.map((field, i) => (
+                <MediaThumbnailCard
+                  key={field.rhfId}
+                  id={field.rhfId}
+                  storageKey={field.storageKey}
+                  onRemove={() => remove(i)}
+                />
+              ))}
+            </Flex>
           </SortableContext>
         </DndContext>
       )}

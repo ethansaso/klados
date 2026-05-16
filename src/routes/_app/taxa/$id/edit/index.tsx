@@ -34,7 +34,6 @@ import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
 import { ContentContainer } from "../../../../../components/ContentContainer";
 import type { SourceDTO } from "../../../../../lib/domain/sources/types";
 import type { CharacterByFeatureUpdate } from "../../../../../lib/domain/states/validation";
-import { mediaItemSchema } from "../../../../../lib/domain/taxa/validation";
 import { setTaxonSourcesSchema } from "../../../../../lib/domain/taxon-sources/validation";
 import { getTaxonCharacterStatesFn } from "../../../../../lib/server-fns/character-states/getTaxonCharacterStatesFn";
 import { deleteTaxonFn } from "../../../../../lib/server-fns/taxa/deleteTaxonFn";
@@ -49,6 +48,7 @@ import { CharacterEditingForm } from "./-characters/CharactersEditingForm";
 import type { GroupedCharacterFormValue } from "./-characters/validation";
 import { groupedCharacterFormSchema } from "./-characters/validation";
 import { MediaEditingForm } from "./-media/MediaEditingForm";
+import { mediaFormItemSchema } from "./-media/validation";
 import { MetaForm } from "./-meta/MetaForm";
 import { NameEditingForm } from "./-names/NameEditingForm";
 import { nameItemFormSchema } from "./-names/validation";
@@ -56,12 +56,13 @@ import { seedTaxonEditState } from "./-seeding";
 import { SourceEditingForm } from "./-sources/SourceEditingForm";
 
 export type TaxonEditFormValues = z.infer<typeof taxonEditFormSchema>;
+
 export const taxonEditFormSchema = z.object({
   parentId: z.number().nullable(),
   rank: z.enum(TAXON_RANKS_DESCENDING),
   sourceGbifId: z.number().nullable(),
   sourceInatId: z.number().nullable(),
-  media: z.array(mediaItemSchema),
+  media: z.array(mediaFormItemSchema),
   notes: z.string(),
   names: z.array(nameItemFormSchema),
   states: groupedCharacterFormSchema,
@@ -235,11 +236,13 @@ function RouteComponent() {
   const onSave: SubmitHandler<TaxonEditFormValues> = async (data) => {
     if (!isDirty) return;
     try {
+      const { media, ...rest } = data;
       await serverUpdate({
         data: {
-          ...data,
+          ...rest,
           id,
           states: convertToServerCharacterValues(data.states),
+          mediaIds: media.map((m) => m.id),
         },
       });
       reset(data, { keepDirty: false }); // keep RHF dirty tracking in sync
@@ -256,11 +259,13 @@ function RouteComponent() {
   const onPublish: SubmitHandler<TaxonEditFormValues> = async (data) => {
     if (!isDraft) return;
     try {
+      const { media, ...rest } = data;
       await serverUpdate({
         data: {
-          ...data,
+          ...rest,
           id,
           states: convertToServerCharacterValues(data.states),
+          mediaIds: media.map((m) => m.id),
         },
       });
       reset(data, { keepDirty: false }); // clear dirty after persisting
@@ -318,7 +323,7 @@ function RouteComponent() {
       </Box>
 
       <FormProvider {...methods}>
-        <Form.Root onSubmit={handleSubmit(onSave)}>
+        <Form.Root onSubmit={handleSubmit(onSave)} style={{ width: "100%" }}>
           <Separator size="4" my="4" />
           {/* Basic meta (rank, parent, source IDs) */}
           <MetaForm id={id} acceptedName={initialTaxon.acceptedName} />
