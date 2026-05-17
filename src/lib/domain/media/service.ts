@@ -2,18 +2,39 @@ import crypto from "node:crypto";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "../../../../db/client";
 import { storage } from "../../storage";
-import { bulkInsertMedia, selectMediaByContentHashes } from "./repo";
-import type { InsertMediaArgs, MediaDTO } from "./types";
+import {
+  bulkInsertMedia,
+  deleteMediaById,
+  listMediaQuery,
+  selectMediaByContentHashes,
+  selectMediaById,
+} from "./repo";
+import type { InsertMediaArgs, MediaDTO, MediaPaginatedResult } from "./types";
 import { extFromContentType } from "./utils";
 import type { MediaMeta, SupportedImageType } from "./validation";
-import { listMediaQuery } from "./repo";
-import type { MediaPaginatedResult } from "./types";
 
 export type UploadMediaInput = MediaMeta & {
   body: Buffer;
   contentType: SupportedImageType;
   uploadedBy?: string;
 };
+
+/**
+ * Deletes a media item by ID. Removes the DB row first inside a transaction,
+ * then deletes the file from storage. Returns false if the item did not exist.
+ */
+export async function deleteMedia(id: number): Promise<boolean> {
+  const deleted = await db.transaction(async (tx) => {
+    const row = await selectMediaById(tx, id);
+    if (!row) return null;
+    await deleteMediaById(tx, id);
+    return row;
+  });
+
+  if (!deleted) return false;
+  await storage.delete(deleted.storageKey);
+  return true;
+}
 
 /**
  * List media with optional text search (title / owner / source), paginated.

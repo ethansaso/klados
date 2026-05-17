@@ -6,10 +6,14 @@ type PaginatedSearchState = {
   q: string;
 };
 
-export function usePaginatedSearch() {
+type Opts = {
+  pageSize?: number;
+};
+
+export function usePaginatedSearch(opts?: Opts) {
   const [search, setSearchState] = useState<PaginatedSearchState>({
     page: 1,
-    pageSize: 20,
+    pageSize: opts?.pageSize ?? 20,
     q: "",
   });
 
