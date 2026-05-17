@@ -7,9 +7,6 @@ import { NavBar } from "../../components/nav/NavBar";
 import { meQueryOptions } from "../../lib/queries/users";
 
 export const Route = createFileRoute("/_app")({
-  loader: async ({ context }) => {
-    await context.queryClient.ensureQueryData(meQueryOptions());
-  },
   component: RouteComponent,
 });
 

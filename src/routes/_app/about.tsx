@@ -76,11 +76,11 @@ function RouteComponent() {
             <Text as="p" mb="2">
               Hi there! My name is Ethan Saso, and I'm a full-stack developer
               with a lifelong passion for naturalism. I originally created
-              Klados under a different name, 'TaxoKeys', in my last semester of
-              college as my first web development project. Once I'd picked up
-              more experience from my career, I decided to return and rebuild
-              the platform from the ground up as Klados, with a focus on
-              community contribution and open science.
+              Klados under the name 'TaxoKeys' in my last semester of college as
+              my first web development project. Once I'd picked up more
+              experience from my career, I decided to return and rebuild the
+              platform from the ground up as Klados, with a focus on community
+              contribution and open science.
             </Text>
             <Text as="p" mb="2">
               I graduated from UC Berkeley in 2024 with a degree in Molecular
