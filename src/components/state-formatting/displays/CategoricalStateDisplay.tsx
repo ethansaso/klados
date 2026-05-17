@@ -1,6 +1,6 @@
 import { Text } from "@radix-ui/themes";
 import { memo } from "react";
-import { ResponsiveTooltip } from "../../ResponsiveTooltip";
+import { GlossaryTraitCard } from "../../glossary-cards/GlossaryTraitCard";
 import { formatTraitLabel } from "../formatting";
 import { AffixedValue } from "../helpers/AffixedValue";
 import type { UICategoricalState } from "../types";
@@ -22,13 +22,14 @@ export const CategoricalStateDisplay = memo(
       hasPrefixes,
     );
 
-    const label = trait.description ? (
-      <ResponsiveTooltip content={trait.description}>
-        <span className="has-information">{rawLabel}</span>
-      </ResponsiveTooltip>
-    ) : (
-      rawLabel
-    );
+    const label =
+      trait.hasInfo && trait.id ? (
+        <GlossaryTraitCard id={trait.id}>
+          <span className="has-information">{rawLabel}</span>
+        </GlossaryTraitCard>
+      ) : (
+        rawLabel
+      );
 
     return (
       <AffixedValue

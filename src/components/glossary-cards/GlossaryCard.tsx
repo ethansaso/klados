@@ -1,6 +1,7 @@
 import { Box, HoverCard, Spinner, Text } from "@radix-ui/themes";
 import type { MediaDTO } from "../../lib/domain/media/types";
 import { getMediaUrl } from "../../lib/storage/getMediaUrl";
+import { AnnotationBubbleWrap } from "../annotations/AnnotationBubbleWrap";
 
 interface Props {
   info?: {
@@ -24,18 +25,20 @@ export const GlossaryCard: React.FC<Props> = ({
         {info ? (
           <>
             {info.media && (
-              <Box mb="1">
-                <img
-                  src={getMediaUrl(info.media.storageKey)}
-                  alt={info.media.title}
-                  style={{
-                    width: "100%",
-                    aspectRatio: "16/9",
-                    objectFit: "cover",
-                    borderRadius: "var(--radius-2)",
-                  }}
-                />
-              </Box>
+              <AnnotationBubbleWrap media={info.media} spacing="1">
+                <Box mb="2">
+                  <img
+                    src={getMediaUrl(info.media.storageKey)}
+                    alt={info.media.title}
+                    style={{
+                      width: "100%",
+                      aspectRatio: "16/9",
+                      objectFit: "cover",
+                      borderRadius: "var(--radius-2)",
+                    }}
+                  />
+                </Box>
+              </AnnotationBubbleWrap>
             )}
             {info.title && (
               <Text as="p" weight="bold" size="1">

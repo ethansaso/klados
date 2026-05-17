@@ -45,6 +45,16 @@ export async function deleteTraitValue(args: {
 }
 
 /**
+ * Fetch a single trait value by ID.
+ * Returns null if not found.
+ */
+export async function getTraitValue(args: {
+  id: number;
+}): Promise<TraitValueDTO | null> {
+  return db.transaction((tx) => selectTraitValueDtoById(tx, args.id));
+}
+
+/**
  * Bulk fetch trait values by ID.
  */
 export async function getTraitValuesByIds(

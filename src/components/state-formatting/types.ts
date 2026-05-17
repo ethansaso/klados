@@ -8,11 +8,8 @@ import type { UnitDTO } from "../../lib/domain/units/types";
 
 type Weight = "light" | "regular" | "medium" | "bold";
 
-export type UITrait = Omit<
-  Trait,
-  "description" | "hexCode" | "canonicalId"
-> & {
-  description?: string;
+export type UITrait = Omit<Trait, "hasInfo" | "hexCode" | "canonicalId"> & {
+  hasInfo?: boolean;
   hexCode?: string | null;
   weight?: Weight;
 };

@@ -31,7 +31,7 @@ function toUIState(
         trait: {
           id: annotated.trait.id,
           label: annotated.trait.label,
-          description: annotated.trait.description ?? undefined,
+          hasInfo: annotated.trait.hasInfo,
           hexCode: annotated.trait.hexCode,
           weight: annotated.isOverlapping ? undefined : ("bold" as const),
         },

@@ -178,7 +178,7 @@ export async function selectTaxonStatesByTaxonIds(
         id: row.traitValueId,
         canonicalId,
         label: row.traitValueLabel,
-        description: descriptionByCanonicalId.get(canonicalId) ?? "",
+        hasInfo: !!descriptionByCanonicalId.get(canonicalId),
         hexCode: hexByCanonicalId.get(canonicalId) || undefined,
       },
       modifiers: modifiersByCatStateId.get(row.stateId) ?? [],
