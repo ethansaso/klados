@@ -14,7 +14,7 @@ const mediaMetaSchema = z.object({
   license: z.enum(MEDIA_LICENSES),
   owner: z.string(),
   source: z.string(),
-  title: z.string().optional(),
+  title: z.string().min(1),
 });
 
 export const uploadMediaWireItemSchema = z.discriminatedUnion("type", [
