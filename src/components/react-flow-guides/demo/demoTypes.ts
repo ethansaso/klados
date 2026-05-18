@@ -1,13 +1,13 @@
 import type { Node, NodeTypes } from "@xyflow/react";
+import { type MediaLicense } from "../../../../db/utils/mediaLicense";
 import type { AssertedEdge } from "../util/assertedEdge";
-import { MEDIA_LICENSES } from "../../../../db/utils/mediaLicense";
 import DemoDiffNodeComponent from "./DemoDiffNodeComponent";
 import DemoEdgeComponent from "./DemoEdgeComponent";
 import { DemoTaxonNodeComponent } from "./DemoTaxonNodeComponent";
 
 export type DemoMediaItem = {
   url: string;
-  license: (typeof MEDIA_LICENSES)[number];
+  license: MediaLicense;
   owner: string;
   source: string;
 };

@@ -11,13 +11,16 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import z from "zod";
-import { MEDIA_LICENSES } from "../../../../../../../db/utils/mediaLicense";
+import {
+  MEDIA_LICENSES,
+  type MediaLicense,
+} from "../../../../../../../db/utils/mediaLicense";
 import type { MediaDTO } from "../../../../../../lib/domain/media/types";
 import { uploadMediaFn } from "../../../../../../lib/server-fns/media/uploadMediaFn";
 
 type InatPhoto = {
   url: string;
-  license: Exclude<(typeof MEDIA_LICENSES)[number], "all-rights-reserved">;
+  license: Exclude<MediaLicense, "all-rights-reserved">;
   owner: string;
   source: string;
   name: string | undefined;
@@ -50,7 +53,7 @@ const InatTaxaResponseSchema = z.object({
 
 const ALLOWED_LICENSES = MEDIA_LICENSES.filter(
   (l) => l !== "all-rights-reserved",
-) as readonly Exclude<(typeof MEDIA_LICENSES)[number], "all-rights-reserved">[];
+) as readonly Exclude<MediaLicense, "all-rights-reserved">[];
 
 const AllowedLicenseSchema = z.enum(ALLOWED_LICENSES);
 

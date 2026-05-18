@@ -2,7 +2,7 @@ import { Link, Text } from "@radix-ui/themes";
 import { PiCopyright } from "react-icons/pi";
 import {
   HUMAN_CASED_MEDIA_LICENSES,
-  MEDIA_LICENSES,
+  type MediaLicense,
 } from "../../../db/utils/mediaLicense";
 import type { MediaDTO } from "../../lib/domain/media/types";
 import type { ResponsiveSize, Size } from "../../lib/utils/responsiveSize";
@@ -10,7 +10,7 @@ import { spacingClasses } from "./spacingClasses";
 
 type MediaAnnotation = Pick<MediaDTO, "owner" | "license" | "source">;
 
-const LICENSE_LINKS: Record<(typeof MEDIA_LICENSES)[number], string | null> = {
+const LICENSE_LINKS: Record<MediaLicense, string | null> = {
   unknown: null,
   cc0: "https://creativecommons.org/publicdomain/zero/1.0/",
   "cc-by": "https://creativecommons.org/licenses/by/4.0/",

@@ -1,5 +1,7 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 
+export type MediaLicense = (typeof MEDIA_LICENSES)[number];
+
 export const MEDIA_LICENSES = [
   "unknown",
   "cc0", // Creative Commons Zero (public domain)

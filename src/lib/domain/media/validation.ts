@@ -20,7 +20,7 @@ const mediaMetaSchema = z.object({
 export const uploadMediaWireItemSchema = z.discriminatedUnion("type", [
   mediaMetaSchema.extend({
     type: z.literal("url"),
-    url: z.string().url(),
+    url: z.url(),
   }),
   mediaMetaSchema.extend({
     type: z.literal("file"),
