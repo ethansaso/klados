@@ -2,9 +2,15 @@
   padding: 0;
 }
 
-.surface-dialog__title {
+.surface-dialog__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: var(--dialog-content-padding);
   border-bottom: 1px solid var(--gray-5);
+}
+
+.surface-dialog__title {
 }
 
 .surface-dialog__body {

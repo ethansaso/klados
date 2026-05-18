@@ -19,6 +19,15 @@ const Content: React.FC<ComponentProps<typeof Dialog.Content>> = ({
   </Flex>
 );
 
+const Header: React.FC<ComponentProps<typeof Box>> = ({
+  children,
+  ...props
+}) => (
+  <Box className="surface-dialog__header" {...props}>
+    {children}
+  </Box>
+);
+
 const Title: React.FC<ComponentProps<typeof Dialog.Title>> = ({
   children,
   ...props
@@ -62,6 +71,7 @@ const Footer: React.FC<ComponentProps<typeof Box>> = ({
 
 const SurfaceDialog = {
   Content,
+  Header,
   Title,
   Body,
   Row,

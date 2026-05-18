@@ -28,7 +28,7 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
-import { MediaBrowser } from "../../../../../components/media-browser/MediaBrowser";
+import MediaBrowser from "../../../../../components/media-browser";
 import {
   generateLoginRedirectFromLocation,
   roleHasCuratorRights,

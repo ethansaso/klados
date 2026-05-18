@@ -36,7 +36,7 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
-import { MediaBrowser } from "../../../../../components/media-browser/MediaBrowser";
+import MediaBrowser from "../../../../../components/media-browser";
 import type { FeatureDetailDTO } from "../../../../../lib/domain/features/types";
 import type { MediaDTO } from "../../../../../lib/domain/media/types";
 import { charactersQueryOptions } from "../../../../../lib/queries/characters";

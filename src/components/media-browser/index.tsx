@@ -21,6 +21,7 @@ import {
   PiMagnifyingGlass,
   PiPencil,
   PiTrash,
+  PiUploadSimple,
 } from "react-icons/pi";
 import type { MediaDTO } from "../../lib/domain/media/types";
 import { usePaginatedSearch } from "../../lib/hooks/usePaginatedSearch";
@@ -44,7 +45,7 @@ type MultiSelectProps = {
 
 type Props = SingleSelectProps | MultiSelectProps;
 
-export const MediaBrowser = NiceModal.create<Props>((props) => {
+const MediaBrowser = NiceModal.create<Props>((props) => {
   const { visible, remove } = NiceModal.useModal();
   const serverDelete = useServerFn(deleteMediaFn);
   const { search, setQ, next, prev } = usePaginatedSearch({ pageSize: 30 });
@@ -52,10 +53,11 @@ export const MediaBrowser = NiceModal.create<Props>((props) => {
     ...mediaQueryOptions(search.page, search.pageSize, { q: search.q }),
     placeholderData: keepPreviousData,
   });
-  const [viewing, setViewing] = useState<MediaDTO | null>(null);
+  const [mode, setMode] = useState<"select" | "upload">("select");
   const [selected, setSelected] = useState<MediaDTO[]>([]);
   const gridScrollRef = useRef<HTMLDivElement>(null);
 
+  const viewing = selected[selected.length - 1];
   const maxPages = mediaItems
     ? Math.max(Math.ceil(mediaItems.total / search.pageSize), 1)
     : 1;
@@ -78,8 +80,6 @@ export const MediaBrowser = NiceModal.create<Props>((props) => {
   };
 
   const handleMediaClick = (media: MediaDTO) => {
-    const alreadySelected = selected.find((m) => m.id === media.id);
-    if (!alreadySelected) setViewing(media);
     setSelected((prev) => {
       if (props.mode === "single") return [media];
       if (prev.find((m) => m.id === media.id)) {
@@ -110,7 +110,13 @@ export const MediaBrowser = NiceModal.create<Props>((props) => {
         height="min(80vh, 768px)"
         size="2"
       >
-        <SurfaceDialog.Title trim="normal">Browse Media</SurfaceDialog.Title>
+        <SurfaceDialog.Header>
+          <SurfaceDialog.Title trim="normal">Browse Media</SurfaceDialog.Title>
+          <Button size="1">
+            <PiUploadSimple />
+            Upload
+          </Button>
+        </SurfaceDialog.Header>
         <SurfaceDialog.Body>
           <SurfaceDialog.Col flexGrow="1">
             <SurfaceDialog.Row overflow="auto" flexShrink="0" p="0">
@@ -315,3 +321,5 @@ export const MediaBrowser = NiceModal.create<Props>((props) => {
     </Dialog.Root>
   );
 });
+
+export default MediaBrowser;

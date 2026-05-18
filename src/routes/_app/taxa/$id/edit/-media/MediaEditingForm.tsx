@@ -19,7 +19,7 @@ import { FaDove } from "react-icons/fa";
 import { PiPlus } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
-import { MediaBrowser } from "../../../../../../components/media-browser/MediaBrowser";
+import MediaBrowser from "../../../../../../components/media-browser";
 import type { MediaDTO } from "../../../../../../lib/domain/media/types";
 import { toast } from "../../../../../../lib/utils/toast";
 import { selectInatPhotos } from "./InatPhotoSelectModal";
