@@ -18,7 +18,7 @@ import {
 } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type React from "react";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import {
   PiDownloadSimple,
   PiMagnifyingGlass,
@@ -26,6 +26,7 @@ import {
   PiTrash,
 } from "react-icons/pi";
 import type { MediaBrowserProps } from ".";
+import { HUMAN_CASED_MEDIA_LICENSES } from "../../../db/utils/mediaLicense";
 import type { MediaDTO } from "../../lib/domain/media/types";
 import { usePaginatedSearch } from "../../lib/hooks/usePaginatedSearch";
 import { mediaQueryOptions } from "../../lib/queries/media";
@@ -36,6 +37,8 @@ import SurfaceDialog from "../dialogs/SurfaceDialog";
 import { DebouncedTextField } from "../inputs/DebouncedTextField";
 
 type Props = MediaBrowserProps & {
+  selected: MediaDTO[];
+  setSelected: React.Dispatch<React.SetStateAction<MediaDTO[]>>;
   enabled: boolean;
   onClose: () => void;
 };
@@ -48,10 +51,9 @@ export const MediaBrowserView: React.FC<Props> = (props) => {
     ...mediaQueryOptions(search.page, search.pageSize, { q: search.q }),
     placeholderData: keepPreviousData,
   });
-  const [selected, setSelected] = useState<MediaDTO[]>([]);
   const gridScrollRef = useRef<HTMLDivElement>(null);
 
-  const viewing = selected[selected.length - 1];
+  const viewing = props.selected[props.selected.length - 1];
   const maxPages = mediaItems
     ? Math.max(Math.ceil(mediaItems.total / search.pageSize), 1)
     : 1;
@@ -75,7 +77,7 @@ export const MediaBrowserView: React.FC<Props> = (props) => {
   };
 
   const handleMediaClick = (media: MediaDTO) => {
-    setSelected((prev) => {
+    props.setSelected((prev) => {
       if (props.mode === "single") return [media];
       if (prev.find((m) => m.id === media.id)) {
         return prev.filter((m) => m.id !== media.id);
@@ -87,9 +89,9 @@ export const MediaBrowserView: React.FC<Props> = (props) => {
 
   const handleConfirm = () => {
     if (props.mode === "multi") {
-      props.onSelect(selected);
+      props.onSelect(props.selected);
     } else {
-      const m = selected[0];
+      const m = props.selected[0];
       if (!m) return;
       props.onSelect(m);
     }
@@ -137,18 +139,24 @@ export const MediaBrowserView: React.FC<Props> = (props) => {
             ) : (
               <Grid columns={{ initial: "2", sm: "3", md: "5" }} gap="2">
                 {mediaItems?.items.map((media) => {
-                  const isSelected = selected.find((m) => m.id === media.id);
+                  const isSelected = props.selected.find(
+                    (m) => m.id === media.id,
+                  );
                   return (
                     <Reset key={media.id}>
                       <button
                         onClick={() => handleMediaClick(media)}
                         style={{
-                          border: isSelected
-                            ? "1px solid var(--accent-7)"
-                            : "1px solid var(--gray-a5)",
+                          display: "flex",
+                          flexDirection: "column",
+                          boxShadow: isSelected
+                            ? "0px 0px 0px 2px var(--accent-7)"
+                            : "0px 0px 0px 1px var(--gray-a5)",
                           background: isSelected
                             ? "var(--accent-a3)"
                             : "var(--gray-1)",
+                          borderRadius: "var(--radius-2)",
+                          overflow: "hidden",
                           cursor: "pointer",
                           paddingInline: 0,
                         }}
@@ -205,7 +213,7 @@ export const MediaBrowserView: React.FC<Props> = (props) => {
             </Flex>
           </SurfaceDialog.Row>
         </SurfaceDialog.Col>
-        <SurfaceDialog.Col width="288px" flexShrink="0" flexGrow="0">
+        <SurfaceDialog.Col width="320px" flexShrink="0" flexGrow="0">
           {viewing ? (
             <>
               <SurfaceDialog.Row p="2" flexShrink="0">
@@ -241,18 +249,47 @@ export const MediaBrowserView: React.FC<Props> = (props) => {
                     {viewing.contentType}
                   </Text>
                 </Box>
-                <Box>
+                <Flex
+                  position="relative"
+                  overflow="hidden"
+                  height="224px"
+                  align="center"
+                  justify="center"
+                >
                   <img
                     src={getMediaUrl(viewing.storageKey)}
                     alt={viewing.title}
                     style={{
-                      width: "100%",
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      width: "125%",
+                      height: "125%",
                       borderRadius: "4px",
                       aspectRatio: "1",
                       objectFit: "cover",
+                      boxSizing: "border-box",
+                      zIndex: 0,
+                      filter: "blur(10px) brightness(0.3)",
                     }}
                   />
-                </Box>
+                  <img
+                    src={getMediaUrl(viewing.storageKey)}
+                    alt={viewing.title}
+                    style={{
+                      position: "relative",
+                      maxWidth: "100%",
+                      maxHeight: "224px",
+                      width: "auto",
+                      height: "auto",
+                      borderRadius: "4px",
+                      objectFit: "contain",
+                      boxSizing: "border-box",
+                      zIndex: 1,
+                    }}
+                  />
+                </Flex>
                 <DataList.Root mt="4">
                   <DataList.Item>
                     <DataList.Label minWidth="72px">Owner</DataList.Label>
@@ -260,7 +297,9 @@ export const MediaBrowserView: React.FC<Props> = (props) => {
                   </DataList.Item>
                   <DataList.Item>
                     <DataList.Label minWidth="72px">License</DataList.Label>
-                    <DataList.Value>{viewing.license}</DataList.Value>
+                    <DataList.Value>
+                      {HUMAN_CASED_MEDIA_LICENSES[viewing.license]}
+                    </DataList.Value>
                   </DataList.Item>
                   <DataList.Item>
                     <DataList.Label minWidth="72px">Source</DataList.Label>
@@ -286,14 +325,18 @@ export const MediaBrowserView: React.FC<Props> = (props) => {
         <Flex justify="between" align="center">
           {props.mode === "multi" && (
             <Text size="1" color="gray">
-              {selected.length} item{selected.length !== 1 && "s"} selected
+              {props.selected.length} item{props.selected.length !== 1 && "s"}{" "}
+              selected
             </Text>
           )}
           <Flex gap="2" ml="auto" align="center">
             <Button onClick={props.onClose} variant="outline">
               Cancel
             </Button>
-            <Button onClick={handleConfirm} disabled={selected.length === 0}>
+            <Button
+              onClick={handleConfirm}
+              disabled={props.selected.length === 0}
+            >
               Confirm
             </Button>
           </Flex>

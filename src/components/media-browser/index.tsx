@@ -26,10 +26,16 @@ export type MediaBrowserProps =
 
 const MediaBrowser = NiceModal.create<MediaBrowserProps>((props) => {
   const { visible, remove } = NiceModal.useModal();
+  const [selected, setSelected] = useState<MediaDTO[]>([]);
   const [mode, setMode] = useState<"select" | "upload">("select");
 
   const handleUpload = (media: MediaDTO) => {
-    console.log("faf");
+    if (props.mode === "single") {
+      setSelected([media]);
+    } else {
+      setSelected((prev) => [...prev, media]);
+    }
+
     toast({ variant: "success", description: "Media uploaded successfully" });
     setMode("select");
   };
@@ -39,8 +45,8 @@ const MediaBrowser = NiceModal.create<MediaBrowserProps>((props) => {
       <SurfaceDialog.Content
         aria-describedby={undefined}
         className="media-browser"
-        maxWidth="896px"
-        height="min(80vh, 768px)"
+        maxWidth={mode === "select" ? "896px" : "448px"}
+        height={mode === "select" ? "min(80vh, 768px)" : undefined}
         size="2"
       >
         <SurfaceDialog.Header>
@@ -56,10 +62,13 @@ const MediaBrowser = NiceModal.create<MediaBrowserProps>((props) => {
         </SurfaceDialog.Header>
         <MediaBrowserView
           {...props}
+          selected={selected}
+          setSelected={setSelected}
           onClose={remove}
           enabled={mode === "select"}
         />
         <MediaBrowserUpload
+          key={mode} // reset upload form when switching modes
           {...props}
           onCancel={() => setMode("select")}
           onUpload={handleUpload}

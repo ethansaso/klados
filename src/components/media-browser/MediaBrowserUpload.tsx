@@ -1,14 +1,19 @@
-import { Button, Flex, TextField } from "@radix-ui/themes";
+import { Button, Flex, Select, TextField } from "@radix-ui/themes";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
 import type React from "react";
 import { useState } from "react";
-import type { MediaLicense } from "../../../db/utils/mediaLicense";
+import {
+  HUMAN_CASED_MEDIA_LICENSES,
+  MEDIA_LICENSES,
+  type MediaLicense,
+} from "../../../db/utils/mediaLicense";
 import type { MediaDTO } from "../../lib/domain/media/types";
 import { uploadMediaFn } from "../../lib/server-fns/media/uploadMediaFn";
 import { toast } from "../../lib/utils/toast";
 import SurfaceDialog from "../dialogs/SurfaceDialog";
+import { FileUpload } from "../FileUpload";
 
 interface Props {
   enabled: boolean;
@@ -81,20 +86,8 @@ export const MediaBrowserUpload: React.FC<Props> = (props) => {
   return (
     <>
       <SurfaceDialog.Body>
-        <SurfaceDialog.Col>
-          <Flex direction="column" gap="1">
-            <Label.Root htmlFor="file-input">Select File</Label.Root>
-            <input
-              id="file-input"
-              type="file"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setFile(file);
-                }
-              }}
-            />
-          </Flex>
+        <SurfaceDialog.Col gap="4" p="5" width="100%">
+          <FileUpload file={file} onChange={setFile} />
           <Flex direction="column" gap="1">
             <Label.Root htmlFor="title-input">Title</Label.Root>
             <TextField.Root
@@ -118,6 +111,22 @@ export const MediaBrowserUpload: React.FC<Props> = (props) => {
               value={source}
               onChange={(e) => setSource(e.target.value)}
             />
+          </Flex>
+          <Flex direction="column" gap="1">
+            <Label.Root htmlFor="license-input">License</Label.Root>
+            <Select.Root
+              value={license}
+              onValueChange={(v) => setLicense(v as MediaLicense)}
+            >
+              <Select.Trigger id="license-input" />
+              <Select.Content>
+                {MEDIA_LICENSES.map((lic) => (
+                  <Select.Item key={lic} value={lic}>
+                    {HUMAN_CASED_MEDIA_LICENSES[lic]}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Root>
           </Flex>
         </SurfaceDialog.Col>
       </SurfaceDialog.Body>
