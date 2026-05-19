@@ -7,7 +7,6 @@ import {
   Text,
   TextArea,
 } from "@radix-ui/themes";
-import { ResponsiveTooltip } from "../../../ResponsiveTooltip";
 import {
   BaseEdge,
   EdgeLabelRenderer,
@@ -32,7 +31,11 @@ function flattenChips(
       chips.push(
         <Badge color="gray" variant="outline" key={`${charId}-other`}>
           <CategoricalStateDisplay
-            state={{ kind: "categorical", trait: { id: -1, label: "Other" }, modifiers: [] }}
+            state={{
+              kind: "categorical",
+              trait: { id: -1, label: "Other" },
+              modifiers: [],
+            }}
           />
         </Badge>,
       );
@@ -168,13 +171,7 @@ const RichBranchEdgeComponent = memo((props: EdgeProps<RFRichBranchEdge>) => {
                 {featureEntries.map(([featureId, fEntry]) => (
                   <div key={featureId}>
                     <Text size="1" as="div" weight="bold" mb="1">
-                      {fEntry.description ? (
-                        <ResponsiveTooltip content={fEntry.description}>
-                          <span className="has-information">{fEntry.name}</span>
-                        </ResponsiveTooltip>
-                      ) : (
-                        fEntry.name
-                      )}
+                      {fEntry.name}
                     </Text>
                     {fEntry.presence === "absent" ? (
                       <Flex wrap="wrap" gap="1">

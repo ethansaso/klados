@@ -10,6 +10,7 @@ import {
   Spinner,
   Text,
   TextField,
+  Tooltip,
 } from "@radix-ui/themes";
 import {
   keepPreviousData,
@@ -214,31 +215,36 @@ export const MediaBrowserView: React.FC<Props> = (props) => {
           </SurfaceDialog.Row>
         </SurfaceDialog.Col>
         <SurfaceDialog.Col width="320px" flexShrink="0" flexGrow="0">
+          <SurfaceDialog.Row p="2" flexShrink="0">
+            <Flex gap="2" justify="center">
+              <Tooltip content="Coming soon!">
+                <IconButton variant="ghost" size="1" disabled>
+                  <PiPencil />
+                </IconButton>
+              </Tooltip>
+              <IconButton
+                variant="ghost"
+                size="1"
+                disabled={!viewing}
+                onClick={() => viewing && handleDelete(viewing)}
+              >
+                <PiTrash />
+              </IconButton>
+              <IconButton
+                variant="ghost"
+                size="1"
+                disabled={!viewing}
+                onClick={() =>
+                  viewing &&
+                  window.open(getMediaUrl(viewing.storageKey), "_blank")
+                }
+              >
+                <PiDownloadSimple />
+              </IconButton>
+            </Flex>
+          </SurfaceDialog.Row>
           {viewing ? (
             <>
-              <SurfaceDialog.Row p="2" flexShrink="0">
-                <Flex gap="2" justify="center">
-                  <IconButton variant="ghost" size="1">
-                    <PiPencil />
-                  </IconButton>
-                  <IconButton
-                    variant="ghost"
-                    size="1"
-                    onClick={() => handleDelete(viewing)}
-                  >
-                    <PiTrash />
-                  </IconButton>
-                  <IconButton
-                    variant="ghost"
-                    size="1"
-                    onClick={() =>
-                      window.open(getMediaUrl(viewing.storageKey), "_blank")
-                    }
-                  >
-                    <PiDownloadSimple />
-                  </IconButton>
-                </Flex>
-              </SurfaceDialog.Row>
               <SurfaceDialog.Row flexGrow="1">
                 {/* TODO: improve image cropping -- don't want to crop, show border, iNatesque */}
                 <Box mb="4">
