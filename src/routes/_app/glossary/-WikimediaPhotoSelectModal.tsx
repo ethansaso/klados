@@ -84,7 +84,7 @@ const WikimediaPhotoSelectModal = NiceModal.create<Props>(
           setAllMedia(null);
           setSelectedId(null);
 
-          // Single request: search Wikimedia Commons File: namespace
+          // search Wikimedia Commons File: namespace
           const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(debouncedQuery)}&gsrlimit=20&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=400&format=json&origin=*`;
           const res = await fetch(searchUrl, { signal: controller.signal });
           if (!res.ok) throw new Error(`Failed: ${res.status}`);
@@ -261,9 +261,7 @@ function extractWikimediaPhotos(data: unknown): WikimediaPhoto[] | null {
       const licenseShortName = info.extmetadata?.LicenseShortName?.value ?? "";
       const license = parseWikimediaLicense(licenseShortName);
       if (!license) return [];
-      const owner = parseArtistHtml(
-        info.extmetadata?.Artist?.value ?? "",
-      );
+      const owner = parseArtistHtml(info.extmetadata?.Artist?.value ?? "");
       return [
         {
           url: info.thumburl ?? info.url,
