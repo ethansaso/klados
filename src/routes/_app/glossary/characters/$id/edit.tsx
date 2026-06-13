@@ -24,6 +24,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
 import { useState } from "react";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
+import { selectWikimediaPhotos } from "../../-WikimediaPhotoSelectModal";
 import {
   a11yProps,
   ConditionalAlert,
@@ -68,6 +69,7 @@ function RouteComponent() {
     register,
     setError,
     setValue,
+    watch,
     formState: { errors, isDirty, isSubmitting },
     handleSubmit,
   } = useForm({
@@ -81,6 +83,7 @@ function RouteComponent() {
     },
     resolver: zodResolver(updateCharacterSchema),
   });
+  const label = watch("label");
 
   useBlocker({
     shouldBlockFn: () =>
@@ -189,6 +192,21 @@ function RouteComponent() {
           <Flex justify="between" align="baseline" mb="1">
             <Label.Root>Media</Label.Root>
             <Flex gap="2">
+              <Button
+                type="button"
+                radius="full"
+                size="1"
+                color="cyan"
+                onClick={async () => {
+                  const media = await selectWikimediaPhotos(label!);
+                  const result = media?.[0];
+                  if (!result) return;
+                  setValue("mediaId", result.id, { shouldDirty: true });
+                  setCurrentMedia(result);
+                }}
+              >
+                Wikimedia
+              </Button>
               <Button
                 type="button"
                 radius="full"

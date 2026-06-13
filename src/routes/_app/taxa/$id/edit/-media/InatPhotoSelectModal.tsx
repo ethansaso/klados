@@ -16,6 +16,7 @@ import {
   type MediaLicense,
 } from "../../../../../../../db/utils/mediaLicense";
 import type { MediaDTO } from "../../../../../../lib/domain/media/types";
+import type { UploadMediaWireItem } from "../../../../../../lib/domain/media/validation";
 import { uploadMediaFn } from "../../../../../../lib/server-fns/media/uploadMediaFn";
 
 type InatPhoto = {
@@ -57,7 +58,7 @@ const ALLOWED_LICENSES = MEDIA_LICENSES.filter(
 
 const AllowedLicenseSchema = z.enum(ALLOWED_LICENSES);
 
-export const InatPhotoSelectModal = NiceModal.create<Props>(
+const InatPhotoSelectModal = NiceModal.create<Props>(
   ({ inatId, onConfirm }) => {
     const { visible, hide } = NiceModal.useModal();
     const qc = useQueryClient();
@@ -143,13 +144,13 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
 
       setUploading(true);
       try {
-        const items = selectedMedia.map((m) => ({
+        const items: UploadMediaWireItem[] = selectedMedia.map((m) => ({
           type: "url" as const,
           url: m.url,
           license: m.license,
           owner: m.owner,
           source: m.source,
-          title: m.name,
+          title: m.name ?? "Unknown",
         }));
 
         const uploaded = await uploadMediaFn({ data: { items } });

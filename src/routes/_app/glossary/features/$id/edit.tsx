@@ -29,6 +29,7 @@ import {
   updateFeatureFormSchema,
   type UpdateFeatureFormInput,
 } from "../-formValidation";
+import { selectWikimediaPhotos } from "../../-WikimediaPhotoSelectModal";
 import { InputCombobox } from "../../../../../components/inputs/combobox/InputCombobox";
 import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../../../components/inputs/combobox/types";
@@ -95,6 +96,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
     resolver: zodResolver(updateFeatureFormSchema),
   });
   const featureId = watch("id");
+  const label = watch("label");
   const characters = watch("characters");
 
   useBlocker({
@@ -339,6 +341,21 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
           <Flex justify="between" align="baseline" mb="1">
             <Label.Root>Media</Label.Root>
             <Flex gap="2">
+              <Button
+                type="button"
+                radius="full"
+                size="1"
+                color="cyan"
+                onClick={async () => {
+                  const media = await selectWikimediaPhotos(label!);
+                  const result = media?.[0];
+                  if (!result) return;
+                  setValue("mediaId", result.id, { shouldDirty: true });
+                  setCurrentMedia(result);
+                }}
+              >
+                Wikimedia
+              </Button>
               <Button
                 type="button"
                 radius="full"

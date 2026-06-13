@@ -79,7 +79,7 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
   return (
     <FormDescriptor
       title="Media"
-      description="Drag to reorder. Import photos from iNaturalist or add them manually."
+      description="Add photos manually, or import from iNaturalist. Drag to reorder."
       actions={
         <>
           <Button
