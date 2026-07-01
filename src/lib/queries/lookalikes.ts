@@ -1,12 +1,11 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getLookalikeDetailsForTaxaFn } from "../api/lookalikes/getLookalikeDetailsForTaxaFn";
-import { getLookalikesForTaxonFn } from "../api/lookalikes/getLookalikesForTaxonFn";
+import { getLookalikeDetailsForTaxaFn } from "../server-fns/lookalikes/getLookalikeDetailsForTaxaFn";
+import { getLookalikesForTaxonFn } from "../server-fns/lookalikes/getLookalikesForTaxonFn";
 
 export const lookalikesQueryOptions = (id: number) =>
   queryOptions({
-    queryKey: ["taxon", id, "lookalikes"],
+    queryKey: ["taxa", id, "lookalikes"],
     queryFn: () => getLookalikesForTaxonFn({ data: { id } }),
-    staleTime: 60_000,
   });
 
 export const lookalikeDetailsQueryOptions = (
@@ -17,5 +16,4 @@ export const lookalikeDetailsQueryOptions = (
     queryKey: ["lookalikeDetails", taxonId, lookalikeId],
     queryFn: () =>
       getLookalikeDetailsForTaxaFn({ data: { taxonId, lookalikeId } }),
-    staleTime: 60_000,
   });

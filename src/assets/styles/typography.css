@@ -1,5 +1,7 @@
 .has-information {
+  display: inline-block;
   text-decoration: underline;
   text-decoration-style: dotted;
+  text-decoration-color: var(--gray-a9);
   cursor: help;
 }

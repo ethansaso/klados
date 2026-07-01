@@ -7,9 +7,10 @@ import { GlossarySidebarLayout } from "../-chrome/GlossarySidebarLayout";
 import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
-import { TiOutline } from "../../../../components/icons/TiOutline";
+import { TiOutline } from "../../../../components/icons/individual/TiOutline";
+import { CharacterIcon } from "../../../../components/icons/modular/CharacterIcon";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
-import { usePaginatedSearch } from "../../../../lib/hooks/usePaginatedSearch";
+import { useRoutedPaginatedSearch } from "../../../../lib/hooks/useRoutedPaginatedSearch";
 import { charactersQueryOptions } from "../../../../lib/queries/characters";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { SearchWithQuerySchema } from "../../../../lib/validation/search";
@@ -35,7 +36,7 @@ export const Route = createFileRoute("/_app/glossary/characters")({
 });
 
 function RouteComponent() {
-  const { search, setQ, next, prev } = usePaginatedSearch();
+  const { search, setQ, next, prev } = useRoutedPaginatedSearch();
   const { data: paginatedResult } = useSuspenseQuery(
     charactersQueryOptions(search.page, search.pageSize, {
       q: search.q,
@@ -69,7 +70,11 @@ function RouteComponent() {
               <TextField.Slot>
                 <IconButton
                   size="1"
-                  onClick={() => NiceModal.show(AddCharacterModal)}
+                  onClick={() =>
+                    NiceModal.show(AddCharacterModal, {
+                      initialLabel: search.q,
+                    })
+                  }
                 >
                   <PiPlusCircle />
                 </IconButton>
@@ -81,17 +86,23 @@ function RouteComponent() {
           {paginatedResult.items.map((item) => (
             <GlossarySidebarList.Item
               key={item.id}
-              sub={item.key}
-              label={item.label}
+              label={
+                <Flex align="center" gap="1">
+                  <CharacterIcon type={item.type} />
+                  {item.label}
+                </Flex>
+              }
               to="/glossary/characters/$id"
               params={{ id: item.id }}
               search={search}
             >
-              <Flex align="center" gap="1" asChild>
-                <Text as="div" size="1">
-                  {item.usageCount}
-                  <TiOutline />
-                </Text>
+              <Flex direction="column" height="100%" align="end">
+                <Flex align="center" gap="1" asChild>
+                  <Text as="div" size="1">
+                    {item.usageCount}
+                    <TiOutline />
+                  </Text>
+                </Flex>
               </Flex>
             </GlossarySidebarList.Item>
           ))}

@@ -1,68 +1,46 @@
-import { useMatches, useNavigate } from "@tanstack/react-router";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
-type SectionSearch = {
-  page?: number;
-  pageSize?: number;
-  q?: string;
+type PaginatedSearchState = {
+  page: number;
+  pageSize: number;
+  q: string;
 };
 
-export function usePaginatedSearch() {
-  const navigate = useNavigate();
-  const matches = useMatches();
+type Opts = {
+  pageSize?: number;
+};
 
-  const deepestMatch = matches[matches.length - 1];
-  if (!deepestMatch) {
-    throw new Error(
-      "usePaginatedSearch must be used within a routing context.",
-    );
-  }
+export function usePaginatedSearch(opts?: Opts) {
+  const [search, setSearchState] = useState<PaginatedSearchState>({
+    page: 1,
+    pageSize: opts?.pageSize ?? 20,
+    q: "",
+  });
 
-  const raw = (deepestMatch.search ?? {}) as SectionSearch;
-
-  const search = {
-    page: raw.page ?? 1,
-    pageSize: raw.pageSize ?? 20,
-    q: raw.q ?? "",
-  };
-
-  const setSearch = useCallback(
-    (patch: Partial<typeof search>, replace = false) => {
-      navigate({
-        from: deepestMatch.fullPath || "/",
-        to: ".",
-        search: (prev) => ({
-          ...prev,
-          ...patch,
-        }),
-        replace,
-      });
-    },
-    [navigate, deepestMatch],
-  );
+  const setSearch = useCallback((patch: Partial<PaginatedSearchState>) => {
+    setSearchState((prev) => ({ ...prev, ...patch }));
+  }, []);
 
   const setQ = useCallback(
-    (q: string, replace = true) => setSearch({ q, page: 1 }, replace),
+    (q: string) => setSearch({ q, page: 1 }),
     [setSearch],
   );
 
   const setPage = useCallback(
-    (page: number, replace = false) => setSearch({ page }, replace),
+    (page: number) => setSearch({ page }),
     [setSearch],
   );
 
-  const next = useCallback(
-    (total: number) => {
-      const max = Math.max(1, Math.ceil(total / search.pageSize));
-      setSearch({ page: Math.min(search.page + 1, max) });
-    },
-    [setSearch, search.page, search.pageSize],
-  );
+  const next = useCallback((total: number) => {
+    setSearchState((prev) => {
+      const max = Math.max(1, Math.ceil(total / prev.pageSize));
+      return { ...prev, page: Math.min(prev.page + 1, max) };
+    });
+  }, []);
 
-  const prev = useCallback(
-    () => setSearch({ page: Math.max(1, search.page - 1) }),
-    [setSearch, search.page],
-  );
+  const prev = useCallback(() => {
+    setSearchState((s) => ({ ...s, page: Math.max(1, s.page - 1) }));
+  }, []);
 
   return { search, setQ, setPage, next, prev };
 }

@@ -37,7 +37,7 @@ export const source = pgTable(
     check("source_name_not_empty", sql`btrim(${t.name}) <> ''`),
     check(
       "source_publication_year_sane",
-      sql`${t.publicationYear} IS NULL OR (${t.publicationYear} >= 1400 AND ${t.publicationYear} <= 2500)`
+      sql`${t.publicationYear} IS NULL OR (${t.publicationYear} >= 1400 AND ${t.publicationYear} <= 2500)`,
     ),
 
     // Reasonable avoidance of duplicates
@@ -52,11 +52,11 @@ export const source = pgTable(
     index("source_pub_year_idx").on(t.publicationYear),
     index("source_name_trgm_lower_idx").using(
       "gin",
-      sql`lower(${t.name}) gin_trgm_ops`
+      sql`lower(${t.name}) gin_trgm_ops`,
     ),
     index("source_authors_trgm_lower_idx").using(
       "gin",
-      sql`lower(${t.authors}) gin_trgm_ops`
+      sql`lower(${t.authors}) gin_trgm_ops`,
     ),
-  ]
+  ],
 );

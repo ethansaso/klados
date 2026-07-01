@@ -30,9 +30,9 @@ import {
   type KeyGenerationInput,
   KeyGenerationInputSchema,
 } from "../../../../keygen/ioTypes";
-import { generateGuideFn } from "../../../../lib/api/guides/generateGuideFn";
-import { saveGuideFn } from "../../../../lib/api/guides/saveGuideFn";
 import { taxaQueryOptions } from "../../../../lib/queries/taxa";
+import { generateGuideFn } from "../../../../lib/server-fns/guides/generateGuideFn";
+import { saveGuideFn } from "../../../../lib/server-fns/guides/saveGuideFn";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
 import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../lib/utils/toast";

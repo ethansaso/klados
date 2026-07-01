@@ -1,10 +1,10 @@
 import type {
   KeyBranch,
   KeyBranchRationale,
-  KeyCharRationale,
+  KeyCharacterEntry,
   KeyDiffNode,
   KeyNode,
-  KeyPAGroupRationale,
+  KeyRichRationale,
   KeyTaxonNode,
 } from "../key-building/types";
 import type {
@@ -20,38 +20,34 @@ function dehydrateBranchRationale(
   if (!rationale) return null;
 
   switch (rationale.kind) {
-    case "character-definition": {
-      const characters: KeyCharRationale["characters"] = {};
+    case "written":
+      return { kind: "written", text: rationale.text };
 
-      for (const [charIdStr, info] of Object.entries(rationale.characters)) {
-        const charId = Number(charIdStr);
-        characters[charId] = {
-          traits: info.traits.map((t) => t.id),
-          inverted: info.inverted,
-        };
+    case "rich": {
+      const features: KeyRichRationale["features"] = {};
+
+      for (const [featureIdStr, fEntry] of Object.entries(rationale.features)) {
+        const featureId = Number(featureIdStr);
+        if (fEntry.presence === "absent") {
+          features[featureId] = { presence: "absent" };
+        } else {
+          const characters: Record<number, KeyCharacterEntry> = {};
+          for (const [charIdStr, charEntry] of Object.entries(
+            fEntry.characters,
+          )) {
+            const charId = Number(charIdStr);
+            characters[charId] = {
+              traits: charEntry.traits.map((t) => t.id),
+              inverted: charEntry.inverted,
+            };
+          }
+          features[featureId] = { presence: "present", characters };
+        }
       }
 
       return {
-        kind: "character-definition",
-        characters,
-        annotation: rationale.annotation,
-      };
-    }
-
-    case "group-present-absent": {
-      const groups: KeyPAGroupRationale["groups"] = {};
-
-      for (const [groupIdStr, info] of Object.entries(rationale.groups)) {
-        const groupId = Number(groupIdStr);
-        groups[groupId] = {
-          groupId,
-          status: info.status,
-        };
-      }
-
-      return {
-        kind: "group-present-absent",
-        groups,
+        kind: "rich",
+        features,
         annotation: rationale.annotation,
       };
     }

@@ -17,9 +17,9 @@ import { sourcesForTaxonQueryOptions } from "../../../../lib/queries/taxonSource
 import { formatPublicationForTaxon } from "../../../../lib/utils/formatting/formatPublication";
 import { prefixWithRank } from "../../../../lib/utils/formatting/prefixWithRank";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
-import { TaxonCharacterSection } from "./-characters/TaxonCharacterSection";
 import { LookalikesList } from "./-lookalikes/LookalikesList";
 import { NamesDataList } from "./-NameDataList";
+import { TaxonStateSection } from "./-states/TaxonStatesSection";
 import { StatusCallout } from "./-StatusCallout";
 import { TaxonMainSection } from "./-TaxonMainSection";
 
@@ -111,7 +111,7 @@ function TaxonPage() {
             <Tabs.Trigger value="sources">Sources</Tabs.Trigger>
           </Tabs.List>
           <Tabs.Content value="states">
-            <TaxonCharacterSection groups={characterStates} />
+            <TaxonStateSection groups={characterStates} />
           </Tabs.Content>
           <Tabs.Content value="lookalikes">
             <LookalikesList

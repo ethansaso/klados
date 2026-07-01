@@ -12,8 +12,8 @@ import {
 } from "@tanstack/react-router";
 import { Dialog } from "radix-ui";
 import { PiX } from "react-icons/pi";
-import type { getMeFn } from "../../lib/api/users/getMeFn";
 import { roleHasCuratorRights } from "../../lib/auth/utils";
+import type { getMeFn } from "../../lib/server-fns/users/getMeFn";
 
 type Props = {
   user: Awaited<ReturnType<typeof getMeFn>> | undefined;

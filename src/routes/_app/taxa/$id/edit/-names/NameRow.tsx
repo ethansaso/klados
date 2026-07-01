@@ -47,8 +47,6 @@ export const NameRow = memo(
       setIsEditing(false);
     };
 
-    console.log("rerender");
-
     return (
       <Flex align="center" gap="2" className="taxon-names__item">
         <Flex align="center" gap="2" className="taxon-names__item__label">

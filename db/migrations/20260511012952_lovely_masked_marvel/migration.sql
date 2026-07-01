@@ -1,0 +1,2 @@
+DROP INDEX "tcs_cat_feature_state_char_trait_uq";--> statement-breakpoint
+CREATE INDEX "tcs_cat_feature_state_char_trait_idx" ON "taxon_character_state_categorical" ("taxon_feature_state_id","character_id","trait_value_id");

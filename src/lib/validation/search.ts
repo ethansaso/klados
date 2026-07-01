@@ -6,5 +6,5 @@ export const SearchSchema = z.object({
 });
 
 export const SearchWithQuerySchema = SearchSchema.extend({
-  q: z.string().trim().default("").optional(),
+  q: z.string().default("").optional(),
 });

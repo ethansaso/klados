@@ -4,14 +4,12 @@ import {
   foreignKey,
   index,
   integer,
-  jsonb,
   pgEnum,
   pgTable,
   serial,
   text,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { mediaLicenseEnum } from "../../utils/mediaLicense";
 import { withTimestamps } from "../../utils/timestamps";
 
 export const TAXON_RANKS_DESCENDING = [
@@ -54,18 +52,6 @@ export const taxon = pgTable(
 
     sourceGbifId: integer("source_gbif_id"),
     sourceInatId: integer("source_inat_id"),
-
-    media: jsonb("media")
-      .$type<
-        Array<{
-          url: string;
-          license: (typeof mediaLicenseEnum.enumValues)[number];
-          owner: string;
-          source: string;
-        }>
-      >()
-      .notNull()
-      .default([]),
 
     notes: text("notes").notNull().default(""),
   }),

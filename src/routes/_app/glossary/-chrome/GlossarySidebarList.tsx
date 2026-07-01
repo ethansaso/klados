@@ -1,7 +1,7 @@
 import { Box, Card, Flex, ScrollArea, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import { NavigationMenu } from "radix-ui";
-import { type PropsWithChildren } from "react";
+import { type PropsWithChildren, type ReactNode } from "react";
 
 function List({ children }: PropsWithChildren) {
   return (
@@ -21,15 +21,13 @@ function List({ children }: PropsWithChildren) {
 }
 
 interface ItemProps {
-  label: string;
-  sub: string;
+  label: ReactNode;
   to: string;
   params?: Record<string, string | number>;
   search?: Record<string, string | number>;
 }
 
 function Item({
-  sub,
   label,
   to,
   params,
@@ -46,18 +44,13 @@ function Item({
           preload="intent"
           activeOptions={{ includeSearch: false }}
         >
-          <Flex width="100%" gap="5" justify="between">
+          <Flex width="100%" gap="5" align="center" justify="between">
             <Box flexShrink="1" style={{ minWidth: 0 }}>
               <Text as="p" size="2" truncate className="glossary-label">
                 {label}
               </Text>
-              <Text as="p" size="1" color="gray" truncate>
-                {sub || "\u00A0"}
-              </Text>
             </Box>
-            <Flex direction="column" align="end" justify="start">
-              {children}
-            </Flex>
+            {children}
           </Flex>
         </Link>
       </Card>

@@ -3,19 +3,20 @@ import type { HierarchyTaxonNode } from "../hierarchy/types";
 import type { KeyGenOptions } from "../options";
 import { mergeCharacterDefinitionSplits } from "../splitting/characters/mergeCompatibleCharacterSplits";
 import { resolveCharacterSplits } from "../splitting/characters/resolveCharacterSplits";
-import { resolveGroupPresentAbsentSplits } from "../splitting/resolveGroupPresentAbsentSplits";
+import { resolveFeaturePresentAbsentSplits } from "../splitting/resolveFeaturePresentAbsentSplits";
 import type {
   CharacterDefinitionSplitResult,
-  GroupPresentAbsentSplitResult,
+  FeaturePresentAbsentSplitResult,
   SplitResult,
   TaxonGroup,
 } from "../splitting/types";
 import type {
   KeyBranch,
   KeyBranchRationale,
-  KeyCharRationale,
   KeyDiffNode,
+  KeyFeatureRationaleEntry,
   KeyNode,
+  KeyRichRationale,
   KeyTaxonNode,
 } from "./types";
 
@@ -87,51 +88,66 @@ function getChildrenForTaxonNode(
 function buildCharacterDefinitionRationale(
   split: CharacterDefinitionSplitResult,
   branchIndex: number,
-): KeyCharRationale {
+): KeyRichRationale {
   const branch = split.branches[branchIndex];
   if (!branch)
     throw new Error(
       `Invalid branchIndex ${branchIndex} for split with ${split.branches.length} branches`,
     );
 
-  const characters: KeyCharRationale["characters"] = {};
+  const features: KeyRichRationale["features"] = {};
 
   for (const clause of branch.clauses) {
     const traitIds = clause.traits.map((t) => t.id);
+    const existing = features[clause.featureId];
 
-    characters[clause.characterId] = {
-      traits: traitIds,
-      inverted: clause.inverted,
-    };
+    if (existing && existing.presence === "present") {
+      existing.characters[clause.characterId] = {
+        traits: traitIds,
+        inverted: clause.inverted,
+      };
+    } else {
+      features[clause.featureId] = {
+        presence: "present",
+        characters: {
+          [clause.characterId]: {
+            traits: traitIds,
+            inverted: clause.inverted,
+          },
+        },
+      };
+    }
   }
 
   return {
-    kind: "character-definition",
-    characters,
+    kind: "rich",
+    features,
     annotation: null,
   };
 }
 
 /**
- * Convert a group-present-absent split branch into a KeyBranchRationale.
+ * Convert a feature-present-absent split branch into a KeyBranchRationale.
  */
-function buildGroupPresentAbsentRationale(
-  split: GroupPresentAbsentSplitResult,
+function buildFeaturePresentAbsentRationale(
+  split: FeaturePresentAbsentSplitResult,
   branchIndex: number,
-): KeyBranchRationale {
+): KeyRichRationale {
   const branch = split.branches[branchIndex];
   if (!branch)
     throw new Error(
       `Invalid branchIndex ${branchIndex} for split with ${split.branches.length} branches`,
     );
 
+  const featureEntry: KeyFeatureRationaleEntry =
+    branch.status === "present"
+      ? { presence: "present", characters: {} }
+      : { presence: "absent" };
+
   return {
-    kind: "group-present-absent",
-    groups: {
-      [split.groupId]: {
-        groupId: split.groupId,
-        status: branch.status,
-      },
+    kind: "rich",
+    features: {
+      [split.featureId]: featureEntry,
     },
     annotation: null,
   };
@@ -148,14 +164,14 @@ function buildRationaleForBranch(
     );
   }
 
-  return buildGroupPresentAbsentRationale(
-    split as GroupPresentAbsentSplitResult,
+  return buildFeaturePresentAbsentRationale(
+    split as FeaturePresentAbsentSplitResult,
     branchIndex,
   );
 }
 
 /**
- * Differentiates a group of sibling taxa under `parent` using character/group splits,
+ * Differentiates a group of sibling taxa under `parent` using character/feature splits,
  * then for any resulting taxon nodes, continues down the hierarchy.
  *
  * Operates only on the passed 'siblings' group (same hierarchical level, even if different rank).
@@ -165,6 +181,7 @@ function buildKeyForSiblings(
   siblings: TaxonGroup,
   hierarchy: Map<number, HierarchyTaxonNode>,
   options: KeyGenOptions,
+  featureAncestorMap: Map<number, number | null>,
 ): void {
   if (siblings.length === 0) return;
 
@@ -176,7 +193,7 @@ function buildKeyForSiblings(
     const branch = makeBranch(null, childNode);
     parent.branches.push(branch);
 
-    buildKeySubtreeForTaxon(childNode, hierarchy, options);
+    buildKeySubtreeForTaxon(childNode, hierarchy, options, featureAncestorMap);
     return;
   }
 
@@ -186,18 +203,32 @@ function buildKeyForSiblings(
     rawCharacterSplits,
     options,
   );
-  const groupSplits = resolveGroupPresentAbsentSplits(siblings);
-  const candidates: SplitResult[] = [...characterSplits, ...groupSplits];
+  const featureSplits = resolveFeaturePresentAbsentSplits(
+    siblings,
+    featureAncestorMap,
+  );
+  const candidates: SplitResult[] = [...characterSplits, ...featureSplits];
 
   // If no valid splits, attach all siblings directly and recurse hierarchically
   // under each.
   if (candidates.length === 0) {
+    console.log(
+      `[KEYGEN] No candidates for siblings: [${siblings.map((s) => `${s.id}(${s.acceptedName})`).join(", ")}]`,
+      `rawCharSplits=${rawCharacterSplits.length}`,
+      `mergedCharSplits=${characterSplits.length}`,
+      `featureSplits=${featureSplits.length}`,
+    );
     for (const sib of siblings) {
       const childNode = makeTaxonNode(sib.id);
       const branch = makeBranch(null, childNode);
       parent.branches.push(branch);
 
-      buildKeySubtreeForTaxon(childNode, hierarchy, options);
+      buildKeySubtreeForTaxon(
+        childNode,
+        hierarchy,
+        options,
+        featureAncestorMap,
+      );
     }
     return;
   }
@@ -222,16 +253,59 @@ function buildKeyForSiblings(
       parent.branches.push(branch);
 
       // Differentiate this single taxon further down the hierarchy
-      buildKeySubtreeForTaxon(childTaxonNode, hierarchy, options);
+      buildKeySubtreeForTaxon(
+        childTaxonNode,
+        hierarchy,
+        options,
+        featureAncestorMap,
+      );
     } else {
       const diffNode = makeDiffNode();
       const branch = makeBranch(rationale, diffNode);
       parent.branches.push(branch);
 
       // Differentiate multiple siblings recursively
-      buildKeyForSiblings(diffNode, taxaInBranch, hierarchy, options);
+      buildKeyForSiblings(
+        diffNode,
+        taxaInBranch,
+        hierarchy,
+        options,
+        featureAncestorMap,
+      );
     }
   });
+
+  // Any taxon that wasn't assigned to any split branch (e.g. has no
+  // morphological data) couldn't be differentiated by the best split.
+  // Group them under a single null-rationale diff node so they don't
+  // flood the parent with dozens of individual null branches.
+  const taxaInSplit = new Set(
+    best.branches.flatMap((b) => b.taxa.map((t) => t.id)),
+  );
+  const unplaced = siblings.filter((s) => !taxaInSplit.has(s.id));
+
+  if (unplaced.length === 1) {
+    // Single unplaced taxon: attach directly under parent with null rationale.
+    const only = unplaced[0]!;
+    const childNode = makeTaxonNode(only.id);
+    parent.branches.push(makeBranch(null, childNode));
+    buildKeySubtreeForTaxon(childNode, hierarchy, options, featureAncestorMap);
+  } else if (unplaced.length > 1) {
+    // Multiple unplaced taxa: collect under a shared diff node so the parent
+    // gets one null branch rather than N.
+    const diffNode = makeDiffNode();
+    parent.branches.push(makeBranch(null, diffNode));
+    for (const orphan of unplaced) {
+      const childNode = makeTaxonNode(orphan.id);
+      diffNode.branches.push(makeBranch(null, childNode));
+      buildKeySubtreeForTaxon(
+        childNode,
+        hierarchy,
+        options,
+        featureAncestorMap,
+      );
+    }
+  }
 }
 
 /**
@@ -245,6 +319,7 @@ export function buildKeySubtreeForTaxon(
   taxonNode: KeyTaxonNode,
   hierarchy: Map<number, HierarchyTaxonNode>,
   options: KeyGenOptions,
+  featureAncestorMap: Map<number, number | null>,
 ): void {
   const children: TaxonGroup = getChildrenForTaxonNode(taxonNode, hierarchy);
 
@@ -260,10 +335,21 @@ export function buildKeySubtreeForTaxon(
     const branch = makeBranch(null, childTaxonNode);
     taxonNode.branches.push(branch);
 
-    buildKeySubtreeForTaxon(childTaxonNode, hierarchy, options);
+    buildKeySubtreeForTaxon(
+      childTaxonNode,
+      hierarchy,
+      options,
+      featureAncestorMap,
+    );
     return;
   }
 
   // Multiple children: differentiate this sibling group under the current taxon.
-  buildKeyForSiblings(taxonNode, children, hierarchy, options);
+  buildKeyForSiblings(
+    taxonNode,
+    children,
+    hierarchy,
+    options,
+    featureAncestorMap,
+  );
 }

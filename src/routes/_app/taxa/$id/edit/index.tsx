@@ -22,26 +22,33 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { Form } from "radix-ui";
 import { useState, type MouseEventHandler } from "react";
-import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
+import {
+  Controller,
+  FormProvider,
+  useForm,
+  useWatch,
+  type SubmitHandler,
+} from "react-hook-form";
 import z from "zod";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
 import { ContentContainer } from "../../../../../components/ContentContainer";
-import { getTaxonCharacterStatesFn } from "../../../../../lib/api/character-states/getTaxonCharacterStatesFn";
-import { deleteTaxonFn } from "../../../../../lib/api/taxa/deleteTaxonFn";
-import { getTaxonFn } from "../../../../../lib/api/taxa/getTaxonFn";
-import { publishTaxonFn } from "../../../../../lib/api/taxa/publishFn";
-import { updateTaxonFn } from "../../../../../lib/api/taxa/updateTaxonFn";
-import { getSourcesForTaxonFn } from "../../../../../lib/api/taxon-sources/getSourcesForTaxonFn";
 import type { SourceDTO } from "../../../../../lib/domain/sources/types";
-import type { GroupedCharacterUpdate } from "../../../../../lib/domain/states/validation";
-import { mediaItemSchema } from "../../../../../lib/domain/taxa/validation";
+import type { CharacterByFeatureUpdate } from "../../../../../lib/domain/states/validation";
 import { setTaxonSourcesSchema } from "../../../../../lib/domain/taxon-sources/validation";
+import { getTaxonCharacterStatesFn } from "../../../../../lib/server-fns/character-states/getTaxonCharacterStatesFn";
+import { deleteTaxonFn } from "../../../../../lib/server-fns/taxa/deleteTaxonFn";
+import { getTaxonFn } from "../../../../../lib/server-fns/taxa/getTaxonFn";
+import { publishTaxonFn } from "../../../../../lib/server-fns/taxa/publishFn";
+import { updateTaxonFn } from "../../../../../lib/server-fns/taxa/updateTaxonFn";
+import { getSourcesForTaxonFn } from "../../../../../lib/server-fns/taxon-sources/getSourcesForTaxonFn";
 import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { routeSeo } from "../../../../../lib/utils/head/routeSeo";
 import { toast } from "../../../../../lib/utils/toast";
 import { CharacterEditingForm } from "./-characters/CharactersEditingForm";
+import type { GroupedCharacterFormValue } from "./-characters/validation";
 import { groupedCharacterFormSchema } from "./-characters/validation";
 import { MediaEditingForm } from "./-media/MediaEditingForm";
+import { mediaFormItemSchema } from "./-media/validation";
 import { MetaForm } from "./-meta/MetaForm";
 import { NameEditingForm } from "./-names/NameEditingForm";
 import { nameItemFormSchema } from "./-names/validation";
@@ -49,12 +56,13 @@ import { seedTaxonEditState } from "./-seeding";
 import { SourceEditingForm } from "./-sources/SourceEditingForm";
 
 export type TaxonEditFormValues = z.infer<typeof taxonEditFormSchema>;
+
 export const taxonEditFormSchema = z.object({
   parentId: z.number().nullable(),
   rank: z.enum(TAXON_RANKS_DESCENDING),
   sourceGbifId: z.number().nullable(),
   sourceInatId: z.number().nullable(),
-  media: z.array(mediaItemSchema),
+  media: z.array(mediaFormItemSchema),
   notes: z.string(),
   names: z.array(nameItemFormSchema),
   states: groupedCharacterFormSchema,
@@ -63,16 +71,17 @@ export const taxonEditFormSchema = z.object({
 
 const convertToServerCharacterValues = (
   values: TaxonEditFormValues["states"],
-): GroupedCharacterUpdate => {
-  return values.map((group) => ({
-    groupId: group.groupId,
-    characters: group.characters.map((v) => {
+): CharacterByFeatureUpdate => {
+  return values.map((feature) => ({
+    featureId: feature.featureId,
+    characters: feature.characters.map((v) => {
       switch (v.kind) {
         case "categorical":
           return {
             kind: "categorical",
             characterId: v.characterId,
-            traitValueIds: v.traitValues.map((tv) => tv.id),
+            traitValueId: v.trait.id,
+            modifierIds: v.modifiers.map((m) => m.id),
           };
 
         case "number":
@@ -81,6 +90,7 @@ const convertToServerCharacterValues = (
             characterId: v.characterId,
             unitId: v.unit?.id,
             siBaseValue: v.siBaseValue,
+            modifierIds: v.modifiers.map((m) => m.id),
           };
 
         case "range":
@@ -90,6 +100,7 @@ const convertToServerCharacterValues = (
             unitId: v.unit?.id,
             siBaseMin: v.siBaseMin,
             siBaseMax: v.siBaseMax,
+            modifierIds: v.modifiers.map((m) => m.id),
           };
       }
     }),
@@ -159,8 +170,10 @@ function RouteComponent() {
     control,
     handleSubmit,
     reset,
-    formState: { isDirty, isSubmitting },
+    formState: { errors, isDirty, isSubmitting },
   } = methods;
+
+  console.log(errors);
 
   const [isDeleting, setIsDeleting] = useState(false);
   // For media fetching
@@ -191,9 +204,7 @@ function RouteComponent() {
 
   async function invalidateTaxon(id: number) {
     await Promise.all([
-      qc.invalidateQueries({ queryKey: ["taxon", id] }),
-      // For browsing lists, etc.
-      qc.invalidateQueries({ queryKey: ["taxa"] }),
+      qc.invalidateQueries({ queryKey: ["taxon"] }),
       // Invalidate all lookalike details involving this taxon
       qc.invalidateQueries({
         predicate: (q: Query) => {
@@ -220,14 +231,16 @@ function RouteComponent() {
     );
   };
 
-  const onSave = handleSubmit(async (data) => {
+  const onSave: SubmitHandler<TaxonEditFormValues> = async (data) => {
     if (!isDirty) return;
     try {
+      const { media, ...rest } = data;
       await serverUpdate({
         data: {
-          ...data,
+          ...rest,
           id,
           states: convertToServerCharacterValues(data.states),
+          mediaIds: media.map((m) => m.id),
         },
       });
       reset(data, { keepDirty: false }); // keep RHF dirty tracking in sync
@@ -239,16 +252,18 @@ function RouteComponent() {
         variant: "error",
       });
     }
-  });
+  };
 
-  const onPublish = handleSubmit(async (data) => {
+  const onPublish: SubmitHandler<TaxonEditFormValues> = async (data) => {
     if (!isDraft) return;
     try {
+      const { media, ...rest } = data;
       await serverUpdate({
         data: {
-          ...data,
+          ...rest,
           id,
           states: convertToServerCharacterValues(data.states),
+          mediaIds: media.map((m) => m.id),
         },
       });
       reset(data, { keepDirty: false }); // clear dirty after persisting
@@ -262,7 +277,7 @@ function RouteComponent() {
         variant: "error",
       });
     }
-  });
+  };
 
   const handleDelete: MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault();
@@ -306,9 +321,8 @@ function RouteComponent() {
       </Box>
 
       <FormProvider {...methods}>
-        <Form.Root onSubmit={onSave}>
+        <Form.Root onSubmit={handleSubmit(onSave)} style={{ width: "100%" }}>
           <Separator size="4" my="4" />
-          {/* TODO: sync accepted name */}
           {/* Basic meta (rank, parent, source IDs) */}
           <MetaForm id={id} acceptedName={initialTaxon.acceptedName} />
 
@@ -320,7 +334,7 @@ function RouteComponent() {
             control={control}
             render={({ field }) => (
               <CharacterEditingForm
-                value={field.value}
+                value={field.value as GroupedCharacterFormValue}
                 onChange={field.onChange}
               />
             )}
@@ -371,10 +385,11 @@ function RouteComponent() {
                 Discard Changes
               </Button>
               <Button
-                type="submit"
+                type="button"
                 variant={isDraft ? "soft" : "solid"}
                 loading={isSubmitting || isDeleting}
                 disabled={!isDirty || isSubmitting || isDeleting}
+                onClick={handleSubmit(onSave)}
               >
                 Save
               </Button>
@@ -386,7 +401,7 @@ function RouteComponent() {
                     type="button"
                     disabled={isSubmitting || isDeleting}
                     loading={isSubmitting || isDeleting}
-                    onClick={onPublish}
+                    onClick={handleSubmit(onPublish)}
                   >
                     Publish
                   </Button>

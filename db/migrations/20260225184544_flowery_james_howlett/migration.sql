@@ -1,0 +1,1 @@
+ALTER TABLE "categorical_modifier_value" DROP CONSTRAINT "categorical_modifier_value_sFr9EVKRjagt_fkey", ADD CONSTRAINT "categorical_modifier_value_sFr9EVKRjagt_fkey" FOREIGN KEY ("group_id") REFERENCES "categorical_modifier_group"("id") ON DELETE CASCADE;

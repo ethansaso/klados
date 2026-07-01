@@ -4,7 +4,7 @@ import { ContentContainer } from "../../../components/ContentContainer";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
 import { routeSeo } from "../../../lib/utils/head/routeSeo";
 import { SearchSchema } from "../../../lib/validation/search";
-import { TaxonGrid } from "./-TaxonGrid";
+import { TaxonGrid } from "./-components/TaxonGrid";
 
 export const Route = createFileRoute("/_app/taxa/drafts")({
   validateSearch: SearchSchema,

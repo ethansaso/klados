@@ -6,11 +6,11 @@ import {
   Text,
   TextArea,
   TextField,
-  Tooltip,
 } from "@radix-ui/themes";
 import React, { type Dispatch } from "react";
 import { PiClockClockwise, PiPlus, PiTrash } from "react-icons/pi";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
+import { ResponsiveTooltip } from "../../../../../../components/ResponsiveTooltip";
 import type { SourceDTO } from "../../../../../../lib/domain/sources/types";
 import type {
   SetTaxonSourcesInput,
@@ -130,7 +130,7 @@ export const SourceEditingForm = ({
                   <Table.Cell>
                     <Flex gap="2" align="center">
                       <Text>{toDateInputValue(item.accessedAt)}</Text>
-                      <Tooltip content="Set accessed date to today">
+                      <ResponsiveTooltip content="Set accessed date to today">
                         <IconButton
                           type="button"
                           variant="soft"
@@ -139,7 +139,7 @@ export const SourceEditingForm = ({
                         >
                           <PiClockClockwise />
                         </IconButton>
-                      </Tooltip>
+                      </ResponsiveTooltip>
                     </Flex>
                   </Table.Cell>
 
@@ -155,7 +155,7 @@ export const SourceEditingForm = ({
 
                   <Table.Cell>
                     <Flex gap="2" justify="end" align="center">
-                      <Tooltip content="Remove source">
+                      <ResponsiveTooltip content="Remove source">
                         <IconButton
                           type="button"
                           color="tomato"
@@ -164,7 +164,7 @@ export const SourceEditingForm = ({
                         >
                           <PiTrash />
                         </IconButton>
-                      </Tooltip>
+                      </ResponsiveTooltip>
                     </Flex>
                   </Table.Cell>
                 </Table.Row>

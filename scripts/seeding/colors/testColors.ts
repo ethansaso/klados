@@ -15,17 +15,17 @@ function run() {
 
   const aliases = getNormalizedColorAliases();
 
-  // Group aliases by canonical key
+  // Group aliases by canonical label
   const groupedAliases = new Map<string, string[]>();
   for (const alias of aliases) {
-    if (!groupedAliases.has(alias.canonicalKey)) {
-      groupedAliases.set(alias.canonicalKey, []);
+    if (!groupedAliases.has(alias.canonicalLabel)) {
+      groupedAliases.set(alias.canonicalLabel, []);
     }
-    groupedAliases.get(alias.canonicalKey)!.push(alias.aliasLabel);
+    groupedAliases.get(alias.canonicalLabel)!.push(alias.aliasLabel);
   }
 
   for (const canonical of canonicalDefs) {
-    const aliasLabels = groupedAliases.get(canonical.key) ?? [];
+    const aliasLabels = groupedAliases.get(canonical.label) ?? [];
 
     // Canonical header: two cases: hex or no-hex (e.g., "colorless")
     if (canonical.hexCode) {

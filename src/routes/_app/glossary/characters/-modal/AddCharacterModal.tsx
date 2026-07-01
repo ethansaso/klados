@@ -2,6 +2,7 @@ import NiceModal from "@ebay/nice-modal-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Dialog, Flex } from "@radix-ui/themes";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
   FormProvider,
@@ -9,11 +10,11 @@ import {
   useForm,
   useWatch,
 } from "react-hook-form";
-import { createCharacterFn } from "../../../../../lib/api/characters/createCharacterFn";
 import {
   type CreateCharacterInput,
   createCharacterSchema,
 } from "../../../../../lib/domain/characters/validation";
+import { createCharacterFn } from "../../../../../lib/server-fns/characters/createCharacterFn";
 import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../../lib/utils/toast";
 import { AddCategoricalCharacterForm } from "./AddCategoricalCharacterForm";
@@ -24,27 +25,30 @@ import { AddRangeCharacterForm } from "./AddRangeCharacterForm";
 const DEFAULT_VALUES = {
   type: "categorical" as const,
   key: "",
-  label: "",
   groupId: undefined,
   traitSetId: undefined,
   description: undefined,
   isMultiSelect: true,
 };
 
-export const AddCharacterModal = NiceModal.create(() => {
-  const { visible, hide, remove } = NiceModal.useModal();
+interface Props {
+  initialLabel?: string;
+}
+
+export const AddCharacterModal = NiceModal.create(({ initialLabel }: Props) => {
+  const { visible, hide } = NiceModal.useModal();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const serverCreate = useServerFn(createCharacterFn);
 
   const methods = useForm<CreateCharacterInput>({
     resolver: zodResolver(createCharacterSchema),
-    defaultValues: DEFAULT_VALUES,
+    values: { ...DEFAULT_VALUES, label: initialLabel ?? "" },
   });
 
   const {
     handleSubmit,
     control,
-    reset,
     formState: { isSubmitting },
   } = methods;
 
@@ -53,7 +57,7 @@ export const AddCharacterModal = NiceModal.create(() => {
 
   const onSubmit: SubmitHandler<CreateCharacterInput> = async (data) => {
     try {
-      await serverCreate({ data });
+      const newCharacter = await serverCreate({ data });
 
       qc.invalidateQueries({ queryKey: ["characters"] });
       qc.invalidateQueries({ queryKey: ["groups"] });
@@ -64,9 +68,12 @@ export const AddCharacterModal = NiceModal.create(() => {
         variant: "success",
         description: `Character "${data.label}" created successfully.`,
       });
-
-      reset();
-      remove();
+      navigate({
+        to: "/glossary/characters/$id",
+        params: { id: newCharacter.id },
+        search: true,
+      });
+      hide();
     } catch (error) {
       toast({
         variant: "error",
@@ -76,15 +83,7 @@ export const AddCharacterModal = NiceModal.create(() => {
   };
 
   return (
-    <Dialog.Root
-      open={visible}
-      onOpenChange={async (open) => {
-        if (!open) {
-          reset();
-          await hide();
-        }
-      }}
-    >
+    <Dialog.Root open={visible} onOpenChange={hide}>
       <Dialog.Content maxWidth="450px">
         <Dialog.Title>Add character</Dialog.Title>
         <Dialog.Description size="2" mb="4">

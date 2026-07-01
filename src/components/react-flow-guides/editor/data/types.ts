@@ -1,15 +1,13 @@
 import type { Node, NodeTypes } from "@xyflow/react";
 import type {
-  HydratedBranchRationale,
-  HydratedCharRationale,
   HydratedDiffNode,
+  HydratedRichRationale,
   HydratedTaxonNode,
 } from "../../../../keygen/hydration/types";
 import type { AssertedEdge } from "../../util/assertedEdge";
-import CharacterBranchEdgeComponent from "../components/CharacterBranchEdgeComponent";
 import DiffNodeComponent from "../components/DiffNodeComponent";
-import GroupBranchEdgeComponent from "../components/GroupBranchEdgeComponent";
 import NullBranchEdgeComponent from "../components/NullBranchEdgeComponent";
+import RichBranchEdgeComponent from "../components/RichBranchEdgeComponent";
 import TaxonNodeComponent from "../components/TaxonNodeComponent";
 
 export type GuideEditorTaxonNodeData = HydratedTaxonNode;
@@ -21,23 +19,16 @@ export type RFDiffNode = Node<GuideEditorDiffNodeData, "diffNode">;
 type BaseBranchEdgeData = {
   branchId: string;
 };
-export type GuideEditorCharacterBranchEdgeData = BaseBranchEdgeData & {
-  rationale: HydratedCharRationale;
-};
-export type GuideEditorGroupBranchEdgeData = BaseBranchEdgeData & {
-  rationale: HydratedBranchRationale;
+export type GuideEditorRichBranchEdgeData = BaseBranchEdgeData & {
+  rationale: HydratedRichRationale;
 };
 export type GuideEditorNullBranchEdgeData = BaseBranchEdgeData & {
   rationale: null;
 };
 
-export type RFCharacterBranchEdge = AssertedEdge<
-  GuideEditorCharacterBranchEdgeData,
-  "characterBranchEdge"
->;
-export type RFGroupBranchEdge = AssertedEdge<
-  GuideEditorGroupBranchEdgeData,
-  "groupBranchEdge"
+export type RFRichBranchEdge = AssertedEdge<
+  GuideEditorRichBranchEdgeData,
+  "richBranchEdge"
 >;
 export type RFNullBranchEdge = AssertedEdge<
   GuideEditorNullBranchEdgeData,
@@ -45,10 +36,7 @@ export type RFNullBranchEdge = AssertedEdge<
 >;
 
 export type RFNode = RFTaxonNode | RFDiffNode;
-export type RFEdge =
-  | RFCharacterBranchEdge
-  | RFGroupBranchEdge
-  | RFNullBranchEdge;
+export type RFEdge = RFRichBranchEdge | RFNullBranchEdge;
 
 export const nodeTypes = {
   taxonNode: TaxonNodeComponent,
@@ -57,6 +45,5 @@ export const nodeTypes = {
 
 export const edgeTypes = {
   nullBranchEdge: NullBranchEdgeComponent,
-  characterBranchEdge: CharacterBranchEdgeComponent,
-  groupBranchEdge: GroupBranchEdgeComponent,
+  richBranchEdge: RichBranchEdgeComponent,
 };

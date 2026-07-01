@@ -1,20 +1,18 @@
 import type { TaxonRank } from "../../../../db/schema/schema";
-import type { Prettify } from "../../utils/types/prettify";
+import type { MediaDTO } from "../media/types";
 import type {
-  TaxonCategoricalStateDTO,
-  TaxonNumberStateDTO,
-  TaxonRangeStateDTO,
-  Trait,
+  CategoricalStateDTO,
+  NumberStateDTO,
+  RangeStateDTO,
 } from "../states/types";
 import type { TaxonDTO } from "../taxa/types";
-import type { MediaItem } from "../taxa/validation";
 
 export type TaxonLookalikeDTO = {
   id: number;
   rank: TaxonRank;
   acceptedName: string;
   preferredCommonName: string | null;
-  media: MediaItem[];
+  media: MediaDTO[];
 
   sharedCount: number;
   jaccard: number;
@@ -29,23 +27,13 @@ type OverlapAnnotation = {
   isOverlapping: boolean;
 };
 
-export type LookalikeComparisonAnnotatedCategoricalTrait = Trait &
+export type LookalikeComparisonAnnotatedCategoricalState = CategoricalStateDTO &
   OverlapAnnotation;
 
-export type LookalikeComparisonAnnotatedCategoricalState = Prettify<
-  Pick<TaxonCategoricalStateDTO, "kind"> & {
-    traits: LookalikeComparisonAnnotatedCategoricalTrait[];
-  }
->;
-
-export type LookalikeComparisonAnnotatedNumberState = Prettify<
-  Pick<TaxonNumberStateDTO, "kind" | "siBaseValue" | "unit">
-> &
+export type LookalikeComparisonAnnotatedNumberState = NumberStateDTO &
   OverlapAnnotation;
 
-export type LookalikeComparisonAnnotatedRangeState = Prettify<
-  Pick<TaxonRangeStateDTO, "kind" | "siBaseMin" | "siBaseMax" | "unit">
-> &
+export type LookalikeComparisonAnnotatedRangeState = RangeStateDTO &
   OverlapAnnotation;
 
 export type LookalikeComparisonAnnotatedState =
@@ -56,7 +44,7 @@ export type LookalikeComparisonAnnotatedState =
 export type LookalikeComparisonCharacter = {
   characterId: number;
   characterLabel: string;
-  state: LookalikeComparisonAnnotatedState | null;
+  states: LookalikeComparisonAnnotatedState[];
 };
 
 export type LookalikeComparisonGroup = {

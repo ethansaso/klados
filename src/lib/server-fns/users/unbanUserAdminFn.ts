@@ -1,0 +1,12 @@
+import { createServerFn } from "@tanstack/react-start";
+import z from "zod";
+import { requireAdminMiddleware } from "../../auth/serverFnMiddleware";
+import { unbanUser } from "../../domain/users/service";
+
+export const unbanUserAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireAdminMiddleware])
+  .validator(z.object({ userId: z.string() }))
+  .handler(async ({ data }) => {
+    const { userId } = data;
+    await unbanUser(userId);
+  });

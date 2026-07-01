@@ -5,38 +5,19 @@ import {
   unitFamily,
 } from "../../../../db/schema/schema";
 import type { PaginatedResult } from "../../validation/pagination";
-import type { CharacterGroupRow } from "../character-groups/types";
-import type { TraitSetRow } from "../traits/types";
+import type { FeatureRow } from "../features/types";
+import type { MediaDTO } from "../media/types";
 
 export type CharacterRow = typeof character.$inferSelect;
 export type CategoricalMetaRow = typeof categoricalCharacterMeta.$inferSelect;
 export type NumericMetaRow = typeof numericCharacterMeta.$inferSelect;
 export type UnitFamilyRow = typeof unitFamily.$inferSelect;
 
-type BaseCharacterDTO = Pick<
-  CharacterRow,
-  "id" | "key" | "label" | "description"
-> & {
-  group: Pick<CharacterGroupRow, "id" | "label">;
+type BaseCharacterDTO = Pick<CharacterRow, "id" | "label" | "description"> & {
+  features: Pick<FeatureRow, "id" | "label">[];
   usageCount: number;
+  media: MediaDTO | null;
 };
-
-export type CategoricalCharacterDTO = BaseCharacterDTO & {
-  type: "categorical";
-} & Pick<CategoricalMetaRow, "characterId" | "traitSetId">;
-
-export type NumberCharacterDTO = BaseCharacterDTO & {
-  type: "number";
-} & Pick<NumericMetaRow, "characterId" | "unitFamilyId">;
-
-export type RangeCharacterDTO = BaseCharacterDTO & {
-  type: "range";
-} & Pick<NumericMetaRow, "characterId" | "unitFamilyId">;
-
-export type CharacterDTO =
-  | CategoricalCharacterDTO
-  | NumberCharacterDTO
-  | RangeCharacterDTO;
 
 type BaseNumericCharacterDetailDTO = Omit<
   NumberCharacterDTO | RangeCharacterDTO,
@@ -45,25 +26,41 @@ type BaseNumericCharacterDetailDTO = Omit<
   unitFamily: Pick<UnitFamilyRow, "id" | "label">;
 };
 
+export type CategoricalCharacterDTO = BaseCharacterDTO & {
+  type: "categorical";
+} & Pick<CategoricalMetaRow, "characterId"> & {
+    traitCount: number;
+  };
 export type CategoricalCharacterDetailDTO = Omit<
   CategoricalCharacterDTO,
-  "traitSetId"
+  "traitCount"
 > &
-  Pick<CategoricalMetaRow, "isMultiSelect"> & {
-    traitSet: Pick<TraitSetRow, "id" | "key" | "label" | "description">;
-  };
+  Pick<CategoricalMetaRow, "isMultiSelect">;
 
+export type NumberCharacterDTO = BaseCharacterDTO & {
+  type: "number";
+} & Pick<NumericMetaRow, "characterId" | "unitFamilyId">;
 export type NumberCharacterDetailDTO = BaseNumericCharacterDetailDTO & {
   type: "number";
 };
 
+export type RangeCharacterDTO = BaseCharacterDTO & {
+  type: "range";
+} & Pick<NumericMetaRow, "characterId" | "unitFamilyId">;
 export type RangeCharacterDetailDTO = BaseNumericCharacterDetailDTO & {
   type: "range";
 };
+
+export type CharacterDTO =
+  | CategoricalCharacterDTO
+  | NumberCharacterDTO
+  | RangeCharacterDTO;
 
 export type CharacterDetailDTO =
   | CategoricalCharacterDetailDTO
   | NumberCharacterDetailDTO
   | RangeCharacterDetailDTO;
+
+export type CharacterType = CharacterDTO["type"];
 
 export type CharacterPaginatedResult = PaginatedResult<CharacterDTO>;

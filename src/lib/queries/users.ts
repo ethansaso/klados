@@ -1,13 +1,13 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getMeFn } from "../api/users/getMeFn";
-import { getUserFn } from "../api/users/getUserFn";
-import { listUsersAdminFn } from "../api/users/listUsersAdminFn";
-import { listUsersFn } from "../api/users/listUsersFn";
 import type {
   UserAdminViewPaginatedResult,
   UserDTO,
   UserPaginatedResult,
 } from "../domain/users/types";
+import { getMeFn } from "../server-fns/users/getMeFn";
+import { getUserFn } from "../server-fns/users/getUserFn";
+import { listUsersAdminFn } from "../server-fns/users/listUsersAdminFn";
+import { listUsersFn } from "../server-fns/users/listUsersFn";
 
 /**
  * Query options for fetching multiple users.
@@ -16,8 +16,7 @@ import type {
 export const usersQueryOptions = (page: number, pageSize: number) =>
   queryOptions<UserPaginatedResult>({
     queryKey: ["users", { page, pageSize }],
-    queryFn: () => listUsersFn({ data: { page, pageSize: pageSize } }),
-    staleTime: 60_000,
+    queryFn: () => listUsersFn({ data: { page, pageSize } }),
   });
 
 /**
@@ -27,8 +26,7 @@ export const usersQueryOptions = (page: number, pageSize: number) =>
 export const usersAdminViewQueryOptions = (page: number, pageSize: number) =>
   queryOptions<UserAdminViewPaginatedResult>({
     queryKey: ["users", "admin", { page, pageSize }],
-    queryFn: () => listUsersAdminFn({ data: { page, pageSize: pageSize } }),
-    staleTime: 60_000,
+    queryFn: () => listUsersAdminFn({ data: { page, pageSize } }),
   });
 
 /**
@@ -36,9 +34,8 @@ export const usersAdminViewQueryOptions = (page: number, pageSize: number) =>
  */
 export const userQueryOptions = (id: string) =>
   queryOptions<UserDTO>({
-    queryKey: ["user", id],
+    queryKey: ["users", id],
     queryFn: () => getUserFn({ data: { id } }),
-    staleTime: 60_000,
   });
 
 /**
@@ -46,9 +43,8 @@ export const userQueryOptions = (id: string) =>
  */
 export const meQueryOptions = () => {
   return queryOptions({
-    queryKey: ["me"],
+    queryKey: ["users", "me"],
     queryFn: () => getMeFn(),
-    staleTime: 60_000,
     gcTime: 5 * 60_000,
   });
 };

@@ -20,5 +20,6 @@ yarn.lock
 /playwright/.cache/
 .tanstack
 
-# local convenience files
+# local files
+/uploads/
 ISSUES.md

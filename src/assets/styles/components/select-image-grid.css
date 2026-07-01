@@ -1,5 +1,6 @@
 .select-image-grid {
-  label.rt-CheckboxCardsItem {
+  label.rt-CheckboxCardsItem,
+  button.rt-RadioCardsItem {
     aspect-ratio: 1/1;
     padding: 0;
     --checkbox-cards-item-padding-left: 8px;

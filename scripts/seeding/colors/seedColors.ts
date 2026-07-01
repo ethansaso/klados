@@ -1,78 +1,83 @@
 import "dotenv/config";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "../../../db/client";
 import {
-  categoricalTraitSet,
+  categoricalCharacterMeta,
   categoricalTraitValue,
+  character,
 } from "../../../db/schema/schema";
 import { Transaction } from "../../../src/lib/utils/transactionType";
 import { askYesNo } from "../../utils/askYesNo";
 import {
   ansiBlock,
+  ColorDef,
   generateCanonicalColorDefs,
   getNormalizedColorAliases,
 } from "../colors/util";
 
-type ColorDef = {
-  key: string; // machine key (snake_case)
-  label: string; // human label
-  hexCode: string | null;
-};
-
-const COLOR_TRAIT_SET_KEY = "colors";
+const COLOR_CHARACTER_LABEL = "Color";
 
 /**
- * Fetch or create the "colors" trait set inside a transaction.
+ * Fetch or create the "Color" character inside a transaction.
  */
-async function getOrCreateColorTraitSetTx(tx: Transaction) {
+async function getOrCreateColorCharacterTx(tx: Transaction) {
   const existing = await tx
     .select()
-    .from(categoricalTraitSet)
-    .where(eq(categoricalTraitSet.key, COLOR_TRAIT_SET_KEY))
+    .from(character)
+    .where(eq(character.label, COLOR_CHARACTER_LABEL))
     .limit(1);
 
+  let charRow;
+
   if (existing.length > 0) {
-    return existing[0];
+    charRow = existing[0];
+  } else {
+    const [inserted] = await tx
+      .insert(character)
+      .values({
+        label: COLOR_CHARACTER_LABEL,
+      })
+      .returning();
+
+    charRow = inserted;
   }
 
-  const [inserted] = await tx
-    .insert(categoricalTraitSet)
+  // Ensure categorical metadata exists
+  await tx
+    .insert(categoricalCharacterMeta)
     .values({
-      key: COLOR_TRAIT_SET_KEY,
-      label: "Standard Color Palette",
-      description:
-        "Standardized color names and swatches for Klados, derived from a simplified ISCC-like scheme.",
+      characterId: charRow.id,
+      isMultiSelect: true,
     })
-    .returning();
+    .onConflictDoNothing();
 
-  return inserted;
+  return charRow;
 }
 
 /**
- * Upsert all canonical colors for a trait set inside a transaction.
+ * Upsert all canonical colors for a character inside a transaction.
  */
 async function upsertCanonicalColorsTx(
   tx: Transaction,
-  setId: number,
+  characterId: number,
   colors: ColorDef[],
 ) {
   for (const color of colors) {
     await tx
       .insert(categoricalTraitValue)
       .values({
-        setId,
-        key: color.key,
+        characterId,
         label: color.label,
-        isCanonical: true,
         canonicalValueId: null,
         hexCode: color.hexCode,
       })
       .onConflictDoUpdate({
-        target: [categoricalTraitValue.setId, categoricalTraitValue.key],
+        target: [
+          categoricalTraitValue.characterId,
+          categoricalTraitValue.label,
+        ],
         set: {
-          label: color.label,
           hexCode: color.hexCode,
-          isCanonical: true,
           canonicalValueId: null,
           updatedAt: new Date(),
         },
@@ -81,55 +86,53 @@ async function upsertCanonicalColorsTx(
 }
 
 /**
- * Validate and upsert aliases for the "colors" trait set inside a transaction.
+ * Validate and upsert aliases for the "Color" character inside a transaction.
  */
-async function syncColorAliasesTx(tx: Transaction, setId: number) {
-  // Load canonical rows (for IDs + keys)
+async function syncColorAliasesTx(tx: Transaction, characterId: number) {
   const canonicalRows = await tx
     .select()
     .from(categoricalTraitValue)
     .where(
       and(
-        eq(categoricalTraitValue.setId, setId),
-        eq(categoricalTraitValue.isCanonical, true),
+        eq(categoricalTraitValue.characterId, characterId),
+        isNull(categoricalTraitValue.canonicalValueId),
       ),
     );
 
-  const canonicalByKey = new Map<string, (typeof canonicalRows)[number]>(
-    canonicalRows.map((row) => [row.key, row]),
+  const canonicalByLabel = new Map(
+    canonicalRows.map((row) => [row.label, row]),
   );
-  const canonicalKeys = new Set(canonicalByKey.keys());
+  const canonicalLabels = new Set(canonicalByLabel.keys());
 
   const aliases = getNormalizedColorAliases();
   const errors: string[] = [];
-  const aliasKeyToCanonical = new Map<string, string>();
+  const aliasLabelToCanonical = new Map<string, string>();
 
-  // Config-level validation first
   for (const alias of aliases) {
-    const { aliasLabel, aliasKey, canonicalKey } = alias;
+    const { aliasLabel, canonicalLabel } = alias;
 
-    if (!canonicalByKey.has(canonicalKey)) {
+    if (!canonicalByLabel.has(canonicalLabel)) {
       errors.push(
-        `Alias "${aliasLabel}" uses canonicalKey "${canonicalKey}", but no canonical color with that key exists.`,
+        `Alias "${aliasLabel}" references canonical label "${canonicalLabel}", but no canonical color with that label exists.`,
       );
     }
 
-    if (canonicalKeys.has(aliasKey)) {
+    if (canonicalLabels.has(aliasLabel)) {
       errors.push(
-        `Alias "${aliasLabel}" uses aliasKey "${aliasKey}", which collides with an existing canonical key.`,
+        `Alias "${aliasLabel}" collides with an existing canonical label.`,
       );
     }
 
-    const existingCanonicalForAlias = aliasKeyToCanonical.get(aliasKey);
+    const existingCanonicalForAlias = aliasLabelToCanonical.get(aliasLabel);
     if (
       existingCanonicalForAlias &&
-      existingCanonicalForAlias !== canonicalKey
+      existingCanonicalForAlias !== canonicalLabel
     ) {
       errors.push(
-        `Alias key "${aliasKey}" is mapped to multiple canonical keys: "${existingCanonicalForAlias}" and "${canonicalKey}".`,
+        `Alias label "${aliasLabel}" is mapped to multiple canonicals: "${existingCanonicalForAlias}" and "${canonicalLabel}".`,
       );
     } else if (!existingCanonicalForAlias) {
-      aliasKeyToCanonical.set(aliasKey, canonicalKey);
+      aliasLabelToCanonical.set(aliasLabel, canonicalLabel);
     }
   }
 
@@ -139,25 +142,23 @@ async function syncColorAliasesTx(tx: Transaction, setId: number) {
     );
   }
 
-  // Upsert aliases
   for (const alias of aliases) {
-    const canonical = canonicalByKey.get(alias.canonicalKey)!;
+    const canonical = canonicalByLabel.get(alias.canonicalLabel)!;
 
     await tx
       .insert(categoricalTraitValue)
       .values({
-        setId,
-        key: alias.aliasKey,
+        characterId,
         label: alias.aliasLabel,
-        isCanonical: false,
         canonicalValueId: canonical.id,
-        hexCode: null, // don't set hexCode on aliases
+        hexCode: null,
       })
       .onConflictDoUpdate({
-        target: [categoricalTraitValue.setId, categoricalTraitValue.key],
+        target: [
+          categoricalTraitValue.characterId,
+          categoricalTraitValue.label,
+        ],
         set: {
-          label: alias.aliasLabel,
-          isCanonical: false,
           canonicalValueId: canonical.id,
           hexCode: null,
           updatedAt: new Date(),
@@ -195,14 +196,14 @@ export async function run() {
   console.log("\nUpserting colors and aliases into DB...\n");
 
   await db.transaction(async (tx) => {
-    const traitSet = await getOrCreateColorTraitSetTx(tx);
+    const colorCharacter = await getOrCreateColorCharacterTx(tx);
 
-    await upsertCanonicalColorsTx(tx, traitSet.id, colors);
-    await syncColorAliasesTx(tx, traitSet.id);
+    await upsertCanonicalColorsTx(tx, colorCharacter.id, colors);
+    await syncColorAliasesTx(tx, colorCharacter.id);
   });
 
   console.log(
-    `\nDone. Seeded canonical colors and aliases into set "${COLOR_TRAIT_SET_KEY}".\n`,
+    `\nDone. Seeded canonical colors and aliases into character "${COLOR_CHARACTER_LABEL}".\n`,
   );
   process.exit(0);
 }

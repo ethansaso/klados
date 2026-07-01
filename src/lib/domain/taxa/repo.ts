@@ -4,6 +4,7 @@ import {
   count,
   countDistinct,
   eq,
+  exists,
   ilike,
   inArray,
   sql,
@@ -12,10 +13,12 @@ import {
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "../../../../db/client";
+import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
 import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import { likeAnywhere } from "../../utils/likeAnywhere";
 import type { Transaction } from "../../utils/transactionType";
+import { selectMediaByTaxonIds } from "../media/repo";
 import type { TaxonSearchParams } from "./search";
 import {
   common,
@@ -76,7 +79,7 @@ export async function selectTaxonDtoById(
   tx: Transaction,
   id: number,
 ): Promise<TaxonDTO | null> {
-  const [dto] = await tx
+  const [row] = await tx
     .select(taxonSelector)
     .from(taxaTbl)
     .innerJoin(sci, sciJoinPred)
@@ -84,7 +87,10 @@ export async function selectTaxonDtoById(
     .where(eq(taxaTbl.id, id))
     .limit(1);
 
-  return dto ?? null;
+  if (!row) return null;
+
+  const mediaMap = await selectMediaByTaxonIds([id]);
+  return { ...row, media: mediaMap.get(id) ?? [] };
 }
 
 /**
@@ -94,7 +100,9 @@ export async function selectTaxonDtosByIds(
   tx: Transaction,
   ids: number[],
 ): Promise<TaxonDTO[]> {
-  const dtos = await tx
+  if (ids.length === 0) return [];
+
+  const rows = await tx
     .select(taxonSelector)
     .from(taxaTbl)
     .innerJoin(sci, sciJoinPred)
@@ -102,7 +110,8 @@ export async function selectTaxonDtosByIds(
     .where(inArray(taxaTbl.id, ids))
     .orderBy(asc(taxaTbl.id));
 
-  return dtos;
+  const mediaMap = await selectMediaByTaxonIds(ids);
+  return rows.map((row) => ({ ...row, media: mediaMap.get(row.id) ?? [] }));
 }
 
 /**
@@ -229,7 +238,7 @@ export async function fetchTaxonDetailById(
   id: number,
 ): Promise<TaxonDetailDTO | null> {
   // Base taxon row
-  const baseRows = await db
+  const [baseRow] = await db
     .select(taxonSelector)
     .from(taxaTbl)
     .innerJoin(sci, sciJoinPred)
@@ -237,8 +246,7 @@ export async function fetchTaxonDetailById(
     .where(eq(taxaTbl.id, id))
     .limit(1);
 
-  const base = baseRows[0];
-  if (!base) {
+  if (!baseRow) {
     return null;
   }
 
@@ -263,7 +271,6 @@ export async function fetchTaxonDetailById(
       a.source_gbif_id AS "sourceGbifId",
       a.source_inat_id AS "sourceInatId",
       a.status,
-      a.media,
       a.notes,
       s.value  AS "acceptedName",
       pc.value AS "preferredCommonName",
@@ -287,6 +294,12 @@ export async function fetchTaxonDetailById(
     ORDER BY chain.depth DESC
   `);
 
+  // Batch-load media for the focal taxon and all ancestors in one query
+  const allIds = [id, ...ancRows.rows.map((r) => r.id)];
+  const mediaMap = await selectMediaByTaxonIds(allIds);
+
+  const baseDto = { ...baseRow, media: mediaMap.get(id) ?? [] };
+
   const ancestors: TaxonDTO[] = ancRows.rows.map((r) => ({
     id: r.id,
     parentId: r.parentId,
@@ -294,7 +307,7 @@ export async function fetchTaxonDetailById(
     sourceGbifId: r.sourceGbifId,
     sourceInatId: r.sourceInatId,
     status: r.status,
-    media: r.media,
+    media: mediaMap.get(r.id) ?? [],
     notes: r.notes,
     acceptedName: r.acceptedName,
     preferredCommonName: r.preferredCommonName,
@@ -348,10 +361,8 @@ export async function fetchTaxonDetailById(
   }));
 
   // Assemble final TaxonDetailDTO
-  const { parentId, ...baseWithoutParent } = base;
-  void parentId;
   const detail: TaxonDetailDTO = {
-    ...baseWithoutParent,
+    ...baseDto,
     ancestors,
     names,
     subtaxa,
@@ -388,7 +399,12 @@ export async function listTaxaQuery(
       : undefined;
 
   const hasMediaFilter = hasMedia
-    ? sql`jsonb_array_length(${taxaTbl.media}) > 0`
+    ? exists(
+        db
+          .select({ _: sql`1` })
+          .from(taxonMediaTbl)
+          .where(eq(taxonMediaTbl.taxonId, taxaTbl.id)),
+      )
     : undefined;
 
   // When q is provided, filter on names.value (trigram index)
@@ -401,7 +417,7 @@ export async function listTaxaQuery(
     ];
     const where = and(...(filters.filter(Boolean) as SQL[]));
 
-    const items = await db
+    const itemRows = await db
       .select(taxonSelector)
       .from(taxaTbl)
       .innerJoin(searchNames, eq(searchNames.taxonId, taxaTbl.id))
@@ -429,6 +445,12 @@ export async function listTaxaQuery(
       .where(where);
     const total = totals[0]?.total ?? 0;
 
+    const mediaMap = await selectMediaByTaxonIds(itemRows.map((r) => r.id));
+    const items = itemRows.map((r) => ({
+      ...r,
+      media: mediaMap.get(r.id) ?? [],
+    }));
+
     return { items, page, pageSize, total };
   }
 
@@ -440,7 +462,7 @@ export async function listTaxaQuery(
   ];
   const where = and(...(baseFilters.filter(Boolean) as SQL[]));
 
-  const items = await db
+  const itemRows = await db
     .select(taxonSelector)
     .from(taxaTbl)
     .innerJoin(sci, sciJoinPred)
@@ -452,6 +474,12 @@ export async function listTaxaQuery(
 
   const totals = await db.select({ total: count() }).from(taxaTbl).where(where);
   const total = totals[0]?.total ?? 0;
+
+  const mediaMap = await selectMediaByTaxonIds(itemRows.map((r) => r.id));
+  const items = itemRows.map((r) => ({
+    ...r,
+    media: mediaMap.get(r.id) ?? [],
+  }));
 
   return { items, page, pageSize, total };
 }

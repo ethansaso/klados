@@ -1,5 +1,6 @@
 import NiceModal from "@ebay/nice-modal-react";
 import {
+  Box,
   Button,
   CheckboxCards,
   Dialog,
@@ -7,19 +8,34 @@ import {
   Spinner,
   Text,
 } from "@radix-ui/themes";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import z from "zod";
-import { MEDIA_LICENSES } from "../../../../../../../db/utils/mediaLicense";
-import type { MediaItem } from "../../../../../../lib/domain/taxa/validation";
+import {
+  MEDIA_LICENSES,
+  type MediaLicense,
+} from "../../../../../../../db/utils/mediaLicense";
+import type { MediaDTO } from "../../../../../../lib/domain/media/types";
+import type { UploadMediaWireItem } from "../../../../../../lib/domain/media/validation";
+import { uploadMediaFn } from "../../../../../../lib/server-fns/media/uploadMediaFn";
+
+type InatPhoto = {
+  url: string;
+  license: Exclude<MediaLicense, "all-rights-reserved">;
+  owner: string;
+  source: string;
+  name: string | undefined;
+};
 
 type Props = {
   inatId: number;
-  onConfirm: (media: MediaItem[]) => void;
+  onConfirm: (media: MediaDTO[]) => void;
 };
 
 const InatTaxaResponseSchema = z.object({
   results: z.array(
     z.object({
+      name: z.string().optional(),
       taxon_photos: z
         .array(
           z.object({
@@ -38,16 +54,18 @@ const InatTaxaResponseSchema = z.object({
 
 const ALLOWED_LICENSES = MEDIA_LICENSES.filter(
   (l) => l !== "all-rights-reserved",
-) as readonly Exclude<(typeof MEDIA_LICENSES)[number], "all-rights-reserved">[];
+) as readonly Exclude<MediaLicense, "all-rights-reserved">[];
 
 const AllowedLicenseSchema = z.enum(ALLOWED_LICENSES);
 
-export const InatPhotoSelectModal = NiceModal.create<Props>(
+const InatPhotoSelectModal = NiceModal.create<Props>(
   ({ inatId, onConfirm }) => {
     const { visible, hide } = NiceModal.useModal();
+    const qc = useQueryClient();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [allMedia, setAllMedia] = useState<MediaItem[] | null>(null);
+    const [allMedia, setAllMedia] = useState<InatPhoto[] | null>(null);
+    const [uploading, setUploading] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(
       () => new Set(),
     );
@@ -77,7 +95,7 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
           }
           const taxonPhotos = extracted.photos;
 
-          const media: MediaItem[] = taxonPhotos
+          const media: InatPhoto[] = taxonPhotos
             .map((tp) => tp.photo)
             .flatMap((p) => {
               const lic = AllowedLicenseSchema.safeParse(p.license_code);
@@ -89,7 +107,8 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
                   license: lic.data,
                   owner: p.attribution_name ?? "",
                   source: `https://www.inaturalist.org/photos/${p.id}`,
-                } satisfies MediaItem,
+                  name: extracted.name,
+                } satisfies InatPhoto,
               ];
             })
             .slice(0, 9);
@@ -118,11 +137,31 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
       hide();
     };
 
-    const handleFinish = () => {
+    const handleFinish = async () => {
       if (!allMedia) return;
       const selectedMedia = allMedia.filter((_, idx) => selectedIds.has(idx));
-      onConfirm(selectedMedia);
-      handleExit();
+      if (!selectedMedia.length) return;
+
+      setUploading(true);
+      try {
+        const items: UploadMediaWireItem[] = selectedMedia.map((m) => ({
+          type: "url" as const,
+          url: m.url,
+          license: m.license,
+          owner: m.owner,
+          source: m.source,
+          title: m.name ?? "Unknown",
+        }));
+
+        const uploaded = await uploadMediaFn({ data: { items } });
+        onConfirm(uploaded);
+        qc.invalidateQueries({ queryKey: ["media"] });
+        handleExit();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Upload failed.");
+      } finally {
+        setUploading(false);
+      }
     };
 
     return (
@@ -141,25 +180,47 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
             ) : error ? (
               <Text color="red">{error}</Text>
             ) : allMedia ? (
-              <CheckboxCards.Root
-                columns="3"
-                gap="1"
-                className="select-image-grid"
-                value={Array.from(selectedIds).map(String)}
-                onValueChange={(values) =>
-                  setSelectedIds(new Set(values.map(Number)))
-                }
-              >
-                {allMedia.length !== 0 ? (
-                  allMedia.map((m, i) => (
-                    <CheckboxCards.Item value={String(i)} key={m.url}>
-                      <img src={m.url} />
-                    </CheckboxCards.Item>
-                  ))
-                ) : (
-                  <Text>No photos with usable licenses found.</Text>
-                )}
-              </CheckboxCards.Root>
+              <Box>
+                <Flex>
+                  <Button
+                    variant="soft"
+                    size="2"
+                    onClick={() =>
+                      setSelectedIds(
+                        new Set(allMedia?.map((_, idx) => idx) ?? []),
+                      )
+                    }
+                  >
+                    Select all
+                  </Button>
+                  <Button
+                    variant="soft"
+                    size="2"
+                    onClick={() => setSelectedIds(new Set())}
+                  >
+                    Deselect all
+                  </Button>
+                </Flex>
+                <CheckboxCards.Root
+                  columns="3"
+                  gap="1"
+                  className="select-image-grid"
+                  value={Array.from(selectedIds).map(String)}
+                  onValueChange={(values) =>
+                    setSelectedIds(new Set(values.map(Number)))
+                  }
+                >
+                  {allMedia.length !== 0 ? (
+                    allMedia.map((m, i) => (
+                      <CheckboxCards.Item value={String(i)} key={m.url}>
+                        <img src={m.url} />
+                      </CheckboxCards.Item>
+                    ))
+                  ) : (
+                    <Text>No photos with usable licenses found.</Text>
+                  )}
+                </CheckboxCards.Root>
+              </Box>
             ) : null}
           </Flex>
           <Flex mt="5" justify="end" gap="2">
@@ -171,7 +232,11 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
             >
               Cancel
             </Button>
-            <Button disabled={!allMedia} onClick={handleFinish}>
+            <Button
+              disabled={!allMedia || uploading || selectedIds.size === 0}
+              loading={uploading}
+              onClick={handleFinish}
+            >
               Confirm
             </Button>
           </Flex>
@@ -182,7 +247,7 @@ export const InatPhotoSelectModal = NiceModal.create<Props>(
 );
 
 export async function selectInatPhotos(inatId: number) {
-  return new Promise<MediaItem[] | null>((resolve) => {
+  return new Promise<MediaDTO[] | null>((resolve) => {
     NiceModal.show(InatPhotoSelectModal, {
       inatId,
       onConfirm: (media) => resolve(media),
@@ -195,6 +260,7 @@ function extractTaxonPhotos(data: unknown) {
   if (!parsed.success) return { kind: "invalid" as const };
   return {
     kind: "ok" as const,
+    name: parsed.data.results[0]?.name,
     photos: parsed.data.results[0]?.taxon_photos ?? [],
   };
 }

@@ -1,5 +1,5 @@
 import type {
-  TaxonCategoricalStateDTO,
+  CategoricalStateDTO,
   Trait,
 } from "../../../lib/domain/states/types";
 import type { HierarchyTaxonNode } from "../../hierarchy/types";
@@ -12,51 +12,60 @@ import { scoreCharacterSplit } from "./scoreCharacterSplit";
 
 type CharEntry = {
   taxon: HierarchyTaxonNode;
-  state: TaxonCategoricalStateDTO;
-  groupId: number;
+  states: CategoricalStateDTO[];
+  featureId: number;
 };
 
-type ByCharacter = Map<number, Map<number, CharEntry>>;
+type ByCharacter = Map<string, Map<number, CharEntry>>;
 
 type SharedTraitGroup = {
   traits: Trait[];
   taxa: HierarchyTaxonNode[];
 };
 
-/** Post-normalization index of trait sets by taxon, with group annotation */
+/** Post-normalization index of trait sets by taxon, with feature annotation */
 type NormalizedCharacterTraitSets = {
   traitSetsByTaxon: Map<number, Trait[]>;
-  groupId: number;
+  featureId: number;
 };
 
 type GroupsResult = {
   groups: SharedTraitGroup[];
   notTaxa: Set<HierarchyTaxonNode>;
-  groupId: number;
+  featureId: number;
 };
 
 /**
  * Build index: characterId -> (taxonId -> {taxon, states})
  */
 function buildCharacterIndex(taxa: HierarchyTaxonNode[]): ByCharacter {
-  const byCharacter = new Map<number, Map<number, CharEntry>>();
+  const byCharacter = new Map<string, Map<number, CharEntry>>();
 
   for (const taxon of taxa) {
     for (const group of taxon.states) {
       for (const state of group.states) {
         if (state.kind !== "categorical") continue;
 
-        let byTaxon = byCharacter.get(state.characterId);
+        // Key by (featureId, characterId) so that the same character scoped
+        // under different features (e.g. Cap > Color vs. Gill > Color) is
+        // treated as a distinct split candidate rather than overwriting.
+        const key = `${group.featureId}:${state.characterId}`;
+        let byTaxon = byCharacter.get(key);
         if (!byTaxon) {
           byTaxon = new Map<number, CharEntry>();
-          byCharacter.set(state.characterId, byTaxon);
+          byCharacter.set(key, byTaxon);
         }
 
-        byTaxon.set(taxon.id, {
-          taxon,
-          state,
-          groupId: group.groupId,
-        });
+        const existing = byTaxon.get(taxon.id);
+        if (existing) {
+          existing.states.push(state);
+        } else {
+          byTaxon.set(taxon.id, {
+            taxon,
+            states: [state],
+            featureId: group.featureId,
+          });
+        }
       }
     }
   }
@@ -75,28 +84,28 @@ function normalizeTraitSetsForCharacter(
   byTaxon: Map<number, CharEntry>,
 ): NormalizedCharacterTraitSets | null {
   const traitSetsByTaxon = new Map<number, Trait[]>();
-  let groupId: number | null = null;
+  let featureId: number | null = null;
 
   for (const taxon of taxa) {
     const entry = byTaxon.get(taxon.id);
     if (!entry) return null;
 
-    const { state, groupId: entryGroupId } = entry;
-    const traits = state.traitValues ?? [];
+    const { states, featureId: entryFeatureId } = entry;
+    const traits = states.map((s) => s.trait);
     if (traits.length === 0) return null;
 
-    // Record groupId once for downstream clause construction.
+    // Record featureId once for downstream clause construction.
     // Structural invariants guarantee consistency.
-    if (groupId === null) {
-      groupId = entryGroupId;
+    if (featureId === null) {
+      featureId = entryFeatureId;
     }
 
     traitSetsByTaxon.set(taxon.id, traits);
   }
 
-  if (groupId === null) return null;
+  if (featureId === null) return null;
 
-  return { traitSetsByTaxon, groupId };
+  return { traitSetsByTaxon, featureId };
 }
 
 /** Simple set intersection */
@@ -122,7 +131,7 @@ function buildGroupsWithDeadTags(
   taxa: HierarchyTaxonNode[],
   normalized: NormalizedCharacterTraitSets,
 ): GroupsResult | null {
-  const { traitSetsByTaxon, groupId } = normalized;
+  const { traitSetsByTaxon, featureId } = normalized;
 
   const groupMap = new Map<string, SharedTraitGroup>();
   const groupTraitIdsByKey = new Map<string, Set<number>>();
@@ -235,10 +244,30 @@ function buildGroupsWithDeadTags(
 
   if ((hasNotTaxa && groups.length === 0) || groups.length < 2) {
     // Either everyone is ambiguous, or there's no real split.
+    console.log(
+      `[KEYGEN]   buildGroups null: groups=${groups.length}, notTaxa=[${Array.from(
+        notTaxa,
+      )
+        .map((t) => `${t.id}(${t.acceptedName})`)
+        .join(", ")}]`,
+      `deadTraits=[${Array.from(deadTraitIds).join(", ")}]`,
+    );
+    for (const [key, g] of groupMap) {
+      console.log(
+        `[KEYGEN]   remaining group key=${key}: taxa=[${g.taxa.map((t) => t.id).join(", ")}] traits=[${g.traits.map((t) => `${t.id}/${t.canonicalId}:${t.label}`).join(", ")}]`,
+      );
+    }
+    // Log each taxon's full trait set for this character
+    for (const taxon of [...notTaxa, ...groups.flatMap((g) => g.taxa)]) {
+      const traits = traitSetsByTaxon.get(taxon.id) ?? [];
+      console.log(
+        `[KEYGEN]   taxon ${taxon.id}(${taxon.acceptedName}) traits: [${traits.map((t) => `${t.id}/${t.canonicalId}:${t.label}`).join(", ")}]`,
+      );
+    }
     return null;
   }
 
-  return { groups, notTaxa, groupId };
+  return { groups, notTaxa, featureId };
 }
 
 /**
@@ -284,7 +313,7 @@ function enforceBranchLimit(
  */
 function createBranches(
   characterId: number,
-  groupId: number,
+  featureId: number,
   groups: SharedTraitGroup[],
   notTaxa: Set<HierarchyTaxonNode>,
 ): { branches: CharacterDefinitionSplitBranch[]; hasInvertedBranch: boolean } {
@@ -296,7 +325,7 @@ function createBranches(
       clauses: [
         {
           characterId,
-          groupId,
+          featureId,
           traits: g.traits,
           inverted: false,
         },
@@ -325,7 +354,7 @@ function createBranches(
       clauses: [
         {
           characterId,
-          groupId,
+          featureId,
           traits: unionTraits,
           inverted: true,
         },
@@ -349,14 +378,45 @@ export function resolveCharacterSplits(
   const byCharacter = buildCharacterIndex(taxa);
   const results: CharacterDefinitionSplitResult[] = [];
 
-  for (const [characterId, byTaxon] of byCharacter) {
-    // 1) enforce all taxa have this character + normalize
-    const normalized = normalizeTraitSetsForCharacter(taxa, byTaxon);
-    if (!normalized) continue;
+  for (const [_key, byTaxon] of byCharacter) {
+    void _key;
+    const firstEntry = byTaxon.values().next().value!;
+    const characterId = firstEntry.states[0]!.characterId;
+
+    // Only operate on taxa that have data for this character.
+    // Taxa missing from byTaxon have no states for this character and will
+    // land in the unplaced-taxa bucket in buildKeyForChildren.
+    const describedTaxa = taxa.filter((t) => byTaxon.has(t.id));
+    if (describedTaxa.length < 2) {
+      const missing = taxa
+        .filter((t) => !byTaxon.has(t.id))
+        .map((t) => `${t.id}(${t.acceptedName})`);
+      const charLabel = firstEntry.states[0]!.characterLabel;
+      console.log(
+        `[KEYGEN] char ${characterId}(${charLabel}): skipped at normalize — missing taxa: [${missing.join(", ")}]`,
+      );
+      continue;
+    }
+
+    // 1) normalize trait-sets for the described subset
+    const normalized = normalizeTraitSetsForCharacter(describedTaxa, byTaxon);
+    if (!normalized) {
+      const charLabel = firstEntry.states[0]!.characterLabel;
+      console.log(
+        `[KEYGEN] char ${characterId}(${charLabel}): skipped at normalize (empty traits)`,
+      );
+      continue;
+    }
 
     // 2) build disjoint groups + notTaxa
-    const groupsResult = buildGroupsWithDeadTags(taxa, normalized);
-    if (!groupsResult) continue;
+    const groupsResult = buildGroupsWithDeadTags(describedTaxa, normalized);
+    if (!groupsResult) {
+      const charLabel = firstEntry.states[0]!.characterLabel;
+      console.log(
+        `[KEYGEN] char ${characterId}(${charLabel}): skipped at buildGroups`,
+      );
+      continue;
+    }
 
     // 3) respect maxBranches (trim into inverted if needed)
     const limited = enforceBranchLimit(
@@ -371,7 +431,7 @@ export function resolveCharacterSplits(
     // 4) turn groups + notTaxa into branches, note inversion
     const { branches } = createBranches(
       characterId,
-      groupsResult.groupId,
+      groupsResult.featureId,
       groups,
       notTaxa,
     );

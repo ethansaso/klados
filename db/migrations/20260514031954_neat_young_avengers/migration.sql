@@ -1,0 +1,1 @@
+ALTER TABLE "taxon" DROP COLUMN "media";

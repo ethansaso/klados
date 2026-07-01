@@ -7,7 +7,7 @@ import {
   type EdgeProps,
 } from "@xyflow/react";
 import { memo } from "react";
-import { ColorBubble } from "../../trait-tokens/ColorBubble";
+import { ColorBubble } from "../../state-formatting/helpers/ColorBubble";
 import type { DemoEdge } from "./demoTypes";
 
 const DemoEdgeComponent = memo((props: EdgeProps<DemoEdge>) => {

@@ -1,6 +1,7 @@
 import { notFound } from "@tanstack/react-router";
 import { and, count, eq } from "drizzle-orm";
 import { db } from "../../../../db/client";
+import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import { assertHierarchyInvariant } from "../../utils/assertHierarchyInvariant";
 import { replaceGroupedCharacterStatesForTaxon } from "../states/repo";
@@ -241,7 +242,7 @@ function assertNamesPayloadInvariant(names: NameItem[]) {
 }
 
 export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
-  const { id, sources, ...updates } = args;
+  const { id, sources, mediaIds, ...updates } = args;
 
   return db.transaction(async (tx) => {
     const current = await getCurrentTaxonMinimal(tx, id);
@@ -273,7 +274,6 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
       ...("sourceInatId" in updates
         ? { sourceInatId: updates.sourceInatId }
         : {}),
-      ...("media" in updates ? { media: updates.media } : {}),
       ...("notes" in updates ? { notes: updates.notes } : {}),
     };
 
@@ -295,6 +295,18 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
     // 4) taxon sources set (if provided)
     if (sources) {
       await setSourcesForTaxon(tx, id, sources);
+    }
+
+    // 5) taxon_media replace (if provided)
+    if (mediaIds !== undefined) {
+      await tx
+        .delete(taxonMediaTbl)
+        .where(eq(taxonMediaTbl.taxonId, id));
+      if (mediaIds.length > 0) {
+        await tx.insert(taxonMediaTbl).values(
+          mediaIds.map((mediaId, position) => ({ taxonId: id, mediaId, position })),
+        );
+      }
     }
 
     const dto = await selectTaxonDtoById(tx, id);

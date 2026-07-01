@@ -1,90 +1,16 @@
 import { db } from "../../../../db/client";
 import {
-  deleteTraitSetById,
   deleteTraitValueById,
-  fetchTraitSetDetailById,
-  getTraitSetValuesQuery,
-  insertTraitSet,
   insertTraitValueRow,
-  listTraitSetsQuery,
-  listTraitSetValuesQuery,
+  selectAllTraitValuesByCharacters,
+  selectMinimalTraitValueRowById,
   selectTraitValueDtoById,
   selectTraitValueDtosByIds,
-  selectTraitValueRowById,
+  selectTraitValuesByCharacterPaginated,
   updateTraitValueRow,
 } from "./repo";
-import type {
-  TraitSetDetailDTO,
-  TraitSetDTO,
-  TraitSetPaginatedResult,
-  TraitValueDTO,
-  TraitValuePaginatedResult,
-} from "./types";
+import type { TraitValueDTO, TraitValuePaginatedResult } from "./types";
 import type { UpdateTraitValueInput } from "./validation";
-
-/**
- * List trait sets with optional search, status filter and IDs, paginated.
- */
-export async function listTraitSets(args: {
-  q?: string;
-  ids?: number[];
-  page: number;
-  pageSize: number;
-}): Promise<TraitSetPaginatedResult> {
-  return listTraitSetsQuery(args);
-}
-
-/**
- * Get a single trait set with aggregates.
- */
-export async function getTraitSet(args: {
-  id: number;
-}): Promise<TraitSetDetailDTO | null> {
-  return fetchTraitSetDetailById(args.id);
-}
-
-/**
- * Create a trait set.
- */
-export async function createTraitSet(args: {
-  key: string;
-  label: string;
-  description?: string;
-}): Promise<TraitSetDTO | null> {
-  const key = args.key.trim();
-  const label = args.label.trim();
-  const description = args.description?.trim() || "";
-
-  return db.transaction(async (tx) => {
-    const base = await insertTraitSet(tx, { key, label, description });
-    if (!base) {
-      return null;
-    }
-
-    const dto: TraitSetDTO = {
-      ...base,
-      valueCount: 0,
-      canonicalCount: 0,
-      usedByCharacters: 0,
-    };
-
-    return dto;
-  });
-}
-
-/**
- * Delete a trait set by id.
- * Returns { id } if deleted, null if the set does not exist.
- */
-export async function deleteTraitSet(args: {
-  id: number;
-}): Promise<{ id: number } | null> {
-  const { id } = args;
-  return db.transaction(async (tx) => {
-    const deleted = await deleteTraitSetById(tx, id);
-    return deleted;
-  });
-}
 
 /**
  * Delete a trait value by id.
@@ -107,7 +33,7 @@ export async function deleteTraitValue(args: {
     }
 
     // Block delete if has dependent aliases
-    if (!dto.aliasTarget && (dto.aliasCount ?? 0) > 0) {
+    if (!dto.aliasOf && (dto.aliasCount ?? 0) > 0) {
       throw new Error(
         `Cannot delete "${dto.label}" because ${dto.aliasCount} alias value(s) depend on it. Remove or reassign those aliases first.`,
       );
@@ -119,25 +45,13 @@ export async function deleteTraitValue(args: {
 }
 
 /**
- * Gets all values for a given trait set.
+ * Fetch a single trait value by ID.
+ * Returns null if not found.
  */
-export async function getTraitSetValues(args: {
-  setId: number;
-}): Promise<TraitValueDTO[]> {
-  return getTraitSetValuesQuery(args.setId);
-}
-
-/**
- * Lists paginated trait values for a given trait set.
- */
-export async function listTraitSetValues(args: {
-  setId: number;
-  page: number;
-  pageSize: number;
-  kind?: "canonical" | "alias";
-  q?: string;
-}): Promise<TraitValuePaginatedResult> {
-  return listTraitSetValuesQuery(args);
+export async function getTraitValue(args: {
+  id: number;
+}): Promise<TraitValueDTO | null> {
+  return db.transaction((tx) => selectTraitValueDtoById(tx, args.id));
 }
 
 /**
@@ -166,36 +80,32 @@ export async function getTraitValuesByIds(
  *  - target is canonical
  */
 export async function createTraitValue(args: {
-  setId: number;
-  key: string;
+  characterId: number;
   label: string;
   canonicalValueId?: number | null;
 }): Promise<TraitValueDTO> {
-  const setId = args.setId;
-  const key = args.key.trim();
+  const characterId = args.characterId;
   const label = args.label.trim();
   const canonicalValueId = args.canonicalValueId ?? null;
 
   return db.transaction(async (tx) => {
     // If alias, verify the target exists, is in the same set, and is canonical.
     if (canonicalValueId) {
-      const target = await selectTraitValueRowById(tx, canonicalValueId);
+      const target = await selectMinimalTraitValueRowById(tx, canonicalValueId);
       if (!target) {
         throw new Error("Alias target not found.");
       }
-      if (target.setId !== setId) {
-        throw new Error("Alias target must be in the same trait set.");
+      if (target.characterId !== characterId) {
+        throw new Error("Alias target must belong to the same character.");
       }
-      if (!target.isCanonical) {
+      if (target.canonicalValueId !== null) {
         throw new Error("Alias target must be canonical.");
       }
     }
 
     const inserted = await insertTraitValueRow(tx, {
-      setId,
-      key,
+      characterId,
       label,
-      isCanonical: !canonicalValueId,
       canonicalValueId,
     });
 
@@ -218,14 +128,15 @@ export async function updateTraitValue(
   return db.transaction(async (tx) => {
     const cur = await selectTraitValueDtoById(tx, args.id);
     if (!cur) throw new Error("Trait value not found.");
-    if (cur.setId !== args.setId) throw new Error("Trait value set mismatch.");
+    if (cur.characterId !== args.characterId)
+      throw new Error("Trait value character mismatch.");
 
     const aliasTargetId = args.aliasTargetId; // number | null | undefined
 
     const willBeAlias =
       aliasTargetId !== undefined
         ? aliasTargetId !== null
-        : cur.aliasTarget !== null;
+        : cur.aliasOf !== null;
 
     // block: setting alias when this value has aliases
     if (
@@ -243,11 +154,11 @@ export async function updateTraitValue(
       if (aliasTargetId === args.id)
         throw new Error("A trait value cannot alias itself.");
 
-      const target = await selectTraitValueRowById(tx, aliasTargetId);
+      const target = await selectMinimalTraitValueRowById(tx, aliasTargetId);
       if (!target) throw new Error("Alias target not found.");
-      if (target.setId !== args.setId)
-        throw new Error("Alias target must be in the same trait set.");
-      if (!target.isCanonical)
+      if (target.characterId !== args.characterId)
+        throw new Error("Alias target must belong to the same character.");
+      if (target.canonicalValueId !== null)
         throw new Error("Alias target must be canonical.");
     }
 
@@ -261,7 +172,7 @@ export async function updateTraitValue(
 
     const patch = {
       id: args.id,
-      setId: args.setId,
+      characterId: args.characterId,
       key: args.key?.trim(),
       label: args.label?.trim(),
       hexCode: args.hexCode === undefined ? undefined : args.hexCode,
@@ -279,5 +190,38 @@ export async function updateTraitValue(
     if (!dto) throw new Error("Updated row not found.");
 
     return dto;
+  });
+}
+
+/**
+ * List trait values for a character, paginated.
+ */
+export async function listTraitValuesByCharacter(args: {
+  characterId: number;
+  page: number;
+  pageSize: number;
+  canonicalOnly?: boolean;
+  q?: string;
+}): Promise<TraitValuePaginatedResult> {
+  return db.transaction(async (tx) => {
+    return selectTraitValuesByCharacterPaginated(
+      tx,
+      args.characterId,
+      args.page,
+      args.pageSize,
+      { canonicalOnly: args.canonicalOnly, q: args.q },
+    );
+  });
+}
+
+/**
+ * List all canonical trait values for the given characters (unpaginated),
+ * grouped by character ID.
+ */
+export async function listAllTraitValuesByCharacters(
+  characterIds: number[],
+): Promise<ReturnType<typeof selectAllTraitValuesByCharacters>> {
+  return db.transaction(async (tx) => {
+    return selectAllTraitValuesByCharacters(tx, characterIds);
   });
 }

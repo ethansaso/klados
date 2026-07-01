@@ -3,8 +3,8 @@ import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { PiBroom } from "react-icons/pi";
-import { removeSourceUsagesAdminFn } from "../../../lib/api/sources/removeSourceUsagesAdminFn";
 import { sourcesQueryOptions } from "../../../lib/queries/sources";
+import { removeSourceUsagesAdminFn } from "../../../lib/server-fns/sources/removeSourceUsagesAdminFn";
 import { SearchSchema } from "../../../lib/validation/search";
 
 export const Route = createFileRoute("/admin/sources/")({

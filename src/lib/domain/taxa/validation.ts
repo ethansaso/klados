@@ -1,23 +1,15 @@
 import z from "zod";
 import { TAXON_RANKS_DESCENDING } from "../../../../db/schema/schema";
-import { MEDIA_LICENSES } from "../../../../db/utils/mediaLicense";
 import { groupedCharacterUpdateSchema } from "../states/validation";
 import { nameItemSchema } from "../taxon-names/validation";
 import { setTaxonSourcesSchema } from "../taxon-sources/validation";
-
-export const mediaItemSchema = z.object({
-  url: z.url(),
-  license: z.enum(MEDIA_LICENSES),
-  owner: z.string(),
-  source: z.string(),
-});
 
 export const taxonPatchSchema = z.object({
   parentId: z.number().int().nullable().optional(),
   rank: z.enum(TAXON_RANKS_DESCENDING).optional(),
   sourceGbifId: z.number().int().nullable().optional(),
   sourceInatId: z.number().int().nullable().optional(),
-  media: z.array(mediaItemSchema).optional(),
+  mediaIds: z.array(z.number().int()).optional(),
   notes: z.string().optional(),
 });
 
@@ -60,7 +52,6 @@ export const createTaxonSchema = z.object({
   rank: z.enum(TAXON_RANKS_DESCENDING),
 });
 
-export type MediaItem = z.infer<typeof mediaItemSchema>;
 export type TaxonPatch = z.infer<typeof taxonPatchSchema>;
 export type CreateTaxonInput = z.infer<typeof createTaxonSchema>;
 export type UpdateTaxonInput = z.infer<typeof updateTaxonInputSchema>;

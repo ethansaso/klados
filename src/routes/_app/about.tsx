@@ -18,10 +18,11 @@ function RouteComponent() {
       <Box mb="5">
         <Heading mb="3">What is Klados?</Heading>
         <Text as="p" mb="2">
-          Klados is a community-oriented taxonomy platform that provides both a
-          free repository of morphological data and a modern interface for
-          creating and sharing flowchart-style identification guides modelled
-          after traditional resources called "dichotomous keys".
+          Klados is a free, community-driven platform for educational resources
+          surrounding the identification and morphology of organisms. It uses a
+          rich dataset of language, images, and relationships to provide
+          resources like interactive identification guides and detailed taxon
+          descriptions, all created and curated by the community.
         </Text>
         <Text as="p" size="2">
           <Em>
@@ -75,11 +76,11 @@ function RouteComponent() {
             <Text as="p" mb="2">
               Hi there! My name is Ethan Saso, and I'm a full-stack developer
               with a lifelong passion for naturalism. I originally created
-              Klados under a different name, 'TaxoKeys', in my last semester of
-              college as my first web development project. Once I'd picked up
-              more experience from my career, I decided to return and rebuild
-              the platform from the ground up as Klados, with a focus on
-              community contribution and open science.
+              Klados under the name 'TaxoKeys' in my last semester of college as
+              my first web development project. Once I'd picked up more
+              experience from my career, I decided to return and rebuild the
+              platform from the ground up as Klados, with a focus on community
+              contribution and open science.
             </Text>
             <Text as="p" mb="2">
               I graduated from UC Berkeley in 2024 with a degree in Molecular

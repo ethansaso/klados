@@ -1,0 +1,15 @@
+import { createServerFn } from "@tanstack/react-start";
+import z from "zod";
+import { getTaxonStates } from "../../domain/states/service";
+import type { FeatureStateDTO } from "../../domain/states/types";
+
+export const getTaxonCharacterStatesFn = createServerFn({ method: "GET" })
+  .validator(
+    z.object({
+      taxonId: z.number().int().nonnegative(),
+    }),
+  )
+  .handler(async ({ data }): Promise<FeatureStateDTO[]> => {
+    const { taxonId } = data;
+    return getTaxonStates({ taxonId });
+  });

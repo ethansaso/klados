@@ -1,0 +1,6 @@
+.media-browser {
+  .rt-TextFieldRoot.search-input {
+    background: none;
+    outline-color: transparent;
+  }
+}

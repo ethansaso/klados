@@ -1,4 +1,10 @@
-.combobox__list > .rt-ScrollAreaViewport > div {
+.select-combobox__list,
+.input-combobox__list {
+  box-sizing: border-box;
+  padding-right: var(--space-3);
+}
+
+.select-combobox__list > .rt-ScrollAreaViewport > div {
   width: 100%;
 }
 
@@ -33,6 +39,11 @@
       text-indent: calc(var(--space-2) - 1px);
     }
   }
+
+  &:where(:has(.input-combobox__input:where(:disabled, :read-only))) {
+    background-image: linear-gradient(var(--gray-a2), var(--gray-a2));
+    box-shadow: inset 0 0 0 var(--text-area-border-width) var(--gray-a6);
+  }
 }
 
 .input-combobox__input {
@@ -58,6 +69,64 @@
   &::placeholder {
     color: var(--gray-a10);
   }
+
+  &:where(:disabled, :read-only):where(:placeholder-shown) {
+    cursor: var(--cursor-disabled);
+  }
+  &:where(:disabled, :read-only) {
+    cursor: text;
+    color: var(--gray-a11);
+    -webkit-text-fill-color: var(--gray-a11);
+  }
+
+  /* When inside a slot wrapper, the wrapper owns the border and focus ring */
+  &.input-combobox__input--has-slot {
+    box-shadow: none;
+    outline: none;
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    border-radius: 0;
+  }
+}
+
+/* Wrapper that provides the border/focus ring and optionally hosts a right slot */
+.input-combobox__slot-wrap {
+  --border-color: var(--gray-a7);
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-shadow: inset 0 0 0 1px var(--border-color);
+  border-radius: var(--radius-2);
+  overflow: hidden;
+
+  &:focus-within {
+    outline: 2px solid var(--focus-8);
+    outline-offset: -1px;
+  }
+
+  /* When there's no slot, the wrapper is purely structural — the input
+     renders its own border and focus ring via .input-combobox__input */
+  &.input-combobox__slot-wrap--plain {
+    box-shadow: none;
+    border-radius: 0;
+    overflow: visible;
+
+    &:focus-within {
+      outline: none;
+    }
+  }
+}
+
+.input-combobox__slot-right {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  color: var(--gray-a11);
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 .input-combobox__content {
@@ -69,7 +138,7 @@
   z-index: 1000;
 
   &.size-1 {
-    padding: var(--space-1);
+    padding: var(--space-2);
     font-size: var(--font-size-1);
     .input-combobox__item {
       padding: var(--space-1) var(--space-2);
@@ -88,7 +157,8 @@
   border-radius: var(--radius-2);
   cursor: pointer;
 
-  &:hover {
+  &:hover,
+  &[data-active-item] {
     background-color: var(--accent-3);
   }
 }

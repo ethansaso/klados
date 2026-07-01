@@ -10,7 +10,6 @@ import {
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
 import NavSidebar from "../../../../components/nav/NavSidebar";
-import { editUserFn } from "../../../../lib/api/users/editUserFn";
 import {
   type UserPatch,
   userPatchSchema,
@@ -19,6 +18,7 @@ import {
   meQueryOptions,
   userQueryOptions,
 } from "../../../../lib/queries/users";
+import { editUserFn } from "../../../../lib/server-fns/users/editUserFn";
 import { toast } from "../../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/users/$username/edit")({

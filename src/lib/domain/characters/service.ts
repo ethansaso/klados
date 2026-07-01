@@ -1,5 +1,5 @@
 import { db } from "../../../../db/client";
-import { snakeCase } from "../../utils/formatting/casing";
+import { InUseError } from "../../utils/InUseError";
 import { selectUnitFamilyById } from "../units/repo";
 import {
   countUsageForCharacter,
@@ -9,8 +9,9 @@ import {
   insertCharacter,
   insertNumericMeta,
   listCharactersQuery,
-  selectCharacterGroupById,
   selectCharactersByIds,
+  updateCategoricalMeta,
+  updateCharacterBase,
 } from "./repo";
 import type {
   CategoricalCharacterDTO,
@@ -20,7 +21,7 @@ import type {
   NumberCharacterDTO,
   RangeCharacterDTO,
 } from "./types";
-import type { CreateCharacterInput } from "./validation";
+import type { CreateCharacterInput, UpdateCharacterInput } from "./validation";
 
 /**
  * Get a character by id.
@@ -28,7 +29,7 @@ import type { CreateCharacterInput } from "./validation";
 export async function getCharacter(args: {
   id: number;
 }): Promise<CharacterDetailDTO | null> {
-  return fetchCharacterDetailById(args.id);
+  return fetchCharacterDetailById(db, args.id);
 }
 
 /**
@@ -61,12 +62,10 @@ export async function listCharacters(args: {
 
 /**
  * Create a character.
- * TODO: add more than categorical
  */
 export async function createCharacter(
   args: CreateCharacterInput,
 ): Promise<CharacterDTO | null> {
-  const normalizedKey = snakeCase(args.key.trim());
   const normalizedLabel = args.label.trim();
   const normalizedDescription = args.description?.trim() ?? "";
 
@@ -80,10 +79,8 @@ export async function createCharacter(
     }
 
     const charRow = await insertCharacter(tx, {
-      key: normalizedKey,
       label: normalizedLabel,
       description: normalizedDescription,
-      groupId: args.groupId,
     });
 
     if (!charRow) return null;
@@ -91,7 +88,6 @@ export async function createCharacter(
     if (args.type === "categorical") {
       await insertCategoricalMeta(tx, {
         characterId: charRow.id,
-        traitSetId: args.traitSetId,
         isMultiSelect: args.isMultiSelect,
       });
     } else {
@@ -102,20 +98,17 @@ export async function createCharacter(
       });
     }
 
-    const groupRow = await selectCharacterGroupById(tx, charRow.groupId);
-    if (!groupRow) return null;
-
     if (args.type === "categorical") {
       const dto: CategoricalCharacterDTO = {
         id: charRow.id,
-        key: charRow.key,
         label: charRow.label,
+        features: [],
         description: charRow.description,
-        group: { id: groupRow.id, label: groupRow.label },
         usageCount: 0,
+        media: null,
         type: "categorical",
         characterId: charRow.id,
-        traitSetId: args.traitSetId,
+        traitCount: 0,
       };
       return dto;
     }
@@ -123,11 +116,11 @@ export async function createCharacter(
     if (args.type === "number") {
       const dto: NumberCharacterDTO = {
         id: charRow.id,
-        key: charRow.key,
         label: charRow.label,
         description: charRow.description,
-        group: { id: groupRow.id, label: groupRow.label },
+        features: [],
         usageCount: 0,
+        media: null,
         type: "number",
         characterId: charRow.id,
         unitFamilyId: args.unitFamilyId,
@@ -137,11 +130,11 @@ export async function createCharacter(
 
     const dto: RangeCharacterDTO = {
       id: charRow.id,
-      key: charRow.key,
       label: charRow.label,
       description: charRow.description,
-      group: { id: groupRow.id, label: groupRow.label },
+      features: [],
       usageCount: 0,
+      media: null,
       type: "range",
       characterId: charRow.id,
       unitFamilyId: args.unitFamilyId,
@@ -150,20 +143,10 @@ export async function createCharacter(
   });
 }
 
-export class CharacterInUseError extends Error {
-  readonly usageCount: number;
-
-  constructor(usageCount: number) {
-    super(`Cannot delete character; it is in use by ${usageCount} taxa.`);
-    this.name = "CharacterInUseError";
-    this.usageCount = usageCount;
-  }
-}
-
 /**
  * Delete a character if it is unused.
  * Returns { id } if deleted, null if the character does not exist.
- * Throws CharacterInUseError if in use.
+ * Throws InUseError if in use.
  */
 export async function deleteCharacter(args: {
   id: number;
@@ -178,10 +161,53 @@ export async function deleteCharacter(args: {
     }
 
     if (usageCount > 0) {
-      throw new CharacterInUseError(usageCount);
+      throw new InUseError("character", usageCount);
     }
 
     const deleted = await deleteCharacterById(tx, id);
     return deleted;
+  });
+}
+
+/**
+ * Update a character's base fields and categorical meta.
+ * Returns the refreshed CharacterDetailDTO, or null if not found.
+ *
+ * Throws if `isMultiSelect` is provided for a non-categorical character.
+ */
+export async function updateCharacter(
+  args: UpdateCharacterInput,
+): Promise<CharacterDetailDTO | null> {
+  const { id, isMultiSelect, mediaId, ...baseFields } = args;
+
+  // Normalize the fields that were provided
+  const normalized: Partial<{
+    key: string;
+    label: string;
+    description: string;
+    mediaId: number | null;
+  }> = {};
+  if (baseFields.label !== undefined)
+    normalized.label = baseFields.label.trim();
+  if (baseFields.description !== undefined)
+    normalized.description = baseFields.description.trim();
+  if (mediaId !== undefined) normalized.mediaId = mediaId;
+
+  return db.transaction(async (tx) => {
+    const updated = await updateCharacterBase(tx, id, normalized);
+    if (!updated) return null;
+
+    if (isMultiSelect !== undefined) {
+      const detail = await fetchCharacterDetailById(tx, id);
+      if (!detail || detail.type !== "categorical") {
+        throw new Error(
+          `Cannot set isMultiSelect on non-categorical character ${id}.`,
+        );
+      }
+      await updateCategoricalMeta(tx, id, isMultiSelect);
+    }
+
+    // Re-fetch the full detail DTO so the caller gets fresh data.
+    return fetchCharacterDetailById(tx, id);
   });
 }

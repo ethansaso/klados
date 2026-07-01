@@ -12,19 +12,22 @@ import {
 import { db } from "../../../../db/client";
 import {
   categoricalCharacterMeta as catMetaTbl,
+  characterFeature as characterFeatureTbl,
   character as charsTbl,
-  characterGroup as groupsTbl,
+  feature as featuresTbl,
+  media as mediaTbl,
   numericCharacterMeta as numMetaTbl,
   taxonCharacterStateCategorical as tcsCatTbl,
   taxonCharacterStateNumber as tcsNumTbl,
   taxonCharacterStateRange as tcsRangeTbl,
-  taxonCharacterGroupState as tgsTbl,
-  categoricalTraitSet as traitSetTbl,
+  taxonFeatureState as tfsTbl,
   unitFamily as unitFamilyTbl,
 } from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/likeAnywhere";
-import type { Transaction } from "../../utils/transactionType";
+import type { Transaction, TxOrDb } from "../../utils/transactionType";
+import type { MediaDTO } from "../media/types";
 import {
+  catTraitCountSel,
   catUsageSel,
   characterTypeExpr,
   hasSomeMetaExpr,
@@ -37,135 +40,161 @@ import type {
   CharacterPaginatedResult,
 } from "./types";
 
+/** Represents a single pairing of character and feature. */
 type RawCharacterRow = {
   id: number;
   key: string;
   label: string;
   description: string;
-  group: { id: number; label: string };
+  feature: { id: number; label: string };
   usageCount: number;
   type: "categorical" | "number" | "range";
-  traitSetId: number | null;
+  traitCount: number | null;
   unitFamilyId: number | null;
+  mediaId: number | null;
 };
 
-function toCharacterDTO(row: RawCharacterRow): CharacterDTO {
-  const base = {
-    id: row.id,
-    key: row.key,
-    label: row.label,
-    description: row.description,
-    group: row.group,
-    usageCount: row.usageCount,
-  };
+function groupRowsToCharacterDTOs(
+  rows: RawCharacterRow[],
+  mediaMap: Map<number, MediaDTO>,
+): CharacterDTO[] {
+  const byId = new Map<number, CharacterDTO>();
 
-  if (row.type === "categorical") {
-    if (row.traitSetId === null) {
-      throw new Error(
-        `Categorical character ${row.id} is missing traitSetId in DTO conversion`,
-      );
+  for (const row of rows) {
+    let existing = byId.get(row.id);
+
+    if (!existing) {
+      const base = {
+        id: row.id,
+        key: row.key,
+        label: row.label,
+        description: row.description,
+        features: row.feature ? [row.feature] : [],
+        usageCount: row.usageCount,
+        media: row.mediaId != null ? (mediaMap.get(row.mediaId) ?? null) : null,
+      };
+
+      if (row.type === "categorical") {
+        existing = {
+          ...base,
+          type: "categorical",
+          characterId: row.id,
+          traitCount: row.traitCount ?? 0,
+        };
+      } else {
+        if (row.unitFamilyId === null) {
+          throw new Error(
+            `Numeric character ${row.id} is missing unitFamilyId`,
+          );
+        }
+
+        existing =
+          row.type === "number"
+            ? {
+                ...base,
+                type: "number",
+                characterId: row.id,
+                unitFamilyId: row.unitFamilyId,
+              }
+            : {
+                ...base,
+                type: "range",
+                characterId: row.id,
+                unitFamilyId: row.unitFamilyId,
+              };
+      }
+
+      byId.set(row.id, existing);
+    } else {
+      // Push additional feature
+      existing.features.push(row.feature);
     }
-    return {
-      ...base,
-      type: "categorical",
-      characterId: row.id,
-      traitSetId: row.traitSetId,
-    };
   }
 
-  if (row.unitFamilyId === null) {
-    throw new Error(
-      `Number character ${row.id} is missing unitFamilyId in DTO conversion`,
-    );
-  }
-
-  if (row.type === "number") {
-    return {
-      ...base,
-      type: "number",
-      characterId: row.id,
-      unitFamilyId: row.unitFamilyId,
-    };
-  }
-
-  return {
-    ...base,
-    type: "range",
-    characterId: row.id,
-    unitFamilyId: row.unitFamilyId,
-  };
+  return Array.from(byId.values());
 }
 
 /**
  * Fetch a single character detail by id.
  */
+/**
+ * Fetch a single character detail by id.
+ */
 export async function fetchCharacterDetailById(
+  tx: TxOrDb,
   id: number,
 ): Promise<CharacterDetailDTO | null> {
-  // Fetch base character + group
-  const base = await db
+  // Fetch base character
+  const base = await tx
     .select({
       id: charsTbl.id,
-      key: charsTbl.key,
       label: charsTbl.label,
       description: charsTbl.description,
-      group: {
-        id: groupsTbl.id,
-        label: groupsTbl.label,
-      },
+      mediaId: charsTbl.mediaId,
     })
     .from(charsTbl)
-    .innerJoin(groupsTbl, eq(groupsTbl.id, charsTbl.groupId))
     .where(eq(charsTbl.id, id))
     .limit(1)
     .then((rows) => rows[0]);
 
   if (!base) return null;
 
+  const media: MediaDTO | null =
+    base.mediaId != null
+      ? await tx
+          .select()
+          .from(mediaTbl)
+          .where(eq(mediaTbl.id, base.mediaId))
+          .then((rows) => rows[0] ?? null)
+      : null;
+
+  // Fetch features for character
+  const features = await tx
+    .select({
+      id: featuresTbl.id,
+      label: featuresTbl.label,
+    })
+    .from(characterFeatureTbl)
+    .innerJoin(featuresTbl, eq(featuresTbl.id, characterFeatureTbl.featureId))
+    .where(eq(characterFeatureTbl.characterId, id))
+    .orderBy(asc(featuresTbl.label), asc(featuresTbl.id));
+
   // Check categorical metadata
-  const categoricalMeta = await db
+  const categoricalMeta = await tx
     .select({
       isMultiSelect: catMetaTbl.isMultiSelect,
-      traitSet: {
-        id: traitSetTbl.id,
-        key: traitSetTbl.key,
-        label: traitSetTbl.label,
-        description: traitSetTbl.description,
-      },
     })
     .from(catMetaTbl)
-    .innerJoin(traitSetTbl, eq(traitSetTbl.id, catMetaTbl.traitSetId))
     .where(eq(catMetaTbl.characterId, id))
     .limit(1)
     .then((rows) => rows[0]);
 
   // If categorical, compute usage count and return
   if (categoricalMeta) {
-    const usageCount = await db
+    const usageCount = await tx
       .select({
-        count: sql<number>`count(distinct ${tgsTbl.taxonId})`,
+        count: sql<number>`count(distinct ${tfsTbl.taxonId})`,
       })
       .from(tcsCatTbl)
-      .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonGroupStateId))
+      .innerJoin(tfsTbl, eq(tfsTbl.id, tcsCatTbl.taxonFeatureStateId))
       .where(eq(tcsCatTbl.characterId, id))
       .then((rows) => rows[0]?.count ?? 0);
 
     return {
       id: base.id,
-      key: base.key,
       label: base.label,
       description: base.description,
-      group: base.group,
+      features,
       usageCount,
+      media,
       characterId: base.id,
       type: "categorical",
       isMultiSelect: categoricalMeta.isMultiSelect,
-      traitSet: categoricalMeta.traitSet,
     };
   }
 
   // Otherwise, fetch numeric / range metadata
-  const numericMeta = await db
+  const numericMeta = await tx
     .select({
       kind: numMetaTbl.kind, // 'single' | 'range'
       unitFamily: {
@@ -184,30 +213,30 @@ export async function fetchCharacterDetailById(
   // Compute usage count based on numeric kind
   const usageCount =
     numericMeta.kind === "single"
-      ? await db
+      ? await tx
           .select({
-            count: sql<number>`count(distinct ${tgsTbl.taxonId})`,
+            count: sql<number>`count(distinct ${tfsTbl.taxonId})`,
           })
           .from(tcsNumTbl)
-          .innerJoin(tgsTbl, eq(tgsTbl.id, tcsNumTbl.taxonGroupStateId))
+          .innerJoin(tfsTbl, eq(tfsTbl.id, tcsNumTbl.taxonFeatureStateId))
           .where(eq(tcsNumTbl.characterId, id))
           .then((rows) => rows[0]?.count ?? 0)
-      : await db
+      : await tx
           .select({
-            count: sql<number>`count(distinct ${tgsTbl.taxonId})`,
+            count: sql<number>`count(distinct ${tfsTbl.taxonId})`,
           })
           .from(tcsRangeTbl)
-          .innerJoin(tgsTbl, eq(tgsTbl.id, tcsRangeTbl.taxonGroupStateId))
+          .innerJoin(tfsTbl, eq(tfsTbl.id, tcsRangeTbl.taxonFeatureStateId))
           .where(eq(tcsRangeTbl.characterId, id))
           .then((rows) => rows[0]?.count ?? 0);
 
   const baseNumeric = {
     id: base.id,
-    key: base.key,
     label: base.label,
     description: base.description,
-    group: base.group,
+    features,
     usageCount,
+    media,
     characterId: base.id,
     unitFamily: numericMeta.unitFamily,
   };
@@ -230,10 +259,9 @@ export async function selectCharactersByIds(
   const rows = (await tx
     .select({
       id: charsTbl.id,
-      key: charsTbl.key,
       label: charsTbl.label,
       description: charsTbl.description,
-      group: { id: groupsTbl.id, label: groupsTbl.label },
+      feature: { id: featuresTbl.id, label: featuresTbl.label },
 
       usageCount: sql<number>`CASE
         WHEN ${characterTypeExpr} = 'categorical' THEN COALESCE(${catUsageSel.catUsageCount}, 0)
@@ -243,24 +271,45 @@ export async function selectCharactersByIds(
       END`,
 
       type: characterTypeExpr,
-      traitSetId: catMetaTbl.traitSetId,
       unitFamilyId: numMetaTbl.unitFamilyId,
+
+      traitCount: catTraitCountSel.traitCount,
+      mediaId: charsTbl.mediaId,
     })
     .from(charsTbl)
-    .innerJoin(groupsTbl, eq(groupsTbl.id, charsTbl.groupId))
+    .leftJoin(
+      characterFeatureTbl,
+      eq(characterFeatureTbl.characterId, charsTbl.id),
+    )
+    .leftJoin(featuresTbl, eq(featuresTbl.id, characterFeatureTbl.featureId))
     .leftJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
     .leftJoin(numMetaTbl, eq(numMetaTbl.characterId, charsTbl.id))
     .leftJoin(catUsageSel, eq(catUsageSel.characterId, charsTbl.id))
     .leftJoin(numUsageSel, eq(numUsageSel.characterId, charsTbl.id))
     .leftJoin(rangeUsageSel, eq(rangeUsageSel.characterId, charsTbl.id))
+    .leftJoin(catTraitCountSel, eq(catTraitCountSel.characterId, charsTbl.id))
     .where(and(inArray(charsTbl.id, ids), hasSomeMetaExpr))
     .orderBy(
-      asc(groupsTbl.label),
+      asc(featuresTbl.label),
       asc(charsTbl.label),
       asc(charsTbl.id),
     )) as RawCharacterRow[];
 
-  return rows.map(toCharacterDTO);
+  const mediaIds = [
+    ...new Set(
+      rows.map((r) => r.mediaId).filter((id): id is number => id != null),
+    ),
+  ];
+  const mediaByIds = new Map<number, MediaDTO>();
+  if (mediaIds.length) {
+    const mediaRows = await tx
+      .select()
+      .from(mediaTbl)
+      .where(inArray(mediaTbl.id, mediaIds));
+    for (const m of mediaRows) mediaByIds.set(m.id, m);
+  }
+
+  return groupRowsToCharacterDTOs(rows, mediaByIds);
 }
 
 /**
@@ -279,47 +328,88 @@ export async function listCharactersQuery(args: {
 
   const userFilters: (SQL | undefined)[] = [
     ids && ids.length ? inArray(charsTbl.id, ids) : undefined,
-    like
-      ? or(ilike(charsTbl.label, like), ilike(charsTbl.key, like))
-      : undefined,
+    like ? or(ilike(charsTbl.label, like)) : undefined,
   ];
 
-  const where = and(...(userFilters.filter(Boolean) as SQL[]), hasSomeMetaExpr);
+  const filtered = userFilters.filter(Boolean) as SQL[];
+  const where = filtered.length
+    ? and(...filtered, hasSomeMetaExpr)
+    : hasSomeMetaExpr;
 
-  const itemsRaw = (await db
-    .select({
-      id: charsTbl.id,
-      key: charsTbl.key,
-      label: charsTbl.label,
-      description: charsTbl.description,
-      group: { id: groupsTbl.id, label: groupsTbl.label },
-
-      // corruption edge-case: if multiple meta exist (shouldn't happen), sum usages
-      usageCount: sql<number>`(
-        COALESCE(${catUsageSel.catUsageCount}, 0) +
-        COALESCE(${numUsageSel.numUsageCount}, 0) +
-        COALESCE(${rangeUsageSel.rangeUsageCount}, 0)
-      )`,
-
-      type: characterTypeExpr,
-      traitSetId: catMetaTbl.traitSetId,
-      unitFamilyId: numMetaTbl.unitFamilyId,
-    })
+  // STEP 1: paginate at character level
+  const paginatedCharacterIds = await db
+    .select({ id: charsTbl.id })
     .from(charsTbl)
-    .innerJoin(groupsTbl, eq(groupsTbl.id, charsTbl.groupId))
     .leftJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
     .leftJoin(numMetaTbl, eq(numMetaTbl.characterId, charsTbl.id))
-    .leftJoin(catUsageSel, eq(catUsageSel.characterId, charsTbl.id))
-    .leftJoin(numUsageSel, eq(numUsageSel.characterId, charsTbl.id))
-    .leftJoin(rangeUsageSel, eq(rangeUsageSel.characterId, charsTbl.id))
     .where(where)
-    .orderBy(asc(groupsTbl.label), asc(charsTbl.label), asc(charsTbl.id))
+    .groupBy(charsTbl.id)
+    // order for pagination sorting guarantees
+    .orderBy(asc(charsTbl.label), asc(charsTbl.id))
     .limit(pageSize)
-    .offset(offset)) as RawCharacterRow[];
+    .offset(offset);
 
-  const items = itemsRaw.map(toCharacterDTO);
+  const characterIds = paginatedCharacterIds.map((r) => r.id);
 
-  // Total (same predicate; all types)
+  let items: CharacterDTO[] = [];
+
+  if (characterIds.length) {
+    const rows = (await db
+      .select({
+        id: charsTbl.id,
+        label: charsTbl.label,
+        description: charsTbl.description,
+        feature: { id: featuresTbl.id, label: featuresTbl.label },
+
+        usageCount: sql<number>`(
+          COALESCE(${catUsageSel.catUsageCount}, 0) +
+          COALESCE(${numUsageSel.numUsageCount}, 0) +
+          COALESCE(${rangeUsageSel.rangeUsageCount}, 0)
+        )`,
+
+        type: characterTypeExpr,
+        unitFamilyId: numMetaTbl.unitFamilyId,
+
+        traitCount: catTraitCountSel.traitCount,
+        mediaId: charsTbl.mediaId,
+      })
+      .from(charsTbl)
+      .leftJoin(
+        characterFeatureTbl,
+        eq(characterFeatureTbl.characterId, charsTbl.id),
+      )
+      .leftJoin(featuresTbl, eq(featuresTbl.id, characterFeatureTbl.featureId))
+      .leftJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
+      .leftJoin(numMetaTbl, eq(numMetaTbl.characterId, charsTbl.id))
+      .leftJoin(catUsageSel, eq(catUsageSel.characterId, charsTbl.id))
+      .leftJoin(numUsageSel, eq(numUsageSel.characterId, charsTbl.id))
+      .leftJoin(rangeUsageSel, eq(rangeUsageSel.characterId, charsTbl.id))
+      .leftJoin(catTraitCountSel, eq(catTraitCountSel.characterId, charsTbl.id))
+      .where(inArray(charsTbl.id, characterIds))
+      // order for consistent ordering with pagination step
+      .orderBy(
+        asc(charsTbl.label),
+        asc(featuresTbl.label),
+        asc(charsTbl.id),
+      )) as RawCharacterRow[];
+
+    const mediaIds = [
+      ...new Set(
+        rows.map((r) => r.mediaId).filter((id): id is number => id != null),
+      ),
+    ];
+    const mediaByIds = new Map<number, MediaDTO>();
+    if (mediaIds.length) {
+      const mediaRows = await db
+        .select()
+        .from(mediaTbl)
+        .where(inArray(mediaTbl.id, mediaIds));
+      for (const m of mediaRows) mediaByIds.set(m.id, m);
+    }
+    items = groupRowsToCharacterDTOs(rows, mediaByIds);
+  }
+
+  // STEP 2: total character count
   const totals = await db
     .select({ total: countDistinct(charsTbl.id) })
     .from(charsTbl)
@@ -343,32 +433,24 @@ export async function listCharactersQuery(args: {
 export async function insertCharacter(
   tx: Transaction,
   args: {
-    key: string;
     label: string;
     description: string;
-    groupId: number;
   },
 ): Promise<{
   id: number;
-  key: string;
   label: string;
   description: string;
-  groupId: number;
 } | null> {
   const [row] = await tx
     .insert(charsTbl)
     .values({
-      key: args.key,
       label: args.label,
       description: args.description,
-      groupId: args.groupId,
     })
     .returning({
       id: charsTbl.id,
-      key: charsTbl.key,
       label: charsTbl.label,
       description: charsTbl.description,
-      groupId: charsTbl.groupId,
     });
 
   return row ?? null;
@@ -381,13 +463,11 @@ export async function insertCategoricalMeta(
   tx: Transaction,
   args: {
     characterId: number;
-    traitSetId: number;
     isMultiSelect: boolean;
   },
 ): Promise<void> {
   await tx.insert(catMetaTbl).values({
     characterId: args.characterId,
-    traitSetId: args.traitSetId,
     isMultiSelect: args.isMultiSelect,
   });
 }
@@ -413,16 +493,16 @@ export async function insertNumericMeta(
 }
 
 /**
- * Fetch group (id + label) for a character group.
+ * Fetch feature (id + label) for a character feature.
  */
-export async function selectCharacterGroupById(
+export async function selectFeatureById(
   tx: Transaction,
-  groupId: number,
+  featureId: number,
 ): Promise<{ id: number; label: string } | null> {
   const [row] = await tx
-    .select({ id: groupsTbl.id, label: groupsTbl.label })
-    .from(groupsTbl)
-    .where(eq(groupsTbl.id, groupId))
+    .select({ id: featuresTbl.id, label: featuresTbl.label })
+    .from(featuresTbl)
+    .where(eq(featuresTbl.id, featureId))
     .limit(1);
 
   return row ?? null;
@@ -457,10 +537,10 @@ export async function countUsageForCharacter(
   if (categorical) {
     const row = await tx
       .select({
-        count: sql<number>`count(distinct ${tgsTbl.taxonId})`,
+        count: sql<number>`count(distinct ${tfsTbl.taxonId})`,
       })
       .from(tcsCatTbl)
-      .innerJoin(tgsTbl, eq(tgsTbl.id, tcsCatTbl.taxonGroupStateId))
+      .innerJoin(tfsTbl, eq(tfsTbl.id, tcsCatTbl.taxonFeatureStateId))
       .where(eq(tcsCatTbl.characterId, characterId))
       .then((rows) => rows[0]);
 
@@ -485,10 +565,10 @@ export async function countUsageForCharacter(
   if (numericMeta.kind === "single") {
     const row = await tx
       .select({
-        count: sql<number>`count(distinct ${tgsTbl.taxonId})`,
+        count: sql<number>`count(distinct ${tfsTbl.taxonId})`,
       })
       .from(tcsNumTbl)
-      .innerJoin(tgsTbl, eq(tgsTbl.id, tcsNumTbl.taxonGroupStateId))
+      .innerJoin(tfsTbl, eq(tfsTbl.id, tcsNumTbl.taxonFeatureStateId))
       .where(eq(tcsNumTbl.characterId, characterId))
       .then((rows) => rows[0]);
 
@@ -498,10 +578,10 @@ export async function countUsageForCharacter(
   // range
   const row = await tx
     .select({
-      count: sql<number>`count(distinct ${tgsTbl.taxonId})`,
+      count: sql<number>`count(distinct ${tfsTbl.taxonId})`,
     })
     .from(tcsRangeTbl)
-    .innerJoin(tgsTbl, eq(tgsTbl.id, tcsRangeTbl.taxonGroupStateId))
+    .innerJoin(tfsTbl, eq(tfsTbl.id, tcsRangeTbl.taxonFeatureStateId))
     .where(eq(tcsRangeTbl.characterId, characterId))
     .then((rows) => rows[0]);
 
@@ -521,4 +601,58 @@ export async function deleteCharacterById(
     .returning({ id: charsTbl.id });
 
   return deleted ?? null;
+}
+
+/**
+ * Update the base character row (key, label, description).
+ * Returns null when the character doesn't exist.
+ */
+export async function updateCharacterBase(
+  tx: Transaction,
+  id: number,
+  values: Partial<{ label: string; description: string; mediaId: number | null }>,
+): Promise<{
+  id: number;
+  label: string;
+  description: string;
+} | null> {
+  // Nothing to set → just verify existence
+  if (!Object.keys(values).length) {
+    const [existing] = await tx
+      .select({
+        id: charsTbl.id,
+        label: charsTbl.label,
+        description: charsTbl.description,
+      })
+      .from(charsTbl)
+      .where(eq(charsTbl.id, id))
+      .limit(1);
+    return existing ?? null;
+  }
+
+  const [row] = await tx
+    .update(charsTbl)
+    .set(values)
+    .where(eq(charsTbl.id, id))
+    .returning({
+      id: charsTbl.id,
+      label: charsTbl.label,
+      description: charsTbl.description,
+    });
+
+  return row ?? null;
+}
+
+/**
+ * Update the `isMultiSelect` flag on categorical character meta.
+ */
+export async function updateCategoricalMeta(
+  tx: Transaction,
+  characterId: number,
+  isMultiSelect: boolean,
+): Promise<void> {
+  await tx
+    .update(catMetaTbl)
+    .set({ isMultiSelect })
+    .where(eq(catMetaTbl.characterId, characterId));
 }

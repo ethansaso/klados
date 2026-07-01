@@ -11,7 +11,13 @@ export type RouterContext = {
 };
 
 export function getRouter() {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 5_000,
+      },
+    },
+  });
 
   const router = createRouter({
     routeTree,

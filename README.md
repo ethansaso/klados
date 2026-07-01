@@ -45,6 +45,10 @@ DATABASE_URL=postgres://app:app@localhost:5434/taxokeys
 BETTER_AUTH_SECRET=<your secret here>
 BETTER_AUTH_URL=http://localhost:3000
 VITE_SITE_URL=http://localhost:3000
+VITE_GA_ID="G-xxxxxxxxxx"
+RESEND_API_KEY="re_xxxxxxxxxxxxxxxxxxxxx"
+OPENAI_API_KEY="sk-xxxxxxxxxxxxxxxxxxxxxx"
+OPENAI_ORGANIZATION_ID="org-xxxxxxxxxxxxxxxxx"
 ```
 
 ### Set up the database

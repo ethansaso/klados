@@ -21,6 +21,9 @@ export default defineConfig([
         { type: "src", pattern: "src/**" },
       ],
     },
+    rules: {
+      "object-shorthand": ["error", "always"],
+    },
   },
 
   //

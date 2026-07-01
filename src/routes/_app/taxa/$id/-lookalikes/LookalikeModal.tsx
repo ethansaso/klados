@@ -10,8 +10,8 @@ import {
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { CharacterStateDisplay } from "../../../../../components/trait-tokens/CharacterStateDisplay";
-import type { UICharacterState } from "../../../../../components/trait-tokens/types";
+import { CharacterStateDisplay } from "../../../../../components/state-formatting/CharacterStateDisplay";
+import type { UICharacterState } from "../../../../../components/state-formatting/types";
 import type {
   LookalikeComparisonAnnotatedState,
   LookalikeComparisonCharacter,
@@ -19,6 +19,7 @@ import type {
 } from "../../../../../lib/domain/lookalikes/types";
 import type { TaxonDTO } from "../../../../../lib/domain/taxa/types";
 import { lookalikeDetailsQueryOptions } from "../../../../../lib/queries/lookalikes";
+import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 
 function toUIState(
   annotated: LookalikeComparisonAnnotatedState,
@@ -26,24 +27,36 @@ function toUIState(
   switch (annotated.kind) {
     case "categorical":
       return {
-        ...annotated,
-        traitValues: annotated.traits.map((t) => ({
-          ...t,
-          weight: t.isOverlapping ? undefined : "bold",
-        })),
+        kind: "categorical",
+        trait: {
+          id: annotated.trait.id,
+          label: annotated.trait.label,
+          hasInfo: annotated.trait.hasInfo,
+          hexCode: annotated.trait.hexCode,
+          weight: annotated.isOverlapping ? undefined : ("bold" as const),
+        },
+        modifiers: annotated.modifiers,
       };
-
     case "number":
+      return {
+        kind: "number",
+        siBaseValue: annotated.siBaseValue,
+        unit: annotated.unit
+          ? { symbol: annotated.unit.symbol, scale: annotated.unit.scale }
+          : null,
+        modifiers: annotated.modifiers,
+        weight: annotated.isOverlapping ? undefined : ("bold" as const),
+      };
     case "range":
       return {
-        ...annotated,
+        kind: "range",
+        siBaseMin: annotated.siBaseMin,
+        siBaseMax: annotated.siBaseMax,
         unit: annotated.unit
-          ? {
-              symbol: annotated.unit.symbol,
-              scale: annotated.unit.scale,
-            }
+          ? { symbol: annotated.unit.symbol, scale: annotated.unit.scale }
           : null,
-        weight: annotated.isOverlapping ? undefined : "bold",
+        modifiers: annotated.modifiers,
+        weight: annotated.isOverlapping ? undefined : ("bold" as const),
       };
   }
 }
@@ -59,13 +72,13 @@ function GroupDataList({
   return (
     <DataList.Root size="2" orientation="vertical">
       {items.map((it) => {
-        if (!it.state) return null;
+        if (!it.states.length) return null;
 
         return (
           <DataList.Item key={it.characterId}>
             <DataList.Label>{it.characterLabel}</DataList.Label>
             <DataList.Value>
-              <CharacterStateDisplay state={toUIState(it.state)} />
+              <CharacterStateDisplay states={it.states.map(toUIState)} />
             </DataList.Value>
           </DataList.Item>
         );
@@ -84,7 +97,11 @@ const TaxonColumnHeader = ({ taxon }: { taxon: TaxonDTO }) => {
       </Heading>
       <AspectRatio ratio={1}>
         <img
-          src={primaryMedia?.url ?? "/logos/LogoDotted.svg"}
+          src={
+            primaryMedia
+              ? getMediaUrl(primaryMedia.storageKey)
+              : "/logos/LogoDotted.svg"
+          }
           alt={taxon.acceptedName}
           loading="lazy"
           onError={(e) => {
@@ -106,7 +123,7 @@ const TaxonColumnHeader = ({ taxon }: { taxon: TaxonDTO }) => {
 const ModalContent = ({ data }: { data: LookalikeComparisonDetailDTO }) => {
   return (
     <Box>
-      <Table.Root style={{ tableLayout: "fixed" }}>
+      <Table.Root className="lookalike-table">
         <colgroup>
           <col style={{ width: "20%" }} />
           <col style={{ width: "40%" }} />
@@ -173,7 +190,7 @@ export const LookalikeModal = NiceModal.create<{
         }
       }}
     >
-      <Dialog.Content>{content}</Dialog.Content>
+      <Dialog.Content className="lookalike-modal">{content}</Dialog.Content>
     </Dialog.Root>
   );
 });

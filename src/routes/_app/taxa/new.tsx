@@ -26,7 +26,6 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../components/inputs/ConditionalAlert";
-import { createTaxonDraftFn } from "../../../lib/api/taxa/createTaxonDraftFn";
 import {
   generateLoginRedirectFromLocation,
   roleHasCuratorRights,
@@ -36,6 +35,7 @@ import {
   createTaxonSchema,
 } from "../../../lib/domain/taxa/validation";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
+import { createTaxonDraftFn } from "../../../lib/server-fns/taxa/createTaxonDraftFn";
 import { getErrorMessage } from "../../../lib/utils/getErrorMessage";
 import { routeSeo } from "../../../lib/utils/head/routeSeo";
 import { toast } from "../../../lib/utils/toast";
@@ -105,7 +105,7 @@ function RouteComponent() {
     try {
       const res = await serverCreate({
         data: {
-          acceptedName: acceptedName,
+          acceptedName,
           rank,
           parentId,
         },

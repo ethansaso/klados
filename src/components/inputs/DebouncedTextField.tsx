@@ -1,5 +1,5 @@
 import { TextField } from "@radix-ui/themes";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 type Props = Omit<
@@ -20,19 +20,25 @@ export const DebouncedTextField = ({
 }: Props) => {
   const [qInput, setQInput] = useState(initialValue);
 
+  const onDebouncedChangeRef = useRef(onDebouncedChange);
+  onDebouncedChangeRef.current = onDebouncedChange;
+
   const commit = useCallback(
     (q: string) => {
       onDebouncedChange(q);
     },
-    [onDebouncedChange]
+    [onDebouncedChange],
   );
 
   const [debouncedQ] = useDebounce(qInput, DEBOUNCE_DELAY);
+  const hasMountedRef = useRef(false);
   useEffect(() => {
-    if (debouncedQ !== initialValue) {
-      onDebouncedChange(debouncedQ);
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
     }
-  }, [debouncedQ, initialValue, onDebouncedChange]);
+    onDebouncedChangeRef.current(debouncedQ);
+  }, [debouncedQ]);
 
   return (
     <TextField.Root

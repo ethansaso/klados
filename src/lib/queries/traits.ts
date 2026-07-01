@@ -1,65 +1,33 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getTraitSetFn } from "../api/traits/getTraitSetFn";
-import { getTraitSetValuesFn } from "../api/traits/getTraitSetValuesFn";
-import { listTraitSetsFn } from "../api/traits/listTraitSetsFn";
-import { listTraitSetValuesFn } from "../api/traits/listTraitSetValuesFn";
-import type {
-  TraitSetDetailDTO,
-  TraitSetPaginatedResult,
-  TraitValueDTO,
-  TraitValuePaginatedResult,
-} from "../domain/traits/types";
+import type { TraitValueDTO, TraitValuePaginatedResult } from "../domain/traits/types";
+import { getTraitValueFn } from "../server-fns/traits/getTraitValueFn";
+import { listTraitValuesFn } from "../server-fns/traits/listTraitValuesFn";
 
-export const traitSetsQueryOptions = (
+export const traitValuesQueryOptions = (
+  characterId: number,
   page: number,
   pageSize: number,
-  opts?: { q?: string },
+  opts?: { canonicalOnly?: boolean; q?: string },
 ) =>
-  queryOptions({
-    queryKey: ["traitSets", { page, pageSize, q: opts?.q ?? null }] as const,
-    queryFn: () =>
-      listTraitSetsFn({
-        data: { page, pageSize: pageSize, q: opts?.q },
-      }) as Promise<TraitSetPaginatedResult>,
-    staleTime: 60_000,
-  });
-
-export const traitSetQueryOptions = (id: number) =>
-  queryOptions({
-    queryKey: ["traitSetByKey", id] as const,
-    queryFn: () =>
-      getTraitSetFn({ data: { id } }) as Promise<TraitSetDetailDTO>,
-    staleTime: 60_000,
-  });
-
-export const traitSetValuesQueryOptions = (setId: number) =>
-  queryOptions({
-    queryKey: ["traitSetValues", setId] as const,
-    queryFn: () =>
-      getTraitSetValuesFn({ data: { setId } }) as Promise<TraitValueDTO[]>,
-    staleTime: 30_000,
-  });
-
-export const traitSetValuesPaginatedQueryOptions = (
-  setId: number,
-  page: number,
-  pageSize: number,
-  opts?: { q?: string; kind?: "canonical" | "alias" },
-) =>
-  queryOptions({
+  queryOptions<TraitValuePaginatedResult>({
     queryKey: [
-      "traitSetValuesPaginated",
+      "traitValues",
       {
-        setId,
+        characterId,
         page,
         pageSize,
-        kind: opts?.kind ?? null,
+        canonicalOnly: opts?.canonicalOnly ?? null,
         q: opts?.q ?? null,
       },
-    ] as const,
+    ],
     queryFn: () =>
-      listTraitSetValuesFn({
-        data: { setId, page, pageSize, kind: opts?.kind, q: opts?.q },
-      }) as Promise<TraitValuePaginatedResult>,
-    staleTime: 30_000,
+      listTraitValuesFn({
+        data: { characterId, page, pageSize, ...opts },
+      }),
+  });
+
+export const traitValueQueryOptions = (id: number) =>
+  queryOptions<TraitValueDTO>({
+    queryKey: ["traitValues", id] as const,
+    queryFn: () => getTraitValueFn({ data: { id } }),
   });

@@ -1,14 +1,15 @@
-import { IconButton, Table, Tooltip } from "@radix-ui/themes";
+import { IconButton, Table } from "@radix-ui/themes";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { PiHammer } from "react-icons/pi";
-import { banUserAdminFn } from "../../../lib/api/users/banUserAdminFn";
-import { unbanUserAdminFn } from "../../../lib/api/users/unbanUserAdminFn";
+import { ResponsiveTooltip } from "../../../components/ResponsiveTooltip";
 import {
   userQueryOptions,
   usersAdminViewQueryOptions,
 } from "../../../lib/queries/users";
+import { banUserAdminFn } from "../../../lib/server-fns/users/banUserAdminFn";
+import { unbanUserAdminFn } from "../../../lib/server-fns/users/unbanUserAdminFn";
 import { SearchSchema } from "../../../lib/validation/search";
 
 export const Route = createFileRoute("/admin/users/")({
@@ -83,7 +84,7 @@ function RouteComponent() {
             <Table.Cell>{user.banned ? "Yes" : "No"}</Table.Cell>
             <Table.Cell>
               {user.banned ? (
-                <Tooltip content="Unban User">
+                <ResponsiveTooltip content="Unban User">
                   <IconButton
                     variant="ghost"
                     color="tomato"
@@ -91,9 +92,9 @@ function RouteComponent() {
                   >
                     <PiHammer />
                   </IconButton>
-                </Tooltip>
+                </ResponsiveTooltip>
               ) : (
-                <Tooltip
+                <ResponsiveTooltip
                   content={
                     user.role === "admin"
                       ? "Admin users cannot be banned"
@@ -108,7 +109,7 @@ function RouteComponent() {
                   >
                     <PiHammer />
                   </IconButton>
-                </Tooltip>
+                </ResponsiveTooltip>
               )}
             </Table.Cell>
           </Table.Row>

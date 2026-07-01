@@ -1,184 +1,57 @@
+import type { CharacterStateDTO, FeatureStateDTO } from "../states/types";
 import type {
-  TaxonCharacterGroupStateDTO,
-  TaxonCharacterStateDTO,
-} from "../states/types";
-import type {
-  LookalikeComparisonAnnotatedCategoricalState,
-  LookalikeComparisonAnnotatedCategoricalTrait,
-  LookalikeComparisonAnnotatedNumberState,
-  LookalikeComparisonAnnotatedRangeState,
   LookalikeComparisonAnnotatedState,
   LookalikeComparisonCharacter,
   LookalikeComparisonGroup,
 } from "./types";
 
-function traitKey(tv: { canonicalId: number }) {
-  return String(tv.canonicalId);
+function traitKey(s: CharacterStateDTO): string {
+  if (s.kind === "categorical") return `cat:${s.trait.canonicalId}`;
+  if (s.kind === "number") return `num:${s.siBaseValue}`;
+  return `range:${s.siBaseMin}:${s.siBaseMax}`;
 }
 
-/** Treats as overlapping if trait values have any overlap. */
-function buildAnnotatedCategoricalState(
-  aState: TaxonCharacterStateDTO | undefined,
-  bState: TaxonCharacterStateDTO | undefined,
-): {
-  aAnnotated: LookalikeComparisonAnnotatedCategoricalState | null;
-  bAnnotated: LookalikeComparisonAnnotatedCategoricalState | null;
-} {
-  if (aState?.kind !== "categorical" && bState?.kind !== "categorical") {
-    return { aAnnotated: null, bAnnotated: null };
-  }
+function overlapsRange(
+  s: Extract<CharacterStateDTO, { kind: "range" }>,
+  others: Extract<CharacterStateDTO, { kind: "range" }>[],
+): boolean {
+  return others.some(
+    (o) =>
+      s.siBaseMin !== null &&
+      s.siBaseMax !== null &&
+      o.siBaseMin !== null &&
+      o.siBaseMax !== null &&
+      s.siBaseMin <= o.siBaseMax &&
+      o.siBaseMin <= s.siBaseMax,
+  );
+}
 
-  const aVals = aState?.kind === "categorical" ? aState.traitValues : [];
-  const bVals = bState?.kind === "categorical" ? bState.traitValues : [];
-
-  const aSet = new Set(aVals.map(traitKey));
-  const bSet = new Set(bVals.map(traitKey));
-
-  const aTraits: LookalikeComparisonAnnotatedCategoricalTrait[] = aVals.map(
-    (tv) => ({
-      ...tv,
-      isOverlapping: bSet.has(traitKey(tv)),
-    }),
+function annotateStates(
+  own: CharacterStateDTO[],
+  other: CharacterStateDTO[],
+): LookalikeComparisonAnnotatedState[] {
+  const otherKeys = new Set(other.map(traitKey));
+  const otherRanges = other.filter(
+    (s): s is Extract<CharacterStateDTO, { kind: "range" }> =>
+      s.kind === "range",
   );
 
-  const bTraits: LookalikeComparisonAnnotatedCategoricalTrait[] = bVals.map(
-    (tv) => ({
-      ...tv,
-      isOverlapping: aSet.has(traitKey(tv)),
-    }),
-  );
-
-  return {
-    aAnnotated:
-      aTraits.length > 0 ? { kind: "categorical", traits: aTraits } : null,
-    bAnnotated:
-      bTraits.length > 0 ? { kind: "categorical", traits: bTraits } : null,
-  };
-}
-
-function buildAnnotatedNumberState(
-  aState: TaxonCharacterStateDTO | undefined,
-  bState: TaxonCharacterStateDTO | undefined,
-): {
-  aAnnotated: LookalikeComparisonAnnotatedNumberState | null;
-  bAnnotated: LookalikeComparisonAnnotatedNumberState | null;
-} {
-  if (aState?.kind !== "number" && bState?.kind !== "number") {
-    return { aAnnotated: null, bAnnotated: null };
-  }
-
-  const aValue = aState?.kind === "number" ? aState.siBaseValue : null;
-  const bValue = bState?.kind === "number" ? bState.siBaseValue : null;
-
-  // epsilon check for identicality (thanks JS)
-  const isOverlapping =
-    aValue !== null && bValue !== null && Math.abs(aValue - bValue) < 1e-10;
-
-  const aAnnotated: LookalikeComparisonAnnotatedNumberState | null =
-    aState?.kind === "number"
-      ? {
-          kind: "number",
-          siBaseValue: aState.siBaseValue,
-          unit: aState.unit,
-          isOverlapping,
-        }
-      : null;
-
-  const bAnnotated: LookalikeComparisonAnnotatedNumberState | null =
-    bState?.kind === "number"
-      ? {
-          kind: "number",
-          siBaseValue: bState.siBaseValue,
-          unit: bState.unit,
-          isOverlapping,
-        }
-      : null;
-
-  return { aAnnotated, bAnnotated };
-}
-
-function buildAnnotatedRangeState(
-  aState: TaxonCharacterStateDTO | undefined,
-  bState: TaxonCharacterStateDTO | undefined,
-): {
-  aAnnotated: LookalikeComparisonAnnotatedRangeState | null;
-  bAnnotated: LookalikeComparisonAnnotatedRangeState | null;
-} {
-  if (aState?.kind !== "range" && bState?.kind !== "range") {
-    return { aAnnotated: null, bAnnotated: null };
-  }
-
-  const aMin = aState?.kind === "range" ? aState.siBaseMin : null;
-  const aMax = aState?.kind === "range" ? aState.siBaseMax : null;
-  const bMin = bState?.kind === "range" ? bState.siBaseMin : null;
-  const bMax = bState?.kind === "range" ? bState.siBaseMax : null;
-
-  // Ranges overlap if: aMin <= bMax AND bMin <= aMax
-  const isOverlapping =
-    aMin !== null &&
-    aMax !== null &&
-    bMin !== null &&
-    bMax !== null &&
-    aMin <= bMax &&
-    bMin <= aMax;
-
-  const aAnnotated: LookalikeComparisonAnnotatedRangeState | null =
-    aState?.kind === "range"
-      ? {
-          kind: "range",
-          siBaseMin: aState.siBaseMin,
-          siBaseMax: aState.siBaseMax,
-          unit: aState.unit,
-          isOverlapping,
-        }
-      : null;
-
-  const bAnnotated: LookalikeComparisonAnnotatedRangeState | null =
-    bState?.kind === "range"
-      ? {
-          kind: "range",
-          siBaseMin: bState.siBaseMin,
-          siBaseMax: bState.siBaseMax,
-          unit: bState.unit,
-          isOverlapping,
-        }
-      : null;
-
-  return { aAnnotated, bAnnotated };
-}
-
-/** Switch-cased dispatcher for each state kind. */
-function buildAnnotatedState(
-  aState: TaxonCharacterStateDTO | undefined,
-  bState: TaxonCharacterStateDTO | undefined,
-): {
-  aAnnotated: LookalikeComparisonAnnotatedState | null;
-  bAnnotated: LookalikeComparisonAnnotatedState | null;
-} {
-  const kind = aState?.kind ?? bState?.kind;
-
-  if (!kind) {
-    return { aAnnotated: null, bAnnotated: null };
-  }
-
-  switch (kind) {
-    case "categorical":
-      return buildAnnotatedCategoricalState(aState, bState);
-    case "number":
-      return buildAnnotatedNumberState(aState, bState);
-    case "range":
-      return buildAnnotatedRangeState(aState, bState);
-  }
+  return own.map((s) => {
+    if (s.kind === "range") {
+      return { ...s, isOverlapping: overlapsRange(s, otherRanges) };
+    }
+    return { ...s, isOverlapping: otherKeys.has(traitKey(s)) };
+  });
 }
 
 export function buildGroupedLookalikeStates(args: {
-  aGroups: TaxonCharacterGroupStateDTO[];
-  bGroups: TaxonCharacterGroupStateDTO[];
+  aGroups: FeatureStateDTO[];
+  bGroups: FeatureStateDTO[];
 }): LookalikeComparisonGroup[] {
   const { aGroups, bGroups } = args;
 
-  const aByGroup = new Map(aGroups.map((g) => [g.groupId, g]));
-  const bByGroup = new Map(bGroups.map((g) => [g.groupId, g]));
+  const aByGroup = new Map(aGroups.map((g) => [g.featureId, g]));
+  const bByGroup = new Map(bGroups.map((g) => [g.featureId, g]));
 
   const allGroupIds = new Set<number>([...aByGroup.keys(), ...bByGroup.keys()]);
 
@@ -188,7 +61,7 @@ export function buildGroupedLookalikeStates(args: {
     const aGroup = aByGroup.get(groupId);
     const bGroup = bByGroup.get(groupId);
 
-    const groupLabel = aGroup?.groupLabel ?? bGroup?.groupLabel ?? "";
+    const groupLabel = aGroup?.featureLabel ?? bGroup?.featureLabel ?? "";
     const aStates = aGroup?.states ?? null;
     const bStates = bGroup?.states ?? null;
 
@@ -196,8 +69,31 @@ export function buildGroupedLookalikeStates(args: {
     let bCharacters: LookalikeComparisonCharacter[] | null = null;
 
     if (aStates !== null || bStates !== null) {
-      const aByChar = new Map((aStates ?? []).map((s) => [s.characterId, s]));
-      const bByChar = new Map((bStates ?? []).map((s) => [s.characterId, s]));
+      const aByChar = new Map<
+        number,
+        { states: CharacterStateDTO[]; label: string }
+      >();
+      const bByChar = new Map<
+        number,
+        { states: CharacterStateDTO[]; label: string }
+      >();
+
+      function collectIntoMap(
+        map: typeof aByChar,
+        states: CharacterStateDTO[],
+      ) {
+        for (const s of states) {
+          const entry = map.get(s.characterId) ?? {
+            states: [],
+            label: s.characterLabel,
+          };
+          entry.states.push(s);
+          map.set(s.characterId, entry);
+        }
+      }
+
+      collectIntoMap(aByChar, aStates ?? []);
+      collectIntoMap(bByChar, bStates ?? []);
 
       const allCharacterIds = new Set<number>([
         ...aByChar.keys(),
@@ -208,24 +104,20 @@ export function buildGroupedLookalikeStates(args: {
       bCharacters = [];
 
       for (const characterId of allCharacterIds) {
-        const aState = aByChar.get(characterId);
-        const bState = bByChar.get(characterId);
-
-        const metaState = aState ?? bState;
-        if (!metaState) continue; // defensive, should not happen
-
-        const { aAnnotated, bAnnotated } = buildAnnotatedState(aState, bState);
+        const aEntry = aByChar.get(characterId);
+        const bEntry = bByChar.get(characterId);
+        const characterLabel = (aEntry ?? bEntry)!.label;
 
         aCharacters.push({
           characterId,
-          characterLabel: metaState.characterLabel,
-          state: aAnnotated,
+          characterLabel,
+          states: annotateStates(aEntry?.states ?? [], bEntry?.states ?? []),
         });
 
         bCharacters.push({
           characterId,
-          characterLabel: metaState.characterLabel,
-          state: bAnnotated,
+          characterLabel,
+          states: annotateStates(bEntry?.states ?? [], aEntry?.states ?? []),
         });
       }
 

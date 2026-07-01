@@ -17,7 +17,7 @@ export async function getTaxonStates(args: {
 /**
  * INTERNAL USE ONLY. Do not expose in public API.
  * Fetch character states for many taxa at once.
- * Returns a map taxonId -> TaxonCharacterGroupStateDTO[].
+ * Returns a map taxonId -> FeatureStateDTO[].
  */
 export async function getTaxaStates(args: {
   taxonIds: number[];

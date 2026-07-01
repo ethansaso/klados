@@ -1,10 +1,9 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getSummaryStatsFn } from "../api/stats/getSummaryStatsFn";
 import type { SummaryStatsDTO } from "../domain/stats/types";
+import { getSummaryStatsFn } from "../server-fns/stats/getSummaryStatsFn";
 
 export const summaryStatsQueryOptions = () =>
   queryOptions<SummaryStatsDTO>({
     queryKey: ["summaryStats"],
     queryFn: () => getSummaryStatsFn(),
-    staleTime: 60_000,
   });

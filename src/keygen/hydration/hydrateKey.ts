@@ -1,8 +1,8 @@
-import { getCharacterGroupsByIds } from "../../lib/domain/character-groups/service";
 import { getCharactersByIds } from "../../lib/domain/characters/service";
+import { getFeaturesByIds } from "../../lib/domain/features/service";
+import type { MediaDTO } from "../../lib/domain/media/types";
 import type { Trait } from "../../lib/domain/states/types";
 import { getTaxaByIds } from "../../lib/domain/taxa/service";
-import type { MediaItem } from "../../lib/domain/taxa/validation";
 import { getTraitValuesByIds } from "../../lib/domain/traits/service";
 import type {
   KeyBranch,
@@ -12,11 +12,11 @@ import type {
 } from "../key-building/types";
 import type {
   HydratedBranchRationale,
-  HydratedCharRationale,
   HydratedKeyBranch,
   HydratedKeyGraphDTO,
   HydratedKeyNode,
-  HydratedPAGroupRationale,
+  HydratedPresentFeatureEntry,
+  HydratedRichRationale,
   HydratedTaxonNode,
 } from "./types";
 
@@ -24,14 +24,14 @@ type IdCollections = {
   taxonIds: Set<number>;
   characterIds: Set<number>;
   traitIds: Set<number>;
-  groupIds: Set<number>;
+  featureIds: Set<number>;
 };
 
 type TaxonMeta = {
   id: number;
   sciName: string;
   commonName?: string;
-  primaryMedia?: MediaItem;
+  primaryMedia?: MediaDTO;
 };
 
 type HydrationMeta = {
@@ -41,15 +41,16 @@ type HydrationMeta = {
     {
       id: number;
       label: string;
-      groupId: number;
+      featureIds: number[];
     }
   >;
-  traitById: Map<number, Trait>;
-  groupById: Map<
+  traitById: Map<number, Omit<Trait, "modifiers">>;
+  featureById: Map<
     number,
     {
       id: number;
       label: string;
+      description: string;
     }
   >;
 };
@@ -65,7 +66,7 @@ function collectIdsFromTree(root: KeyTaxonNode): IdCollections {
     taxonIds: new Set(),
     characterIds: new Set(),
     traitIds: new Set(),
-    groupIds: new Set(),
+    featureIds: new Set(),
   };
 
   function visit(node: KeyNode) {
@@ -80,18 +81,26 @@ function collectIdsFromTree(root: KeyTaxonNode): IdCollections {
     for (const branch of node.branches) {
       const rationale = branch.rationale as KeyBranchRationale | null;
 
-      if (rationale?.kind === "character-definition") {
-        for (const [charIdStr, info] of Object.entries(rationale.characters)) {
-          const charId = Number(charIdStr);
-          if (!Number.isNaN(charId)) {
-            ids.characterIds.add(charId);
+      if (rationale?.kind === "rich") {
+        for (const [featureIdStr, fEntry] of Object.entries(
+          rationale.features,
+        )) {
+          const featureId = Number(featureIdStr);
+          if (!Number.isNaN(featureId)) {
+            ids.featureIds.add(featureId);
           }
-          info.traits.forEach((traitId) => ids.traitIds.add(traitId));
+          if (fEntry.presence === "present") {
+            for (const [charIdStr, charEntry] of Object.entries(
+              fEntry.characters,
+            )) {
+              const charId = Number(charIdStr);
+              if (!Number.isNaN(charId)) {
+                ids.characterIds.add(charId);
+              }
+              charEntry.traits.forEach((traitId) => ids.traitIds.add(traitId));
+            }
+          }
         }
-      } else if (rationale?.kind === "group-present-absent") {
-        Object.values(rationale.groups).forEach((g) => {
-          ids.groupIds.add(g.groupId);
-        });
       }
 
       visit(branch.child);
@@ -103,11 +112,11 @@ function collectIdsFromTree(root: KeyTaxonNode): IdCollections {
 }
 
 async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
-  const [taxa, characters, traits, groups] = await Promise.all([
+  const [taxa, characters, traits, features] = await Promise.all([
     getTaxaByIds([...ids.taxonIds]),
     getCharactersByIds([...ids.characterIds]),
     getTraitValuesByIds([...ids.traitIds]),
-    getCharacterGroupsByIds([...ids.groupIds]),
+    getFeaturesByIds([...ids.featureIds]),
   ]);
 
   const taxonById = new Map<number, TaxonMeta>();
@@ -122,33 +131,40 @@ async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
 
   const characterById = new Map<
     number,
-    { id: number; label: string; groupId: number }
+    { id: number; label: string; featureIds: number[] }
   >();
   for (const c of characters) {
     characterById.set(c.id, {
       id: c.id,
       label: c.label,
-      groupId: c.group.id,
+      featureIds: c.features.map((f) => f.id),
     });
   }
 
-  const traitById = new Map<number, Trait>();
+  const traitById = new Map<number, Omit<Trait, "modifiers">>();
   for (const tr of traits) {
     traitById.set(tr.id, {
       id: tr.id,
       label: tr.label,
-      description: tr.aliasTarget?.description ?? tr.description,
-      canonicalId: tr.aliasTarget?.id ?? tr.id,
-      hexCode: tr.hexCode ?? undefined,
+      hasInfo: !!(tr.aliasOf ?? tr).description,
+      canonicalId: tr.aliasOf?.id ?? tr.id,
+      hexCode: tr.aliasOf?.hexCode ?? tr.hexCode ?? undefined,
     });
   }
 
-  const groupById = new Map<number, { id: number; label: string }>();
-  for (const g of groups) {
-    groupById.set(g.id, { id: g.id, label: g.label });
+  const featureById = new Map<
+    number,
+    { id: number; label: string; description: string }
+  >();
+  for (const f of features) {
+    featureById.set(f.id, {
+      id: f.id,
+      label: f.label,
+      description: f.description,
+    });
   }
 
-  return { taxonById, characterById, traitById, groupById };
+  return { taxonById, characterById, traitById, featureById };
 }
 
 function hydrateBranchRationale(
@@ -157,48 +173,55 @@ function hydrateBranchRationale(
 ): HydratedBranchRationale {
   if (!raw) return null;
 
-  if (raw.kind === "character-definition") {
-    const characters: HydratedCharRationale["characters"] = {};
-
-    for (const [charIdStr, info] of Object.entries(raw.characters)) {
-      const charId = Number(charIdStr);
-      const charMeta = meta.characterById.get(charId);
-      if (!charMeta) continue;
-
-      const traits = info.traits
-        .map((traitId) => meta.traitById.get(traitId))
-        .filter((t): t is Trait => !!t);
-
-      characters[charId] = {
-        name: charMeta.label,
-        traits,
-        inverted: info.inverted,
-      };
-    }
-
-    return {
-      kind: "character-definition",
-      characters,
-      annotation: raw.annotation,
-    };
+  if (raw.kind === "written") {
+    return { kind: "written", text: raw.text };
   }
 
-  if (raw.kind === "group-present-absent") {
-    const groups: HydratedPAGroupRationale["groups"] = {};
+  if (raw.kind === "rich") {
+    const features: HydratedRichRationale["features"] = {};
 
-    for (const [groupIdStr, gInfo] of Object.entries(raw.groups)) {
-      const groupId = Number(groupIdStr);
-      const metaGroup = meta.groupById.get(groupId);
-      groups[groupId] = {
-        groupId,
-        name: metaGroup?.label ?? `Group ${groupId}`,
-        status: gInfo.status,
-      };
+    for (const [featureIdStr, fEntry] of Object.entries(raw.features)) {
+      const featureId = Number(featureIdStr);
+      const featureMeta = meta.featureById.get(featureId);
+      const name = featureMeta?.label ?? `Feature ${featureId}`;
+
+      const description = featureMeta?.description || null;
+
+      if (fEntry.presence === "absent") {
+        features[featureId] = { presence: "absent", name, description };
+      } else {
+        const characters: HydratedPresentFeatureEntry["characters"] = {};
+
+        for (const [charIdStr, charEntry] of Object.entries(
+          fEntry.characters,
+        )) {
+          const charId = Number(charIdStr);
+          const charMeta = meta.characterById.get(charId);
+          if (!charMeta) continue;
+
+          const traits = charEntry.traits
+            .map((traitId) => meta.traitById.get(traitId))
+            .filter((t): t is Omit<Trait, "modifiers"> => !!t);
+
+          characters[charId] = {
+            name: charMeta.label,
+            traits,
+            inverted: charEntry.inverted,
+          };
+        }
+
+        features[featureId] = {
+          presence: "present",
+          name,
+          description,
+          characters,
+        };
+      }
     }
 
     return {
-      kind: "group-present-absent",
-      groups,
+      kind: "rich",
+      features,
       annotation: raw.annotation,
     };
   }

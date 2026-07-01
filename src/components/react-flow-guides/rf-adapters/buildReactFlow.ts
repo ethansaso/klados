@@ -4,12 +4,11 @@ import type {
   HydratedKeyNode,
 } from "../../../keygen/hydration/types";
 import type {
-  RFCharacterBranchEdge,
   RFDiffNode,
   RFEdge,
-  RFGroupBranchEdge,
   RFNode,
   RFNullBranchEdge,
+  RFRichBranchEdge,
   RFTaxonNode,
 } from "../editor/data/types";
 import { branchToEdgeId, guideNodeToRfId } from "./ids";
@@ -36,10 +35,10 @@ function buildEdge(
   }
 
   switch (rationale.kind) {
-    case "character-definition": {
-      const e: RFCharacterBranchEdge = {
+    case "rich": {
+      const e: RFRichBranchEdge = {
         id: branchToEdgeId(viaBranch.id),
-        type: "characterBranchEdge",
+        type: "richBranchEdge",
         source: parentRfId,
         target: childRfId,
         data: {
@@ -50,22 +49,21 @@ function buildEdge(
       return e;
     }
 
-    case "group-present-absent": {
-      const e: RFGroupBranchEdge = {
+    case "written":
+    default: {
+      // "written" rationale has no structured display yet; render as null edge.
+      const e: RFNullBranchEdge = {
         id: branchToEdgeId(viaBranch.id),
-        type: "groupBranchEdge",
+        type: "nullBranchEdge",
         source: parentRfId,
         target: childRfId,
         data: {
           branchId: viaBranch.id,
-          rationale,
+          rationale: null,
         },
       };
       return e;
     }
-
-    default:
-      throw new Error(`Unhandled rationale kind.`);
   }
 }
 

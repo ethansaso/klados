@@ -1,15 +1,14 @@
-import { Box } from "@radix-ui/themes";
+import { Box, Button } from "@radix-ui/themes";
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
+import { PiTextAlignLeft } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
-import { EditingGroupCard } from "./EditingGroupCard";
-import { GroupSearch } from "./search/GroupSearch";
-import {
-  removeCategoricalTraitValue,
-  removeCharacterState,
-} from "./stateUtils";
+import { EditingFeatureCard } from "./EditingFeatureCard";
+import { selectExtraction } from "./ExtractionModal";
+import { FeatureSearch } from "./search/FeatureSearch";
+import { removeCategoricalTraitValue } from "./stateUtils";
 import type { GroupedCharacterFormValue } from "./validation";
 
 type CharacterEditingFormProps = {
@@ -24,41 +23,32 @@ export function CharacterEditingForm({
   const { getValues } = useFormContext<TaxonEditFormValues>();
 
   const handleGroupSelect = (option: ComboboxOption) => {
-    if (value.some((g) => g.groupId === option.id)) return;
+    if (value.some((g) => g.featureId === option.id)) return;
 
     onChange([
       ...value,
       {
-        groupId: option.id,
-        groupLabel: option.label,
+        featureId: option.id,
+        featureLabel: option.label,
         characters: [],
       },
     ]);
   };
 
   const handleDeleteGroup = (groupId: number) => {
-    onChange(value.filter((g) => g.groupId !== groupId));
+    onChange(value.filter((g) => g.featureId !== groupId));
   };
 
   // getValues is stable, so these callbacks are stable
   const handleRemoveCategoricalTrait = useCallback(
-    (groupId: number, characterId: number, traitValueId: number) => {
+    (groupId: number, characterId: number, stateIndex: number) => {
       const prev = getValues("states");
       const next = removeCategoricalTraitValue(
         prev,
         groupId,
         characterId,
-        traitValueId,
+        stateIndex,
       );
-      onChange(next);
-    },
-    [getValues, onChange],
-  );
-
-  const handleRemoveState = useCallback(
-    (groupId: number, characterId: number) => {
-      const prev = getValues("states");
-      const next = removeCharacterState(prev, groupId, characterId);
       onChange(next);
     },
     [getValues, onChange],
@@ -68,20 +58,36 @@ export function CharacterEditingForm({
     <FormDescriptor
       title="Characters"
       description="To add a character, first use the group search to add a character group. Once added, you can select trait values for the characters in that group."
+      actions={
+        <Button
+          type="button"
+          radius="full"
+          size="1"
+          onClick={async () => {
+            const result = await selectExtraction();
+            if (result) {
+              console.log("Extraction result:", result);
+            }
+          }}
+          aria-label="Extract states from text description"
+        >
+          <PiTextAlignLeft size="16" />
+          Import text description
+        </Button>
+      }
     >
       <Box>
         <Box mb="4">
-          <GroupSearch onSelect={handleGroupSelect} />
+          <FeatureSearch onSelect={handleGroupSelect} />
         </Box>
-        <div className="character-group-card-grid">
+        <div className="feature-card-grid">
           {value.map((group) => (
-            <EditingGroupCard
-              key={group.groupId}
-              group={group}
+            <EditingFeatureCard
+              key={group.featureId}
+              feature={group}
               onChange={onChange}
-              onDelete={() => handleDeleteGroup(group.groupId)}
+              onDelete={() => handleDeleteGroup(group.featureId)}
               onRemoveCategoricalValue={handleRemoveCategoricalTrait}
-              onRemoveState={handleRemoveState}
             />
           ))}
         </div>

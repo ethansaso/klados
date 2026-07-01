@@ -1,0 +1,293 @@
+import {
+  Box,
+  Card,
+  DataList,
+  Flex,
+  Heading,
+  IconButton,
+  Text,
+} from "@radix-ui/themes";
+import { useQuery } from "@tanstack/react-query";
+import { memo, useCallback, useId, useState } from "react";
+import { useFormContext } from "react-hook-form";
+import { PiCheck, PiTrash, PiX } from "react-icons/pi";
+import type { TaxonEditFormValues } from "..";
+import type { TraitSuggestion } from "../../../../../../lib/domain/suggestions/types";
+import { featureQueryOptions } from "../../../../../../lib/queries/features";
+import { CharacterStateRow } from "./CharacterStateRow";
+import { CharacterStateSearch } from "./search/CharacterStateSearch";
+import {
+  addStateFromSuggestion,
+  updateCategoricalTraitValueModifiers,
+} from "./stateUtils";
+import type { FeatureFormValue, ModifierTokenFormValue } from "./validation";
+
+type LastAdded = {
+  characterId: number;
+  traitIndex?: number;
+  label: string;
+};
+
+type Props = {
+  feature: FeatureFormValue;
+  onChange: (nextFeatures: FeatureFormValue[]) => void;
+  onDelete: () => void;
+  onRemoveCategoricalValue: (
+    featureId: number,
+    characterId: number,
+    stateIndex: number,
+  ) => void;
+};
+
+export const EditingFeatureCard = memo(
+  ({ feature, onChange, onDelete, onRemoveCategoricalValue }: Props) => {
+    const { getValues } = useFormContext<TaxonEditFormValues>();
+    const [confirmingDelete, setConfirmingDelete] = useState(false);
+    const [lastAdded, setLastAdded] = useState<LastAdded | null>(null);
+    const [autoOpenFor, setAutoOpenFor] = useState<LastAdded | null>(null);
+    const searchInputId = useId();
+
+    const focusSearch = useCallback(() => {
+      document.getElementById(searchInputId)?.focus();
+    }, [searchInputId]);
+
+    const { data, isLoading, isError } = useQuery({
+      ...featureQueryOptions(feature.featureId),
+      staleTime: 5_000,
+      refetchOnWindowFocus: true,
+    });
+
+    const label = data?.label;
+
+    const handleSuggestionSelect = useCallback(
+      (s: TraitSuggestion) => {
+        const prev = getValues("states");
+        const next = addStateFromSuggestion(prev, s);
+        onChange(next);
+
+        const label =
+          s.kind === "categorical-value" ? s.traitValueLabel : s.displayValue;
+        if (s.kind === "categorical-value") {
+          const catStatesForChar =
+            next
+              .find((g) => g.featureId === s.featureId)
+              ?.characters.filter(
+                (c) =>
+                  c.characterId === s.characterId && c.kind === "categorical",
+              ) ?? [];
+          setLastAdded({
+            characterId: s.characterId,
+            traitIndex: catStatesForChar.length - 1,
+            label,
+          });
+        } else {
+          setLastAdded({ characterId: s.characterId, label });
+        }
+        setAutoOpenFor(null);
+      },
+      [getValues, onChange],
+    );
+
+    const handleAutoOpenHandled = useCallback(() => {
+      setAutoOpenFor(null);
+      setLastAdded(null);
+    }, []);
+
+    const handleUpdateCategoricalModifiers = useCallback(
+      (
+        characterId: number,
+        stateIndex: number,
+        mods: ModifierTokenFormValue[],
+      ) => {
+        const prev = getValues("states");
+        const next = updateCategoricalTraitValueModifiers(
+          prev,
+          feature.featureId,
+          characterId,
+          stateIndex,
+          mods,
+        );
+        onChange(next);
+      },
+      [getValues, onChange, feature.featureId],
+    );
+
+    const handleUpdateNumericModifiers = useCallback(
+      (
+        characterId: number,
+        stateIndex: number,
+        mods: ModifierTokenFormValue[],
+      ) => {
+        const prev = getValues("states");
+        const next = prev.map((group) => {
+          if (group.featureId !== feature.featureId) return group;
+
+          let numericSeen = -1;
+
+          return {
+            ...group,
+            characters: group.characters.map((row) => {
+              if (
+                row.characterId !== characterId ||
+                (row.kind !== "number" && row.kind !== "range")
+              ) {
+                return row;
+              }
+
+              numericSeen += 1;
+              if (numericSeen !== stateIndex) return row;
+
+              return { ...row, modifiers: mods };
+            }),
+          };
+        });
+
+        onChange(next);
+      },
+      [getValues, onChange, feature.featureId],
+    );
+
+    const handleRemoveNumericState = useCallback(
+      (characterId: number, stateIndex: number) => {
+        const prev = getValues("states");
+        const next = prev.map((group) => {
+          if (group.featureId !== feature.featureId) return group;
+
+          let numericSeen = -1;
+
+          return {
+            ...group,
+            characters: group.characters.filter((row) => {
+              if (
+                row.characterId !== characterId ||
+                (row.kind !== "number" && row.kind !== "range")
+              ) {
+                return true;
+              }
+
+              numericSeen += 1;
+              return numericSeen !== stateIndex;
+            }),
+          };
+        });
+
+        onChange(next);
+      },
+      [getValues, onChange, feature.featureId],
+    );
+
+    // TODO: Immediately delete if no characters exist in group
+    const handleTrashClick = () => {
+      setConfirmingDelete(true);
+    };
+
+    return (
+      <Card>
+        <Flex mb="2" align="center" justify="between">
+          <Heading size="2" weight="medium">
+            {label}
+          </Heading>
+          {confirmingDelete ? (
+            <Flex mr="1" gap="2">
+              <IconButton
+                type="button"
+                size="1"
+                variant="ghost"
+                color="tomato"
+                onClick={() => onDelete()}
+              >
+                <PiCheck size={12} />
+              </IconButton>
+              <IconButton
+                type="button"
+                size="1"
+                variant="ghost"
+                color="gray"
+                onClick={() => setConfirmingDelete(false)}
+              >
+                <PiX size={12} />
+              </IconButton>
+            </Flex>
+          ) : (
+            <IconButton
+              type="button"
+              size="1"
+              variant="ghost"
+              color="tomato"
+              mr="1"
+              onClick={handleTrashClick}
+            >
+              <PiTrash size={12} />
+            </IconButton>
+          )}
+        </Flex>
+
+        {/* Add states via search */}
+        <Box mt="2" mb="3">
+          <CharacterStateSearch
+            featureId={feature.featureId}
+            onSelect={handleSuggestionSelect}
+            modifyHint={lastAdded?.label}
+            inputId={searchInputId}
+            onModifyShortcut={
+              lastAdded
+                ? () => {
+                    setAutoOpenFor(lastAdded);
+                    setLastAdded(null); // dismiss hint immediately on /
+                  }
+                : undefined
+            }
+            onQueryActive={() => setLastAdded(null)}
+          />
+        </Box>
+
+        {isLoading && <Text size="1">Loading characters…</Text>}
+        {isError && (
+          <Text size="1" color="red">
+            Failed to load group.
+          </Text>
+        )}
+
+        {data && (
+          <DataList.Root size="1">
+            {data.characters.map((c) => {
+              const statesForCharacter = feature.characters.filter(
+                (state) => state.characterId === c.id,
+              );
+
+              return (
+                <CharacterStateRow
+                  key={c.id}
+                  character={c}
+                  states={statesForCharacter}
+                  onRemoveCategoricalTrait={(characterId, stateIndex) =>
+                    onRemoveCategoricalValue(
+                      feature.featureId,
+                      characterId,
+                      stateIndex,
+                    )
+                  }
+                  onRemoveNumericState={handleRemoveNumericState}
+                  onUpdateCategoricalModifiers={
+                    handleUpdateCategoricalModifiers
+                  }
+                  onUpdateNumericModifiers={handleUpdateNumericModifiers}
+                  autoOpenModifierFor={
+                    autoOpenFor?.characterId === c.id
+                      ? {
+                          characterId: autoOpenFor.characterId,
+                          traitIndex: autoOpenFor.traitIndex,
+                        }
+                      : undefined
+                  }
+                  onAutoOpenHandled={handleAutoOpenHandled}
+                  onReturnToSearch={focusSearch}
+                />
+              );
+            })}
+          </DataList.Root>
+        )}
+      </Card>
+    );
+  },
+);

@@ -1,77 +1,191 @@
-import { DataList, Flex } from "@radix-ui/themes";
+import { DataList, Flex, Text } from "@radix-ui/themes";
 import { memo, useMemo } from "react";
-import { CharacterStateDisplay } from "../../../../../../components/trait-tokens/CharacterStateDisplay";
-import type { CharacterGroupDetailDTO } from "../../../../../../lib/domain/character-groups/types";
-import { StateTagWrapper } from "./StateTagWrapper";
-import type { CharacterStateFormValue } from "./validation";
+import { CharacterStateDisplay } from "../../../../../../components/state-formatting/CharacterStateDisplay";
+import type { FeatureDetailDTO } from "../../../../../../lib/domain/features/types";
+import { ModifierTag } from "./tags/ModifierTag";
+import type {
+  CharacterStateFormValue,
+  ModifierTokenFormValue,
+} from "./validation";
+
+type AutoOpenTarget = { characterId: number; traitIndex?: number };
 
 type CharacterStateRowProps = {
-  character: CharacterGroupDetailDTO["characters"][number];
-  state?: CharacterStateFormValue;
-  onRemoveCategoricalValue: (characterId: number, traitValueId: number) => void;
-  onRemoveState: (characterId: number) => void;
+  character: FeatureDetailDTO["characters"][number];
+  states: CharacterStateFormValue[];
+  onRemoveCategoricalTrait: (characterId: number, stateIndex: number) => void;
+  onRemoveNumericState: (characterId: number, stateIndex: number) => void;
+  onUpdateCategoricalModifiers: (
+    characterId: number,
+    stateIndex: number,
+    mods: ModifierTokenFormValue[],
+  ) => void;
+  onUpdateNumericModifiers: (
+    characterId: number,
+    stateIndex: number,
+    mods: ModifierTokenFormValue[],
+  ) => void;
+  /** If set, auto-opens the modifier popover for the matching tag. */
+  autoOpenModifierFor?: AutoOpenTarget;
+  onAutoOpenHandled?: () => void;
+  /** Called when the user presses Enter on an empty modifier search. */
+  onReturnToSearch?: () => void;
 };
 
 export const CharacterStateRow = memo(
   ({
     character,
-    state,
-    onRemoveCategoricalValue,
-    onRemoveState,
+    states,
+    onRemoveCategoricalTrait,
+    onRemoveNumericState,
+    onUpdateCategoricalModifiers,
+    onUpdateNumericModifiers,
+    autoOpenModifierFor,
+    onAutoOpenHandled,
+    onReturnToSearch,
   }: CharacterStateRowProps) => {
     const content = useMemo(() => {
-      if (!state) return "—";
-
-      switch (state.kind) {
-        case "categorical":
-          return state.traitValues.map((tv) => (
-            <StateTagWrapper
-              key={tv.id}
-              onRemove={() => onRemoveCategoricalValue(character.id, tv.id)}
-            >
-              <CharacterStateDisplay
-                state={{ kind: "categorical", traitValues: [tv] }}
-              />
-            </StateTagWrapper>
-          ));
-
-        case "number":
-          return (
-            <StateTagWrapper onRemove={() => onRemoveState(character.id)}>
-              <CharacterStateDisplay
-                state={{
-                  kind: "number",
-                  siBaseValue: state.siBaseValue,
-                  unit: state.unit,
-                }}
-              />
-            </StateTagWrapper>
-          );
-
-        case "range":
-          return (
-            <StateTagWrapper onRemove={() => onRemoveState(character.id)}>
-              <CharacterStateDisplay
-                state={{
-                  kind: "range",
-                  siBaseMin: state.siBaseMin,
-                  siBaseMax: state.siBaseMax,
-                  unit: state.unit,
-                }}
-              />
-            </StateTagWrapper>
-          );
-
-        default:
-          return "Unsupported kind";
+      if (!states.length) {
+        return (
+          <Text color="gray" size="1">
+            —
+          </Text>
+        );
       }
-    }, [state, character.id, onRemoveCategoricalValue, onRemoveState]);
+
+      const numericStates = states.filter(
+        (
+          state,
+        ): state is Extract<
+          CharacterStateFormValue,
+          { kind: "number" | "range" }
+        > => state.kind === "number" || state.kind === "range",
+      );
+
+      const categoricalStates = states.filter((s) => s.kind === "categorical");
+
+      return states.flatMap((state) => {
+        switch (state.kind) {
+          case "categorical": {
+            const catIdx = categoricalStates.indexOf(state);
+            return (
+              <ModifierTag
+                key={`categorical:${catIdx}`}
+                modifiers={state.modifiers}
+                onModifiersChange={(mods) =>
+                  onUpdateCategoricalModifiers(character.id, catIdx, mods)
+                }
+                onRemove={() => onRemoveCategoricalTrait(character.id, catIdx)}
+                autoOpen={
+                  autoOpenModifierFor?.characterId === character.id &&
+                  autoOpenModifierFor.traitIndex === catIdx
+                }
+                onAutoOpenHandled={onAutoOpenHandled}
+                onReturnToSearch={onReturnToSearch}
+              >
+                <CharacterStateDisplay
+                  states={[{ kind: "categorical", trait: state.trait, modifiers: state.modifiers }]}
+                  highlightAffixes
+                />
+              </ModifierTag>
+            );
+          }
+
+          case "number": {
+            const numericIndex = numericStates.indexOf(state);
+            return (
+              <ModifierTag
+                key={`number:${numericIndex}:${state.siBaseValue}`}
+                modifiers={state.modifiers}
+                onModifiersChange={(mods) =>
+                  onUpdateNumericModifiers(character.id, numericIndex, mods)
+                }
+                onRemove={() =>
+                  onRemoveNumericState(character.id, numericIndex)
+                }
+                autoOpen={
+                  autoOpenModifierFor?.characterId === character.id &&
+                  autoOpenModifierFor.traitIndex === undefined &&
+                  numericIndex === numericStates.length - 1
+                }
+                onAutoOpenHandled={onAutoOpenHandled}
+                onReturnToSearch={onReturnToSearch}
+              >
+                <CharacterStateDisplay
+                  states={[{
+                    kind: "number",
+                    siBaseValue: state.siBaseValue,
+                    unit: state.unit,
+                    modifiers: state.modifiers,
+                  }]}
+                  highlightAffixes
+                />
+              </ModifierTag>
+            );
+          }
+
+          case "range": {
+            const numericIndex = numericStates.indexOf(state);
+            return (
+              <ModifierTag
+                key={`range:${numericIndex}:${state.siBaseMin ?? ""}:${state.siBaseMax ?? ""}`}
+                modifiers={state.modifiers}
+                onModifiersChange={(mods) =>
+                  onUpdateNumericModifiers(character.id, numericIndex, mods)
+                }
+                onRemove={() =>
+                  onRemoveNumericState(character.id, numericIndex)
+                }
+                autoOpen={
+                  autoOpenModifierFor?.characterId === character.id &&
+                  autoOpenModifierFor.traitIndex === undefined &&
+                  numericIndex === numericStates.length - 1
+                }
+                onAutoOpenHandled={onAutoOpenHandled}
+                onReturnToSearch={onReturnToSearch}
+              >
+                <CharacterStateDisplay
+                  states={[{
+                    kind: "range",
+                    siBaseMin: state.siBaseMin,
+                    siBaseMax: state.siBaseMax,
+                    unit: state.unit,
+                    modifiers: state.modifiers,
+                  }]}
+                  highlightAffixes
+                />
+              </ModifierTag>
+            );
+          }
+
+          default:
+            return [];
+        }
+      });
+    }, [
+      states,
+      character.id,
+      onRemoveCategoricalTrait,
+      onRemoveNumericState,
+      onUpdateCategoricalModifiers,
+      onUpdateNumericModifiers,
+      autoOpenModifierFor,
+      onAutoOpenHandled,
+      onReturnToSearch,
+    ]);
 
     return (
       <DataList.Item>
         <DataList.Label>{character.label}</DataList.Label>
         <DataList.Value>
-          <Flex className="character-editor__tag-list">{content}</Flex>
+          <Flex
+            wrap="wrap"
+            gap="1"
+            className="character-editor__tag-list"
+            maxWidth="100%"
+          >
+            {content}
+          </Flex>
         </DataList.Value>
       </DataList.Item>
     );

@@ -3,94 +3,62 @@ import type {
   NumericRangeSuggestion,
   NumericSingleSuggestion,
   TraitSuggestion,
-} from "../../../../../../lib/api/character-suggestions/types";
+} from "../../../../../../lib/domain/suggestions/types";
 import { convertToSI } from "../../../../../../lib/domain/units/conversion";
 import type {
   CharacterStateFormValue,
   GroupedCharacterFormValue,
+  ModifierTokenFormValue,
 } from "./validation";
 
-function updateGroup(
-  groups: GroupedCharacterFormValue,
-  groupId: number,
+function updateFeature(
+  featureStates: GroupedCharacterFormValue,
+  featureId: number,
   updater: (states: CharacterStateFormValue[]) => CharacterStateFormValue[],
 ): GroupedCharacterFormValue {
-  return groups.map((g) =>
-    g.groupId === groupId ? { ...g, characters: updater(g.characters) } : g,
+  return featureStates.map((g) =>
+    g.featureId === featureId ? { ...g, characters: updater(g.characters) } : g,
   );
 }
 
 export function addCategoricalStateFromSuggestion(
-  groups: GroupedCharacterFormValue,
+  featureStates: GroupedCharacterFormValue,
   suggestion: CategoricalValueSuggestion,
 ): GroupedCharacterFormValue {
-  return updateGroup(groups, suggestion.groupId, (current) => {
-    const existing = current.find(
-      (row): row is Extract<CharacterStateFormValue, { kind: "categorical" }> =>
-        row.kind === "categorical" &&
-        row.characterId === suggestion.characterId,
-    );
-
-    // Already has this trait value
-    if (existing?.traitValues.some((tv) => tv.id === suggestion.traitValueId)) {
-      return current;
-    }
-
-    const newTraitValue = {
-      id: suggestion.traitValueId,
-      label: suggestion.traitValueLabel,
-      hexCode: suggestion.traitValueHexCode ?? undefined,
-    };
-
-    // Create new categorical state
-    if (!existing) {
-      return [
-        ...current,
-        {
-          kind: "categorical",
-          characterId: suggestion.characterId,
-          characterLabel: suggestion.characterLabel,
-          traitValues: [newTraitValue],
+  return updateFeature(featureStates, suggestion.featureId, (current) => {
+    return [
+      ...current,
+      {
+        kind: "categorical",
+        characterId: suggestion.characterId,
+        characterLabel: suggestion.characterLabel,
+        trait: {
+          id: suggestion.traitValueId,
+          label: suggestion.traitValueLabel,
+          hexCode: suggestion.traitValueHexCode ?? undefined,
         },
-      ];
-    }
-
-    // Add to existing categorical state
-    return current.map((row) => {
-      if (
-        row.kind === "categorical" &&
-        row.characterId === suggestion.characterId
-      ) {
-        return {
-          ...row,
-          traitValues: [...row.traitValues, newTraitValue],
-        };
-      }
-      return row;
-    });
+        modifiers: [] as ModifierTokenFormValue[],
+      },
+    ];
   });
 }
 
 export function addNumericSingleStateFromSuggestion(
-  groups: GroupedCharacterFormValue,
+  featureStates: GroupedCharacterFormValue,
   suggestion: NumericSingleSuggestion,
 ): GroupedCharacterFormValue {
-  return updateGroup(groups, suggestion.groupId, (current) => {
-    // Remove any existing state for this character (replace semantics)
-    const filtered = current.filter(
-      (row) => row.characterId !== suggestion.characterId,
-    );
-
+  return updateFeature(featureStates, suggestion.featureId, (current) => {
     // Unitless (dimensionless) character
     if (suggestion.displayUnitId === null) {
       return [
-        ...filtered,
+        ...current,
         {
           kind: "number",
           characterId: suggestion.characterId,
           characterLabel: suggestion.characterLabel,
           unit: null,
           siBaseValue: suggestion.value,
+          modifiers: [] as ModifierTokenFormValue[],
         },
       ];
     }
@@ -104,7 +72,7 @@ export function addNumericSingleStateFromSuggestion(
     const siBaseValue = convertToSI(suggestion.value, suggestion.unitScale);
 
     return [
-      ...filtered,
+      ...current,
       {
         kind: "number",
         characterId: suggestion.characterId,
@@ -115,25 +83,21 @@ export function addNumericSingleStateFromSuggestion(
           scale: suggestion.unitScale,
         },
         siBaseValue,
+        modifiers: [] as ModifierTokenFormValue[],
       },
     ];
   });
 }
 
 export function addNumericRangeStateFromSuggestion(
-  groups: GroupedCharacterFormValue,
+  featureStates: GroupedCharacterFormValue,
   suggestion: NumericRangeSuggestion,
 ): GroupedCharacterFormValue {
-  return updateGroup(groups, suggestion.groupId, (current) => {
-    // Remove any existing state for this character (replace semantics)
-    const filtered = current.filter(
-      (row) => row.characterId !== suggestion.characterId,
-    );
-
+  return updateFeature(featureStates, suggestion.featureId, (current) => {
     // Unitless (dimensionless) character
     if (suggestion.displayUnitId === null) {
       return [
-        ...filtered,
+        ...current,
         {
           kind: "range",
           characterId: suggestion.characterId,
@@ -141,6 +105,7 @@ export function addNumericRangeStateFromSuggestion(
           unit: null,
           siBaseMin: suggestion.min,
           siBaseMax: suggestion.max,
+          modifiers: [] as ModifierTokenFormValue[],
         },
       ];
     }
@@ -150,12 +115,18 @@ export function addNumericRangeStateFromSuggestion(
       return current;
     }
 
-    // Convert to SI base values
-    const siBaseMin = convertToSI(suggestion.min, suggestion.unitScale);
-    const siBaseMax = convertToSI(suggestion.max, suggestion.unitScale);
+    // Convert to SI base values (null for one-sided bounds)
+    const siBaseMin =
+      suggestion.min !== null
+        ? convertToSI(suggestion.min, suggestion.unitScale)
+        : null;
+    const siBaseMax =
+      suggestion.max !== null
+        ? convertToSI(suggestion.max, suggestion.unitScale)
+        : null;
 
     return [
-      ...filtered,
+      ...current,
       {
         kind: "range",
         characterId: suggestion.characterId,
@@ -167,58 +138,56 @@ export function addNumericRangeStateFromSuggestion(
         },
         siBaseMin,
         siBaseMax,
+        modifiers: [] as ModifierTokenFormValue[],
       },
     ];
   });
 }
 
 export function addStateFromSuggestion(
-  groups: GroupedCharacterFormValue,
+  featureStates: GroupedCharacterFormValue,
   suggestion: TraitSuggestion,
 ): GroupedCharacterFormValue {
   switch (suggestion.kind) {
     case "categorical-value":
-      return addCategoricalStateFromSuggestion(groups, suggestion);
+      return addCategoricalStateFromSuggestion(featureStates, suggestion);
     case "numeric-single":
-      return addNumericSingleStateFromSuggestion(groups, suggestion);
+      return addNumericSingleStateFromSuggestion(featureStates, suggestion);
     case "numeric-range":
-      return addNumericRangeStateFromSuggestion(groups, suggestion);
+      return addNumericRangeStateFromSuggestion(featureStates, suggestion);
   }
 }
 
 export function removeCategoricalTraitValue(
-  groups: GroupedCharacterFormValue,
+  featureStates: GroupedCharacterFormValue,
   groupId: number,
   characterId: number,
-  traitValueId: number,
+  stateIndex: number,
 ): GroupedCharacterFormValue {
-  return updateGroup(groups, groupId, (current) =>
-    current
-      .map((row) => {
-        if (row.kind !== "categorical" || row.characterId !== characterId) {
-          return row;
-        }
-        return {
-          ...row,
-          traitValues: row.traitValues.filter((tv) => tv.id !== traitValueId),
-        };
-      })
-      .filter((row) => {
-        // Remove categorical rows with no trait values
-        if (row.kind === "categorical") {
-          return row.traitValues.length > 0;
-        }
-        return true;
-      }),
-  );
+  return updateFeature(featureStates, groupId, (current) => {
+    let catSeen = -1;
+    return current.filter((row) => {
+      if (row.kind !== "categorical" || row.characterId !== characterId) return true;
+      catSeen += 1;
+      return catSeen !== stateIndex;
+    });
+  });
 }
 
-export function removeCharacterState(
-  groups: GroupedCharacterFormValue,
-  groupId: number,
+export function updateCategoricalTraitValueModifiers(
+  featureStates: GroupedCharacterFormValue,
+  featureId: number,
   characterId: number,
+  stateIndex: number,
+  modifiers: ModifierTokenFormValue[],
 ): GroupedCharacterFormValue {
-  return updateGroup(groups, groupId, (current) =>
-    current.filter((row) => row.characterId !== characterId),
-  );
+  return updateFeature(featureStates, featureId, (current) => {
+    let catSeen = -1;
+    return current.map((row) => {
+      if (row.kind !== "categorical" || row.characterId !== characterId) return row;
+      catSeen += 1;
+      if (catSeen !== stateIndex) return row;
+      return { ...row, modifiers };
+    });
+  });
 }

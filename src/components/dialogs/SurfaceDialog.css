@@ -1,0 +1,131 @@
+.rt-DialogContent.surface-dialog__content {
+  padding: 0;
+}
+
+.surface-dialog__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--dialog-content-padding);
+  border-bottom: 1px solid var(--gray-5);
+}
+
+.surface-dialog__title {
+}
+
+.surface-dialog__body {
+  display: flex;
+}
+
+.surface-dialog__col:not(
+  :has(.surface-dialog__row, .surface-dialog__col),
+  .rt-r-p-0,
+  .rt-r-p-1,
+  .rt-r-p-2,
+  .rt-r-p-3,
+  .rt-r-p-4,
+  .rt-r-p-5,
+  .rt-r-p-6,
+  .rt-r-p-7,
+  .rt-r-p-8,
+  .rt-r-p-9,
+  .rt-r-px-0,
+  .rt-r-px-1,
+  .rt-r-px-2,
+  .rt-r-px-3,
+  .rt-r-px-4,
+  .rt-r-px-5,
+  .rt-r-px-6,
+  .rt-r-px-7,
+  .rt-r-px-8,
+  .rt-r-px-9
+),
+.surface-dialog__row:not(
+  :has(.surface-dialog__row, .surface-dialog__col),
+  .rt-r-p-0,
+  .rt-r-p-1,
+  .rt-r-p-2,
+  .rt-r-p-3,
+  .rt-r-p-4,
+  .rt-r-p-5,
+  .rt-r-p-6,
+  .rt-r-p-7,
+  .rt-r-p-8,
+  .rt-r-p-9,
+  .rt-r-px-0,
+  .rt-r-px-1,
+  .rt-r-px-2,
+  .rt-r-px-3,
+  .rt-r-px-4,
+  .rt-r-px-5,
+  .rt-r-px-6,
+  .rt-r-px-7,
+  .rt-r-px-8,
+  .rt-r-px-9
+) {
+  padding-left: var(--dialog-content-padding);
+  padding-right: var(--dialog-content-padding);
+}
+
+.surface-dialog__col:not(
+  :has(.surface-dialog__row, .surface-dialog__col),
+  .rt-r-p-0,
+  .rt-r-p-1,
+  .rt-r-p-2,
+  .rt-r-p-3,
+  .rt-r-p-4,
+  .rt-r-p-5,
+  .rt-r-p-6,
+  .rt-r-p-7,
+  .rt-r-p-8,
+  .rt-r-p-9,
+  .rt-r-py-0,
+  .rt-r-py-1,
+  .rt-r-py-2,
+  .rt-r-py-3,
+  .rt-r-py-4,
+  .rt-r-py-5,
+  .rt-r-py-6,
+  .rt-r-py-7,
+  .rt-r-py-8,
+  .rt-r-py-9
+),
+.surface-dialog__row:not(
+  :has(.surface-dialog__row, .surface-dialog__col),
+  .rt-r-p-0,
+  .rt-r-p-1,
+  .rt-r-p-2,
+  .rt-r-p-3,
+  .rt-r-p-4,
+  .rt-r-p-5,
+  .rt-r-p-6,
+  .rt-r-p-7,
+  .rt-r-p-8,
+  .rt-r-p-9,
+  .rt-r-py-0,
+  .rt-r-py-1,
+  .rt-r-py-2,
+  .rt-r-py-3,
+  .rt-r-py-4,
+  .rt-r-py-5,
+  .rt-r-py-6,
+  .rt-r-py-7,
+  .rt-r-py-8,
+  .rt-r-py-9
+) {
+  padding-top: var(--dialog-content-padding);
+  padding-bottom: var(--dialog-content-padding);
+}
+
+.surface-dialog__col:not(:last-child) {
+  border-right: 1px solid var(--gray-5);
+}
+
+.surface-dialog__row:not(:last-child) {
+  border-bottom: 1px solid var(--gray-5);
+}
+
+.surface-dialog__footer {
+  padding: var(--dialog-content-padding);
+  border-top: 1px solid var(--gray-5);
+}

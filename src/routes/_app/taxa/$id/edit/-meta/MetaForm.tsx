@@ -5,7 +5,6 @@ import {
   Select,
   TextArea,
   TextField,
-  Tooltip,
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { Label } from "radix-ui";
@@ -21,6 +20,7 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../../../components/inputs/ConditionalAlert";
+import { ResponsiveTooltip } from "../../../../../../components/ResponsiveTooltip";
 import { taxaQueryOptions } from "../../../../../../lib/queries/taxa";
 import { pickGBIFTaxon } from "./GbifIdModal";
 import { pickInatTaxon } from "./InatIdModal";
@@ -177,7 +177,7 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
                   {...a11yProps("source-gbif-id-error", !!errors.sourceGbifId)}
                 >
                   <TextField.Slot side="right" pr="3">
-                    <Tooltip content="Fetch from GBIF">
+                    <ResponsiveTooltip content="Fetch from GBIF">
                       <IconButton
                         type="button"
                         variant="ghost"
@@ -191,7 +191,7 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
                       >
                         <FaLeaf />
                       </IconButton>
-                    </Tooltip>
+                    </ResponsiveTooltip>
                   </TextField.Slot>
                 </TextField.Root>
               )}
@@ -227,7 +227,7 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
                   {...a11yProps("source-inat-id-error", !!errors.sourceInatId)}
                 >
                   <TextField.Slot side="right" pr="3">
-                    <Tooltip content="Fetch from iNaturalist">
+                    <ResponsiveTooltip content="Fetch from iNaturalist">
                       <IconButton
                         type="button"
                         variant="ghost"
@@ -241,7 +241,7 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
                       >
                         <FaDove />
                       </IconButton>
-                    </Tooltip>
+                    </ResponsiveTooltip>
                   </TextField.Slot>
                 </TextField.Root>
               )}

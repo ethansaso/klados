@@ -71,7 +71,7 @@ export const FormDescriptor = ({
           </Text>
         </Box>
         {actions && (
-          <Flex gap="1" flexShrink="0">
+          <Flex gap="1" flexShrink="0" align="center">
             {actions}
           </Flex>
         )}
