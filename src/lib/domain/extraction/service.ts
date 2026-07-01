@@ -132,7 +132,7 @@ export async function extractStates(
   }
 
   // ── Load glossary for selected features ───────────────────────────
-  let glossary = await loadGlossaryForFeatures(narrowing.selectedFeatureIds);
+  const glossary = await loadGlossaryForFeatures(narrowing.selectedFeatureIds);
 
   // Build observation-to-feature mapping from Step 3 (sub-observation level)
   const obsByFeature = new Map<
@@ -405,8 +405,8 @@ export async function extractStates(
 
   // ── Step 7: Verification sweep with repair loop ────────────────────
   const MAX_REPAIR_ROUNDS = 2;
+  const finalGlossaryGaps: GlossaryGap[] = [...reportedGaps];
   let finalUnmatched: UnmatchedEntry[] = [];
-  let finalGlossaryGaps: GlossaryGap[] = [...reportedGaps];
 
   for (let round = 0; round <= MAX_REPAIR_ROUNDS; round++) {
     const roundLabel =
@@ -763,7 +763,7 @@ function pruneUngroundedTraitValues(
         // Every significant word in the label must appear in the description
         const words = tvMeta.label
           .toLowerCase()
-          .split(/[\s,;\-]+/)
+          .split(/[\s,;-]+/)
           .filter((w) => w.length >= 4);
         if (words.length === 0) return true;
         return words.every((w) => descLower.includes(w));

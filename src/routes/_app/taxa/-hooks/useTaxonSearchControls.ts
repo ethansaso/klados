@@ -9,7 +9,7 @@ export function useTaxonSearchControls() {
   const setSearch = useCallback(
     (partial: Partial<TaxonSearchParams>) => {
       navigate({
-        search: (prev) => ({
+        search: (prev: Record<string, unknown>) => ({
           ...prev,
           ...partial,
           page:

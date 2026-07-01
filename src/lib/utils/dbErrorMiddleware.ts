@@ -54,14 +54,14 @@ export const dbErrorMiddleware = createMiddleware({ type: "function" }).server(
       const pg = extractPgError(e);
       if (pg) {
         const friendly = PG_ERROR_MESSAGES[pg.code];
-        if (friendly) throw new Error(friendly);
+        if (friendly) throw new Error(friendly, { cause: e });
         // Unrecognized pg error: log full detail server-side, send nothing useful to the client.
         console.error("[db] Unhandled pg error", {
           code: pg.code,
           message: pg.message,
           detail: pg.detail,
         });
-        throw new Error("An unexpected database error occurred.");
+        throw new Error("An unexpected database error occurred.", { cause: e });
       }
       throw e;
     }

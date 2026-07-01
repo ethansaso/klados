@@ -31,7 +31,7 @@ export function useRoutedPaginatedSearch() {
       navigate({
         from: deepestMatch.fullPath || "/",
         to: ".",
-        search: (prev) => ({
+        search: (prev: Record<string, unknown>) => ({
           ...prev,
           ...patch,
         }),

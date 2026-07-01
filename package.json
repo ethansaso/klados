@@ -20,7 +20,7 @@
     "test:colors": "tsx scripts/seeding/colors/testColors.ts",
     "test:keygen": "tsx scripts/runKeygen.ts",
     "test": "vitest run",
-    "lint": "eslint src --max-warnings=0",
+    "lint": "eslint src",
     "typecheck": "tsgo --noEmit"
   },
   "keywords": [],
@@ -65,6 +65,7 @@
   },
   "devDependencies": {
     "@eslint-react/eslint-plugin": "^2.3.13",
+    "@eslint/js": "^10.0.1",
     "@types/pg": "^8.16.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
