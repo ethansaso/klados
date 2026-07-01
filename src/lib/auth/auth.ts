@@ -3,11 +3,12 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { username } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { db } from "../../../db/client";
+import * as schema from "../../../db/schema/schema";
 import { requireAccountPolicyMiddleware } from "./enforcement";
 import { resend } from "./resend";
 
 export const auth = betterAuth({
-  database: drizzleAdapter(db, { provider: "pg" }),
+  database: drizzleAdapter(db, { provider: "pg", schema }),
   emailAndPassword: {
     enabled: true,
 

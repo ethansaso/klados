@@ -7,7 +7,7 @@ import { requireAdminMiddleware } from "../../auth/serverFnMiddleware";
 
 export const removeSourceUsagesAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdminMiddleware])
-  .inputValidator(z.int().nonnegative())
+  .validator(z.int().nonnegative())
   .handler(async ({ data }) => {
     await db.delete(taxonSourceTbl).where(eq(taxonSourceTbl.sourceId, data));
   });

@@ -357,7 +357,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/glossary': typeof AppGlossaryRouteRouteWithChildren
-  '/guides': typeof AppGuidesBrowsingRouteRouteWithChildren
+  '/guides': typeof AppGuidesRouteRouteWithChildren
   '/users': typeof AppUsersRouteRouteWithChildren
   '/admin/sources': typeof AdminSourcesRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren

@@ -5,7 +5,7 @@ import { updateFeatureSchema } from "../../domain/features/validation";
 
 export const updateFeatureFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(updateFeatureSchema)
+  .validator(updateFeatureSchema)
   .handler(async ({ data }) => {
     const updated = await updateFeature(data);
     return updated;

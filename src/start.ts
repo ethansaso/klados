@@ -1,5 +1,9 @@
 import { isRedirect } from "@tanstack/react-router";
-import { createMiddleware, createStart } from "@tanstack/react-start";
+import {
+  createCsrfMiddleware,
+  createMiddleware,
+  createStart,
+} from "@tanstack/react-start";
 import { dbErrorMiddleware } from "./lib/utils/dbErrorMiddleware";
 
 const convertRedirectErrorToExceptionMiddleware = createMiddleware({
@@ -12,9 +16,14 @@ const convertRedirectErrorToExceptionMiddleware = createMiddleware({
   return result;
 });
 
+const csrfMiddleware = createCsrfMiddleware({
+  filter: (ctx) => ctx.handlerType === "serverFn",
+});
+
 export const startInstance = createStart(() => ({
   functionMiddleware: [
     convertRedirectErrorToExceptionMiddleware,
     dbErrorMiddleware,
   ],
+  requestMiddleware: [csrfMiddleware],
 }));

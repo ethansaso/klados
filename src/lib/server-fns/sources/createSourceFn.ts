@@ -7,7 +7,7 @@ import { sourceItemSchema } from "../../domain/sources/validation";
 
 export const createSourceFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(sourceItemSchema)
+  .validator(sourceItemSchema)
   .handler(async ({ data }): Promise<SourceDTO> => {
     const dto = await createSource(data);
 

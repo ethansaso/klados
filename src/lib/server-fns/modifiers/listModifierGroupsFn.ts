@@ -5,7 +5,7 @@ import { type ModifierGroupPaginatedResult } from "../../domain/modifiers/types"
 import { PaginationSchema } from "../../validation/pagination";
 
 export const listModifierGroupsFn = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     PaginationSchema.extend({
       q: z.string().optional(),
     }),

@@ -6,7 +6,7 @@ import z from "zod";
 import { storage } from "../../lib/storage";
 
 const uploadTestImageFn = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     z.object({
       base64: z.string(),
       contentType: z.string(),

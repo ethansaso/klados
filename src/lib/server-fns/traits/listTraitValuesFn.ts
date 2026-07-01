@@ -5,7 +5,7 @@ import type { TraitValuePaginatedResult } from "../../domain/traits/types";
 import { PaginationSchema } from "../../validation/pagination";
 
 export const listTraitValuesFn = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     PaginationSchema.extend({
       characterId: z.coerce.number().int().positive(),
       canonicalOnly: z.boolean().optional(),

@@ -7,7 +7,7 @@ import { createCharacterSchema } from "../../domain/characters/validation";
 
 export const createCharacterFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(createCharacterSchema)
+  .validator(createCharacterSchema)
   .handler(async ({ data }): Promise<CharacterDTO> => {
     const dto = await createCharacter(data);
 

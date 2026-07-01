@@ -6,7 +6,7 @@ import {
 } from "../../domain/extraction/service";
 
 export const extractStatesFn = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     z.object({
       description: z.string().min(1, "Description text is required."),
     }),

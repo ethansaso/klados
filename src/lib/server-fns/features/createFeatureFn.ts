@@ -7,7 +7,7 @@ import { createFeatureSchema } from "../../domain/features/validation";
 
 export const createFeatureFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(createFeatureSchema)
+  .validator(createFeatureSchema)
   .handler(async ({ data }): Promise<FeatureDTO> => {
     const dto = await createFeature({
       label: data.label,

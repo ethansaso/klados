@@ -8,7 +8,7 @@ import { InUseError } from "../../utils/InUseError";
 
 export const deleteCharacterFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(z.object({ id: z.number().int().positive() }))
+  .validator(z.object({ id: z.number().int().positive() }))
   .handler(async ({ data }): Promise<{ id: number }> => {
     const { id } = data;
 

@@ -4,7 +4,7 @@ import { getTaxonStates } from "../../domain/states/service";
 import type { FeatureStateDTO } from "../../domain/states/types";
 
 export const getTaxonCharacterStatesFn = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     z.object({
       taxonId: z.number().int().nonnegative(),
     }),

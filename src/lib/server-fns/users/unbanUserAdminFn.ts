@@ -5,7 +5,7 @@ import { unbanUser } from "../../domain/users/service";
 
 export const unbanUserAdminFn = createServerFn({ method: "GET" })
   .middleware([requireAdminMiddleware])
-  .inputValidator(z.object({ userId: z.string() }))
+  .validator(z.object({ userId: z.string() }))
   .handler(async ({ data }) => {
     const { userId } = data;
     await unbanUser(userId);

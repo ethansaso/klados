@@ -14,7 +14,7 @@ const GuideGenInputSchema = z.object({
 export const generateGuideFn = createServerFn({
   method: "POST",
 })
-  .inputValidator(GuideGenInputSchema)
+  .validator(GuideGenInputSchema)
   .handler(async ({ data }): Promise<KeyGenerationResult> => {
     // Initial keygen (produces a tree)
     const { rootNode } = await generateKeyForTaxon(data.taxonId, data.options);

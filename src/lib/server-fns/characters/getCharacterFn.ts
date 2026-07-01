@@ -5,10 +5,10 @@ import { getCharacter } from "../../domain/characters/service";
 import type { CharacterDetailDTO } from "../../domain/characters/types";
 
 export const getCharacterFn = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     z.object({
       id: z.coerce.number().int().positive(),
-    })
+    }),
   )
   .handler(async ({ data }): Promise<CharacterDetailDTO> => {
     const { id } = data;

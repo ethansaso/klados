@@ -11,7 +11,7 @@ const GetGuideInputSchema = z.object({
 });
 
 export const getGuideFn = createServerFn({ method: "GET" })
-  .inputValidator(GetGuideInputSchema)
+  .validator(GetGuideInputSchema)
   .handler(async ({ data }) => {
     const [row] = await db.select().from(guide).where(eq(guide.id, data.id));
 

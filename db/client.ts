@@ -2,7 +2,6 @@ import "dotenv/config";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { relations } from "./schema/relations";
-import * as schema from "./schema/schema";
 
 const url =
   process.env.DATABASE_URL || "postgres://app:app@127.0.0.1:5434/taxokeys";
@@ -17,7 +16,7 @@ export const pool = new Pool({
   // ssl: { rejectUnauthorized: false }, // enable in prod if needed
 });
 
-export const db = drizzle({ client: pool, schema, relations });
+export const db = drizzle({ client: pool, relations });
 
 export async function closeDb() {
   await pool.end();

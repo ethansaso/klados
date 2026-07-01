@@ -6,7 +6,7 @@ import { deleteTaxon } from "../../domain/taxa/service";
 
 export const deleteTaxonFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(z.object({ id: z.number() }))
+  .validator(z.object({ id: z.number() }))
   .handler(async ({ data }): Promise<{ id: number }> => {
     const result = await deleteTaxon({ id: data.id });
 

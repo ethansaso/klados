@@ -8,7 +8,7 @@ import { PaginationSchema } from "../../validation/pagination";
  * Server function to list users with pagination and optional filtering by IDs.
  */
 export const listUsersFn = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     PaginationSchema.extend({
       ids: z.array(z.string()).optional(),
     }),

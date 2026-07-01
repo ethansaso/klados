@@ -4,7 +4,7 @@ import { listSources } from "../../domain/sources/service";
 import { type SourcePaginatedResult } from "../../domain/sources/types";
 
 export const listSourcesFn = createServerFn({ method: "GET" })
-  .inputValidator(SourceSearchSchema)
+  .validator(SourceSearchSchema)
   .handler(async ({ data }): Promise<SourcePaginatedResult> => {
     return listSources(data);
   });

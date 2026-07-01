@@ -5,7 +5,7 @@ import { deleteMedia } from "../../domain/media/service";
 
 export const deleteMediaFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(
+  .validator(
     z.object({
       id: z.int().positive(),
     }),

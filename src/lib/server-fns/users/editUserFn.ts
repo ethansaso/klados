@@ -5,7 +5,7 @@ import { userPatchSchema } from "../../domain/users/validation";
 
 export const editUserFn = createServerFn({ method: "POST" })
   .middleware([requireAuthenticationMiddleware])
-  .inputValidator(userPatchSchema)
+  .validator(userPatchSchema)
   .handler(async ({ data, context }) => {
     const { userId, name, description } = data;
 

@@ -9,7 +9,7 @@ import type { TraitSuggestion } from "../../domain/suggestions/types";
  * scoped to a particular feature.
  */
 export const listCharacterStateSuggestionsFn = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     z.object({
       featureId: z.number().int().nonnegative(),
       q: z.string().trim(),

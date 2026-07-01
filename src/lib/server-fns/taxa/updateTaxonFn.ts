@@ -5,7 +5,7 @@ import { updateTaxonInputSchema } from "../../domain/taxa/validation";
 
 export const updateTaxonFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(updateTaxonInputSchema)
+  .validator(updateTaxonInputSchema)
   .handler(async ({ data }) => {
     return updateTaxon(data);
   });

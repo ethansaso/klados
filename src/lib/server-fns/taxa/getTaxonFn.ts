@@ -6,10 +6,10 @@ import { getTaxon } from "../../domain/taxa/service";
 import type { TaxonDetailDTO } from "../../domain/taxa/types";
 
 export const getTaxonFn = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     z.object({
       id: z.number(),
-    })
+    }),
   )
   .handler(async ({ data }): Promise<TaxonDetailDTO> => {
     const detail = await getTaxon({ id: data.id });

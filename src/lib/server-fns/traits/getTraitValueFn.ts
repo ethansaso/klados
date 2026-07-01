@@ -5,7 +5,7 @@ import { getTraitValue } from "../../domain/traits/service";
 import type { TraitValueDTO } from "../../domain/traits/types";
 
 export const getTraitValueFn = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     z.object({
       id: z.coerce.number().int().positive(),
     }),

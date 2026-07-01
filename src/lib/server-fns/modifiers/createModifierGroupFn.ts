@@ -6,7 +6,7 @@ import { createModifierGroupSchema } from "../../domain/modifiers/validation";
 
 export const createModifierGroupFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(createModifierGroupSchema)
+  .validator(createModifierGroupSchema)
   .handler(async ({ data }): Promise<ModifierGroupDTO> => {
     const dto = await createModifierGroup({
       label: data.label,

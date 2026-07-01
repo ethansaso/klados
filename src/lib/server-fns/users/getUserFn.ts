@@ -8,7 +8,7 @@ import type { UserDTO } from "../../domain/users/types";
  * Server function to get a single user by ID.
  */
 export const getUserFn = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     z.object({
       id: z.string(),
     }),

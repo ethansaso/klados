@@ -5,7 +5,7 @@ import { updateCharacterSchema } from "../../domain/characters/validation";
 
 export const updateCharacterFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(updateCharacterSchema)
+  .validator(updateCharacterSchema)
   .handler(async ({ data }) => {
     const updated = await updateCharacter(data);
     return updated;

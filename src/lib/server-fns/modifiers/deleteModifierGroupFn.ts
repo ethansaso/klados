@@ -5,7 +5,7 @@ import { deleteModifierGroup } from "../../domain/modifiers/service";
 
 export const deleteModifierGroupFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(
+  .validator(
     z.object({
       id: z.number().int().positive(),
     }),

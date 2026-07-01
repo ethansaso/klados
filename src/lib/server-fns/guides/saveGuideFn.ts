@@ -29,7 +29,7 @@ const SaveGuideInputSchema = z.object({
 
 export const saveGuideFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(SaveGuideInputSchema)
+  .validator(SaveGuideInputSchema)
   .handler(async ({ data, context }) => {
     // Dehydrate the graph for storage
     const dehydratedTree = dehydrateKeyGraph(data.graph);

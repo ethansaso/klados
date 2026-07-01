@@ -6,7 +6,7 @@ import type { TraitValueDTO } from "../../domain/traits/types";
 
 export const createTraitValueFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(
+  .validator(
     z.object({
       characterId: z.coerce.number().int().positive(),
       key: z.string().min(1).max(100),

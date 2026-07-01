@@ -7,11 +7,11 @@ import type { TaxonDTO } from "../../domain/taxa/types";
 
 export const deprecateTaxonFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(
+  .validator(
     z.object({
       id: z.number(),
       replacedById: z.number().optional().nullable(),
-    })
+    }),
   )
   .handler(async ({ data }): Promise<TaxonDTO> => {
     const dto = await deprecateTaxonDomain({

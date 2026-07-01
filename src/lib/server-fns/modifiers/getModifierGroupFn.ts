@@ -4,7 +4,7 @@ import z from "zod";
 import { getModifierGroup } from "../../domain/modifiers/service";
 
 export const getModifierGroupFn = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     z.object({
       id: z.int().positive(),
     }),

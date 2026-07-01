@@ -5,7 +5,7 @@ import type { CharacterPaginatedResult } from "../../domain/characters/types";
 import { PaginationSchema } from "../../validation/pagination";
 
 export const listCharactersFn = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     PaginationSchema.extend({
       q: z.string().optional(),
       ids: z.array(z.number()).optional(),

@@ -8,7 +8,7 @@ const GuideSearchSchema = PaginationSchema.extend({
 });
 
 export const listGuidesFn = createServerFn({ method: "GET" })
-  .inputValidator(GuideSearchSchema)
+  .validator(GuideSearchSchema)
   .handler(async ({ data }) => {
     return listGuides(data);
   });

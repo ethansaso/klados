@@ -6,7 +6,7 @@ import { deleteTraitValue } from "../../domain/traits/service";
 
 export const deleteTraitValueFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(z.object({ id: z.int().positive() }))
+  .validator(z.object({ id: z.int().positive() }))
   .handler(async ({ data }): Promise<{ id: number }> => {
     const { id } = data;
 

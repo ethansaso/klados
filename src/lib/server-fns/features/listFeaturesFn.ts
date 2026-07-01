@@ -5,7 +5,7 @@ import type { FeaturePaginatedResult } from "../../domain/features/types";
 import { PaginationSchema } from "../../validation/pagination";
 
 export const listFeaturesFn = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     PaginationSchema.extend({
       q: z.string().optional(),
       ids: z.array(z.number()).optional(),

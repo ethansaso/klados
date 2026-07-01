@@ -5,7 +5,7 @@ import { getSourcesForTaxon } from "../../domain/taxon-sources/service";
 import { type TaxonSourceDTO } from "../../domain/taxon-sources/types";
 
 export const getSourcesForTaxonFn = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     z.object({
       id: z.number(),
     }),

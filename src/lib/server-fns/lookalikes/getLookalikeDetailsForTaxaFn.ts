@@ -6,7 +6,7 @@ import { type LookalikeComparisonDetailDTO } from "../../domain/lookalikes/types
 export const getLookalikeDetailsForTaxaFn = createServerFn({
   method: "POST",
 })
-  .inputValidator(
+  .validator(
     z.object({
       taxonId: z
         .int("Taxon ID must be an integer.")

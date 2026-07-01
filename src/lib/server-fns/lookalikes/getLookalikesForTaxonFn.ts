@@ -6,7 +6,7 @@ import { type TaxonLookalikeDTO } from "../../domain/lookalikes/types";
 export const getLookalikesForTaxonFn = createServerFn({
   method: "POST",
 })
-  .inputValidator(
+  .validator(
     z.object({
       id: z
         .int("Taxon ID must be an integer.")

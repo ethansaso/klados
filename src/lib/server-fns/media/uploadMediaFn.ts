@@ -9,9 +9,7 @@ import {
 
 export const uploadMediaFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(
-    z.object({ items: z.array(uploadMediaWireItemSchema).min(1) }),
-  )
+  .validator(z.object({ items: z.array(uploadMediaWireItemSchema).min(1) }))
   .handler(async ({ data, context }) => {
     const inputs = await Promise.all(
       data.items.map(async (item) => {

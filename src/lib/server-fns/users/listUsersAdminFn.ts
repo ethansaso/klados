@@ -7,7 +7,7 @@ import { PaginationSchema } from "../../validation/pagination";
 
 export const listUsersAdminFn = createServerFn({ method: "GET" })
   .middleware([requireAdminMiddleware])
-  .inputValidator(
+  .validator(
     PaginationSchema.extend({
       ids: z.array(z.string()).optional(),
     }),

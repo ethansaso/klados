@@ -5,7 +5,7 @@ import type { MediaPaginatedResult } from "../../domain/media/types";
 import { PaginationSchema } from "../../validation/pagination";
 
 export const listMediaFn = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     PaginationSchema.extend({
       q: z.string().optional(),
     }),

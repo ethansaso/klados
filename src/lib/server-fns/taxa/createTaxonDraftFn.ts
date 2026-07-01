@@ -8,7 +8,7 @@ import type { TaxonDTO } from "../../domain/taxa/types";
 
 export const createTaxonDraftFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(
+  .validator(
     z.object({
       acceptedName: z.string().nonempty(),
       parentId: z.number().int().nullable(),

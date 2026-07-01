@@ -7,7 +7,7 @@ import { type TaxonDTO } from "../../domain/taxa/types";
 
 export const publishTaxonFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
-  .inputValidator(z.object({ id: z.number() }))
+  .validator(z.object({ id: z.number() }))
   .handler(async ({ data }): Promise<TaxonDTO> => {
     const { id } = data;
 
