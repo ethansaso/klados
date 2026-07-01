@@ -46,7 +46,7 @@ export const NamesDataList = ({ names }: NamesDataListProps) => {
   }
 
   return (
-    <DataList.Root size="2">
+    <DataList.Root size="1">
       {localeEntries.map(({ code, label, items }) => (
         <DataList.Item key={code} align="start">
           <DataList.Label minWidth="120px">{label}</DataList.Label>

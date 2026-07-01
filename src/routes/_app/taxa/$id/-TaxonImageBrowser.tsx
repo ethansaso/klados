@@ -4,9 +4,8 @@ import { AnnotationBubbleWrap } from "../../../../components/annotations/Annotat
 import type { MediaDTO } from "../../../../lib/domain/media/types";
 import { getMediaUrl } from "../../../../lib/storage/getMediaUrl";
 
-const THUMB_SIZE = 48;
+const THUMB_HEIGHT = 48;
 
-// TODO: Scrolling thumbnails if too many to fit
 export const TaxonImageBrowser = ({
   taxonName,
   media,
@@ -31,13 +30,6 @@ export const TaxonImageBrowser = ({
               ? `${taxonName}, copyright ${displayedMediaItem.owner}`
               : `Placeholder image for ${taxonName}`
           }
-          style={{
-            display: "block",
-            aspectRatio: "1/1",
-            objectPosition: "center",
-            objectFit: "cover",
-            overflow: "hidden",
-          }}
         />
       </AnnotationBubbleWrap>
       <Flex
@@ -53,12 +45,7 @@ export const TaxonImageBrowser = ({
                 alt={`${taxonName} thumbnail ${idx + 1}`}
                 onClick={() => setSelectedMediaIdx(idx)}
                 style={{
-                  height: THUMB_SIZE,
-                  aspectRatio: "1/1",
-                  overflow: "hidden",
-                  cursor: "pointer",
-                  objectFit: "cover",
-                  objectPosition: "center",
+                  height: THUMB_HEIGHT,
                 }}
               />
             </li>

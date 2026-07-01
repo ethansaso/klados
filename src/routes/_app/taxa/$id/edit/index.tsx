@@ -63,6 +63,7 @@ export const taxonEditFormSchema = z.object({
   sourceGbifId: z.number().nullable(),
   sourceInatId: z.number().nullable(),
   media: z.array(mediaFormItemSchema),
+  ecology: z.string(),
   notes: z.string(),
   names: z.array(nameItemFormSchema),
   states: groupedCharacterFormSchema,

@@ -18,6 +18,7 @@ export type TaxonDTO = Pick<
   | "sourceGbifId"
   | "sourceInatId"
   | "status"
+  | "ecology"
   | "notes"
 > & {
   acceptedName: string;

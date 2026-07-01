@@ -53,6 +53,7 @@ export const taxon = pgTable(
     sourceGbifId: integer("source_gbif_id"),
     sourceInatId: integer("source_inat_id"),
 
+    ecology: text("ecology").notNull().default(""),
     notes: text("notes").notNull().default(""),
   }),
   (t) => [

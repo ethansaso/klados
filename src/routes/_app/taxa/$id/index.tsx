@@ -1,6 +1,6 @@
 import "../../../../assets/styles/pages/taxa/$id.css";
 
-import { Box, Flex, Heading, Tabs, Text } from "@radix-ui/themes";
+import { Box, Flex, Heading, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -18,7 +18,6 @@ import { formatPublicationForTaxon } from "../../../../lib/utils/formatting/form
 import { prefixWithRank } from "../../../../lib/utils/formatting/prefixWithRank";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { LookalikesList } from "./-lookalikes/LookalikesList";
-import { NamesDataList } from "./-NameDataList";
 import { TaxonStateSection } from "./-states/TaxonStatesSection";
 import { StatusCallout } from "./-StatusCallout";
 import { TaxonMainSection } from "./-TaxonMainSection";
@@ -73,7 +72,7 @@ function TaxonPage() {
   return (
     <ContentContainer align="start">
       <StatusCallout status={taxon.status} />
-      <Box mb={{ initial: "3", xs: "4" }}>
+      <Box mb="5">
         <Breadcrumbs items={breadcrumbItems} size={{ initial: "1", xs: "2" }} />
         <Flex
           align="baseline"
@@ -96,37 +95,28 @@ function TaxonPage() {
           )}
         </Flex>
       </Box>
-      <Box width="100%">
-        <Box mb={{ initial: "2", xs: "4" }}>
+      <Flex gap="7" direction={{ initial: "column", sm: "row" }}>
+        <Box width={{ initial: "unset", sm: "304px" }} flexShrink="0">
           <TaxonMainSection taxon={taxon} navigate={navigate} />
         </Box>
-        <Tabs.Root defaultValue="states">
-          <Tabs.List
-            size={{ initial: "1", xs: "2" }}
-            mb={{ initial: "4", xs: "5" }}
-          >
-            <Tabs.Trigger value="states">Description</Tabs.Trigger>
-            <Tabs.Trigger value="lookalikes">Lookalikes</Tabs.Trigger>
-            <Tabs.Trigger value="names">Names</Tabs.Trigger>
-            <Tabs.Trigger value="sources">Sources</Tabs.Trigger>
-          </Tabs.List>
-          <Tabs.Content value="states">
-            <TaxonStateSection groups={characterStates} />
-          </Tabs.Content>
-          <Tabs.Content value="lookalikes">
-            <LookalikesList
-              taxonId={id}
-              taxonAcceptedName={taxon.acceptedName}
-              lookalikes={lookalikes}
-            />
-          </Tabs.Content>
-          <Tabs.Content value="names">
-            <Heading size={{ initial: "3", sm: "4" }} mb="3">
-              Names
+        <Flex direction="column" flexGrow="1" gap="5">
+          <TaxonStateSection groups={characterStates} />
+          <Box>
+            <Heading size={{ initial: "3", sm: "4" }} mb="1">
+              Ecology
             </Heading>
-            <NamesDataList names={taxon.names} />
-          </Tabs.Content>
-          <Tabs.Content value="sources">
+            {taxon.ecology ? (
+              <Text>{taxon.ecology}</Text>
+            ) : (
+              <Text>No ecology recorded.</Text>
+            )}
+          </Box>
+          <LookalikesList
+            taxonId={id}
+            taxonAcceptedName={taxon.acceptedName}
+            lookalikes={lookalikes}
+          />
+          <Box>
             <Heading size={{ initial: "3", sm: "4" }} mb="1">
               Sources
             </Heading>
@@ -137,11 +127,11 @@ function TaxonPage() {
                 </Text>
               ))
             ) : (
-              <Text color="gray">No sources available.</Text>
+              <Text>No sources available.</Text>
             )}
-          </Tabs.Content>
-        </Tabs.Root>
-      </Box>
+          </Box>
+        </Flex>
+      </Flex>
     </ContentContainer>
   );
 }

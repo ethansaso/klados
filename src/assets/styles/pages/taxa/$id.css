@@ -1,12 +1,13 @@
 .taxon-image-browser {
-  --IMG_SIZE: 256px;
   flex-shrink: 0;
 
-  img {
+  > div img {
     width: 100%;
-    @media (min-width: 520px) {
-      height: var(--IMG_SIZE);
-    }
+    display: block;
+    aspect-ratio: 1/1;
+    object-position: center;
+    object-fit: cover;
+    overflow: hidden;
   }
 
   .taxon-image-browser__thumbnails {
@@ -15,18 +16,31 @@
     list-style: none;
     background-color: var(--gray-12);
 
-    @media (min-width: 520px) {
-      max-width: var(--IMG_SIZE);
-    }
-
     li {
       img {
+        width: 100%;
+        aspect-ratio: 1/1;
         display: block;
+        object-position: center;
+        object-fit: cover;
+        overflow: hidden;
+        cursor: pointer;
         &:hover {
           filter: brightness(80%);
         }
       }
     }
+  }
+}
+
+.externals {
+  button,
+  a {
+    width: 100%;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: start;
   }
 }
 

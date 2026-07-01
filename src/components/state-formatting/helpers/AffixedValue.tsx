@@ -37,9 +37,19 @@ export const AffixedValue = memo(
     if (modifiers.length === 0) {
       return (
         <Text as="span" weight={weight}>
-          {hexCode && <ColorBubble size={8} hexColor={hexCode} />}
-          {hexCode && " "}
-          {children}
+          <span style={{ whiteSpace: "nowrap" }}>
+            {hexCode && (
+              <span
+                style={{
+                  display: "inline-block",
+                  marginRight: 4,
+                }}
+              >
+                <ColorBubble size={8} hexColor={hexCode} />
+              </span>
+            )}
+            {children}
+          </span>
           {!isLast && ","}
         </Text>
       );
@@ -47,8 +57,6 @@ export const AffixedValue = memo(
 
     return (
       <Text as="span" weight={weight}>
-        {hexCode && <ColorBubble size={8} hexColor={hexCode} />}
-        {hexCode && " "}
         {prefixGroups.map((group, gi) => (
           <Text
             key={group[0]!.id}
@@ -67,7 +75,19 @@ export const AffixedValue = memo(
           </Text>
         ))}
         <Text as="span" weight={weight}>
-          {children}
+          <span style={{ whiteSpace: "nowrap" }}>
+            {hexCode && (
+              <span
+                style={{
+                  display: "inline-block",
+                  marginRight: 4,
+                }}
+              >
+                <ColorBubble size={8} hexColor={hexCode} />
+              </span>
+            )}
+            {children}
+          </span>
           {!isLast && suffixGroups.length === 0 && ","}
         </Text>
         {suffixGroups.map((group, gi) => (

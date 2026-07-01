@@ -19,12 +19,12 @@ export const LookalikesList = ({
 }: LookalikesListProps) => {
   return (
     <Box>
-      <Box mb="4">
+      <Box>
         <Heading size={{ initial: "3", sm: "4" }} mb="1">
           Similar Taxa
         </Heading>
         {lookalikes.length ? (
-          <Text as="p" size={{ initial: "2", sm: "3" }}>
+          <Text as="p" color="gray" size={{ initial: "1", sm: "2" }} mb="4">
             These taxa share similar characteristics with {taxonAcceptedName}.
             Click on any taxon to compare side-by-side.
           </Text>
