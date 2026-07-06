@@ -1,6 +1,7 @@
 .taxon-image-browser {
   flex-shrink: 0;
 
+  > img,
   > div img {
     width: 100%;
     display: block;

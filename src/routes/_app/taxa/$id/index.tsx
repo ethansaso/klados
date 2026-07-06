@@ -95,12 +95,37 @@ function TaxonPage() {
           )}
         </Flex>
       </Box>
-      <Flex gap="7" direction={{ initial: "column", sm: "row" }}>
+
+      <Flex gap="8" direction={{ initial: "column", sm: "row" }}>
+        {/* Left panel */}
         <Box width={{ initial: "unset", sm: "304px" }} flexShrink="0">
           <TaxonMainSection taxon={taxon} navigate={navigate} />
         </Box>
+
+        {/* Right panel */}
         <Flex direction="column" flexGrow="1" gap="5">
-          <TaxonStateSection groups={characterStates} />
+          {/* Morphology */}
+          <Box>
+            <Box>
+              <Heading size={{ initial: "3", sm: "4" }} mb="1">
+                Morphological Description
+              </Heading>
+              {characterStates.length ? (
+                <Text as="p" color="gray" size="1" mb="3">
+                  Some traits may have additional information from the glossary,
+                  indicated by an underline. Hover over these terms to view
+                  these definitions.
+                </Text>
+              ) : (
+                <Text size={{ initial: "2", sm: "3" }}>
+                  No morphological data available for this taxon.
+                </Text>
+              )}
+            </Box>
+            <TaxonStateSection groups={characterStates} />
+          </Box>
+
+          {/* Ecology */}
           <Box>
             <Heading size={{ initial: "3", sm: "4" }} mb="1">
               Ecology
@@ -111,11 +136,27 @@ function TaxonPage() {
               <Text>No ecology recorded.</Text>
             )}
           </Box>
-          <LookalikesList
-            taxonId={id}
-            taxonAcceptedName={taxon.acceptedName}
-            lookalikes={lookalikes}
-          />
+
+          {/* Lookalikes */}
+          <Box>
+            <Heading size={{ initial: "3", sm: "4" }} mb="1">
+              Similar Taxa
+            </Heading>
+            {lookalikes.length ? (
+              <Text as="p" color="gray" size="1" mb="3">
+                These taxa share similar characteristics with{" "}
+                {taxon.acceptedName}. Click on any taxon to compare
+                side-by-side.
+              </Text>
+            ) : (
+              <Text size={{ initial: "2", sm: "3" }}>
+                We couldn't determine any lookalikes for this taxon.
+              </Text>
+            )}
+            <LookalikesList taxonId={id} lookalikes={lookalikes} />
+          </Box>
+
+          {/* Sources */}
           <Box>
             <Heading size={{ initial: "3", sm: "4" }} mb="1">
               Sources

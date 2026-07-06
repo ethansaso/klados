@@ -268,6 +268,7 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
     const patch = {
       ...("parentId" in updates ? { parentId: updates.parentId } : {}),
       ...("rank" in updates ? { rank: updates.rank } : {}),
+      ...("ecology" in updates ? { ecology: updates.ecology } : {}),
       ...("sourceGbifId" in updates
         ? { sourceGbifId: updates.sourceGbifId }
         : {}),
@@ -299,13 +300,17 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
 
     // 5) taxon_media replace (if provided)
     if (mediaIds !== undefined) {
-      await tx
-        .delete(taxonMediaTbl)
-        .where(eq(taxonMediaTbl.taxonId, id));
+      await tx.delete(taxonMediaTbl).where(eq(taxonMediaTbl.taxonId, id));
       if (mediaIds.length > 0) {
-        await tx.insert(taxonMediaTbl).values(
-          mediaIds.map((mediaId, position) => ({ taxonId: id, mediaId, position })),
-        );
+        await tx
+          .insert(taxonMediaTbl)
+          .values(
+            mediaIds.map((mediaId, position) => ({
+              taxonId: id,
+              mediaId,
+              position,
+            })),
+          );
       }
     }
 

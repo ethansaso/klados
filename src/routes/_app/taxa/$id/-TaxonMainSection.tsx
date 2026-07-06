@@ -3,7 +3,6 @@ import {
   Button,
   DataList,
   Flex,
-  Heading,
   Link as RadixLink,
   Text,
 } from "@radix-ui/themes";
@@ -15,7 +14,6 @@ import { ExInat } from "../../../../components/icons/individual/ExInat";
 import { ResponsiveTooltip } from "../../../../components/ResponsiveTooltip";
 import { RouterRadixLink } from "../../../../components/RouterRadixLink";
 import type { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
-import { NamesDataList } from "./-NamesDataList";
 import { TaxonImageBrowser } from "./-TaxonImageBrowser";
 
 export const TaxonMainSection = ({
@@ -88,7 +86,7 @@ export const TaxonMainSection = ({
       </Flex>
       <Flex direction="column" justify="between" gap="2">
         <DataList.Root
-          orientation="vertical"
+          orientation="horizontal"
           mt="3"
           size={{ initial: "1", sm: "2" }}
         >
@@ -149,7 +147,7 @@ export const TaxonMainSection = ({
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ textDecoration: "none" }}
-                    color="grass"
+                    color="lime"
                   >
                     <ExInat size={14} color="green" />
                     iNaturalist
@@ -182,8 +180,8 @@ export const TaxonMainSection = ({
           </DataList.Item>
         </DataList.Root>
       </Flex>
-      <Heading size={{ initial: "3", sm: "4" }}>Names</Heading>
-      <NamesDataList names={taxon.names} />
+      {/* <Heading size={{ initial: "3", sm: "4" }}>Names</Heading>
+      <NamesDataList names={taxon.names} /> */}
     </Flex>
   );
 };
