@@ -81,7 +81,7 @@ function TaxonPage() {
           gapY="0"
           mt={{ initial: "1", xs: "0" }}
         >
-          <Heading size={{ initial: "4", xs: "7" }}>
+          <Heading size={{ initial: "4", xs: "7" }} weight="medium">
             {taxon.acceptedName}
           </Heading>
           {taxon.preferredCommonName && (
@@ -107,7 +107,12 @@ function TaxonPage() {
           {/* Morphology */}
           <Box>
             <Box>
-              <Heading size={{ initial: "3", sm: "4" }} mb="1">
+              <Heading
+                size={{ initial: "3", sm: "4" }}
+                mb="1"
+                weight="medium"
+                style={{ borderBottom: "1px solid var(--gray-a7)" }}
+              >
                 Morphological Description
               </Heading>
               {characterStates.length ? (
@@ -127,7 +132,12 @@ function TaxonPage() {
 
           {/* Ecology */}
           <Box>
-            <Heading size={{ initial: "3", sm: "4" }} mb="1">
+            <Heading
+              size={{ initial: "3", sm: "4" }}
+              mb="1"
+              weight="medium"
+              style={{ borderBottom: "1px solid var(--gray-a7)" }}
+            >
               Ecology
             </Heading>
             {taxon.ecology ? (
@@ -139,7 +149,12 @@ function TaxonPage() {
 
           {/* Lookalikes */}
           <Box>
-            <Heading size={{ initial: "3", sm: "4" }} mb="1">
+            <Heading
+              size={{ initial: "3", sm: "4" }}
+              mb="1"
+              weight="medium"
+              style={{ borderBottom: "1px solid var(--gray-a7)" }}
+            >
               Similar Taxa
             </Heading>
             {lookalikes.length ? (
@@ -158,7 +173,12 @@ function TaxonPage() {
 
           {/* Sources */}
           <Box>
-            <Heading size={{ initial: "3", sm: "4" }} mb="1">
+            <Heading
+              size={{ initial: "3", sm: "4" }}
+              mb="1"
+              weight="medium"
+              style={{ borderBottom: "1px solid var(--gray-a7)" }}
+            >
               Sources
             </Heading>
             {sources.length > 0 ? (

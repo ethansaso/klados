@@ -44,7 +44,14 @@ type Props = MediaBrowserProps & {
   onClose: () => void;
 };
 
-export const MediaBrowserView: React.FC<Props> = (props) => {
+export const MediaBrowserView: React.FC<Props> = ({
+  mode,
+  selected,
+  setSelected,
+  onSelect: finishSelecting,
+  enabled,
+  onClose,
+}) => {
   const qc = useQueryClient();
   const serverDelete = useServerFn(deleteMediaFn);
   const { search, setQ, next, prev } = usePaginatedSearch({ pageSize: 30 });
@@ -54,7 +61,7 @@ export const MediaBrowserView: React.FC<Props> = (props) => {
   });
   const gridScrollRef = useRef<HTMLDivElement>(null);
 
-  const viewing = props.selected[props.selected.length - 1];
+  const viewing = selected[selected.length - 1];
   const maxPages = mediaItems
     ? Math.max(Math.ceil(mediaItems.total / search.pageSize), 1)
     : 1;
@@ -78,8 +85,8 @@ export const MediaBrowserView: React.FC<Props> = (props) => {
   };
 
   const handleMediaClick = (media: MediaDTO) => {
-    props.setSelected((prev) => {
-      if (props.mode === "single") return [media];
+    setSelected((prev) => {
+      if (mode === "single") return [media];
       if (prev.find((m) => m.id === media.id)) {
         return prev.filter((m) => m.id !== media.id);
       } else {
@@ -89,17 +96,17 @@ export const MediaBrowserView: React.FC<Props> = (props) => {
   };
 
   const handleConfirm = () => {
-    if (props.mode === "multi") {
-      props.onSelect(props.selected);
+    if (mode === "multi") {
+      finishSelecting(selected);
     } else {
-      const m = props.selected[0];
+      const m = selected[0];
       if (!m) return;
-      props.onSelect(m);
+      finishSelecting(m);
     }
-    props.onClose();
+    onClose();
   };
 
-  if (!props.enabled) return null;
+  if (!enabled) return null;
   return (
     <>
       <SurfaceDialog.Body>
@@ -140,9 +147,7 @@ export const MediaBrowserView: React.FC<Props> = (props) => {
             ) : (
               <Grid columns={{ initial: "2", sm: "3", md: "5" }} gap="2">
                 {mediaItems?.items.map((media) => {
-                  const isSelected = props.selected.find(
-                    (m) => m.id === media.id,
-                  );
+                  const isSelected = selected.find((m) => m.id === media.id);
                   return (
                     <Reset key={media.id}>
                       <button
@@ -329,20 +334,21 @@ export const MediaBrowserView: React.FC<Props> = (props) => {
       </SurfaceDialog.Body>
       <SurfaceDialog.Footer>
         <Flex justify="between" align="center">
-          {props.mode === "multi" && (
-            <Text size="1" color="gray">
-              {props.selected.length} item{props.selected.length !== 1 && "s"}{" "}
-              selected
+          {mode === "multi" && (
+            <Text size="1" color="gray" mr="3">
+              {selected.length} item{selected.length !== 1 && "s"} selected
             </Text>
           )}
+          {selected.length > 0 && (
+            <Button size="1" variant="ghost" onClick={() => setSelected([])}>
+              Clear Selection
+            </Button>
+          )}
           <Flex gap="2" ml="auto" align="center">
-            <Button onClick={props.onClose} variant="outline">
+            <Button onClick={onClose} variant="outline">
               Cancel
             </Button>
-            <Button
-              onClick={handleConfirm}
-              disabled={props.selected.length === 0}
-            >
+            <Button onClick={handleConfirm} disabled={selected.length === 0}>
               Confirm
             </Button>
           </Flex>

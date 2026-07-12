@@ -36,7 +36,7 @@ export const ResponsiveTooltip = ({ children, ...props }: TooltipProps) => {
     if (e.pointerType !== "touch" || !touchStartRef.current) return;
     const dx = e.clientX - touchStartRef.current.x;
     const dy = e.clientY - touchStartRef.current.y;
-    if (Math.sqrt(dx * dx + dy * dy) > SCROLL_THRESHOLD) {
+    if (Math.hypot(dx, dy) > SCROLL_THRESHOLD) {
       scrollCancelledRef.current = true;
     }
   }, []);
