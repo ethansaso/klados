@@ -60,13 +60,33 @@ function TaxonPage() {
   const { data: sources } = useSuspenseQuery(sourcesForTaxonQueryOptions(id));
 
   const breadcrumbItems: Breadcrumb[] = useMemo(() => {
-    const items: Breadcrumb[] = taxon.ancestors.map((ancestor) => ({
+    const lineageItems: Breadcrumb[] = taxon.ancestors.map((ancestor) => ({
       label: prefixWithRank(ancestor.rank, ancestor.acceptedName),
       to: "/taxa/$id",
       params: { id: String(ancestor.id) },
     }));
-    items.push({ label: prefixWithRank(taxon.rank, taxon.acceptedName) });
-    return items;
+
+    lineageItems.push({
+      label: prefixWithRank(taxon.rank, taxon.acceptedName),
+    });
+
+    if (lineageItems.length <= 4) {
+      return lineageItems;
+    }
+
+    const rootItem = lineageItems[0]!;
+    const parentItem = lineageItems[lineageItems.length - 2]!;
+    const currentItem = lineageItems[lineageItems.length - 1]!;
+
+    return [
+      rootItem,
+      {
+        label: "...",
+        hiddenItems: lineageItems.slice(1, -2),
+      },
+      parentItem,
+      currentItem,
+    ];
   }, [taxon.ancestors, taxon.acceptedName, taxon.rank]);
 
   return (

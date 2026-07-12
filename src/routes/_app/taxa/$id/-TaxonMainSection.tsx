@@ -7,13 +7,21 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { Link, type UseNavigateResult } from "@tanstack/react-router";
-import { PiPencilSimple, PiTreeStructureFill } from "react-icons/pi";
+import { Accordion } from "radix-ui";
+import { useState } from "react";
+import {
+  PiCaretDown,
+  PiCaretUp,
+  PiPencilSimple,
+  PiTreeStructureFill,
+} from "react-icons/pi";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ExGbif } from "../../../../components/icons/individual/ExGbif";
 import { ExInat } from "../../../../components/icons/individual/ExInat";
 import { ResponsiveTooltip } from "../../../../components/ResponsiveTooltip";
 import { RouterRadixLink } from "../../../../components/RouterRadixLink";
 import type { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
+import { NamesDataList } from "./-NamesDataList";
 import { TaxonImageBrowser } from "./-TaxonImageBrowser";
 
 export const TaxonMainSection = ({
@@ -23,6 +31,8 @@ export const TaxonMainSection = ({
   taxon: TaxonDetailDTO;
   navigate: UseNavigateResult<"string">;
 }) => {
+  const [openSections, setOpenSections] = useState<string[]>([]);
+
   return (
     <Flex direction="column" gap={{ xs: "3" }}>
       <TaxonImageBrowser
@@ -137,55 +147,76 @@ export const TaxonMainSection = ({
               <DataList.Value>
                 <Box className="externals">
                   {taxon.sourceInatId !== null && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size={{ initial: "1", sm: "2" }}
-                      asChild
+                    <RadixLink
+                      href={`https://www.inaturalist.org/taxa/${taxon.sourceInatId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      color="lime"
                     >
-                      <RadixLink
-                        href={`https://www.inaturalist.org/taxa/${taxon.sourceInatId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ textDecoration: "none" }}
-                        color="lime"
-                      >
-                        <ExInat size={14} color="green" />
-                        iNaturalist
-                      </RadixLink>
-                    </Button>
+                      <ExInat size={14} color="green" />
+                      <Text ml="1">iNaturalist</Text>
+                    </RadixLink>
                   )}
                   {taxon.sourceGbifId !== null && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size={{ initial: "1", sm: "2" }}
-                      asChild
+                    <RadixLink
+                      href={`https://www.gbif.org/species/${taxon.sourceGbifId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      color="green"
                     >
-                      <RadixLink
-                        href={`https://www.gbif.org/species/${taxon.sourceGbifId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ textDecoration: "none" }}
+                      <ExGbif
+                        size={18}
                         color="green"
-                      >
-                        <ExGbif
-                          size={18}
-                          color="green"
-                          style={{ margin: "-3px" }}
-                        />
-                        GBIF
-                      </RadixLink>
-                    </Button>
+                        style={{ margin: "-2px", marginLeft: 0 }}
+                      />
+                      <Text ml="1">GBIF</Text>
+                    </RadixLink>
                   )}
                 </Box>
               </DataList.Value>
             </DataList.Item>
           )}
+          <Accordion.Root
+            type="multiple"
+            value={openSections}
+            onValueChange={setOpenSections}
+          >
+            <Accordion.Item value="names" asChild>
+              <DataList.Item style={{ cursor: "pointer" }}>
+                <Accordion.Trigger asChild>
+                  <DataList.Label style={{ alignItems: "center" }}>
+                    Names{" "}
+                    {openSections.includes("names") ? (
+                      <PiCaretUp
+                        style={{
+                          display: "block",
+                          marginLeft: "auto",
+                          fontSize: "var(--font-size-1)",
+                        }}
+                      />
+                    ) : (
+                      <PiCaretDown
+                        style={{
+                          display: "block",
+                          marginLeft: "auto",
+                          fontSize: "var(--font-size-1)",
+                        }}
+                      />
+                    )}
+                  </DataList.Label>
+                </Accordion.Trigger>
+                <Accordion.Content>
+                  <DataList.Value>
+                    <Box mt="2">
+                      <NamesDataList names={taxon.names} />
+                    </Box>
+                  </DataList.Value>
+                </Accordion.Content>
+              </DataList.Item>
+            </Accordion.Item>
+          </Accordion.Root>
         </DataList.Root>
       </Flex>
-      {/* <Heading size={{ initial: "3", sm: "4" }}>Names</Heading>
-      <NamesDataList names={taxon.names} /> */}
     </Flex>
   );
 };
