@@ -167,7 +167,7 @@ export const TaxonMainSection = ({
                       <ExGbif
                         size={18}
                         color="green"
-                        style={{ margin: "-2px", marginLeft: 0 }}
+                        style={{ margin: "-2px" }}
                       />
                       <Text ml="1">GBIF</Text>
                     </RadixLink>
