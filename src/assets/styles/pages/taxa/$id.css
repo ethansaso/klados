@@ -14,6 +14,7 @@
   .taxon-image-browser__thumbnails {
     padding: 0;
     margin: 0;
+    gap: 1px;
     list-style: none;
     background-color: var(--gray-12);
 
