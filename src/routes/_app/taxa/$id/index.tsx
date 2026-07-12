@@ -149,6 +149,27 @@ function TaxonPage() {
             )}
           </Box>
 
+          {/* Sources */}
+          <Box>
+            <Heading
+              size={{ initial: "3", sm: "4" }}
+              mb="1"
+              weight="medium"
+              style={{ borderBottom: "1px solid var(--gray-a7)" }}
+            >
+              Sources
+            </Heading>
+            {sources.length > 0 ? (
+              sources.map((s) => (
+                <Text key={s.id} mb="2" size="2">
+                  {formatPublicationForTaxon(s)}
+                </Text>
+              ))
+            ) : (
+              <Text>No sources available.</Text>
+            )}
+          </Box>
+
           {/* Lookalikes */}
           <Box>
             <Heading
@@ -171,27 +192,6 @@ function TaxonPage() {
               </Text>
             )}
             <LookalikesList taxonId={id} lookalikes={lookalikes} />
-          </Box>
-
-          {/* Sources */}
-          <Box>
-            <Heading
-              size={{ initial: "3", sm: "4" }}
-              mb="1"
-              weight="medium"
-              style={{ borderBottom: "1px solid var(--gray-a7)" }}
-            >
-              Sources
-            </Heading>
-            {sources.length > 0 ? (
-              sources.map((s) => (
-                <Text key={s.id} mb="2">
-                  {formatPublicationForTaxon(s)}
-                </Text>
-              ))
-            ) : (
-              <Text>No sources available.</Text>
-            )}
           </Box>
         </Flex>
       </Flex>
