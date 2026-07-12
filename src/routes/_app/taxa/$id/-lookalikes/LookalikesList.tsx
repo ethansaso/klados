@@ -1,10 +1,10 @@
 import NiceModal from "@ebay/nice-modal-react";
 import { Box, Button, Flex, Grid } from "@radix-ui/themes";
 import { PiSubtractSquare } from "react-icons/pi";
+import { LookalikeDialog } from "../../../../../components/dialogs/LookalikeDialog";
 import { LookalikePercentBadge } from "../../../../../components/LookalikeBadge";
 import { TaxonCard } from "../../../../../components/TaxonCard";
 import type { TaxonLookalikeDTO } from "../../../../../lib/domain/lookalikes/types";
-import { LookalikeModal } from "./LookalikeModal";
 
 interface LookalikesListProps {
   taxonId: number;
@@ -42,7 +42,7 @@ export const LookalikesList = ({
             size="1"
             variant="outline"
             onClick={() =>
-              NiceModal.show(LookalikeModal, {
+              NiceModal.show(LookalikeDialog, {
                 taxonId,
                 lookalikeId: l.id,
               })
