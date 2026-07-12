@@ -18,12 +18,12 @@ export const LookalikesList = ({
 }: LookalikesListProps) => {
   return (
     <Grid
-      columns={{ initial: "2", xs: "3", md: "4" }}
+      columns={{ initial: "2", xs: "3", md: "5" }}
       gap="4"
-      className="taxon-grid"
+      className="taxon-grid lookalikes-list"
     >
       {lookalikes.map((l) => (
-        <Flex key={l.id} direction="column">
+        <Flex key={l.id} direction="column" className="lookalikes-entry">
           <TaxonCard
             id={l.id}
             rank={l.rank}
@@ -32,15 +32,15 @@ export const LookalikesList = ({
             thumbnail={l.media[0]}
             serveAsLink
             size="1"
+            inset
           >
-            <Box position="absolute" top="4" right="4">
+            <Box position="absolute" top="2" right="2">
               <LookalikePercentBadge percentage={l.jaccard} />
             </Box>
           </TaxonCard>
           <Button
             size="1"
-            mt="2"
-            variant="surface"
+            variant="outline"
             onClick={() =>
               NiceModal.show(LookalikeModal, {
                 taxonId,

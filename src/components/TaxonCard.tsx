@@ -1,5 +1,6 @@
 import { Box, Card, Flex, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
+import classNames from "classnames";
 import { memo, type PropsWithChildren } from "react";
 import type { MediaDTO } from "../lib/domain/media/types";
 import { getMediaUrl } from "../lib/storage/getMediaUrl";
@@ -12,8 +13,9 @@ interface TaxonCardProps {
   acceptedName: string;
   preferredCommonName?: string | null;
   thumbnail?: MediaDTO | null;
-  serveAsLink?: boolean;
+  inset?: boolean;
   size?: "1" | "2";
+  serveAsLink?: boolean;
   onClick?: (e: React.MouseEvent) => void;
 }
 
@@ -25,10 +27,12 @@ export const TaxonCard = memo(
     acceptedName,
     preferredCommonName,
     rank,
-    serveAsLink = false,
+    inset,
     size = "2",
+    serveAsLink = false,
     onClick,
   }: PropsWithChildren<TaxonCardProps>) => {
+    const className = classNames("taxon-card", inset && "inset");
     const content = (
       <>
         <img
@@ -45,7 +49,7 @@ export const TaxonCard = memo(
           }}
         />
         <Flex direction="column" flexGrow="1" justify="between">
-          <Box>
+          <Box className="taxonomy">
             <Text as="div" size="1" weight="bold" color="gray">
               {capitalizeFirstLetter(rank)}
             </Text>
@@ -55,7 +59,7 @@ export const TaxonCard = memo(
               size={
                 size === "2"
                   ? { initial: "1", xs: "2", sm: "3" }
-                  : { initial: "1", sm: "2" }
+                  : { initial: "1" }
               }
               truncate
             >
@@ -75,20 +79,20 @@ export const TaxonCard = memo(
     return (
       <AnnotationBubbleWrap
         media={thumbnail}
-        spacing={{ initial: "1", sm: "4" }}
+        spacing={inset ? { initial: "1", sm: "2" } : { initial: "1", sm: "4" }}
       >
         {serveAsLink ? (
-          <Card className="taxon-card" size="1" asChild>
+          <Card className={className} size="1" asChild>
             <Link to="/taxa/$id" params={{ id: String(id) }}>
               {content}
             </Link>
           </Card>
         ) : onClick ? (
-          <Card className="taxon-card" asChild>
+          <Card className={className} asChild>
             <button onClick={onClick}>{content}</button>
           </Card>
         ) : (
-          <Card className="taxon-card">{content}</Card>
+          <Card className={className}>{content}</Card>
         )}
       </AnnotationBubbleWrap>
     );
