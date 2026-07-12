@@ -79,7 +79,7 @@ export const TaxonCard = memo(
     return (
       <AnnotationBubbleWrap
         media={thumbnail}
-        spacing={inset ? { initial: "1", sm: "2" } : { initial: "1", sm: "4" }}
+        spacing={inset ? "1" : { initial: "1", sm: "4" }}
       >
         {serveAsLink ? (
           <Card className={className} size="1" asChild>

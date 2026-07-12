@@ -55,7 +55,7 @@
     }
 
     .taxonomy {
-      padding: var(--space-1);
+      padding: var(--space-1) var(--space-2);
     }
   }
 }
