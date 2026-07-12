@@ -182,9 +182,11 @@ export const TaxonMainSection = ({
             onValueChange={setOpenSections}
           >
             <Accordion.Item value="names" asChild>
-              <DataList.Item style={{ cursor: "pointer" }}>
+              <DataList.Item>
                 <Accordion.Trigger asChild>
-                  <DataList.Label style={{ alignItems: "center" }}>
+                  <DataList.Label
+                    style={{ alignItems: "center", cursor: "pointer" }}
+                  >
                     Names{" "}
                     {openSections.includes("names") ? (
                       <PiCaretUp

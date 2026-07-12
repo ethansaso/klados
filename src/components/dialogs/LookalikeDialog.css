@@ -64,10 +64,17 @@
 .lookalike-modal__state-segment--different,
 .lookalike-modal__state-token--different {
   color: var(--gray-12);
+}
+
+.lookalike-modal__state-token--different {
   font-weight: var(--font-weight-medium);
 }
 
 .lookalike-modal__state-label {
   color: inherit;
-  font-weight: inherit;
+  font-weight: var(--font-weight-regular);
+}
+
+.lookalike-modal__state-label--different {
+  font-weight: var(--font-weight-medium);
 }

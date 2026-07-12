@@ -50,6 +50,8 @@ export type LookalikeComparisonCharacter = {
 export type LookalikeComparisonGroup = {
   groupId: number;
   groupLabel: string;
+  aHasGroup: boolean;
+  bHasGroup: boolean;
 
   /** When null, taxon lacks group altogether */
   aCharacters: LookalikeComparisonCharacter[] | null;
