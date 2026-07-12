@@ -145,7 +145,7 @@ export const TaxonMainSection = ({
             <DataList.Item>
               <DataList.Label>External Links</DataList.Label>
               <DataList.Value>
-                <Box className="externals">
+                <Flex className="externals" direction="column" gap="1">
                   {taxon.sourceInatId !== null && (
                     <RadixLink
                       href={`https://www.inaturalist.org/taxa/${taxon.sourceInatId}`}
@@ -172,7 +172,7 @@ export const TaxonMainSection = ({
                       <Text ml="1">GBIF</Text>
                     </RadixLink>
                   )}
-                </Box>
+                </Flex>
               </DataList.Value>
             </DataList.Item>
           )}
