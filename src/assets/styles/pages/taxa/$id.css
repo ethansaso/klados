@@ -16,9 +16,7 @@
     z-index: 1;
     min-height: 0;
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background-color: var(--gray-3);
   }
 
   .taxon-image-browser__preview-bg {
@@ -32,56 +30,24 @@
     filter: blur(12px) brightness(0.55);
   }
 
-  .taxon-image-browser__preview-media {
-    position: absolute;
-    inset: var(--space-2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-
-  .taxon-image-browser__preview-anchor {
-    height: 100%;
-    display: inline-flex;
-    align-items: center;
-    max-width: 100%;
-    min-width: 0;
-    min-height: 0;
-
-    > .annotation-bubble__wrapper {
-      width: auto;
-      height: 100%;
-      max-width: 100%;
-    }
-  }
-
   .taxon-image-browser__preview-image {
+    width: 100%;
+    height: 100%;
     display: block;
     object-position: center;
-  }
-
-  .taxon-image-browser__preview-image--cover {
-    width: 100%;
-    aspect-ratio: 1 / 1;
     object-fit: cover;
   }
 
-  .taxon-image-browser__preview-image--contained {
-    width: auto;
+  .taxon-image-browser__preview > .annotation-bubble__wrapper {
     height: 100%;
-    max-width: 100%;
-    object-fit: contain;
-    border-radius: var(--radius-2);
-    aspect-ratio: auto;
   }
 
   .taxon-image-browser__thumbnails {
     position: relative;
     z-index: 1;
-    padding: 0;
     margin: 0;
-    gap: var(--taxon-thumb-gap);
+    padding: 1px;
+    gap: 1px;
     list-style: none;
     overflow: hidden;
 
@@ -101,7 +67,7 @@
 
       img {
         width: 100%;
-        height: var(--taxon-thumb-height);
+        height: 48px;
         aspect-ratio: 1 / 1;
         display: block;
         object-position: center;

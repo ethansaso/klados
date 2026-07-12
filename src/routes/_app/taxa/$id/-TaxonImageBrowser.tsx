@@ -4,8 +4,6 @@ import { AnnotationBubbleWrap } from "../../../../components/annotations/Annotat
 import type { MediaDTO } from "../../../../lib/domain/media/types";
 import { getMediaUrl } from "../../../../lib/storage/getMediaUrl";
 
-const THUMB_HEIGHT = 48;
-const THUMB_GAP = 1;
 const PLACEHOLDER_SRC = "/logos/LogoDotted.svg";
 
 export const TaxonImageBrowser = ({
@@ -25,10 +23,6 @@ export const TaxonImageBrowser = ({
   return (
     <Box
       className={`taxon-image-browser${hasMultipleMedia ? " taxon-image-browser--with-thumbnails" : ""}`}
-      style={{
-        ["--taxon-thumb-height" as string]: `${THUMB_HEIGHT}px`,
-        ["--taxon-thumb-gap" as string]: `${THUMB_GAP}px`,
-      }}
     >
       {hasMultipleMedia && displayedMediaItem && (
         <img
@@ -40,31 +34,17 @@ export const TaxonImageBrowser = ({
       )}
 
       <Box className="taxon-image-browser__preview">
-        {hasMultipleMedia && displayedMediaItem ? (
-          <Box className="taxon-image-browser__preview-media">
-            <Box className="taxon-image-browser__preview-anchor">
-              <AnnotationBubbleWrap media={displayedMediaItem} spacing="2">
-                <img
-                  className="taxon-image-browser__preview-image taxon-image-browser__preview-image--contained"
-                  src={displayedMediaSrc}
-                  alt={`${taxonName}, copyright ${displayedMediaItem.owner}`}
-                />
-              </AnnotationBubbleWrap>
-            </Box>
-          </Box>
-        ) : (
-          <AnnotationBubbleWrap media={displayedMediaItem} spacing="2">
-            <img
-              className="taxon-image-browser__preview-image taxon-image-browser__preview-image--cover"
-              src={displayedMediaSrc}
-              alt={
-                displayedMediaItem
-                  ? `${taxonName}, copyright ${displayedMediaItem.owner}`
-                  : `Placeholder image for ${taxonName}`
-              }
-            />
-          </AnnotationBubbleWrap>
-        )}
+        <AnnotationBubbleWrap media={displayedMediaItem} spacing="2">
+          <img
+            className="taxon-image-browser__preview-image"
+            src={displayedMediaSrc}
+            alt={
+              displayedMediaItem
+                ? `${taxonName}, copyright ${displayedMediaItem.owner}`
+                : `Placeholder image for ${taxonName}`
+            }
+          />
+        </AnnotationBubbleWrap>
       </Box>
 
       {hasMultipleMedia && (
