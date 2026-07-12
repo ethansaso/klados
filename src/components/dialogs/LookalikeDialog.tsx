@@ -81,14 +81,16 @@ function getAnnotatedStateKey(
 
 function GroupDataList({
   items,
+  hasGroup,
   emphasizeAll = false,
 }: {
   items: LookalikeComparisonCharacter[] | null;
+  hasGroup: boolean;
   emphasizeAll?: boolean;
 }) {
-  const meaningfulItems = getMeaningfulCharacters(items);
+  const meaningfulItems = getMeaningfulCharacters(items) ?? [];
 
-  if (!meaningfulItems)
+  if (!hasGroup)
     return (
       <Text
         as="p"
@@ -128,7 +130,14 @@ function GroupDataList({
             }`}
           >
             {showCharacterLabel && (
-              <Text as="span" className="lookalike-modal__state-label">
+              <Text
+                as="span"
+                className={`lookalike-modal__state-label${
+                  emphasizeAll || !isSharedCharacter
+                    ? " lookalike-modal__state-label--different"
+                    : " lookalike-modal__state-label--shared"
+                }`}
+              >
                 {it.characterLabel.toLowerCase()}{" "}
               </Text>
             )}
@@ -216,6 +225,7 @@ const ModalContent = ({ data }: { data: LookalikeComparisonDetailDTO }) => {
             >
               <Box className="lookalike-modal__group-column">
                 <GroupDataList
+                  hasGroup={annotatedGroup.aHasGroup}
                   items={annotatedGroup.aCharacters}
                   emphasizeAll={
                     !getMeaningfulCharacters(annotatedGroup.bCharacters)?.length
@@ -225,6 +235,7 @@ const ModalContent = ({ data }: { data: LookalikeComparisonDetailDTO }) => {
 
               <Box className="lookalike-modal__group-column">
                 <GroupDataList
+                  hasGroup={annotatedGroup.bHasGroup}
                   items={annotatedGroup.bCharacters}
                   emphasizeAll={
                     !getMeaningfulCharacters(annotatedGroup.aCharacters)?.length
