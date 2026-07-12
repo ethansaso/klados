@@ -86,7 +86,7 @@ export const TaxonMainSection = ({
       </Flex>
       <Flex direction="column" justify="between" gap="2">
         <DataList.Root
-          orientation="horizontal"
+          orientation="vertical"
           mt="3"
           size={{ initial: "1", sm: "2" }}
         >
@@ -135,46 +135,48 @@ export const TaxonMainSection = ({
             <DataList.Label>External Links</DataList.Label>
             <DataList.Value>
               <Box className="externals">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size={{ initial: "1", sm: "2" }}
-                  asChild
-                  disabled={!taxon.sourceInatId}
-                >
-                  <RadixLink
-                    href={`https://www.inaturalist.org/taxa/${taxon.sourceInatId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ textDecoration: "none" }}
-                    color="lime"
+                {taxon.sourceInatId !== null && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size={{ initial: "1", sm: "2" }}
+                    asChild
                   >
-                    <ExInat size={14} color="green" />
-                    iNaturalist
-                  </RadixLink>
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size={{ initial: "1", sm: "2" }}
-                  asChild
-                  disabled={!taxon.sourceGbifId}
-                >
-                  <RadixLink
-                    href={`https://www.gbif.org/species/${taxon.sourceGbifId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ textDecoration: "none" }}
-                    color="green"
+                    <RadixLink
+                      href={`https://www.inaturalist.org/taxa/${taxon.sourceInatId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ textDecoration: "none" }}
+                      color="lime"
+                    >
+                      <ExInat size={14} color="green" />
+                      iNaturalist
+                    </RadixLink>
+                  </Button>
+                )}
+                {taxon.sourceGbifId !== null && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size={{ initial: "1", sm: "2" }}
+                    asChild
                   >
-                    <ExGbif
-                      size={18}
+                    <RadixLink
+                      href={`https://www.gbif.org/species/${taxon.sourceGbifId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ textDecoration: "none" }}
                       color="green"
-                      style={{ margin: "-3px" }}
-                    />
-                    GBIF
-                  </RadixLink>
-                </Button>
+                    >
+                      <ExGbif
+                        size={18}
+                        color="green"
+                        style={{ margin: "-3px" }}
+                      />
+                      GBIF
+                    </RadixLink>
+                  </Button>
+                )}
               </Box>
             </DataList.Value>
           </DataList.Item>

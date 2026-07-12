@@ -1,6 +1,6 @@
 import "../../../../assets/styles/pages/taxa/$id.css";
 
-import { Box, Flex, Heading, Text } from "@radix-ui/themes";
+import { Box, Card, Flex, Heading, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -98,8 +98,10 @@ function TaxonPage() {
 
       <Flex gap="8" direction={{ initial: "column", sm: "row" }}>
         {/* Left panel */}
-        <Box width={{ initial: "unset", sm: "304px" }} flexShrink="0">
-          <TaxonMainSection taxon={taxon} navigate={navigate} />
+        <Box width={{ initial: "unset", sm: "304px" }} flexShrink="0" asChild>
+          <Card>
+            <TaxonMainSection taxon={taxon} navigate={navigate} />
+          </Card>
         </Box>
 
         {/* Right panel */}

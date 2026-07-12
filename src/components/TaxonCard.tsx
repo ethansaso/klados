@@ -13,19 +13,21 @@ interface TaxonCardProps {
   preferredCommonName?: string | null;
   thumbnail?: MediaDTO | null;
   serveAsLink?: boolean;
+  size?: "1" | "2";
   onClick?: (e: React.MouseEvent) => void;
 }
 
 export const TaxonCard = memo(
   ({
+    children,
     thumbnail,
     id,
     acceptedName,
     preferredCommonName,
     rank,
     serveAsLink = false,
+    size = "2",
     onClick,
-    children,
   }: PropsWithChildren<TaxonCardProps>) => {
     const content = (
       <>
@@ -50,7 +52,11 @@ export const TaxonCard = memo(
             <Text
               as="div"
               weight="bold"
-              size={{ initial: "1", xs: "2", sm: "3" }}
+              size={
+                size === "2"
+                  ? { initial: "1", xs: "2", sm: "3" }
+                  : { initial: "1", sm: "2" }
+              }
               truncate
             >
               {acceptedName}
