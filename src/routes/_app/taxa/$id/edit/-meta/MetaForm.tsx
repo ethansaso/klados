@@ -249,6 +249,23 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
           </Box>
         </Flex>
 
+        {/* Ecology */}
+        <Box>
+          <Flex justify="between" align="baseline" mb="1">
+            <Label.Root htmlFor="ecology">Ecology</Label.Root>
+            <ConditionalAlert
+              id="ecology-error"
+              message={errors.ecology?.message}
+            />
+          </Flex>
+          <TextArea
+            id="ecology"
+            placeholder="Optional ecology about this taxon"
+            {...register("ecology")}
+            {...a11yProps("ecology-error", !!errors.ecology)}
+          />
+        </Box>
+
         {/* Notes */}
         <Box>
           <Flex justify="between" align="baseline" mb="1">

@@ -10,6 +10,7 @@ export const taxonPatchSchema = z.object({
   sourceGbifId: z.number().int().nullable().optional(),
   sourceInatId: z.number().int().nullable().optional(),
   mediaIds: z.array(z.number().int()).optional(),
+  ecology: z.string().optional(),
   notes: z.string().optional(),
 });
 

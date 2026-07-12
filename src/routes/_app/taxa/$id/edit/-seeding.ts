@@ -32,7 +32,9 @@ function seedModifier(m: CategoricalStateDTO["modifiers"][number]) {
   };
 }
 
-function seedCategoricalState(dto: CategoricalStateDTO): CharacterStateFormValue {
+function seedCategoricalState(
+  dto: CategoricalStateDTO,
+): CharacterStateFormValue {
   return {
     kind: "categorical",
     characterId: dto.characterId,
@@ -59,7 +61,12 @@ function seedNumericState(
   };
   return dto.kind === "number"
     ? { kind: "number", ...shared, siBaseValue: dto.siBaseValue }
-    : { kind: "range", ...shared, siBaseMin: dto.siBaseMin, siBaseMax: dto.siBaseMax };
+    : {
+        kind: "range",
+        ...shared,
+        siBaseMin: dto.siBaseMin,
+        siBaseMax: dto.siBaseMax,
+      };
 }
 
 function seedFeatureStates(
@@ -96,6 +103,7 @@ export const seedTaxonEditState = (
   sourceGbifId: taxon.sourceGbifId,
   sourceInatId: taxon.sourceInatId,
   media: taxon.media,
+  ecology: taxon.ecology,
   notes: taxon.notes,
   names: seedNames(taxon.names),
   states: seedCharacterGroups(characterGroups),

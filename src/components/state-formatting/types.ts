@@ -54,6 +54,4 @@ export type UIRangeState = Pick<
 };
 
 export type UICharacterState =
-  | UICategoricalState
-  | UINumberState
-  | UIRangeState;
+  UICategoricalState | UINumberState | UIRangeState;

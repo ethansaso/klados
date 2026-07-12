@@ -1,0 +1,1 @@
+ALTER TABLE "taxon" ADD COLUMN "ecology" text DEFAULT '' NOT NULL;

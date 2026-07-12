@@ -1,4 +1,4 @@
-import { Badge } from "@radix-ui/themes";
+import { Badge, Box } from "@radix-ui/themes";
 
 type PctColor = "tomato" | "orange" | "yellow" | "green";
 
@@ -23,8 +23,10 @@ export const LookalikePercentBadge = ({
   const formattedPct = `${(percentage * 100).toFixed(2)}%`;
 
   return (
-    <Badge variant="solid" color={color}>
-      {formattedPct}
-    </Badge>
+    <Box asChild display="block">
+      <Badge variant="solid" color={color}>
+        {formattedPct}
+      </Badge>
+    </Box>
   );
 };

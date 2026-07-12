@@ -2,13 +2,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Box,
   Button,
+  Card,
+  Container,
   Flex,
   Heading,
   Select,
+  Text,
   TextField,
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
@@ -19,7 +22,6 @@ import {
   useWatch,
 } from "react-hook-form";
 import { TAXON_RANKS_DESCENDING } from "../../../../db/schema/schema";
-import { ContentContainer } from "../../../components/ContentContainer";
 import { SelectCombobox } from "../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../components/inputs/combobox/types";
 import {
@@ -49,7 +51,7 @@ export const Route = createFileRoute("/_app/taxa/new")({
   },
   head: ({ match }) =>
     routeSeo({
-      title: "Create Taxon | Klados",
+      title: "Create Taxon Draft | Klados",
       canonicalUrl: match.pathname,
     }),
   component: RouteComponent,
@@ -125,110 +127,126 @@ function RouteComponent() {
   };
 
   return (
-    <ContentContainer align="center">
-      <Box>
-        <Heading mb="4">Add New Taxon</Heading>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Flex direction="column" gap="4" maxWidth="480px">
-            {/* Accepted name */}
-            <Box>
-              <Flex justify="between" align="baseline" mb="1">
-                <Label.Root htmlFor="accepted-name">Accepted name</Label.Root>
-                <ConditionalAlert
-                  id="accepted-name-error"
-                  message={errors.acceptedName?.message}
-                />
-              </Flex>
-              <TextField.Root
-                id="accepted-name"
-                placeholder="e.g. Amanita muscaria"
-                {...register("acceptedName")}
-                {...a11yProps("accepted-name-error", !!errors.acceptedName)}
-              />
+    <Container size="3">
+      <Flex justify="center" mt={{ initial: "4", sm: "6" }}>
+        <Box style={{ width: "min(100%, 560px)" }}>
+          <Card size="3">
+            <Box mb="5">
+              <Heading size="6" mb="1">
+                Create Taxon Draft
+              </Heading>
+              <Text as="p" size="2" color="gray">
+                Provide the accepted scientific name, rank, and parent taxon.
+                You can add morphology and other details on the next screen.
+              </Text>
             </Box>
 
-            {/* Parent taxon (optional) */}
-            <Box>
-              <Flex justify="between" align="baseline" mb="1">
-                <Label.Root htmlFor="parent-id">Parent taxon</Label.Root>
-                {/* Optional field, so no error display */}
-              </Flex>
-              <Controller
-                name="parentId"
-                control={control}
-                render={({ field }) => (
-                  <SelectCombobox.Root
-                    id="parent-id"
-                    value={parentSelected}
-                    onValueChange={(opt) =>
-                      field.onChange(opt ? Number(opt.id) : null)
-                    }
-                    options={comboboxOptions}
-                    onQueryChange={setParentQ}
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <Flex direction="column" gap="5">
+                <Box>
+                  <Flex justify="between" align="baseline" mb="1">
+                    <Label.Root htmlFor="accepted-name">
+                      Accepted scientific name
+                    </Label.Root>
+                    <ConditionalAlert
+                      id="accepted-name-error"
+                      message={errors.acceptedName?.message}
+                    />
+                  </Flex>
+                  <TextField.Root
+                    id="accepted-name"
+                    placeholder="e.g. Amanita muscaria"
+                    {...register("acceptedName")}
+                    {...a11yProps("accepted-name-error", !!errors.acceptedName)}
+                  />
+                </Box>
+
+                <Box>
+                  <Flex justify="between" align="baseline" mb="1">
+                    <Label.Root htmlFor="rank">Rank</Label.Root>
+                    <ConditionalAlert
+                      id="rank-error"
+                      message={errors.rank?.message}
+                    />
+                  </Flex>
+                  <Controller
+                    name="rank"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <Select.Root
+                        value={value}
+                        onValueChange={(v) => onChange(v as typeof value)}
+                      >
+                        <Select.Trigger style={{ width: "100%" }}>
+                          {value || "Select rank"}
+                        </Select.Trigger>
+                        <Select.Content>
+                          {TAXON_RANKS_DESCENDING.map((rank) => (
+                            <Select.Item key={rank} value={rank}>
+                              {rank}
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Root>
+                    )}
+                  />
+                </Box>
+
+                <Box>
+                  <Flex justify="between" align="baseline" mb="1">
+                    <Label.Root htmlFor="parent-id">Parent taxon</Label.Root>
+                  </Flex>
+                  <Controller
+                    name="parentId"
+                    control={control}
+                    render={({ field }) => (
+                      <SelectCombobox.Root
+                        id="parent-id"
+                        value={parentSelected}
+                        onValueChange={(opt) =>
+                          field.onChange(opt ? Number(opt.id) : null)
+                        }
+                        options={comboboxOptions}
+                        onQueryChange={setParentQ}
+                      >
+                        <SelectCombobox.Trigger placeholder="Search for a parent taxon..." />
+                        <SelectCombobox.Content>
+                          <SelectCombobox.Input placeholder="Search taxa..." />
+                          <SelectCombobox.List>
+                            {comboboxOptions.map((option, index) => (
+                              <SelectCombobox.Item
+                                key={option.id}
+                                index={index}
+                                option={option}
+                              />
+                            ))}
+                          </SelectCombobox.List>
+                        </SelectCombobox.Content>
+                      </SelectCombobox.Root>
+                    )}
+                  />
+                  <Text as="p" size="1" color="gray" mt="2">
+                    Leave blank to assign the parent later.
+                  </Text>
+                </Box>
+
+                <Flex justify="between" gap="3" mt="1" align="center">
+                  <Button asChild type="button" variant="soft" color="gray">
+                    <Link to="/taxa/drafts">Cancel</Link>
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    loading={isSubmitting}
                   >
-                    <SelectCombobox.Trigger placeholder="Select parent taxon (optional)" />
-                    <SelectCombobox.Content>
-                      <SelectCombobox.Input placeholder="Search taxa..." />
-                      <SelectCombobox.List>
-                        {comboboxOptions.map((option, index) => (
-                          <SelectCombobox.Item
-                            key={option.id}
-                            index={index}
-                            option={option}
-                          />
-                        ))}
-                      </SelectCombobox.List>
-                    </SelectCombobox.Content>
-                  </SelectCombobox.Root>
-                )}
-              />
-            </Box>
-
-            {/* Rank (required, but starts unset / placeholder) */}
-            <Box>
-              <Flex justify="between" align="baseline" mb="1">
-                <Label.Root htmlFor="rank">Rank</Label.Root>
-                <ConditionalAlert
-                  id="rank-error"
-                  message={errors.rank?.message}
-                />
+                    Create draft and continue
+                  </Button>
+                </Flex>
               </Flex>
-              <Controller
-                name="rank"
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <Select.Root
-                    value={value}
-                    onValueChange={(v) => onChange(v as typeof value)}
-                  >
-                    <Select.Trigger style={{ width: "100%" }}>
-                      {value || "Select rank"}
-                    </Select.Trigger>
-                    <Select.Content>
-                      {TAXON_RANKS_DESCENDING.map((rank) => (
-                        <Select.Item key={rank} value={rank}>
-                          {rank}
-                        </Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Root>
-                )}
-              />
-            </Box>
-
-            {/* Actions */}
-            <Flex justify="end" gap="3">
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                loading={isSubmitting}
-              >
-                Create taxon
-              </Button>
-            </Flex>
-          </Flex>
-        </form>
-      </Box>
-    </ContentContainer>
+            </form>
+          </Card>
+        </Box>
+      </Flex>
+    </Container>
   );
 }

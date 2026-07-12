@@ -1,27 +1,79 @@
 .taxon-image-browser {
-  --IMG_SIZE: 256px;
   flex-shrink: 0;
+  position: relative;
+  aspect-ratio: 1 / 1;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+  background-color: var(--gray-2);
 
-  img {
+  &.taxon-image-browser--with-thumbnails {
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .taxon-image-browser__preview {
+    position: relative;
+    z-index: 1;
+    min-height: 0;
+    overflow: hidden;
+    background-color: var(--gray-3);
+  }
+
+  .taxon-image-browser__preview-bg {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    @media (min-width: 520px) {
-      height: var(--IMG_SIZE);
-    }
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transform: scale(1.08);
+    filter: blur(12px) brightness(0.55);
+  }
+
+  .taxon-image-browser__preview-image {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-position: center;
+    object-fit: cover;
+  }
+
+  .taxon-image-browser__preview > .annotation-bubble__wrapper {
+    height: 100%;
   }
 
   .taxon-image-browser__thumbnails {
-    padding: 0;
+    position: relative;
+    z-index: 1;
     margin: 0;
+    padding: 1px;
+    gap: 1px;
     list-style: none;
-    background-color: var(--gray-12);
-
-    @media (min-width: 520px) {
-      max-width: var(--IMG_SIZE);
-    }
+    overflow: hidden;
 
     li {
-      img {
+      flex: 1 1 0;
+
+      button {
+        all: unset;
         display: block;
+        width: 100%;
+        cursor: pointer;
+
+        &.is-selected {
+          box-shadow: inset 0 0 0 2px var(--accent-8);
+        }
+      }
+
+      img {
+        width: 100%;
+        height: 48px;
+        aspect-ratio: 1 / 1;
+        display: block;
+        object-position: center;
+        object-fit: cover;
+        overflow: hidden;
+        cursor: pointer;
         &:hover {
           filter: brightness(80%);
         }
@@ -30,15 +82,53 @@
   }
 }
 
-.lookalike-table.rt-TableRoot {
-  table-layout: fixed;
+.externals {
+  width: 100%;
+  a {
+    width: 100%;
+    margin: 0;
+    display: flex;
+    align-items: center;
+  }
+}
 
-  border: 1px solid var(--gray-a5);
-  border-radius: var(--radius-5);
+.lookalikes-list .lookalikes-entry {
+  .taxon-card,
+  .taxon-card::before,
+  .taxon-card::after {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
 
-  .rt-TableRow:last-of-type {
-    .rt-TableCell {
-      box-shadow: none;
-    }
+  .taxon-card::after {
+    inset: 0;
+    box-shadow: none;
+    border-radius: inherit;
+    border-top: 1px solid var(--gray-a5);
+    border-left: 1px solid var(--gray-a5);
+    border-right: 1px solid var(--gray-a5);
+    border-bottom: 0;
+  }
+
+  .taxon-card img {
+    border: 0;
+    border-bottom: 1px solid var(--gray-a5);
+  }
+
+  button {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: var(--space-2);
+    border-bottom-right-radius: var(--space-2);
+  }
+}
+
+.taxon-sources-list {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-5);
+  font-size: var(--font-size-2);
+
+  li:not(:last-of-type) {
+    margin: 0 0 var(--space-1);
   }
 }

@@ -308,6 +308,7 @@ export async function fetchTaxonDetailById(
     sourceInatId: r.sourceInatId,
     status: r.status,
     media: mediaMap.get(r.id) ?? [],
+    ecology: r.ecology,
     notes: r.notes,
     acceptedName: r.acceptedName,
     preferredCommonName: r.preferredCommonName,

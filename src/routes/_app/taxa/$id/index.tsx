@@ -1,6 +1,6 @@
 import "../../../../assets/styles/pages/taxa/$id.css";
 
-import { Box, Flex, Heading, Tabs, Text } from "@radix-ui/themes";
+import { Box, Card, Flex, Heading, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -18,7 +18,6 @@ import { formatPublicationForTaxon } from "../../../../lib/utils/formatting/form
 import { prefixWithRank } from "../../../../lib/utils/formatting/prefixWithRank";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { LookalikesList } from "./-lookalikes/LookalikesList";
-import { NamesDataList } from "./-NameDataList";
 import { TaxonStateSection } from "./-states/TaxonStatesSection";
 import { StatusCallout } from "./-StatusCallout";
 import { TaxonMainSection } from "./-TaxonMainSection";
@@ -61,19 +60,39 @@ function TaxonPage() {
   const { data: sources } = useSuspenseQuery(sourcesForTaxonQueryOptions(id));
 
   const breadcrumbItems: Breadcrumb[] = useMemo(() => {
-    const items: Breadcrumb[] = taxon.ancestors.map((ancestor) => ({
+    const lineageItems: Breadcrumb[] = taxon.ancestors.map((ancestor) => ({
       label: prefixWithRank(ancestor.rank, ancestor.acceptedName),
       to: "/taxa/$id",
       params: { id: String(ancestor.id) },
     }));
-    items.push({ label: prefixWithRank(taxon.rank, taxon.acceptedName) });
-    return items;
+
+    lineageItems.push({
+      label: prefixWithRank(taxon.rank, taxon.acceptedName),
+    });
+
+    if (lineageItems.length <= 4) {
+      return lineageItems;
+    }
+
+    const rootItem = lineageItems[0]!;
+    const parentItem = lineageItems[lineageItems.length - 2]!;
+    const currentItem = lineageItems[lineageItems.length - 1]!;
+
+    return [
+      rootItem,
+      {
+        label: "...",
+        hiddenItems: lineageItems.slice(1, -2),
+      },
+      parentItem,
+      currentItem,
+    ];
   }, [taxon.ancestors, taxon.acceptedName, taxon.rank]);
 
   return (
     <ContentContainer align="start">
       <StatusCallout status={taxon.status} />
-      <Box mb={{ initial: "3", xs: "4" }}>
+      <Box mb="5">
         <Breadcrumbs items={breadcrumbItems} size={{ initial: "1", xs: "2" }} />
         <Flex
           align="baseline"
@@ -82,7 +101,7 @@ function TaxonPage() {
           gapY="0"
           mt={{ initial: "1", xs: "0" }}
         >
-          <Heading size={{ initial: "4", xs: "7" }}>
+          <Heading size={{ initial: "4", xs: "7" }} weight="medium">
             {taxon.acceptedName}
           </Heading>
           {taxon.preferredCommonName && (
@@ -96,52 +115,108 @@ function TaxonPage() {
           )}
         </Flex>
       </Box>
-      <Box width="100%">
-        <Box mb={{ initial: "2", xs: "4" }}>
-          <TaxonMainSection taxon={taxon} navigate={navigate} />
+
+      <Flex gap="8" direction={{ initial: "column", sm: "row" }}>
+        {/* Left panel */}
+        <Box width={{ initial: "unset", sm: "304px" }} flexShrink="0" asChild>
+          <Card>
+            <TaxonMainSection taxon={taxon} navigate={navigate} />
+          </Card>
         </Box>
-        <Tabs.Root defaultValue="states">
-          <Tabs.List
-            size={{ initial: "1", xs: "2" }}
-            mb={{ initial: "4", xs: "5" }}
-          >
-            <Tabs.Trigger value="states">Description</Tabs.Trigger>
-            <Tabs.Trigger value="lookalikes">Lookalikes</Tabs.Trigger>
-            <Tabs.Trigger value="names">Names</Tabs.Trigger>
-            <Tabs.Trigger value="sources">Sources</Tabs.Trigger>
-          </Tabs.List>
-          <Tabs.Content value="states">
+
+        {/* Right panel */}
+        <Flex direction="column" flexGrow="1" gap="5">
+          {/* Morphology */}
+          <Box>
+            <Box>
+              <Heading
+                size={{ initial: "3", sm: "4" }}
+                mb="1"
+                weight="medium"
+                style={{ borderBottom: "1px solid var(--gray-a7)" }}
+              >
+                Morphological Description
+              </Heading>
+              {characterStates.length ? (
+                <Text as="p" color="gray" size="1" mb="3">
+                  Some traits may have additional information from the glossary,
+                  indicated by an underline. Hover over these terms to view
+                  these definitions.
+                </Text>
+              ) : (
+                <Text size={{ initial: "2", sm: "3" }}>
+                  No morphological data available for this taxon.
+                </Text>
+              )}
+            </Box>
             <TaxonStateSection groups={characterStates} />
-          </Tabs.Content>
-          <Tabs.Content value="lookalikes">
-            <LookalikesList
-              taxonId={id}
-              taxonAcceptedName={taxon.acceptedName}
-              lookalikes={lookalikes}
-            />
-          </Tabs.Content>
-          <Tabs.Content value="names">
-            <Heading size={{ initial: "3", sm: "4" }} mb="3">
-              Names
+          </Box>
+
+          {/* Ecology */}
+          <Box>
+            <Heading
+              size={{ initial: "3", sm: "4" }}
+              mb="1"
+              weight="medium"
+              style={{ borderBottom: "1px solid var(--gray-a7)" }}
+            >
+              Ecology
             </Heading>
-            <NamesDataList names={taxon.names} />
-          </Tabs.Content>
-          <Tabs.Content value="sources">
-            <Heading size={{ initial: "3", sm: "4" }} mb="1">
+            {taxon.ecology ? (
+              <Text>{taxon.ecology}</Text>
+            ) : (
+              <Text>No ecology recorded.</Text>
+            )}
+          </Box>
+
+          {/* Lookalikes */}
+          <Box>
+            <Heading
+              size={{ initial: "3", sm: "4" }}
+              mb="1"
+              weight="medium"
+              style={{ borderBottom: "1px solid var(--gray-a7)" }}
+            >
+              Similar Taxa
+            </Heading>
+            {lookalikes.length ? (
+              <Text as="p" color="gray" size="1" mb="3">
+                These taxa share similar characteristics with{" "}
+                {taxon.acceptedName}. Click on any taxon to compare
+                side-by-side.
+              </Text>
+            ) : (
+              <Text size={{ initial: "2", sm: "3" }}>
+                We couldn't determine any lookalikes for this taxon.
+              </Text>
+            )}
+            <LookalikesList taxonId={id} lookalikes={lookalikes} />
+          </Box>
+
+          {/* Sources */}
+          <Box>
+            <Heading
+              size={{ initial: "3", sm: "4" }}
+              mb="1"
+              weight="medium"
+              style={{ borderBottom: "1px solid var(--gray-a7)" }}
+            >
               Sources
             </Heading>
             {sources.length > 0 ? (
-              sources.map((s) => (
-                <Text key={s.id} mb="2">
-                  {formatPublicationForTaxon(s)}
-                </Text>
-              ))
+              <ol className="taxon-sources-list">
+                {sources.map((s) => (
+                  <li key={s.id}>
+                    <Text as="span">{formatPublicationForTaxon(s)}</Text>
+                  </li>
+                ))}
+              </ol>
             ) : (
-              <Text color="gray">No sources available.</Text>
+              <Text>No sources available.</Text>
             )}
-          </Tabs.Content>
-        </Tabs.Root>
-      </Box>
+          </Box>
+        </Flex>
+      </Flex>
     </ContentContainer>
   );
 }

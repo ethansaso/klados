@@ -1,0 +1,73 @@
+.lookalike-modal__comparison {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.lookalike-modal__taxa {
+  align-items: start;
+  gap: var(--space-3);
+}
+
+.lookalike-modal__groups {
+  overflow: hidden;
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-4);
+  background-color: var(--color-panel-solid);
+}
+
+.lookalike-modal__group {
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--gray-a4);
+  }
+}
+
+.lookalike-modal__group-header {
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--gray-3);
+  color: var(--gray-12);
+}
+
+.lookalike-modal__group-body {
+  gap: 0;
+}
+
+.lookalike-modal__group-column {
+  padding: var(--space-2) var(--space-3);
+
+  @media (min-width: 640px) {
+    &:first-child {
+      border-right: 1px solid var(--gray-a4);
+    }
+  }
+}
+
+.lookalike-modal__group-copy {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.lookalike-modal__group-copy--missing {
+  color: var(--gray-9);
+}
+
+.lookalike-modal__group-copy--present {
+  color: var(--gray-11);
+  font-weight: var(--font-weight-medium);
+}
+
+.lookalike-modal__state-segment--shared,
+.lookalike-modal__state-token--shared {
+  color: var(--gray-10);
+}
+
+.lookalike-modal__state-segment--different,
+.lookalike-modal__state-token--different {
+  color: var(--gray-12);
+  font-weight: var(--font-weight-medium);
+}
+
+.lookalike-modal__state-label {
+  color: inherit;
+  font-weight: inherit;
+}

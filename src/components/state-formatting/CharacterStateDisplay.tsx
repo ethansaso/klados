@@ -11,6 +11,10 @@ type Props = {
    * in cyan.
    */
   highlightAffixes?: boolean;
+  /**
+   * When true, no uppercasing will be applied in formatting.
+   */
+  forceLowercase?: boolean;
 };
 
 function SingleStateDisplay({
@@ -47,13 +51,14 @@ function SingleStateDisplay({
 }
 
 export const CharacterStateDisplay = memo(
-  ({ states, highlightAffixes }: Props) => {
+  ({ states, highlightAffixes, forceLowercase }: Props) => {
     if (states.length === 1) {
       return (
         <SingleStateDisplay
           state={states[0]!}
           isLast
           highlightAffixes={highlightAffixes}
+          lowercaseFirst={forceLowercase}
         />
       );
     }
@@ -66,7 +71,7 @@ export const CharacterStateDisplay = memo(
               state={state}
               isLast={i === states.length - 1}
               highlightAffixes={highlightAffixes}
-              lowercaseFirst={i > 0}
+              lowercaseFirst={forceLowercase || i > 0}
             />
           </Text>
         ))}
