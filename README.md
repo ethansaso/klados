@@ -78,7 +78,7 @@ In particular, the project links to and references data and media from:
 
 The application stores structured descriptions, identifiers, and limited metadata (such as names and IDs from iNaturalist and GBIF) to support cross-referencing, navigation, and attribution.
 
-Media displayed in Klados is sourced from external providers and shown with visible attribution to the original creators and licensors. Images are not hosted directly by the application.
+Media hosted and displayed by Klados is shown with visible attribution to the original creators and licensors.
 
 We are grateful to the researchers, institutions, and community contributors who make these resources publicly available.
 
