@@ -131,55 +131,57 @@ export const TaxonMainSection = ({
               <DataList.Value>{taxon.notes}</DataList.Value>
             </DataList.Item>
           )}
-          <DataList.Item>
-            <DataList.Label>External Links</DataList.Label>
-            <DataList.Value>
-              <Box className="externals">
-                {taxon.sourceInatId !== null && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size={{ initial: "1", sm: "2" }}
-                    asChild
-                  >
-                    <RadixLink
-                      href={`https://www.inaturalist.org/taxa/${taxon.sourceInatId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ textDecoration: "none" }}
-                      color="lime"
+          {(taxon.sourceInatId !== null || taxon.sourceGbifId !== null) && (
+            <DataList.Item>
+              <DataList.Label>External Links</DataList.Label>
+              <DataList.Value>
+                <Box className="externals">
+                  {taxon.sourceInatId !== null && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size={{ initial: "1", sm: "2" }}
+                      asChild
                     >
-                      <ExInat size={14} color="green" />
-                      iNaturalist
-                    </RadixLink>
-                  </Button>
-                )}
-                {taxon.sourceGbifId !== null && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size={{ initial: "1", sm: "2" }}
-                    asChild
-                  >
-                    <RadixLink
-                      href={`https://www.gbif.org/species/${taxon.sourceGbifId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ textDecoration: "none" }}
-                      color="green"
+                      <RadixLink
+                        href={`https://www.inaturalist.org/taxa/${taxon.sourceInatId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ textDecoration: "none" }}
+                        color="lime"
+                      >
+                        <ExInat size={14} color="green" />
+                        iNaturalist
+                      </RadixLink>
+                    </Button>
+                  )}
+                  {taxon.sourceGbifId !== null && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size={{ initial: "1", sm: "2" }}
+                      asChild
                     >
-                      <ExGbif
-                        size={18}
+                      <RadixLink
+                        href={`https://www.gbif.org/species/${taxon.sourceGbifId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ textDecoration: "none" }}
                         color="green"
-                        style={{ margin: "-3px" }}
-                      />
-                      GBIF
-                    </RadixLink>
-                  </Button>
-                )}
-              </Box>
-            </DataList.Value>
-          </DataList.Item>
+                      >
+                        <ExGbif
+                          size={18}
+                          color="green"
+                          style={{ margin: "-3px" }}
+                        />
+                        GBIF
+                      </RadixLink>
+                    </Button>
+                  )}
+                </Box>
+              </DataList.Value>
+            </DataList.Item>
+          )}
         </DataList.Root>
       </Flex>
       {/* <Heading size={{ initial: "3", sm: "4" }}>Names</Heading>

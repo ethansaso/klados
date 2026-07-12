@@ -96,16 +96,23 @@
     top: var(--edge-spacing);
     left: var(--edge-spacing);
     padding: var(--space-1);
-    background-color: var(--color-background-overlay);
-    mix-blend-mode: screen;
     z-index: 1;
     max-width: calc(100% - (var(--edge-spacing) + var(--space-1)) * 2);
 
     .annotation-bubble__indicator {
       display: block;
-      background-color: var(--gray-8);
-      border-radius: 50%;
       line-height: 0;
+
+      svg {
+        display: block;
+        width: 1rem;
+        height: 1rem;
+        fill: rgb(235 235 235 / 0.78);
+        filter: drop-shadow(0 0 1px rgb(255 255 255 / 0.55))
+          drop-shadow(0 0 1px rgb(0 0 0 / 0.35))
+          drop-shadow(0 1px 2px rgb(0 0 0 / 0.12));
+        pointer-events: none;
+      }
     }
 
     .annotation-bubble__content {
@@ -126,8 +133,6 @@
     }
 
     &:hover {
-      mix-blend-mode: normal;
-
       .annotation-bubble__indicator {
         display: none;
       }
