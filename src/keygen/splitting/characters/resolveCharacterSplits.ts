@@ -123,7 +123,9 @@ function hasIntersection(a: Set<number>, b: Set<number>): boolean {
  * marks all involved taxa as ambiguous (notTaxa) and their traits as dead,
  * returning them as the "notTaxa" outgroup.
  *
- * Returns null if this character cannot produce >= 2 clean groups.
+ * Returns null if this character cannot produce either:
+ * - at least two clean positive groups, or
+ * - one clean positive group plus a non-empty inverted outgroup.
  *
  * ! This is the "A∩B = ∅" enforcement step.
  */
@@ -242,8 +244,8 @@ function buildGroupsWithDeadTags(
   const groups = Array.from(groupMap.values());
   const hasNotTaxa = notTaxa.size > 0;
 
-  if ((hasNotTaxa && groups.length === 0) || groups.length < 2) {
-    // Either everyone is ambiguous, or there's no real split.
+  if (groups.length === 0 || (groups.length === 1 && !hasNotTaxa)) {
+    // Either everyone is ambiguous, or there's no usable dichotomy.
     console.log(
       `[KEYGEN]   buildGroups null: groups=${groups.length}, notTaxa=[${Array.from(
         notTaxa,
@@ -272,7 +274,8 @@ function buildGroupsWithDeadTags(
 
 /**
  * Enforce maxBranches by trimming smaller groups into the inverted pool.
- * Assumes maxBranches >= 2 & groups.length >= 2 (enforced by previous steps).
+ * Assumes maxBranches >= 2 and that upstream already guaranteed a usable
+ * dichotomy: either >= 2 positive groups, or 1 positive group plus notTaxa.
  *
  *  Always returns a configuration with:
  *  - at least one explicit (non-inverted) branch
