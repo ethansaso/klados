@@ -21,6 +21,7 @@ import z from "zod";
 import CategoricalTraitTable from "../-CategoricalTraitTable";
 import { DeleteTraitValueModal } from "../-modal/-DeleteTraitValueModal";
 import { EditTraitValueModal } from "../-modal/-EditTraitSetValueModal";
+import { AnnotationBubbleWrap } from "../../../../../components/annotations/AnnotationBubbleWrap";
 import { CuratorOnly } from "../../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
 import { CharacterIcon } from "../../../../../components/icons/modular/CharacterIcon";
@@ -205,18 +206,20 @@ function RouteComponent() {
         {character.description || "No description."}
       </Text>
       {character.media && (
-        <Box mb="3">
-          <img
-            src={getMediaUrl(character.media.storageKey)}
-            alt={character.media.title}
-            style={{
-              width: "128px",
-              height: "128px",
-              objectFit: "cover",
-              borderRadius: "var(--radius-2)",
-            }}
-          />
-        </Box>
+        <AnnotationBubbleWrap media={character.media} spacing="1">
+          <Box mb="3">
+            <img
+              src={getMediaUrl(character.media.storageKey)}
+              alt={character.media.title}
+              style={{
+                width: "128px",
+                height: "128px",
+                objectFit: "cover",
+                borderRadius: "var(--radius-2)",
+              }}
+            />
+          </Box>
+        </AnnotationBubbleWrap>
       )}
       {character.type === "categorical" ? (
         <Box>

@@ -116,7 +116,7 @@ function TaxonPage() {
         </Flex>
       </Box>
 
-      <Flex gap="8" direction={{ initial: "column", sm: "row" }}>
+      <Flex gap="8" direction={{ initial: "column", sm: "row" }} align="start">
         {/* Left panel */}
         <Box width={{ initial: "unset", sm: "304px" }} flexShrink="0" asChild>
           <Card>
@@ -125,7 +125,7 @@ function TaxonPage() {
         </Box>
 
         {/* Right panel */}
-        <Flex direction="column" flexGrow="1" gap="5">
+        <Flex direction="column" flexGrow="1" gap="6">
           {/* Morphology */}
           <Box>
             <Box>

@@ -12,6 +12,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { PiPencil, PiTrash } from "react-icons/pi";
 import { Fragment } from "react/jsx-runtime";
+import { AnnotationBubbleWrap } from "../../../../../components/annotations/AnnotationBubbleWrap";
 import { CuratorOnly } from "../../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
 import { featureQueryOptions } from "../../../../../lib/queries/features";
@@ -90,18 +91,20 @@ function RouteComponent() {
         )}
       </Box>
       {feature.media && (
-        <Box mb="3">
-          <img
-            src={getMediaUrl(feature.media.storageKey)}
-            alt={feature.media.title}
-            style={{
-              width: "128px",
-              height: "128px",
-              objectFit: "cover",
-              borderRadius: "var(--radius-2)",
-            }}
-          />
-        </Box>
+        <AnnotationBubbleWrap media={feature.media} spacing="1">
+          <Box mb="3">
+            <img
+              src={getMediaUrl(feature.media.storageKey)}
+              alt={feature.media.title}
+              style={{
+                width: "128px",
+                height: "128px",
+                objectFit: "cover",
+                borderRadius: "var(--radius-2)",
+              }}
+            />
+          </Box>
+        </AnnotationBubbleWrap>
       )}
       <Box mb="3">
         <Heading size="4" mb="1">
