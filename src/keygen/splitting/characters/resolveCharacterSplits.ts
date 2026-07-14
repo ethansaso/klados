@@ -123,9 +123,7 @@ function hasIntersection(a: Set<number>, b: Set<number>): boolean {
  * marks all involved taxa as ambiguous (notTaxa) and their traits as dead,
  * returning them as the "notTaxa" outgroup.
  *
- * Returns null if this character cannot produce either:
- * - at least two clean positive groups, or
- * - one clean positive group plus a non-empty inverted outgroup.
+ * Returns null if this character cannot produce >= 2 clean groups.
  *
  * ! This is the "A∩B = ∅" enforcement step.
  */
@@ -244,8 +242,8 @@ function buildGroupsWithDeadTags(
   const groups = Array.from(groupMap.values());
   const hasNotTaxa = notTaxa.size > 0;
 
-  if (groups.length === 0 || (groups.length === 1 && !hasNotTaxa)) {
-    // Either everyone is ambiguous, or there's no usable dichotomy.
+  if ((hasNotTaxa && groups.length === 0) || groups.length < 2) {
+    // Either everyone is ambiguous, or there's no real split.
     console.log(
       `[KEYGEN]   buildGroups null: groups=${groups.length}, notTaxa=[${Array.from(
         notTaxa,
@@ -274,8 +272,7 @@ function buildGroupsWithDeadTags(
 
 /**
  * Enforce maxBranches by trimming smaller groups into the inverted pool.
- * Assumes maxBranches >= 2 and that upstream already guaranteed a usable
- * dichotomy: either >= 2 positive groups, or 1 positive group plus notTaxa.
+ * Assumes maxBranches >= 2 & groups.length >= 2 (enforced by previous steps).
  *
  *  Always returns a configuration with:
  *  - at least one explicit (non-inverted) branch
@@ -378,6 +375,7 @@ export function resolveCharacterSplits(
   const { maxBranches } = options;
   if (taxa.length < 2 || maxBranches < 2) return [];
 
+  const morphDescribedTaxa = taxa.filter((t) => t.states.length > 0);
   const byCharacter = buildCharacterIndex(taxa);
   const results: CharacterDefinitionSplitResult[] = [];
 
@@ -386,17 +384,20 @@ export function resolveCharacterSplits(
     const firstEntry = byTaxon.values().next().value!;
     const characterId = firstEntry.states[0]!.characterId;
 
-    // Only operate on taxa that have data for this character.
-    // Taxa missing from byTaxon have no states for this character and will
-    // land in the unplaced-taxa bucket in buildKeyForChildren.
-    const describedTaxa = taxa.filter((t) => byTaxon.has(t.id));
-    if (describedTaxa.length < 2) {
-      const missing = taxa
+    // Only fully undescribed taxa may be left out of a character split.
+    // If a taxon has some morphology at this node, it must participate in the
+    // character candidate or the candidate is invalid for the sibling set.
+    const describedTaxa = morphDescribedTaxa.filter((t) => byTaxon.has(t.id));
+    if (
+      describedTaxa.length < 2 ||
+      describedTaxa.length !== morphDescribedTaxa.length
+    ) {
+      const missing = morphDescribedTaxa
         .filter((t) => !byTaxon.has(t.id))
         .map((t) => `${t.id}(${t.acceptedName})`);
       const charLabel = firstEntry.states[0]!.characterLabel;
       console.log(
-        `[KEYGEN] char ${characterId}(${charLabel}): skipped at normalize — missing taxa: [${missing.join(", ")}]`,
+        `[KEYGEN] char ${characterId}(${charLabel}): skipped before normalize — morph-described taxa missing character data: [${missing.join(", ")}]`,
       );
       continue;
     }

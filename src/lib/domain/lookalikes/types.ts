@@ -50,6 +50,7 @@ export type LookalikeComparisonCharacter = {
 export type LookalikeComparisonGroup = {
   groupId: number;
   groupLabel: string;
+  groupHasInfo: boolean;
   aHasGroup: boolean;
   bHasGroup: boolean;
 
