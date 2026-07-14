@@ -1,9 +1,10 @@
 import "../../../../assets/styles/pages/taxa/$id.css";
 
-import { Box, Card, Flex, Heading, Text } from "@radix-ui/themes";
+import { Box, Card, Flex, Heading, IconButton, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { PiListDashes, PiTextAlignLeft } from "react-icons/pi";
 import z from "zod";
 import {
   type Breadcrumb,
@@ -58,6 +59,8 @@ function TaxonPage() {
   );
   const { data: lookalikes } = useSuspenseQuery(lookalikesQueryOptions(id));
   const { data: sources } = useSuspenseQuery(sourcesForTaxonQueryOptions(id));
+
+  const [indentDescription, setIndentDescription] = useState(false);
 
   const breadcrumbItems: Breadcrumb[] = useMemo(() => {
     const lineageItems: Breadcrumb[] = taxon.ancestors.map((ancestor) => ({
@@ -129,14 +132,28 @@ function TaxonPage() {
           {/* Morphology */}
           <Box>
             <Box>
-              <Heading
-                size={{ initial: "3", sm: "4" }}
-                mb="1"
-                weight="medium"
+              <Flex
+                align="end"
+                justify="between"
                 style={{ borderBottom: "1px solid var(--gray-a7)" }}
               >
-                Morphological Description
-              </Heading>
+                <Heading
+                  size={{ initial: "3", sm: "4" }}
+                  mb="1"
+                  weight="medium"
+                >
+                  Morphological Description
+                </Heading>
+                <IconButton
+                  variant="ghost"
+                  size="1"
+                  onClick={() => setIndentDescription((p) => !p)}
+                  style={{ margin: "0 0 var(--space-1) 0" }}
+                >
+                  {indentDescription ? <PiListDashes /> : <PiTextAlignLeft />}
+                </IconButton>
+              </Flex>
+
               {characterStates.length ? (
                 <Text as="p" color="gray" size="1" mb="3">
                   Some traits may have additional information from the glossary,
@@ -149,7 +166,10 @@ function TaxonPage() {
                 </Text>
               )}
             </Box>
-            <TaxonStateSection groups={characterStates} />
+            <TaxonStateSection
+              groups={characterStates}
+              indentDescription={indentDescription}
+            />
           </Box>
 
           {/* Ecology */}

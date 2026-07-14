@@ -4,14 +4,24 @@ import { FeatureRenderer } from "./FeatureRenderer";
 
 export const TaxonStateSection = ({
   groups,
+  indentDescription,
 }: {
   groups: FeatureStateDTO[];
+  indentDescription?: boolean;
 }) => {
+  const sortedGroups = [...groups].sort((left, right) =>
+    left.featureLabel.localeCompare(right.featureLabel),
+  );
+
   return (
     groups.length > 0 && (
       <Box>
-        {groups.map((group) => (
-          <FeatureRenderer key={group.featureId} feature={group} />
+        {sortedGroups.map((group) => (
+          <FeatureRenderer
+            key={group.featureId}
+            feature={group}
+            indentDescription={indentDescription}
+          />
         ))}
       </Box>
     )
