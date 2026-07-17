@@ -75,6 +75,7 @@ const convertToServerCharacterValues = (
 ): CharacterByFeatureUpdate => {
   return values.map((feature) => ({
     featureId: feature.featureId,
+    notes: feature.notes,
     characters: feature.characters.map((v) => {
       switch (v.kind) {
         case "categorical":

@@ -55,6 +55,7 @@ export async function selectTaxonStatesByTaxonIds(
 
       featureId: featuresTbl.id,
       featureLabel: featuresTbl.label,
+      notes: tfsTbl.notes,
       featureDescription: featuresTbl.description,
       featureMediaId: featuresTbl.mediaId,
     })
@@ -75,6 +76,7 @@ export async function selectTaxonStatesByTaxonIds(
       featureId: row.featureId,
       featureLabel: row.featureLabel,
       featureHasInfo: !!row.featureDescription || row.featureMediaId !== null,
+      notes: row.notes,
       states: [],
     });
   }
@@ -387,7 +389,6 @@ export async function replaceGroupedCharacterStatesForTaxon(
   taxonId: number,
   features: CharacterByFeatureUpdate,
 ): Promise<void> {
-  console.log(features);
   // Load existing feature states for taxon
   const existing = await tx
     .select({
@@ -417,12 +418,18 @@ export async function replaceGroupedCharacterStatesForTaxon(
     const existingFeature = existingByFeatureId.get(feature.featureId);
     if (existingFeature) {
       featureStateId = existingFeature.id;
+
+      await tx
+        .update(tfsTbl)
+        .set({ notes: feature.notes })
+        .where(eq(tfsTbl.id, featureStateId));
     } else {
       const rows = await tx
         .insert(tfsTbl)
         .values({
           taxonId,
           featureId: feature.featureId,
+          notes: feature.notes,
         })
         .returning({ id: tfsTbl.id });
 

@@ -70,6 +70,7 @@ export const featureFormSchema = z
   .object({
     featureId: z.number().int().positive(),
     featureLabel: z.string(),
+    notes: z.string().trim(),
     characters: z.array(characterStateFormSchema),
   })
   .superRefine((feature, ctx) => {
