@@ -1,7 +1,7 @@
 import { Box, Button } from "@radix-ui/themes";
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
-import { PiTextAlignLeft } from "react-icons/pi";
+import { PiSparkle } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
 import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
@@ -63,6 +63,7 @@ export function CharacterEditingForm({
           type="button"
           radius="full"
           size="1"
+          color="iris"
           onClick={async () => {
             const result = await selectExtraction();
             if (result) {
@@ -71,7 +72,7 @@ export function CharacterEditingForm({
           }}
           aria-label="Extract states from text description"
         >
-          <PiTextAlignLeft size="16" />
+          <PiSparkle size="16" />
           Import text description
         </Button>
       }

@@ -1,0 +1,1 @@
+ALTER TABLE "taxon_feature_state" ADD COLUMN "notes" text DEFAULT '' NOT NULL;

@@ -18,7 +18,7 @@ export const COLOR_ALIASES: Record<string, string[]> = {
     "Rufous",
     "Ferruginous",
   ],
-  "Pale Orange": ["Tan"],
+  "Pale Orange": ["Tan", "light brown"],
   "Grayish Orange": ["Fulvous", "Ocher", "Ochre"],
   "Grayish Brown": [
     "Taupe",

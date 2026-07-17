@@ -1,6 +1,6 @@
 import "../../../../assets/styles/pages/taxa/$id.css";
 
-import { Box, Card, Flex, Heading, IconButton, Text } from "@radix-ui/themes";
+import { Box, Button, Card, Flex, Heading, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -144,14 +144,24 @@ function TaxonPage() {
                 >
                   Morphological Description
                 </Heading>
-                <IconButton
+                <Button
                   variant="ghost"
                   size="1"
                   onClick={() => setIndentDescription((p) => !p)}
                   style={{ margin: "0 0 var(--space-1) 0" }}
                 >
-                  {indentDescription ? <PiListDashes /> : <PiTextAlignLeft />}
-                </IconButton>
+                  {indentDescription ? (
+                    <>
+                      <PiListDashes />
+                      List view
+                    </>
+                  ) : (
+                    <>
+                      <PiTextAlignLeft />
+                      Prose view
+                    </>
+                  )}
+                </Button>
               </Flex>
 
               {characterStates.length ? (

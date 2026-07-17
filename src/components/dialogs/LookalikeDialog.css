@@ -78,3 +78,7 @@
 .lookalike-modal__state-label--different {
   font-weight: var(--font-weight-medium);
 }
+
+.lookalike-modal__state-token--shared .color-bubble {
+  opacity: 0.25;
+}
