@@ -15,6 +15,8 @@ export const FeatureRenderer = ({
   feature: FeatureStateDTO;
   indentDescription?: boolean;
 }) => {
+  const notes = feature.notes.trim();
+
   const cardHeaderComponent = feature.featureHasInfo ? (
     <GlossaryFeatureCard id={feature.featureId}>
       <span className="has-information">{feature.featureLabel}</span>
@@ -75,7 +77,7 @@ export const FeatureRenderer = ({
       ) : (
         <Text>present</Text>
       )}
-      .{" "}
+      {notes.length > 0 && <>; {notes}</>}.{" "}
     </Wrapper>
   );
 };

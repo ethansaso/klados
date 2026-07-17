@@ -6,6 +6,7 @@ import {
   Heading,
   IconButton,
   Text,
+  TextField,
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { memo, useCallback, useId, useState } from "react";
@@ -46,6 +47,7 @@ export const EditingFeatureCard = memo(
     const [lastAdded, setLastAdded] = useState<LastAdded | null>(null);
     const [autoOpenFor, setAutoOpenFor] = useState<LastAdded | null>(null);
     const searchInputId = useId();
+    const notesInputId = useId();
 
     const focusSearch = useCallback(() => {
       document.getElementById(searchInputId)?.focus();
@@ -176,13 +178,24 @@ export const EditingFeatureCard = memo(
       [getValues, onChange, feature.featureId],
     );
 
+    const handleNotesChange = useCallback(
+      (notes: string) => {
+        const prev = getValues("states");
+        const next = prev.map((group) =>
+          group.featureId === feature.featureId ? { ...group, notes } : group,
+        );
+        onChange(next);
+      },
+      [getValues, onChange, feature.featureId],
+    );
+
     // TODO: Immediately delete if no characters exist in group
     const handleTrashClick = () => {
       setConfirmingDelete(true);
     };
 
     return (
-      <Card>
+      <Card style={{ display: "flex", flexDirection: "column" }}>
         <Flex mb="2" align="center" justify="between">
           <Heading size="2" weight="medium">
             {label}
@@ -287,6 +300,18 @@ export const EditingFeatureCard = memo(
             })}
           </DataList.Root>
         )}
+
+        <Box mt="auto">
+          <Text as="label" size="1" htmlFor={notesInputId} mb="1" mt="3">
+            Notes
+          </Text>
+          <TextField.Root
+            id={notesInputId}
+            size="1"
+            value={feature.notes}
+            onChange={(e) => handleNotesChange(e.target.value)}
+          />
+        </Box>
       </Card>
     );
   },

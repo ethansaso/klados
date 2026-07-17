@@ -46,13 +46,12 @@ export type RangeStateDTO = CharacterNumericStateBase & {
 };
 
 export type CharacterStateDTO =
-  | CategoricalStateDTO
-  | NumberStateDTO
-  | RangeStateDTO;
+  CategoricalStateDTO | NumberStateDTO | RangeStateDTO;
 
 export type FeatureStateDTO = {
   featureId: number;
   featureLabel: string;
   featureHasInfo: boolean;
+  notes: string;
   states: CharacterStateDTO[];
 };

@@ -437,6 +437,7 @@ export async function extractStates(
         curStates.push({
           featureId: feature.id,
           featureLabel: feature.label,
+          notes: "",
           characters,
         });
       }
@@ -682,6 +683,7 @@ export async function extractStates(
       states.push({
         featureId: feature.id,
         featureLabel: feature.label,
+        notes: "",
         characters,
       });
     }
