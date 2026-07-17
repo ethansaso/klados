@@ -1,4 +1,4 @@
-import { Strong, Text } from "@radix-ui/themes";
+import { Box, Strong, Text } from "@radix-ui/themes";
 import { Fragment } from "react";
 import { GlossaryCharacterCard } from "../../../../../components/glossary-cards/GlossaryCharacterCard";
 import { GlossaryFeatureCard } from "../../../../../components/glossary-cards/GlossaryFeatureCard";
@@ -8,7 +8,13 @@ import type {
   FeatureStateDTO,
 } from "../../../../../lib/domain/states/types";
 
-export const FeatureRenderer = ({ feature }: { feature: FeatureStateDTO }) => {
+export const FeatureRenderer = ({
+  feature,
+  indentDescription,
+}: {
+  feature: FeatureStateDTO;
+  indentDescription?: boolean;
+}) => {
   const cardHeaderComponent = feature.featureHasInfo ? (
     <GlossaryFeatureCard id={feature.featureId}>
       <span className="has-information">{feature.featureLabel}</span>
@@ -41,9 +47,10 @@ export const FeatureRenderer = ({ feature }: { feature: FeatureStateDTO }) => {
     group.states.push(state);
   }
   const entries = Array.from(characterGroups.entries());
+  const Wrapper = indentDescription ? Box : Fragment;
 
   return (
-    <>
+    <Wrapper>
       <Text>
         <Strong>{cardHeaderComponent} </Strong>
       </Text>
@@ -69,6 +76,6 @@ export const FeatureRenderer = ({ feature }: { feature: FeatureStateDTO }) => {
         <Text>present</Text>
       )}
       .{" "}
-    </>
+    </Wrapper>
   );
 };

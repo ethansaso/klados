@@ -375,6 +375,7 @@ export function resolveCharacterSplits(
   const { maxBranches } = options;
   if (taxa.length < 2 || maxBranches < 2) return [];
 
+  const morphDescribedTaxa = taxa.filter((t) => t.states.length > 0);
   const byCharacter = buildCharacterIndex(taxa);
   const results: CharacterDefinitionSplitResult[] = [];
 
@@ -383,17 +384,20 @@ export function resolveCharacterSplits(
     const firstEntry = byTaxon.values().next().value!;
     const characterId = firstEntry.states[0]!.characterId;
 
-    // Only operate on taxa that have data for this character.
-    // Taxa missing from byTaxon have no states for this character and will
-    // land in the unplaced-taxa bucket in buildKeyForChildren.
-    const describedTaxa = taxa.filter((t) => byTaxon.has(t.id));
-    if (describedTaxa.length < 2) {
-      const missing = taxa
+    // Only fully undescribed taxa may be left out of a character split.
+    // If a taxon has some morphology at this node, it must participate in the
+    // character candidate or the candidate is invalid for the sibling set.
+    const describedTaxa = morphDescribedTaxa.filter((t) => byTaxon.has(t.id));
+    if (
+      describedTaxa.length < 2 ||
+      describedTaxa.length !== morphDescribedTaxa.length
+    ) {
+      const missing = morphDescribedTaxa
         .filter((t) => !byTaxon.has(t.id))
         .map((t) => `${t.id}(${t.acceptedName})`);
       const charLabel = firstEntry.states[0]!.characterLabel;
       console.log(
-        `[KEYGEN] char ${characterId}(${charLabel}): skipped at normalize — missing taxa: [${missing.join(", ")}]`,
+        `[KEYGEN] char ${characterId}(${charLabel}): skipped before normalize — morph-described taxa missing character data: [${missing.join(", ")}]`,
       );
       continue;
     }

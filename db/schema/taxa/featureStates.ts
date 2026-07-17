@@ -3,6 +3,7 @@ import {
   integer,
   pgTable,
   serial,
+  text,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
@@ -25,6 +26,7 @@ export const taxonFeatureState = pgTable(
     featureId: integer("feature_id")
       .notNull()
       .references(() => feature.id, { onDelete: "restrict" }),
+    notes: text("notes").notNull().default(""),
   }),
   (t) => [
     // A taxon can only attach a given feature once

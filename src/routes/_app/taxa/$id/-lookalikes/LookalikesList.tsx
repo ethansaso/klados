@@ -40,7 +40,7 @@ export const LookalikesList = ({
           </TaxonCard>
           <Button
             size="1"
-            variant="outline"
+            variant="surface"
             onClick={() =>
               NiceModal.show(LookalikeDialog, {
                 taxonId,

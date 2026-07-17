@@ -210,13 +210,19 @@ const ModalContent = ({ data }: { data: LookalikeComparisonDetailDTO }) => {
         {data.groupedStates.map((annotatedGroup) => (
           <Box key={annotatedGroup.groupId} className="lookalike-modal__group">
             <Box className="lookalike-modal__group-header">
-              <GlossaryFeatureCard id={annotatedGroup.groupId}>
+              {annotatedGroup.groupHasInfo ? (
+                <GlossaryFeatureCard id={annotatedGroup.groupId}>
+                  <Text as="span" weight="bold">
+                    <span className="has-information">
+                      {annotatedGroup.groupLabel}
+                    </span>
+                  </Text>
+                </GlossaryFeatureCard>
+              ) : (
                 <Text as="span" weight="bold">
-                  <span className="has-information">
-                    {annotatedGroup.groupLabel}
-                  </span>
+                  {annotatedGroup.groupLabel}
                 </Text>
-              </GlossaryFeatureCard>
+              )}
             </Box>
 
             <Grid

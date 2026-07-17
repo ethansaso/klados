@@ -64,6 +64,8 @@ export function buildGroupedLookalikeStates(args: {
     const bHasGroup = bGroup !== undefined;
 
     const groupLabel = aGroup?.featureLabel ?? bGroup?.featureLabel ?? "";
+    const groupHasInfo =
+      aGroup?.featureHasInfo ?? bGroup?.featureHasInfo ?? false;
     const aStates = aGroup?.states ?? null;
     const bStates = bGroup?.states ?? null;
 
@@ -134,6 +136,7 @@ export function buildGroupedLookalikeStates(args: {
     result.push({
       groupId,
       groupLabel,
+      groupHasInfo,
       aHasGroup,
       bHasGroup,
       aCharacters,
