@@ -8,6 +8,7 @@ type Props = {
   state: UINumberState | UIRangeState;
   isLast?: boolean;
   highlightAffixes?: boolean;
+  hideModifiers?: boolean;
 };
 
 function computeCopy(state: UINumberState | UIRangeState): string {
@@ -33,8 +34,13 @@ function computeCopy(state: UINumberState | UIRangeState): string {
 }
 
 export const NumericStateDisplay = memo(
-  ({ state, isLast = true, highlightAffixes }: Props) => {
+  ({ state, isLast = true, highlightAffixes, hideModifiers }: Props) => {
     const copy = computeCopy(state);
+
+    if (hideModifiers) {
+      return copy;
+    }
+
     return (
       <AffixedValue
         modifiers={state.modifiers ?? []}
