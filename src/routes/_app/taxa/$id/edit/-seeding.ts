@@ -83,6 +83,7 @@ const seedCharacterGroups = (
   features.map((feature) => ({
     featureId: feature.featureId,
     featureLabel: feature.featureLabel,
+    notes: feature.notes,
     characters: seedFeatureStates(feature.states),
   }));
 

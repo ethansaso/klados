@@ -30,6 +30,7 @@ export function CharacterEditingForm({
       {
         featureId: option.id,
         featureLabel: option.label,
+        notes: "",
         characters: [],
       },
     ]);

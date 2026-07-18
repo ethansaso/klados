@@ -53,6 +53,7 @@ function modifierSetSignature(modifierIds: number[]): string {
 const featureUpdateSchema = z
   .object({
     featureId: z.number().int(),
+    notes: z.string().trim(),
     characters: z.array(characterUpdateSchema),
   })
   .superRefine((group, ctx) => {
