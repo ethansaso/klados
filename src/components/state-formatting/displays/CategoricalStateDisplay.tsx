@@ -10,10 +10,17 @@ type Props = {
   isLast?: boolean;
   highlightAffixes?: boolean;
   lowercaseFirst?: boolean;
+  hideModifiers?: boolean;
 };
 
 export const CategoricalStateDisplay = memo(
-  ({ state, isLast = true, highlightAffixes, lowercaseFirst }: Props) => {
+  ({
+    state,
+    isLast = true,
+    highlightAffixes,
+    lowercaseFirst,
+    hideModifiers,
+  }: Props) => {
     const { trait, modifiers } = state;
     const hasPrefixes = modifiers.some((m) => m.affixType === "prefix");
     const rawLabel = formatTraitLabel(
@@ -30,6 +37,20 @@ export const CategoricalStateDisplay = memo(
       ) : (
         rawLabel
       );
+
+    if (hideModifiers) {
+      return (
+        <AffixedValue
+          modifiers={[]}
+          weight={trait.weight}
+          hexCode={trait.hexCode}
+        >
+          <Text as="span" weight={trait.weight}>
+            {label}
+          </Text>
+        </AffixedValue>
+      );
+    }
 
     return (
       <AffixedValue
