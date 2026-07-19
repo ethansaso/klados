@@ -13,12 +13,11 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import NiceModal from "@ebay/nice-modal-react";
-import { Button, Flex } from "@radix-ui/themes";
+import { Box, Button, Flex, Heading } from "@radix-ui/themes";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { FaDove } from "react-icons/fa";
 import { PiPlus } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
-import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import MediaBrowser from "../../../../../../components/media-browser";
 import type { MediaDTO } from "../../../../../../lib/domain/media/types";
 import { toast } from "../../../../../../lib/utils/toast";
@@ -29,6 +28,7 @@ type MediaEditorProps = {
   inatId: number | null;
 };
 
+// TODO: prevent dndkit from scrolling right
 export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
   const { control, getValues } = useFormContext<TaxonEditFormValues>();
   const { fields, append, remove, move } = useFieldArray({
@@ -77,11 +77,10 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
   };
 
   return (
-    <FormDescriptor
-      title="Media"
-      description="Add photos manually, or import from iNaturalist. Drag to reorder."
-      actions={
-        <>
+    <Box>
+      <Flex justify="between" align="center" mb="2">
+        <Heading size="3">Media</Heading>
+        <Flex gap="1">
           <Button
             type="button"
             variant="ghost"
@@ -104,7 +103,7 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
             }
           >
             <PiPlus size="16" />
-            Add Media
+            Add
           </Button>
           <Button
             type="button"
@@ -114,12 +113,10 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
             onClick={addFromInat}
           >
             <FaDove size="16" />
-            Import from iNaturalist
+            iNat
           </Button>
-        </>
-      }
-      orientation="vertical"
-    >
+        </Flex>
+      </Flex>
       {fields.length > 0 && (
         <DndContext
           sensors={sensors}
@@ -140,6 +137,6 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
           </SortableContext>
         </DndContext>
       )}
-    </FormDescriptor>
+    </Box>
   );
 };

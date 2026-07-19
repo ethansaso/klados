@@ -1,16 +1,7 @@
 import "../../../../../assets/styles/pages/taxa/edit.css";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Badge,
-  Box,
-  Button,
-  Flex,
-  Heading,
-  Link as RadixLink,
-  Separator,
-  Text,
-} from "@radix-ui/themes";
+import { Badge, Box, Button, Flex, Heading, Separator } from "@radix-ui/themes";
 import { Query, useQueryClient } from "@tanstack/react-query";
 import {
   createFileRoute,
@@ -29,6 +20,7 @@ import {
   useWatch,
   type SubmitHandler,
 } from "react-hook-form";
+import { PiArrowLeft } from "react-icons/pi";
 import z from "zod";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
 import { ContentContainer } from "../../../../../components/ContentContainer";
@@ -54,6 +46,7 @@ import { NameEditingForm } from "./-names/NameEditingForm";
 import { nameItemFormSchema } from "./-names/validation";
 import { seedTaxonEditState } from "./-seeding";
 import { SourceEditingForm } from "./-sources/SourceEditingForm";
+import { TextForm } from "./-text/TextForm";
 
 export type TaxonEditFormValues = z.infer<typeof taxonEditFormSchema>;
 
@@ -310,118 +303,147 @@ function RouteComponent() {
   };
 
   return (
-    <ContentContainer align="start">
-      <Text size="2">Editing details for:</Text>
-      <Flex align="baseline" gap="2" mb="2">
-        <Heading>{initialTaxon.acceptedName}</Heading>
-        <Badge color={statusBadgeColor}>{initialTaxon.status}</Badge>
-      </Flex>
-      <Box>
-        <RadixLink asChild size="2">
-          <TanStackLink to="..">Back</TanStackLink>
-        </RadixLink>
-      </Box>
-
-      <FormProvider {...methods}>
-        <Form.Root onSubmit={handleSubmit(onSave)} style={{ width: "100%" }}>
-          <Separator size="4" my="4" />
-          {/* Basic meta (rank, parent, source IDs) */}
-          <MetaForm id={id} acceptedName={initialTaxon.acceptedName} />
-
-          <Separator size="4" my="4" />
-
-          {/* Characters */}
-          <Controller
-            name="states"
-            control={control}
-            render={({ field }) => (
-              <CharacterEditingForm
-                value={field.value as GroupedCharacterFormValue}
-                onChange={field.onChange}
-              />
-            )}
-          />
-
-          <Separator size="4" my="4" />
-
-          {/* Names */}
-          <Controller
-            control={control}
-            name="names"
-            render={({ field: { onChange } }) => (
-              <NameEditingForm inatId={inatId} onChange={onChange} />
-            )}
-          />
-
-          <Separator size="4" my="4" />
-
-          {/* Media */}
-          <MediaEditingForm inatId={inatId} />
-
-          <Separator size="4" my="4" />
-
-          {/* Sources */}
-          <Controller
-            control={control}
-            name="sources"
-            render={({ field: { value, onChange } }) => (
-              <SourceEditingForm
-                value={value}
-                sourcesById={sourcesById}
-                setSourcesById={setSourcesById}
-                onChange={onChange}
-              />
-            )}
-          />
-
-          {/* TODO: clean spacing + client discriminated rendering */}
-          <Flex gap="2" justify="between" mt="5">
-            <Flex gap="2" justify="end">
-              <Button
-                type="button"
-                disabled={isSubmitting || isDeleting || !isDirty}
-                loading={isSubmitting || isDeleting}
-                onClick={handleDiscard}
-                variant="soft"
-              >
-                Discard Changes
-              </Button>
-              <Button
-                type="button"
-                variant={isDraft ? "soft" : "solid"}
-                loading={isSubmitting || isDeleting}
-                disabled={!isDirty || isSubmitting || isDeleting}
-                onClick={handleSubmit(onSave)}
-              >
-                Save
-              </Button>
-            </Flex>
-            <Flex gap="2" justify="end">
-              {isDraft && (
-                <>
-                  <Button
-                    type="button"
-                    disabled={isSubmitting || isDeleting}
-                    loading={isSubmitting || isDeleting}
-                    onClick={handleSubmit(onPublish)}
-                  >
-                    Publish
-                  </Button>
-                  <Button
-                    type="button"
-                    disabled={isDeleting || isSubmitting}
-                    loading={isDeleting || isSubmitting}
-                    color="tomato"
-                    onClick={handleDelete}
-                  >
-                    Delete Draft
-                  </Button>
-                </>
-              )}
-            </Flex>
+    <Box>
+      <Flex
+        align="center"
+        justify="between"
+        px="6"
+        py="4"
+        style={{
+          background: "var(--color-background)",
+          boxShadow: "inset 0 -1px 0 0 var(--gray-a5)",
+        }}
+      >
+        <Flex align="center" gap="2">
+          <Flex asChild align="center" gap="2">
+            <Button asChild variant="ghost" size="2" mr="4">
+              <TanStackLink to="..">
+                <PiArrowLeft /> Back
+              </TanStackLink>
+            </Button>
           </Flex>
-        </Form.Root>
+          <Heading>{initialTaxon.acceptedName}</Heading>
+          <Badge color={statusBadgeColor} size="2">
+            {initialTaxon.status}
+          </Badge>
+        </Flex>
+
+        {/* TODO: clean spacing + client discriminated rendering */}
+        <Flex gap="2" justify="between">
+          <Flex gap="2" justify="end">
+            <Button
+              type="button"
+              disabled={isSubmitting || isDeleting || !isDirty}
+              loading={isSubmitting || isDeleting}
+              onClick={handleDiscard}
+              variant="soft"
+            >
+              Discard Changes
+            </Button>
+            <Button
+              type="button"
+              variant={isDraft ? "soft" : "solid"}
+              loading={isSubmitting || isDeleting}
+              disabled={!isDirty || isSubmitting || isDeleting}
+              onClick={handleSubmit(onSave)}
+            >
+              Save
+            </Button>
+          </Flex>
+          <Flex gap="2" justify="end">
+            {isDraft && (
+              <>
+                <Button
+                  type="button"
+                  disabled={isSubmitting || isDeleting}
+                  loading={isSubmitting || isDeleting}
+                  onClick={handleSubmit(onPublish)}
+                >
+                  Publish
+                </Button>
+                <Button
+                  type="button"
+                  disabled={isDeleting || isSubmitting}
+                  loading={isDeleting || isSubmitting}
+                  color="tomato"
+                  onClick={handleDelete}
+                >
+                  Delete Draft
+                </Button>
+              </>
+            )}
+          </Flex>
+        </Flex>
+      </Flex>
+      <FormProvider {...methods}>
+        <Flex asChild>
+          <Form.Root onSubmit={handleSubmit(onSave)} style={{ width: "100%" }}>
+            <Box
+              flexShrink="0"
+              maxWidth="384px"
+              p="5"
+              overflow="auto"
+              style={{
+                background: "var(--color-background)",
+                boxShadow: "inset -1px 0 0 0 var(--gray-a5)",
+              }}
+            >
+              {/* Basic meta (rank, parent, source IDs) */}
+              <MetaForm id={id} acceptedName={initialTaxon.acceptedName} />
+
+              <Separator size="4" my="5" />
+
+              {/* Ecology/Notes */}
+              <TextForm />
+
+              <Separator size="4" my="5" />
+
+              {/* Media */}
+              <MediaEditingForm inatId={inatId} />
+
+              <Separator size="4" my="5" />
+
+              {/* Sources */}
+              <Controller
+                control={control}
+                name="sources"
+                render={({ field: { value, onChange } }) => (
+                  <SourceEditingForm
+                    value={value}
+                    sourcesById={sourcesById}
+                    setSourcesById={setSourcesById}
+                    onChange={onChange}
+                  />
+                )}
+              />
+
+              <Separator size="4" my="5" />
+
+              {/* Names */}
+              <Controller
+                control={control}
+                name="names"
+                render={({ field: { onChange } }) => (
+                  <NameEditingForm inatId={inatId} onChange={onChange} />
+                )}
+              />
+            </Box>
+            <ContentContainer align="start">
+              {/* Characters */}
+              <Controller
+                name="states"
+                control={control}
+                render={({ field }) => (
+                  <CharacterEditingForm
+                    value={field.value as GroupedCharacterFormValue}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            </ContentContainer>
+          </Form.Root>
+        </Flex>
       </FormProvider>
-    </ContentContainer>
+    </Box>
   );
 }

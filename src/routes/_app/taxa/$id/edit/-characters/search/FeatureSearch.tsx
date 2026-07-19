@@ -1,6 +1,5 @@
 import { Box } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
-import { Label } from "radix-ui";
 import * as React from "react";
 import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
 import type { ComboboxOption } from "../../../../../../../components/inputs/combobox/types";
@@ -33,9 +32,6 @@ export const FeatureSearch = ({ onSelect }: FeatureSearchProps) => {
   };
   return (
     <Box>
-      <Box mb="1">
-        <Label.Root htmlFor="feature-search">Add Feature</Label.Root>
-      </Box>
       <InputCombobox.Root
         id="feature-search"
         value={null}

@@ -1,9 +1,8 @@
-import { Box, Button } from "@radix-ui/themes";
+import { Box, Button, Flex, Heading, Text } from "@radix-ui/themes";
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import { PiSparkle } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
-import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
 import { EditingFeatureCard } from "./EditingFeatureCard";
 import { selectExtraction } from "./ExtractionModal";
@@ -56,13 +55,18 @@ export function CharacterEditingForm({
   );
 
   return (
-    <FormDescriptor
-      title="Characters"
-      description="To add a character, first use the group search to add a character group. Once added, you can select trait values for the characters in that group."
-      actions={
+    <Box width="100%">
+      <Flex mb="2" gap="8" width="100%" justify="between" align="center">
+        <Box>
+          <Heading size="3">Characters</Heading>
+          <Text color="gray" size="2">
+            Add features and character states using the input boxes. Click on
+            any character state to attach modifiers.
+          </Text>
+        </Box>
+
         <Button
           type="button"
-          radius="full"
           size="1"
           color="iris"
           onClick={async () => {
@@ -74,10 +78,9 @@ export function CharacterEditingForm({
           aria-label="Extract states from text description"
         >
           <PiSparkle size="16" />
-          Import text description
+          Import text
         </Button>
-      }
-    >
+      </Flex>
       <Box>
         <Box mb="4">
           <FeatureSearch onSelect={handleGroupSelect} />
@@ -94,6 +97,6 @@ export function CharacterEditingForm({
           ))}
         </div>
       </Box>
-    </FormDescriptor>
+    </Box>
   );
 }

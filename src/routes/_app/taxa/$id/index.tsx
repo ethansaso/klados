@@ -15,7 +15,7 @@ import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 import { taxonCharacterStatesQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
 import { sourcesForTaxonQueryOptions } from "../../../../lib/queries/taxonSources";
-import { formatPublicationForTaxon } from "../../../../lib/utils/formatting/formatPublication";
+import { formatPublicationUsage } from "../../../../lib/utils/formatting/formatPublication";
 import { prefixWithRank } from "../../../../lib/utils/formatting/prefixWithRank";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { LookalikesList } from "./-lookalikes/LookalikesList";
@@ -237,7 +237,7 @@ function TaxonPage() {
               <ol className="taxon-sources-list">
                 {sources.map((s) => (
                   <li key={s.id}>
-                    <Text as="span">{formatPublicationForTaxon(s)}</Text>
+                    <Text as="span">{formatPublicationUsage(s)}</Text>
                   </li>
                 ))}
               </ol>
