@@ -1,3 +1,13 @@
+body > div.radix-themes:has(.taxon-editor),
+main:has(.taxon-editor) {
+  flex-shrink: 1;
+  overflow: hidden;
+
+  .rt-Container {
+    overflow: auto;
+  }
+}
+
 .taxon-names__radio-group {
   .taxon-names__item {
     .taxon-names__item__actions {

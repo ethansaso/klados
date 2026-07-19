@@ -1,19 +1,20 @@
 import {
   closestCenter,
   DndContext,
-  type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
+  type DragEndEvent,
 } from "@dnd-kit/core";
+import { restrictToParentElement } from "@dnd-kit/modifiers";
 import {
   rectSortingStrategy,
   SortableContext,
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import NiceModal from "@ebay/nice-modal-react";
-import { Box, Button, Flex, Heading } from "@radix-ui/themes";
+import { Box, Button, Flex, Grid, Heading } from "@radix-ui/themes";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { FaDove } from "react-icons/fa";
 import { PiPlus } from "react-icons/pi";
@@ -28,7 +29,6 @@ type MediaEditorProps = {
   inatId: number | null;
 };
 
-// TODO: prevent dndkit from scrolling right
 export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
   const { control, getValues } = useFormContext<TaxonEditFormValues>();
   const { fields, append, remove, move } = useFieldArray({
@@ -121,10 +121,14 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          modifiers={[restrictToParentElement]}
           onDragEnd={onDragEnd}
         >
           <SortableContext items={itemIds} strategy={rectSortingStrategy}>
-            <Flex gap="2" wrap="wrap">
+            <Grid
+              columns="repeat(auto-fill, minmax(min(96px, 100%), 1fr))"
+              gap="2"
+            >
               {fields.map((field, i) => (
                 <MediaThumbnailCard
                   key={field.rhfId}
@@ -133,7 +137,7 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
                   onRemove={() => remove(i)}
                 />
               ))}
-            </Flex>
+            </Grid>
           </SortableContext>
         </DndContext>
       )}

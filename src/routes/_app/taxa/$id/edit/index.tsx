@@ -36,6 +36,7 @@ import { getSourcesForTaxonFn } from "../../../../../lib/server-fns/taxon-source
 import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { routeSeo } from "../../../../../lib/utils/head/routeSeo";
 import { toast } from "../../../../../lib/utils/toast";
+import { EditorActions } from "./-EditorActions";
 import { CharacterEditingForm } from "./-characters/CharactersEditingForm";
 import type { GroupedCharacterFormValue } from "./-characters/validation";
 import { groupedCharacterFormSchema } from "./-characters/validation";
@@ -161,14 +162,7 @@ function RouteComponent() {
       initialSources,
     ),
   });
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors, isDirty, isSubmitting },
-  } = methods;
-
-  console.log(errors);
+  const { control, handleSubmit, reset } = methods;
 
   const [isDeleting, setIsDeleting] = useState(false);
   // For media fetching
@@ -183,10 +177,10 @@ function RouteComponent() {
 
   useBlocker({
     shouldBlockFn: () =>
-      isDirty && !(isSubmitting || isDeleting)
+      methods.formState.isDirty && !(methods.formState.isSubmitting || isDeleting)
         ? !confirm("Leave without saving?")
         : false,
-    enableBeforeUnload: isDirty,
+    enableBeforeUnload: () => methods.formState.isDirty,
   });
 
   const isDraft = initialTaxon.status === "draft";
@@ -216,7 +210,7 @@ function RouteComponent() {
   }
 
   const handleDiscard = () => {
-    if (!isDirty) return;
+    if (!methods.formState.isDirty) return;
     if (!confirm("Discard unsaved changes?")) return;
     reset(
       seedTaxonEditState(initialTaxon, initialCharacterValues, initialSources),
@@ -227,7 +221,7 @@ function RouteComponent() {
   };
 
   const onSave: SubmitHandler<TaxonEditFormValues> = async (data) => {
-    if (!isDirty) return;
+    if (!methods.formState.isDirty) return;
     try {
       const { media, ...rest } = data;
       await serverUpdate({
@@ -276,7 +270,7 @@ function RouteComponent() {
 
   const handleDelete: MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault();
-    if (!isDraft || isDeleting || isSubmitting) return;
+    if (!isDraft || isDeleting || methods.formState.isSubmitting) return;
 
     const ok = window.confirm(
       "Delete this taxon draft? This cannot be undone.",
@@ -303,80 +297,54 @@ function RouteComponent() {
   };
 
   return (
-    <Box>
+    <FormProvider {...methods}>
       <Flex
-        align="center"
-        justify="between"
-        px="6"
-        py="4"
-        style={{
-          background: "var(--color-background)",
-          boxShadow: "inset 0 -1px 0 0 var(--gray-a5)",
-        }}
+        className="taxon-editor"
+        direction="column"
+        height="100%"
+        overflow="hidden"
       >
-        <Flex align="center" gap="2">
-          <Flex asChild align="center" gap="2">
-            <Button asChild variant="ghost" size="2" mr="4">
-              <TanStackLink to="..">
-                <PiArrowLeft /> Back
-              </TanStackLink>
-            </Button>
+        <Flex
+          align="center"
+          justify="between"
+          flexShrink="0"
+          px="6"
+          py="4"
+          style={{
+            background: "var(--color-background)",
+            boxShadow: "inset 0 -1px 0 0 var(--gray-a5)",
+          }}
+        >
+          <Flex align="center" gap="2">
+            <Flex asChild align="center" gap="2">
+              <Button asChild variant="ghost" size="2" mr="4">
+                <TanStackLink to="..">
+                  <PiArrowLeft /> Back
+                </TanStackLink>
+              </Button>
+            </Flex>
+            <Heading>{initialTaxon.acceptedName}</Heading>
+            <Badge color={statusBadgeColor} size="2">
+              {initialTaxon.status}
+            </Badge>
           </Flex>
-          <Heading>{initialTaxon.acceptedName}</Heading>
-          <Badge color={statusBadgeColor} size="2">
-            {initialTaxon.status}
-          </Badge>
-        </Flex>
 
-        {/* TODO: clean spacing + client discriminated rendering */}
-        <Flex gap="2" justify="between">
-          <Flex gap="2" justify="end">
-            <Button
-              type="button"
-              disabled={isSubmitting || isDeleting || !isDirty}
-              loading={isSubmitting || isDeleting}
-              onClick={handleDiscard}
-              variant="soft"
-            >
-              Discard Changes
-            </Button>
-            <Button
-              type="button"
-              variant={isDraft ? "soft" : "solid"}
-              loading={isSubmitting || isDeleting}
-              disabled={!isDirty || isSubmitting || isDeleting}
-              onClick={handleSubmit(onSave)}
-            >
-              Save
-            </Button>
-          </Flex>
-          <Flex gap="2" justify="end">
-            {isDraft && (
-              <>
-                <Button
-                  type="button"
-                  disabled={isSubmitting || isDeleting}
-                  loading={isSubmitting || isDeleting}
-                  onClick={handleSubmit(onPublish)}
-                >
-                  Publish
-                </Button>
-                <Button
-                  type="button"
-                  disabled={isDeleting || isSubmitting}
-                  loading={isDeleting || isSubmitting}
-                  color="tomato"
-                  onClick={handleDelete}
-                >
-                  Delete Draft
-                </Button>
-              </>
-            )}
-          </Flex>
+          <EditorActions
+            isDraft={isDraft}
+            isDeleting={isDeleting}
+            onDiscard={handleDiscard}
+            onSave={handleSubmit(onSave)}
+            onPublish={handleSubmit(onPublish)}
+            onDelete={handleDelete}
+          />
         </Flex>
-      </Flex>
-      <FormProvider {...methods}>
-        <Flex asChild>
+        <Flex
+          flexGrow="1"
+          flexShrink="1"
+          minHeight="0"
+          overflow="hidden"
+          asChild
+        >
           <Form.Root onSubmit={handleSubmit(onSave)} style={{ width: "100%" }}>
             <Box
               flexShrink="0"
@@ -385,7 +353,7 @@ function RouteComponent() {
               overflow="auto"
               style={{
                 background: "var(--color-background)",
-                boxShadow: "inset -1px 0 0 0 var(--gray-a5)",
+                borderRight: "1px solid var(--gray-a5)",
               }}
             >
               {/* Basic meta (rank, parent, source IDs) */}
@@ -428,7 +396,7 @@ function RouteComponent() {
                 )}
               />
             </Box>
-            <ContentContainer align="start">
+            <ContentContainer align="start" gray>
               {/* Characters */}
               <Controller
                 name="states"
@@ -443,7 +411,7 @@ function RouteComponent() {
             </ContentContainer>
           </Form.Root>
         </Flex>
-      </FormProvider>
-    </Box>
+      </Flex>
+    </FormProvider>
   );
 }

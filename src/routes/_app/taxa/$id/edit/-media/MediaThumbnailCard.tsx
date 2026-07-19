@@ -21,12 +21,11 @@ export const MediaThumbnailCard = ({
   return (
     <Box
       position="relative"
-      width="96px"
-      height="96px"
-      flexShrink="0"
+      width="100%"
       ref={setNodeRef}
       style={{
-        transform: CSS.Transform.toString(transform),
+        aspectRatio: "1 / 1",
+        transform: CSS.Translate.toString(transform),
         transition,
         borderRadius: "var(--radius-4)",
         border: "1px solid var(--gray-6)",
@@ -36,6 +35,7 @@ export const MediaThumbnailCard = ({
         backgroundPosition: "center",
         cursor: isDragging ? "grabbing" : "grab",
         opacity: isDragging ? 0.5 : 1,
+        zIndex: isDragging ? 1 : "auto",
       }}
       {...listeners}
     >

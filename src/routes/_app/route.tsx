@@ -27,7 +27,7 @@ function RouteComponent() {
         </Text>
       </Flex>
       <NavBar user={user} />
-      <main style={{ background: "var(--gray-1)" }}>
+      <main>
         <Outlet />
       </main>
       <Footer />
