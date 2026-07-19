@@ -28,6 +28,7 @@ export const TextForm = () => {
         <TextArea
           id="ecology"
           placeholder="Optional ecology about this taxon"
+          resize="vertical"
           {...register("ecology")}
           {...a11yProps("ecology-error", !!errors.ecology)}
         />
@@ -42,6 +43,7 @@ export const TextForm = () => {
         <TextArea
           id="notes"
           placeholder="Optional notes about this taxon"
+          resize="vertical"
           {...register("notes")}
           {...a11yProps("notes-error", !!errors.notes)}
         />

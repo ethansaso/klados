@@ -197,7 +197,7 @@ export const EditingFeatureCard = memo(
     return (
       <Card style={{ display: "flex", flexDirection: "column" }}>
         <Flex mb="2" align="center" justify="between">
-          <Heading size="2" weight="medium">
+          <Heading size="2" weight="bold">
             {label}
           </Heading>
           {confirmingDelete ? (
@@ -308,6 +308,8 @@ export const EditingFeatureCard = memo(
           <TextField.Root
             id={notesInputId}
             size="1"
+            variant="soft"
+            color="gray"
             value={feature.notes}
             onChange={(e) => handleNotesChange(e.target.value)}
           />
