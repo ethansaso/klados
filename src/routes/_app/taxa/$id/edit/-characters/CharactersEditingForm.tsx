@@ -1,5 +1,5 @@
 import { Box, Button, Flex, Heading, Text } from "@radix-ui/themes";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { PiSparkle } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
@@ -38,6 +38,16 @@ export function CharacterEditingForm({
   const handleDeleteGroup = (groupId: number) => {
     onChange(value.filter((g) => g.featureId !== groupId));
   };
+
+  const sortedGroups = useMemo(
+    () =>
+      [...value].sort((a, b) =>
+        a.featureLabel.localeCompare(b.featureLabel, undefined, {
+          sensitivity: "base",
+        }),
+      ),
+    [value],
+  );
 
   // getValues is stable, so these callbacks are stable
   const handleRemoveCategoricalTrait = useCallback(
@@ -86,7 +96,7 @@ export function CharacterEditingForm({
           <FeatureSearch onSelect={handleGroupSelect} />
         </Box>
         <div className="feature-card-grid">
-          {value.map((group) => (
+          {sortedGroups.map((group) => (
             <EditingFeatureCard
               key={group.featureId}
               feature={group}

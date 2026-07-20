@@ -1,4 +1,5 @@
 import { Button, Flex } from "@radix-ui/themes";
+import { useBlocker } from "@tanstack/react-router";
 import type { MouseEventHandler } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
 import type { TaxonEditFormValues } from ".";
@@ -22,6 +23,14 @@ export const EditorActions = ({
 }: EditorActionsProps) => {
   const { control } = useFormContext<TaxonEditFormValues>();
   const { isDirty, isSubmitting } = useFormState({ control });
+
+  useBlocker({
+    shouldBlockFn: () =>
+      isDirty && !(isSubmitting || isDeleting)
+        ? !confirm("Leave without saving?")
+        : false,
+    enableBeforeUnload: isDirty,
+  });
 
   return (
     <Flex gap="2" justify="between">

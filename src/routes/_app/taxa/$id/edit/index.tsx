@@ -7,12 +7,11 @@ import {
   createFileRoute,
   notFound,
   Link as TanStackLink,
-  useBlocker,
   useNavigate,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Form } from "radix-ui";
-import { useState, type MouseEventHandler } from "react";
+import { useEffect, useRef, useState, type MouseEventHandler } from "react";
 import {
   Controller,
   FormProvider,
@@ -164,6 +163,24 @@ function RouteComponent() {
   });
   const { control, handleSubmit, reset } = methods;
 
+  // Render-free live formState snapshot for handlers below: methods.formState
+  // only stays fresh for consumers that read it during a render (RHF's proxy
+  // only tracks/recomputes fields that were actually accessed while
+  // rendering). Reading it lazily inside a callback with nothing else
+  // subscribing during render would silently freeze at its initial value.
+  const liveFormStateRef = useRef({ isDirty: false, isSubmitting: false });
+  useEffect(() => {
+    return methods.subscribe({
+      formState: { isDirty: true },
+      callback: (formState) => {
+        liveFormStateRef.current = {
+          isDirty: formState.isDirty ?? false,
+          isSubmitting: formState.isSubmitting ?? false,
+        };
+      },
+    });
+  }, [methods]);
+
   const [isDeleting, setIsDeleting] = useState(false);
   // For media fetching
   const inatId = useWatch({ control, name: "sourceInatId" });
@@ -173,14 +190,6 @@ function RouteComponent() {
     const m = new Map<number, SourceDTO>();
     for (const row of initialSources) m.set(row.sourceId, row.source);
     return m;
-  });
-
-  useBlocker({
-    shouldBlockFn: () =>
-      methods.formState.isDirty && !(methods.formState.isSubmitting || isDeleting)
-        ? !confirm("Leave without saving?")
-        : false,
-    enableBeforeUnload: () => methods.formState.isDirty,
   });
 
   const isDraft = initialTaxon.status === "draft";
@@ -210,7 +219,7 @@ function RouteComponent() {
   }
 
   const handleDiscard = () => {
-    if (!methods.formState.isDirty) return;
+    if (!liveFormStateRef.current.isDirty) return;
     if (!confirm("Discard unsaved changes?")) return;
     reset(
       seedTaxonEditState(initialTaxon, initialCharacterValues, initialSources),
@@ -221,7 +230,7 @@ function RouteComponent() {
   };
 
   const onSave: SubmitHandler<TaxonEditFormValues> = async (data) => {
-    if (!methods.formState.isDirty) return;
+    if (!liveFormStateRef.current.isDirty) return;
     try {
       const { media, ...rest } = data;
       await serverUpdate({
@@ -270,7 +279,7 @@ function RouteComponent() {
 
   const handleDelete: MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault();
-    if (!isDraft || isDeleting || methods.formState.isSubmitting) return;
+    if (!isDraft || isDeleting || liveFormStateRef.current.isSubmitting) return;
 
     const ok = window.confirm(
       "Delete this taxon draft? This cannot be undone.",

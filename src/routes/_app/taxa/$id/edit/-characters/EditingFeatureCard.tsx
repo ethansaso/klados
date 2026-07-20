@@ -196,7 +196,18 @@ export const EditingFeatureCard = memo(
 
     return (
       <Card style={{ display: "flex", flexDirection: "column" }}>
-        <Flex mb="2" align="center" justify="between">
+        <Flex
+          m="-3"
+          p="3"
+          py="2"
+          mb="1"
+          align="center"
+          justify="between"
+          style={{
+            background: "var(--gray-a3)",
+            borderBottom: "1px solid var(--gray-a5)",
+          }}
+        >
           <Heading size="2" weight="bold">
             {label}
           </Heading>
@@ -309,7 +320,6 @@ export const EditingFeatureCard = memo(
             id={notesInputId}
             size="1"
             variant="soft"
-            color="gray"
             value={feature.notes}
             onChange={(e) => handleNotesChange(e.target.value)}
           />
