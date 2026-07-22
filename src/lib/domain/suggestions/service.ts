@@ -70,9 +70,7 @@ function computeFuzzyScore(
  *  - `{ expanded: UnitDTO[] }` — no query unit match; emit one suggestion per family unit.
  */
 type UnitExpansion =
-  | { matched: UnitDTO }
-  | { unitless: true }
-  | { expanded: UnitDTO[] };
+  { matched: UnitDTO } | { unitless: true } | { expanded: UnitDTO[] };
 
 function resolveExpansionUnits(
   meta: NumericCharacterMetaRow,
@@ -251,7 +249,13 @@ export async function buildNumericRangeSuggestions(opts: {
   limit: number;
 }): Promise<NumericRangeSuggestion[]> {
   const { featureId, parsedNumeric, limit } = opts;
-  if (parsedNumeric.kind !== "range") return [];
+  // A plain single value (e.g. "4mm", no dash) is also offered against
+  // range-kind characters as a degenerate (min === max) range.
+  // Curators generally won't be thinking "I need to enter a valid
+  // range signature for my range character".
+  if (parsedNumeric.kind !== "range" && parsedNumeric.kind !== "single") {
+    return [];
+  }
 
   const token = normalizeUnitToken(parsedNumeric.unitText);
   const resolvedUnit = token ? await resolveUnitFromToken(token) : null;
@@ -267,12 +271,17 @@ export async function buildNumericRangeSuggestions(opts: {
   ]);
 
   const suggestions: NumericRangeSuggestion[] = [];
-  const { min, max } = parsedNumeric;
+  const { min, max } =
+    parsedNumeric.kind === "range"
+      ? parsedNumeric
+      : { min: parsedNumeric.value, max: parsedNumeric.value };
 
   function rangeDisplay(unitSymbol?: string): string {
     const numStr =
       min !== null && max !== null
-        ? `${min}–${max}`
+        ? min === max
+          ? `~${min}`
+          : `${min}–${max}`
         : min !== null
           ? `≥ ${min}`
           : `≤ ${max}`;

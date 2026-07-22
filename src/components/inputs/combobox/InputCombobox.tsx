@@ -58,7 +58,7 @@ type InputProps = Omit<
   rightSlot?: ReactNode;
 };
 type PopoverProps = ComponentProps<typeof RadixPopover.Content> & {
-  children: ReactNode;
+  matchTriggerWidth?: boolean;
 };
 type ListProps = {
   className?: string;
@@ -245,10 +245,21 @@ function Popover({
   side = "bottom",
   align = "start",
   sideOffset = 4,
+  matchTriggerWidth,
   className,
+  style,
   ...props
 }: PopoverProps) {
   const { comboboxRef, listboxRef, size } = useCb();
+  const mergedClassName = classNames(
+    "input-combobox__content",
+    `size-${size ?? 2}`,
+    className,
+  );
+  const mergedStyles = {
+    ...(matchTriggerWidth && { width: "var(--radix-popover-trigger-width)" }),
+    ...style,
+  };
 
   return (
     <RadixPopover.Portal>
@@ -270,11 +281,8 @@ function Popover({
               event.preventDefault();
             }
           }}
-          className={classNames(
-            "input-combobox__content",
-            `size-${size ?? 2}`,
-            className,
-          )}
+          className={mergedClassName}
+          style={mergedStyles}
           {...props}
         >
           {children}

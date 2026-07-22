@@ -134,6 +134,7 @@
   width: 100%;
   background-color: var(--color-panel-solid);
   box-shadow: var(--shadow-5);
+  box-sizing: border-box;
   border-radius: var(--radius-4);
   overflow: hidden;
   z-index: 1000;

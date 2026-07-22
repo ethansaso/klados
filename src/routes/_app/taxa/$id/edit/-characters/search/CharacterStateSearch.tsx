@@ -135,7 +135,7 @@ export function CharacterStateSearch({
             }
           }}
         />
-        <InputCombobox.Popover>
+        <InputCombobox.Popover matchTriggerWidth>
           <InputCombobox.List>
             {options.map((opt) => (
               <InputCombobox.Item key={opt.id} option={opt} />
