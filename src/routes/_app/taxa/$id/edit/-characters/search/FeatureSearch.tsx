@@ -5,11 +5,18 @@ import { InputCombobox } from "../../../../../../../components/inputs/combobox/I
 import type { ComboboxOption } from "../../../../../../../components/inputs/combobox/types";
 import { featuresQueryOptions } from "../../../../../../../lib/queries/features";
 
+export const FEATURE_SEARCH_INPUT_ID = "feature-search";
+
 interface FeatureSearchProps {
   onSelect: (feature: ComboboxOption) => void;
+  /** Called when the user presses / with an empty input. */
+  onDownShortcut?: () => void;
 }
 
-export const FeatureSearch = ({ onSelect }: FeatureSearchProps) => {
+export const FeatureSearch = ({
+  onSelect,
+  onDownShortcut,
+}: FeatureSearchProps) => {
   const [searchQ, setSearchQ] = React.useState("");
 
   // First page of features, filtered by q.
@@ -33,14 +40,22 @@ export const FeatureSearch = ({ onSelect }: FeatureSearchProps) => {
   return (
     <Box>
       <InputCombobox.Root
-        id="feature-search"
+        id={FEATURE_SEARCH_INPUT_ID}
         value={null}
         onValueChange={handleFeatureSelect}
         options={options}
         onQueryChange={setSearchQ}
         loading={isLoading}
       >
-        <InputCombobox.Input placeholder="Search features…" />
+        <InputCombobox.Input
+          placeholder="Search features…"
+          onKeyDown={(e) => {
+            if (e.key === "/" && !e.currentTarget.value && onDownShortcut) {
+              e.preventDefault();
+              onDownShortcut();
+            }
+          }}
+        />
         <InputCombobox.Popover>
           <InputCombobox.List>
             {options.map((opt) => (

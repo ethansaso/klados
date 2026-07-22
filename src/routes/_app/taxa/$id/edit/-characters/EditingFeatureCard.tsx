@@ -18,6 +18,7 @@ import type { TraitSuggestion } from "../../../../../../lib/domain/suggestions/t
 import { featureQueryOptions } from "../../../../../../lib/queries/features";
 import { CharacterStateRow } from "./CharacterStateRow";
 import { CharacterStateSearch } from "./search/CharacterStateSearch";
+import { FEATURE_SEARCH_INPUT_ID } from "./search/FeatureSearch";
 import {
   addStateFromSuggestion,
   updateCategoricalTraitValueModifiers,
@@ -29,6 +30,9 @@ type LastAdded = {
   traitIndex?: number;
   label: string;
 };
+
+export const characterSearchInputId = (featureId: number) =>
+  `character-search-${featureId}`;
 
 type Props = {
   feature: FeatureFormValue;
@@ -51,12 +55,16 @@ export const EditingFeatureCard = memo(
     const focusNotesOnExpandRef = useRef(false);
     const [lastAdded, setLastAdded] = useState<LastAdded | null>(null);
     const [autoOpenFor, setAutoOpenFor] = useState<LastAdded | null>(null);
-    const searchInputId = useId();
+    const searchInputId = characterSearchInputId(feature.featureId);
     const notesInputId = useId();
 
     const focusSearch = useCallback(() => {
       document.getElementById(searchInputId)?.focus();
     }, [searchInputId]);
+
+    const focusFeatureSearch = useCallback(() => {
+      document.getElementById(FEATURE_SEARCH_INPUT_ID)?.focus();
+    }, []);
 
     const { data, isLoading, isError } = useQuery({
       ...featureQueryOptions(feature.featureId),
@@ -104,7 +112,6 @@ export const EditingFeatureCard = memo(
 
     const handleAutoOpenHandled = useCallback(() => {
       setAutoOpenFor(null);
-      setLastAdded(null);
     }, []);
 
     const handleUpdateCategoricalModifiers = useCallback(
@@ -263,17 +270,11 @@ export const EditingFeatureCard = memo(
           <CharacterStateSearch
             featureId={feature.featureId}
             onSelect={handleSuggestionSelect}
-            modifyHint={lastAdded?.label}
             inputId={searchInputId}
             onModifyShortcut={
-              lastAdded
-                ? () => {
-                    setAutoOpenFor(lastAdded);
-                    setLastAdded(null); // dismiss hint immediately on /
-                  }
-                : undefined
+              lastAdded ? () => setAutoOpenFor(lastAdded) : undefined
             }
-            onQueryActive={() => setLastAdded(null)}
+            onEscapeShortcut={focusFeatureSearch}
           />
         </Box>
 
@@ -352,6 +353,12 @@ export const EditingFeatureCard = memo(
                 variant="surface"
                 value={feature.notes}
                 onChange={(e) => handleNotesChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    focusFeatureSearch();
+                  }
+                }}
               />
             </>
           ) : (

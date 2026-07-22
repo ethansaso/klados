@@ -1,10 +1,13 @@
 import { Box, Button, Flex, Heading, Text } from "@radix-ui/themes";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { PiSparkle } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
 import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
-import { EditingFeatureCard } from "./EditingFeatureCard";
+import {
+  characterSearchInputId,
+  EditingFeatureCard,
+} from "./EditingFeatureCard";
 import { selectExtraction } from "./ExtractionModal";
 import { FeatureSearch } from "./search/FeatureSearch";
 import { removeCategoricalTraitValue } from "./stateUtils";
@@ -20,6 +23,9 @@ export function CharacterEditingForm({
   onChange,
 }: CharacterEditingFormProps) {
   const { getValues } = useFormContext<TaxonEditFormValues>();
+  const [lastAddedFeatureId, setLastAddedFeatureId] = useState<number | null>(
+    null,
+  );
 
   const handleGroupSelect = (option: ComboboxOption) => {
     if (value.some((g) => g.featureId === option.id)) return;
@@ -33,6 +39,7 @@ export function CharacterEditingForm({
         characters: [],
       },
     ]);
+    setLastAddedFeatureId(option.id);
   };
 
   const handleDeleteGroup = (groupId: number) => {
@@ -93,7 +100,20 @@ export function CharacterEditingForm({
       </Flex>
       <Box>
         <Box mb="4">
-          <FeatureSearch onSelect={handleGroupSelect} />
+          <FeatureSearch
+            onSelect={handleGroupSelect}
+            onDownShortcut={
+              lastAddedFeatureId != null
+                ? () => {
+                    document
+                      .getElementById(
+                        characterSearchInputId(lastAddedFeatureId),
+                      )
+                      ?.focus();
+                  }
+                : undefined
+            }
+          />
         </Box>
         <div className="feature-card-grid">
           {sortedGroups.map((group) => (

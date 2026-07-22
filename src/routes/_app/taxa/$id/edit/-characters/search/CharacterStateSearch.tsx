@@ -1,4 +1,4 @@
-import { Box, Flex, Kbd, Text } from "@radix-ui/themes";
+import { Box } from "@radix-ui/themes";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useId, useRef, useState } from "react";
 import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
@@ -12,12 +12,10 @@ type FeatureStateSearchProps = {
   onSelect: (suggestion: TraitSuggestion) => void;
   /** Optional placeholder text in the search input. */
   placeholder?: string;
-  /** Label of the last-added item — shows a / shortcut hint when set. */
-  modifyHint?: string;
   /** Called when the user presses / with an empty input. */
   onModifyShortcut?: () => void;
-  /** Called when the user starts typing a new query (clears the hint). */
-  onQueryActive?: () => void;
+  /** Called when the user presses Escape. */
+  onEscapeShortcut?: () => void;
   /** Stable HTML id for the search input (used for external focus). */
   inputId?: string;
 };
@@ -26,9 +24,8 @@ export function CharacterStateSearch({
   featureId,
   onSelect,
   placeholder = "Type a value or trait…",
-  modifyHint,
   onModifyShortcut,
-  onQueryActive,
+  onEscapeShortcut,
   inputId,
 }: FeatureStateSearchProps) {
   const [suggestions, setSuggestions] = useState<TraitSuggestion[]>([]);
@@ -128,21 +125,13 @@ export function CharacterStateSearch({
         <InputCombobox.Input
           id={rootId}
           placeholder={placeholder}
-          rightSlot={
-            modifyHint ? (
-              <Flex align="center" gap="1">
-                <Kbd size="1">/</Kbd>
-                <Text size="1" color="gray">
-                  modify "{modifyHint}"
-                </Text>
-              </Flex>
-            ) : undefined
-          }
-          onBlur={() => onQueryActive?.()}
           onKeyDown={(e) => {
             if (e.key === "/" && !e.currentTarget.value && onModifyShortcut) {
               e.preventDefault();
               onModifyShortcut();
+            } else if (e.key === "Escape" && onEscapeShortcut) {
+              e.preventDefault();
+              onEscapeShortcut();
             }
           }}
         />
