@@ -22,6 +22,7 @@ export type CategoricalValueSuggestion = BaseCharacterContext & {
   kind: "categorical-value";
   traitValueId: number;
   traitValueLabel: string; // "Red"
+  traitValueDescription: string; // may be ""
   traitValueHexCode: string | null; // "#FF0000" or null
 };
 
@@ -43,9 +44,7 @@ export type NumericRangeSuggestion = BaseNumericSuggestion & {
  * Intended for use in character editing UIs.
  */
 export type TraitSuggestion =
-  | CategoricalValueSuggestion
-  | NumericSingleSuggestion
-  | NumericRangeSuggestion;
+  CategoricalValueSuggestion | NumericSingleSuggestion | NumericRangeSuggestion;
 
 /**
  * A suggestion for modifier values.
@@ -59,9 +58,5 @@ export type ModifierSuggestion = {
   groupId: number;
   groupLabel: string; // e.g. "Position"
   groupClass:
-    | "positional"
-    | "reliability"
-    | "demographic"
-    | "reactive"
-    | "intensity";
+    "positional" | "reliability" | "demographic" | "reactive" | "intensity";
 };

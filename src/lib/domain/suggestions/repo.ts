@@ -37,6 +37,7 @@ export type CategoricalSuggestionRow = {
   featureLabel: string;
   traitValueId: number;
   traitValueLabel: string;
+  traitValueDescription: string;
   traitValueHexCode: string | null;
   similarityScore: number;
 };
@@ -159,8 +160,9 @@ export async function queryCategoricalSuggestionRows(opts: {
         featureLabel: feature.label,
         traitValueId: categoricalTraitValue.id,
         traitValueLabel: categoricalTraitValue.label,
-        // Hex from canonical value (or self when already canonical)
+        // Hex/description from canonical value (or self when already canonical)
         traitValueHexCode: canonicalValue.hexCode,
+        traitValueDescription: canonicalValue.description,
         similarityScore: sql<number>`
         similarity(
           lower(${categoricalTraitValue.label}),

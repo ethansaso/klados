@@ -98,23 +98,21 @@ export function CharacterEditingForm({
           Import text
         </Button>
       </Flex>
+      <Box mb="5">
+        <FeatureSearch
+          onSelect={handleGroupSelect}
+          onDownShortcut={
+            lastAddedFeatureId != null
+              ? () => {
+                  document
+                    .getElementById(characterSearchInputId(lastAddedFeatureId))
+                    ?.focus();
+                }
+              : undefined
+          }
+        />
+      </Box>
       <Box>
-        <Box mb="4">
-          <FeatureSearch
-            onSelect={handleGroupSelect}
-            onDownShortcut={
-              lastAddedFeatureId != null
-                ? () => {
-                    document
-                      .getElementById(
-                        characterSearchInputId(lastAddedFeatureId),
-                      )
-                      ?.focus();
-                  }
-                : undefined
-            }
-          />
-        </Box>
         <div className="feature-card-grid">
           {sortedGroups.map((group) => (
             <EditingFeatureCard

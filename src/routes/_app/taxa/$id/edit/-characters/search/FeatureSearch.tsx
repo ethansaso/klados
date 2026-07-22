@@ -1,4 +1,4 @@
-import { Box } from "@radix-ui/themes";
+import { Box, Flex, Text } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
@@ -30,20 +30,16 @@ export const FeatureSearch = ({
     hint: f.description ?? undefined,
   }));
 
-  const handleFeatureSelect = (opt: ComboboxOption | null) => {
-    if (!opt) {
-      return;
-    }
-
-    onSelect(opt);
+  const handleSelect = (value: string) => {
+    const opt = options.find((o) => String(o.id) === value);
+    if (opt) onSelect(opt);
   };
+
   return (
     <Box>
       <InputCombobox.Root
         id={FEATURE_SEARCH_INPUT_ID}
-        value={null}
-        onValueChange={handleFeatureSelect}
-        options={options}
+        onSelect={handleSelect}
         onQueryChange={setSearchQ}
         loading={isLoading}
       >
@@ -57,9 +53,31 @@ export const FeatureSearch = ({
           }}
         />
         <InputCombobox.Popover>
-          <InputCombobox.List>
+          <InputCombobox.List isEmpty={options.length === 0}>
             {options.map((opt) => (
-              <InputCombobox.Item key={opt.id} option={opt} />
+              <InputCombobox.Item key={opt.id} value={String(opt.id)}>
+                <Flex align="baseline" gap="2" overflow="hidden">
+                  <Text
+                    as="p"
+                    truncate
+                    weight="medium"
+                    className="input-combobox__item-label"
+                  >
+                    {opt.label}
+                  </Text>
+                  {opt.hint && (
+                    <Text
+                      as="p"
+                      size="1"
+                      color="gray"
+                      truncate
+                      className="input-combobox__item-hint"
+                    >
+                      {opt.hint}
+                    </Text>
+                  )}
+                </Flex>
+              </InputCombobox.Item>
             ))}
           </InputCombobox.List>
         </InputCombobox.Popover>

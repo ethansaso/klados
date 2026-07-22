@@ -158,6 +158,7 @@ export async function searchCategoricalSuggestions(opts: {
     featureLabel: row.featureLabel,
     traitValueId: row.traitValueId,
     traitValueLabel: row.traitValueLabel,
+    traitValueDescription: row.traitValueDescription,
     traitValueHexCode: row.traitValueHexCode,
   }));
 }

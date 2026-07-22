@@ -8,6 +8,10 @@
   width: 100%;
 }
 
+.input-combobox__content .rt-ScrollAreaViewport > div {
+  width: 100%;
+}
+
 .combobox__item {
   width: 100%;
 }
