@@ -44,6 +44,7 @@ export type LookalikeComparisonAnnotatedState =
 export type LookalikeComparisonCharacter = {
   characterId: number;
   characterLabel: string;
+  showInProse: boolean;
   states: LookalikeComparisonAnnotatedState[];
 };
 

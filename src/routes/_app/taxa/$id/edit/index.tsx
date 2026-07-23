@@ -357,7 +357,7 @@ function RouteComponent() {
           <Form.Root onSubmit={handleSubmit(onSave)} style={{ width: "100%" }}>
             <Box
               flexShrink="0"
-              maxWidth="384px"
+              maxWidth="416px"
               p="5"
               overflow="auto"
               style={{
@@ -405,19 +405,21 @@ function RouteComponent() {
                 )}
               />
             </Box>
-            <ContentContainer align="start" gray>
-              {/* Characters */}
-              <Controller
-                name="states"
-                control={control}
-                render={({ field }) => (
-                  <CharacterEditingForm
-                    value={field.value as GroupedCharacterFormValue}
-                    onChange={field.onChange}
-                  />
-                )}
-              />
-            </ContentContainer>
+            <Box flexGrow="1" flexShrink="1">
+              <ContentContainer align="start" gray>
+                {/* Characters */}
+                <Controller
+                  name="states"
+                  control={control}
+                  render={({ field }) => (
+                    <CharacterEditingForm
+                      value={field.value as GroupedCharacterFormValue}
+                      onChange={field.onChange}
+                    />
+                  )}
+                />
+              </ContentContainer>
+            </Box>
           </Form.Root>
         </Flex>
       </Flex>
