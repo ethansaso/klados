@@ -18,6 +18,8 @@ export const character = pgTable(
     id: serial("id").primaryKey(),
     label: text("label").notNull(),
     description: text("description").notNull().default(""),
+    // Signals whether to show label in prose (e.g. 'odor indistinct' vs. just 'indistinct').
+    showInProse: boolean("show_in_prose").notNull(),
     mediaId: integer("media_id").references(() => media.id, {
       onDelete: "set null",
     }),

@@ -13,7 +13,10 @@ export type CategoricalMetaRow = typeof categoricalCharacterMeta.$inferSelect;
 export type NumericMetaRow = typeof numericCharacterMeta.$inferSelect;
 export type UnitFamilyRow = typeof unitFamily.$inferSelect;
 
-type BaseCharacterDTO = Pick<CharacterRow, "id" | "label" | "description"> & {
+type BaseCharacterDTO = Pick<
+  CharacterRow,
+  "id" | "label" | "description" | "showInProse"
+> & {
   features: Pick<FeatureRow, "id" | "label">[];
   usageCount: number;
   media: MediaDTO | null;

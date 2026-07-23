@@ -46,6 +46,7 @@ type RawCharacterRow = {
   key: string;
   label: string;
   description: string;
+  showInProse: boolean;
   feature: { id: number; label: string };
   usageCount: number;
   type: "categorical" | "number" | "range";
@@ -69,6 +70,7 @@ function groupRowsToCharacterDTOs(
         key: row.key,
         label: row.label,
         description: row.description,
+        showInProse: row.showInProse,
         features: row.feature ? [row.feature] : [],
         usageCount: row.usageCount,
         media: row.mediaId != null ? (mediaMap.get(row.mediaId) ?? null) : null,
@@ -117,9 +119,6 @@ function groupRowsToCharacterDTOs(
 /**
  * Fetch a single character detail by id.
  */
-/**
- * Fetch a single character detail by id.
- */
 export async function fetchCharacterDetailById(
   tx: TxOrDb,
   id: number,
@@ -130,6 +129,7 @@ export async function fetchCharacterDetailById(
       id: charsTbl.id,
       label: charsTbl.label,
       description: charsTbl.description,
+      showInProse: charsTbl.showInProse,
       mediaId: charsTbl.mediaId,
     })
     .from(charsTbl)
@@ -184,6 +184,7 @@ export async function fetchCharacterDetailById(
       id: base.id,
       label: base.label,
       description: base.description,
+      showInProse: base.showInProse,
       features,
       usageCount,
       media,
@@ -196,7 +197,7 @@ export async function fetchCharacterDetailById(
   // Otherwise, fetch numeric / range metadata
   const numericMeta = await tx
     .select({
-      kind: numMetaTbl.kind, // 'single' | 'range'
+      kind: numMetaTbl.kind,
       unitFamily: {
         id: unitFamilyTbl.id,
         label: unitFamilyTbl.label,
@@ -234,6 +235,7 @@ export async function fetchCharacterDetailById(
     id: base.id,
     label: base.label,
     description: base.description,
+    showInProse: base.showInProse,
     features,
     usageCount,
     media,
@@ -261,6 +263,7 @@ export async function selectCharactersByIds(
       id: charsTbl.id,
       label: charsTbl.label,
       description: charsTbl.description,
+      showInProse: charsTbl.showInProse,
       feature: { id: featuresTbl.id, label: featuresTbl.label },
 
       usageCount: sql<number>`CASE
@@ -359,6 +362,7 @@ export async function listCharactersQuery(args: {
         id: charsTbl.id,
         label: charsTbl.label,
         description: charsTbl.description,
+        showInProse: charsTbl.showInProse,
         feature: { id: featuresTbl.id, label: featuresTbl.label },
 
         usageCount: sql<number>`(
@@ -435,22 +439,26 @@ export async function insertCharacter(
   args: {
     label: string;
     description: string;
+    showInProse: boolean;
   },
 ): Promise<{
   id: number;
   label: string;
   description: string;
+  showInProse: boolean;
 } | null> {
   const [row] = await tx
     .insert(charsTbl)
     .values({
       label: args.label,
       description: args.description,
+      showInProse: args.showInProse,
     })
     .returning({
       id: charsTbl.id,
       label: charsTbl.label,
       description: charsTbl.description,
+      showInProse: charsTbl.showInProse,
     });
 
   return row ?? null;
@@ -610,19 +618,26 @@ export async function deleteCharacterById(
 export async function updateCharacterBase(
   tx: Transaction,
   id: number,
-  values: Partial<{ label: string; description: string; mediaId: number | null }>,
+  values: Partial<{
+    label: string;
+    description: string;
+    showInProse: boolean;
+    mediaId: number | null;
+  }>,
 ): Promise<{
   id: number;
   label: string;
   description: string;
+  showInProse: boolean;
 } | null> {
-  // Nothing to set → just verify existence
+  // Nothing to set, just verify existence
   if (!Object.keys(values).length) {
     const [existing] = await tx
       .select({
         id: charsTbl.id,
         label: charsTbl.label,
         description: charsTbl.description,
+        showInProse: charsTbl.showInProse,
       })
       .from(charsTbl)
       .where(eq(charsTbl.id, id))
@@ -638,6 +653,7 @@ export async function updateCharacterBase(
       id: charsTbl.id,
       label: charsTbl.label,
       description: charsTbl.description,
+      showInProse: charsTbl.showInProse,
     });
 
   return row ?? null;

@@ -81,6 +81,7 @@ export async function createCharacter(
     const charRow = await insertCharacter(tx, {
       label: normalizedLabel,
       description: normalizedDescription,
+      showInProse: args.showInProse,
     });
 
     if (!charRow) return null;
@@ -104,6 +105,7 @@ export async function createCharacter(
         label: charRow.label,
         features: [],
         description: charRow.description,
+        showInProse: charRow.showInProse,
         usageCount: 0,
         media: null,
         type: "categorical",
@@ -118,6 +120,7 @@ export async function createCharacter(
         id: charRow.id,
         label: charRow.label,
         description: charRow.description,
+        showInProse: charRow.showInProse,
         features: [],
         usageCount: 0,
         media: null,
@@ -132,6 +135,7 @@ export async function createCharacter(
       id: charRow.id,
       label: charRow.label,
       description: charRow.description,
+      showInProse: charRow.showInProse,
       features: [],
       usageCount: 0,
       media: null,
@@ -185,12 +189,15 @@ export async function updateCharacter(
     key: string;
     label: string;
     description: string;
+    showInProse: boolean;
     mediaId: number | null;
   }> = {};
   if (baseFields.label !== undefined)
     normalized.label = baseFields.label.trim();
   if (baseFields.description !== undefined)
     normalized.description = baseFields.description.trim();
+  if (baseFields.showInProse !== undefined)
+    normalized.showInProse = baseFields.showInProse;
   if (mediaId !== undefined) normalized.mediaId = mediaId;
 
   return db.transaction(async (tx) => {
