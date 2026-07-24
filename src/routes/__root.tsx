@@ -2,7 +2,7 @@ import "../assets/styles/main.css";
 
 import NiceModal from "@ebay/nice-modal-react";
 import { Theme } from "@radix-ui/themes";
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
   HeadContent,
   Outlet,
@@ -13,6 +13,7 @@ import {
 import type { ReactNode } from "react";
 import { ToastHost } from "../components/ToastHost";
 import { meQueryOptions } from "../lib/queries/users";
+import { themeQueryOptions } from "../lib/queries/theme";
 import { GA_ID } from "../lib/utils/head/const";
 import { rootSeo } from "../lib/utils/head/rootSeo";
 import { paginationDefaults } from "../lib/validation/pagination";
@@ -21,7 +22,10 @@ export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
   beforeLoad: async ({ context }) => {
-    const user = await context.queryClient.ensureQueryData(meQueryOptions());
+    const [user] = await Promise.all([
+      context.queryClient.ensureQueryData(meQueryOptions()),
+      context.queryClient.ensureQueryData(themeQueryOptions()),
+    ]);
 
     return { user };
   },
@@ -91,8 +95,10 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootComponent() {
+  const { data: theme } = useSuspenseQuery(themeQueryOptions());
+
   return (
-    <RootDocument>
+    <RootDocument theme={theme}>
       <NiceModal.Provider>
         <Outlet />
       </NiceModal.Provider>
@@ -101,14 +107,25 @@ function RootComponent() {
   );
 }
 
-function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
+function RootDocument({
+  theme,
+  children,
+}: Readonly<{
+  theme: "light" | "dark";
+  children: ReactNode;
+}>) {
   return (
     <html lang="en">
       <head>
         <HeadContent />
       </head>
       <body>
-        <Theme hasBackground accentColor="amber" panelBackground="solid">
+        <Theme
+          appearance={theme}
+          hasBackground
+          accentColor="amber"
+          panelBackground="solid"
+        >
           {children}
         </Theme>
         <Scripts />

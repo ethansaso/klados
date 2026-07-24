@@ -1,10 +1,12 @@
 import { Flex, Text } from "@radix-ui/themes";
+import { useQuery } from "@tanstack/react-query";
 import {
   Controls,
   ReactFlow,
   useEdgesState,
   useNodesState,
 } from "@xyflow/react";
+import { themeQueryOptions } from "../../../lib/queries/theme";
 import LogoBackground from "../bg/LogoBackground";
 import { demoEdges, demoNodes } from "./demoData";
 import { demoEdgeTypes, demoNodeTypes } from "./demoTypes";
@@ -12,6 +14,7 @@ import { demoEdgeTypes, demoNodeTypes } from "./demoTypes";
 export const GuideDemoCanvas = () => {
   const [nodes, , onNodesChange] = useNodesState(demoNodes);
   const [edges, , onEdgesChange] = useEdgesState(demoEdges);
+  const { data: theme } = useQuery(themeQueryOptions());
 
   return (
     <Flex
@@ -22,6 +25,7 @@ export const GuideDemoCanvas = () => {
     >
       <ReactFlow
         className="rf-demo__canvas"
+        colorMode={theme}
         nodes={nodes}
         edges={edges}
         nodeTypes={demoNodeTypes}

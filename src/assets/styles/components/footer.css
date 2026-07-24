@@ -1,9 +1,4 @@
 footer.footer {
   margin-top: auto;
-  background: var(--color-background);
-  box-shadow: inset 0 1px 0 0 var(--gray-a5);
-
-  .footer__attr {
-    /* border-top: 1px solid var(--border-color); */
-  }
+  border-top: 1px solid var(--gray-a5);
 }

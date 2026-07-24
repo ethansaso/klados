@@ -405,7 +405,7 @@ function RouteComponent() {
                 )}
               />
             </Box>
-            <Box flexGrow="1" flexShrink="1">
+            <Box flexGrow="1" flexShrink="1" overflow="auto">
               <ContentContainer align="start" gray>
                 {/* Characters */}
                 <Controller
