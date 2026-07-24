@@ -6,6 +6,7 @@ import { roleHasCuratorRights } from "../../lib/auth/utils";
 import { useIsActive } from "../../lib/hooks/useIsActive";
 import { useMediaQuery } from "../../lib/hooks/useMediaQuery";
 import { getMeFn } from "../../lib/server-fns/users/getMeFn";
+import { ThemeToggle } from "../ThemeToggle";
 import { NavBarBrand } from "./NavBarBrand";
 import { NavDropdown } from "./NavDropdown";
 import { NavSheet } from "./NavSheet";
@@ -93,24 +94,26 @@ export function NavBar({ user }: NavBarProps) {
         </NavDropdown.Root>
       </Flex>
 
-      {user ? (
-        <UserMenu
-          name={user.name}
-          email={user.email}
-          username={user.username}
-          imageUrl={user.image ?? undefined}
-          style={{ marginLeft: "auto" }}
-        />
-      ) : (
-        <Flex gap={"5"} align="center" ml="auto" mr="3">
-          <Button variant="ghost" asChild>
-            <RouterLink to="/login">Log In</RouterLink>
-          </Button>
-          <Button variant="ghost" asChild>
-            <RouterLink to="/signup">Sign Up</RouterLink>
-          </Button>
-        </Flex>
-      )}
+      <Flex align="center" gap="3" ml="auto">
+        <ThemeToggle />
+        {user ? (
+          <UserMenu
+            name={user.name}
+            email={user.email}
+            username={user.username}
+            imageUrl={user.image ?? undefined}
+          />
+        ) : (
+          <Flex gap={"5"} align="center" mr="3">
+            <Button variant="ghost" asChild>
+              <RouterLink to="/login">Log In</RouterLink>
+            </Button>
+            <Button variant="ghost" asChild>
+              <RouterLink to="/signup">Sign Up</RouterLink>
+            </Button>
+          </Flex>
+        )}
+      </Flex>
       {/* Mobile hamburger + sheet */}
       {isMobile ? (
         <Dialog.Root open={expanded} onOpenChange={setExpanded}>

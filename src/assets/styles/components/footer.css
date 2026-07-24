@@ -1,8 +1,4 @@
 footer.footer {
   margin-top: auto;
-  border-top: 1px solid var(--border-color);
-
-  .footer__attr {
-    /* border-top: 1px solid var(--border-color); */
-  }
+  border-top: 1px solid var(--gray-a5);
 }
