@@ -29,6 +29,7 @@ const DEFAULT_VALUES = {
   traitSetId: undefined,
   description: undefined,
   isMultiSelect: true,
+  showInProse: false,
 };
 
 interface Props {

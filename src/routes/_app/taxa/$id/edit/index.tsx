@@ -1,27 +1,17 @@
 import "../../../../../assets/styles/pages/taxa/edit.css";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Badge,
-  Box,
-  Button,
-  Flex,
-  Heading,
-  Link as RadixLink,
-  Separator,
-  Text,
-} from "@radix-ui/themes";
+import { Badge, Box, Button, Flex, Heading, Separator } from "@radix-ui/themes";
 import { Query, useQueryClient } from "@tanstack/react-query";
 import {
   createFileRoute,
   notFound,
   Link as TanStackLink,
-  useBlocker,
   useNavigate,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Form } from "radix-ui";
-import { useState, type MouseEventHandler } from "react";
+import { useEffect, useRef, useState, type MouseEventHandler } from "react";
 import {
   Controller,
   FormProvider,
@@ -29,6 +19,7 @@ import {
   useWatch,
   type SubmitHandler,
 } from "react-hook-form";
+import { PiArrowLeft } from "react-icons/pi";
 import z from "zod";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
 import { ContentContainer } from "../../../../../components/ContentContainer";
@@ -44,6 +35,7 @@ import { getSourcesForTaxonFn } from "../../../../../lib/server-fns/taxon-source
 import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { routeSeo } from "../../../../../lib/utils/head/routeSeo";
 import { toast } from "../../../../../lib/utils/toast";
+import { EditorActions } from "./-EditorActions";
 import { CharacterEditingForm } from "./-characters/CharactersEditingForm";
 import type { GroupedCharacterFormValue } from "./-characters/validation";
 import { groupedCharacterFormSchema } from "./-characters/validation";
@@ -54,6 +46,7 @@ import { NameEditingForm } from "./-names/NameEditingForm";
 import { nameItemFormSchema } from "./-names/validation";
 import { seedTaxonEditState } from "./-seeding";
 import { SourceEditingForm } from "./-sources/SourceEditingForm";
+import { TextForm } from "./-text/TextForm";
 
 export type TaxonEditFormValues = z.infer<typeof taxonEditFormSchema>;
 
@@ -168,14 +161,25 @@ function RouteComponent() {
       initialSources,
     ),
   });
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors, isDirty, isSubmitting },
-  } = methods;
+  const { control, handleSubmit, reset } = methods;
 
-  console.log(errors);
+  // Render-free live formState snapshot for handlers below: methods.formState
+  // only stays fresh for consumers that read it during a render (RHF's proxy
+  // only tracks/recomputes fields that were actually accessed while
+  // rendering). Reading it lazily inside a callback with nothing else
+  // subscribing during render would silently freeze at its initial value.
+  const liveFormStateRef = useRef({ isDirty: false, isSubmitting: false });
+  useEffect(() => {
+    return methods.subscribe({
+      formState: { isDirty: true },
+      callback: (formState) => {
+        liveFormStateRef.current = {
+          isDirty: formState.isDirty ?? false,
+          isSubmitting: formState.isSubmitting ?? false,
+        };
+      },
+    });
+  }, [methods]);
 
   const [isDeleting, setIsDeleting] = useState(false);
   // For media fetching
@@ -186,14 +190,6 @@ function RouteComponent() {
     const m = new Map<number, SourceDTO>();
     for (const row of initialSources) m.set(row.sourceId, row.source);
     return m;
-  });
-
-  useBlocker({
-    shouldBlockFn: () =>
-      isDirty && !(isSubmitting || isDeleting)
-        ? !confirm("Leave without saving?")
-        : false,
-    enableBeforeUnload: isDirty,
   });
 
   const isDraft = initialTaxon.status === "draft";
@@ -223,7 +219,7 @@ function RouteComponent() {
   }
 
   const handleDiscard = () => {
-    if (!isDirty) return;
+    if (!liveFormStateRef.current.isDirty) return;
     if (!confirm("Discard unsaved changes?")) return;
     reset(
       seedTaxonEditState(initialTaxon, initialCharacterValues, initialSources),
@@ -234,7 +230,7 @@ function RouteComponent() {
   };
 
   const onSave: SubmitHandler<TaxonEditFormValues> = async (data) => {
-    if (!isDirty) return;
+    if (!liveFormStateRef.current.isDirty) return;
     try {
       const { media, ...rest } = data;
       await serverUpdate({
@@ -283,7 +279,7 @@ function RouteComponent() {
 
   const handleDelete: MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault();
-    if (!isDraft || isDeleting || isSubmitting) return;
+    if (!isDraft || isDeleting || liveFormStateRef.current.isSubmitting) return;
 
     const ok = window.confirm(
       "Delete this taxon draft? This cannot be undone.",
@@ -310,118 +306,123 @@ function RouteComponent() {
   };
 
   return (
-    <ContentContainer align="start">
-      <Text size="2">Editing details for:</Text>
-      <Flex align="baseline" gap="2" mb="2">
-        <Heading>{initialTaxon.acceptedName}</Heading>
-        <Badge color={statusBadgeColor}>{initialTaxon.status}</Badge>
-      </Flex>
-      <Box>
-        <RadixLink asChild size="2">
-          <TanStackLink to="..">Back</TanStackLink>
-        </RadixLink>
-      </Box>
-
-      <FormProvider {...methods}>
-        <Form.Root onSubmit={handleSubmit(onSave)} style={{ width: "100%" }}>
-          <Separator size="4" my="4" />
-          {/* Basic meta (rank, parent, source IDs) */}
-          <MetaForm id={id} acceptedName={initialTaxon.acceptedName} />
-
-          <Separator size="4" my="4" />
-
-          {/* Characters */}
-          <Controller
-            name="states"
-            control={control}
-            render={({ field }) => (
-              <CharacterEditingForm
-                value={field.value as GroupedCharacterFormValue}
-                onChange={field.onChange}
-              />
-            )}
-          />
-
-          <Separator size="4" my="4" />
-
-          {/* Names */}
-          <Controller
-            control={control}
-            name="names"
-            render={({ field: { onChange } }) => (
-              <NameEditingForm inatId={inatId} onChange={onChange} />
-            )}
-          />
-
-          <Separator size="4" my="4" />
-
-          {/* Media */}
-          <MediaEditingForm inatId={inatId} />
-
-          <Separator size="4" my="4" />
-
-          {/* Sources */}
-          <Controller
-            control={control}
-            name="sources"
-            render={({ field: { value, onChange } }) => (
-              <SourceEditingForm
-                value={value}
-                sourcesById={sourcesById}
-                setSourcesById={setSourcesById}
-                onChange={onChange}
-              />
-            )}
-          />
-
-          {/* TODO: clean spacing + client discriminated rendering */}
-          <Flex gap="2" justify="between" mt="5">
-            <Flex gap="2" justify="end">
-              <Button
-                type="button"
-                disabled={isSubmitting || isDeleting || !isDirty}
-                loading={isSubmitting || isDeleting}
-                onClick={handleDiscard}
-                variant="soft"
-              >
-                Discard Changes
-              </Button>
-              <Button
-                type="button"
-                variant={isDraft ? "soft" : "solid"}
-                loading={isSubmitting || isDeleting}
-                disabled={!isDirty || isSubmitting || isDeleting}
-                onClick={handleSubmit(onSave)}
-              >
-                Save
+    <FormProvider {...methods}>
+      <Flex
+        className="taxon-editor"
+        direction="column"
+        height="100%"
+        overflow="hidden"
+      >
+        <Flex
+          align="center"
+          justify="between"
+          flexShrink="0"
+          px="6"
+          py="4"
+          style={{
+            background: "var(--color-background)",
+            boxShadow: "inset 0 -1px 0 0 var(--gray-a5)",
+          }}
+        >
+          <Flex align="center" gap="2">
+            <Flex asChild align="center" gap="2">
+              <Button asChild variant="ghost" size="2" mr="4">
+                <TanStackLink to="..">
+                  <PiArrowLeft /> Back
+                </TanStackLink>
               </Button>
             </Flex>
-            <Flex gap="2" justify="end">
-              {isDraft && (
-                <>
-                  <Button
-                    type="button"
-                    disabled={isSubmitting || isDeleting}
-                    loading={isSubmitting || isDeleting}
-                    onClick={handleSubmit(onPublish)}
-                  >
-                    Publish
-                  </Button>
-                  <Button
-                    type="button"
-                    disabled={isDeleting || isSubmitting}
-                    loading={isDeleting || isSubmitting}
-                    color="tomato"
-                    onClick={handleDelete}
-                  >
-                    Delete Draft
-                  </Button>
-                </>
-              )}
-            </Flex>
+            <Heading>{initialTaxon.acceptedName}</Heading>
+            <Badge color={statusBadgeColor} size="2">
+              {initialTaxon.status}
+            </Badge>
           </Flex>
-        </Form.Root>
-      </FormProvider>
-    </ContentContainer>
+
+          <EditorActions
+            isDraft={isDraft}
+            isDeleting={isDeleting}
+            onDiscard={handleDiscard}
+            onSave={handleSubmit(onSave)}
+            onPublish={handleSubmit(onPublish)}
+            onDelete={handleDelete}
+          />
+        </Flex>
+        <Flex
+          flexGrow="1"
+          flexShrink="1"
+          minHeight="0"
+          overflow="hidden"
+          asChild
+        >
+          <Form.Root onSubmit={handleSubmit(onSave)} style={{ width: "100%" }}>
+            <Box
+              flexShrink="0"
+              maxWidth="416px"
+              p="5"
+              overflow="auto"
+              style={{
+                background: "var(--color-background)",
+                borderRight: "1px solid var(--gray-a5)",
+              }}
+            >
+              {/* Basic meta (rank, parent, source IDs) */}
+              <MetaForm id={id} acceptedName={initialTaxon.acceptedName} />
+
+              <Separator size="4" my="5" />
+
+              {/* Ecology/Notes */}
+              <TextForm />
+
+              <Separator size="4" my="5" />
+
+              {/* Media */}
+              <MediaEditingForm inatId={inatId} />
+
+              <Separator size="4" my="5" />
+
+              {/* Sources */}
+              <Controller
+                control={control}
+                name="sources"
+                render={({ field: { value, onChange } }) => (
+                  <SourceEditingForm
+                    value={value}
+                    sourcesById={sourcesById}
+                    setSourcesById={setSourcesById}
+                    onChange={onChange}
+                  />
+                )}
+              />
+
+              <Separator size="4" my="5" />
+
+              {/* Names */}
+              <Controller
+                control={control}
+                name="names"
+                render={({ field: { onChange } }) => (
+                  <NameEditingForm inatId={inatId} onChange={onChange} />
+                )}
+              />
+            </Box>
+            <Box flexGrow="1" flexShrink="1">
+              <ContentContainer align="start" gray>
+                {/* Characters */}
+                <Controller
+                  name="states"
+                  control={control}
+                  render={({ field }) => (
+                    <CharacterEditingForm
+                      value={field.value as GroupedCharacterFormValue}
+                      onChange={field.onChange}
+                    />
+                  )}
+                />
+              </ContentContainer>
+            </Box>
+          </Form.Root>
+        </Flex>
+      </Flex>
+    </FormProvider>
   );
 }

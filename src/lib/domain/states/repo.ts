@@ -93,6 +93,7 @@ export async function selectTaxonStatesByTaxonIds(
       characterLabel: charsTbl.label,
       characterDescription: charsTbl.description,
       characterMediaId: charsTbl.mediaId,
+      showInProse: charsTbl.showInProse,
 
       traitValueId: catStateTbl.traitValueId,
       traitValueLabel: catValTbl.label,
@@ -176,6 +177,7 @@ export async function selectTaxonStatesByTaxonIds(
       characterLabel: row.characterLabel,
       characterHasInfo:
         !!row.characterDescription || row.characterMediaId !== null,
+      showInProse: row.showInProse,
       trait: {
         id: row.traitValueId,
         canonicalId,
@@ -201,6 +203,7 @@ export async function selectTaxonStatesByTaxonIds(
       characterLabel: charsTbl.label,
       characterDescription: charsTbl.description,
       characterMediaId: charsTbl.mediaId,
+      showInProse: charsTbl.showInProse,
 
       siBaseValue: numStateTbl.siBaseValue,
       unitId: unitsTbl.id,
@@ -262,6 +265,7 @@ export async function selectTaxonStatesByTaxonIds(
       characterLabel: row.characterLabel,
       characterHasInfo:
         !!row.characterDescription || row.characterMediaId !== null,
+      showInProse: row.showInProse,
       siBaseValue: parseFloat(row.siBaseValue),
       unit:
         row.unitId !== null
@@ -291,6 +295,7 @@ export async function selectTaxonStatesByTaxonIds(
       characterLabel: charsTbl.label,
       characterDescription: charsTbl.description,
       characterMediaId: charsTbl.mediaId,
+      showInProse: charsTbl.showInProse,
 
       siBaseMin: rangeStateTbl.siBaseMin,
       siBaseMax: rangeStateTbl.siBaseMax,
@@ -357,6 +362,7 @@ export async function selectTaxonStatesByTaxonIds(
       characterLabel: row.characterLabel,
       characterHasInfo:
         !!row.characterDescription || row.characterMediaId !== null,
+      showInProse: row.showInProse,
       siBaseMin: row.siBaseMin !== null ? parseFloat(row.siBaseMin) : null,
       siBaseMax: row.siBaseMax !== null ? parseFloat(row.siBaseMax) : null,
       unit:

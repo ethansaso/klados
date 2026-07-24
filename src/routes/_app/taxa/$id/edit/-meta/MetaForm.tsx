@@ -1,9 +1,9 @@
 import {
   Box,
   Flex,
+  Heading,
   IconButton,
   Select,
-  TextArea,
   TextField,
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
@@ -13,7 +13,6 @@ import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { FaDove, FaLeaf } from "react-icons/fa";
 import type { TaxonEditFormValues } from "..";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../../db/schema/schema";
-import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import { SelectCombobox } from "../../../../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
 import {
@@ -34,7 +33,6 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
   const {
     control,
     formState: { errors },
-    register,
   } = useFormContext<TaxonEditFormValues>();
 
   const rank = useWatch({ control, name: "rank" });
@@ -65,10 +63,10 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
   }, [parentIdVal, parentOptions]);
 
   return (
-    <FormDescriptor
-      title="Basic Information"
-      description="Edit the basic information for this taxon. Use the import buttons to search external services for IDs."
-    >
+    <Box>
+      <Heading size="3" mb="2">
+        Basic Information
+      </Heading>
       <Flex direction="column" gap="3">
         <Flex gap="4">
           {/* Rank */}
@@ -152,7 +150,7 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
           {/* Source GBIF ID */}
           <Box>
             <Flex justify="between" align="baseline" mb="1">
-              <Label.Root htmlFor="source-gbif-id">Source GBIF ID</Label.Root>
+              <Label.Root htmlFor="source-gbif-id">GBIF ID</Label.Root>
               <ConditionalAlert
                 id="source-gbif-id-error"
                 message={errors.sourceGbifId?.message}
@@ -200,9 +198,7 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
           {/* Source iNat ID */}
           <Box>
             <Flex justify="between" align="baseline" mb="1">
-              <Label.Root htmlFor="source-inat-id">
-                Source iNaturalist ID
-              </Label.Root>
+              <Label.Root htmlFor="source-inat-id">iNaturalist ID</Label.Root>
               <ConditionalAlert
                 id="source-inat-id-error"
                 message={errors.sourceInatId?.message}
@@ -248,41 +244,7 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
             />
           </Box>
         </Flex>
-
-        {/* Ecology */}
-        <Box>
-          <Flex justify="between" align="baseline" mb="1">
-            <Label.Root htmlFor="ecology">Ecology</Label.Root>
-            <ConditionalAlert
-              id="ecology-error"
-              message={errors.ecology?.message}
-            />
-          </Flex>
-          <TextArea
-            id="ecology"
-            placeholder="Optional ecology about this taxon"
-            {...register("ecology")}
-            {...a11yProps("ecology-error", !!errors.ecology)}
-          />
-        </Box>
-
-        {/* Notes */}
-        <Box>
-          <Flex justify="between" align="baseline" mb="1">
-            <Label.Root htmlFor="notes">Notes</Label.Root>
-            <ConditionalAlert
-              id="notes-error"
-              message={errors.notes?.message}
-            />
-          </Flex>
-          <TextArea
-            id="notes"
-            placeholder="Optional notes about this taxon"
-            {...register("notes")}
-            {...a11yProps("notes-error", !!errors.notes)}
-          />
-        </Box>
       </Flex>
-    </FormDescriptor>
+    </Box>
   );
 };

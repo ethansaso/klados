@@ -22,6 +22,7 @@ type CharacterStateBase = {
   characterId: number;
   characterLabel: string;
   characterHasInfo: boolean;
+  showInProse: boolean;
 };
 
 type CharacterNumericStateBase = CharacterStateBase & {

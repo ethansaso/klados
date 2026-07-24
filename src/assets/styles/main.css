@@ -16,7 +16,7 @@
 .radix-themes[data-is-root-theme="true"] {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  height: 100dvh;
 }
 
 body {

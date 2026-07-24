@@ -36,12 +36,14 @@ const MICRO_REGEX = /[µμ]/g; // normalize micro symbols
  * * "<3", "< 3", "<=3", "<= 3 cm"  (upper-bound only)
  * * ">3", "> 3", ">=3", ">= 3 cm"  (lower-bound only)
  * * "≤3µm", "≥ 3 cm"               (unicode operators)
+ * * "~4", "~4mm", "~ 4 mm"         (leading ~ is accepted and ignored —
+ *                                   parses the same as "4mm")
  */
 export function parseNumericQuery(raw: string): ParsedNumeric {
   const trimmed = raw.trim();
   if (!trimmed) return { kind: "none" };
 
-  const normalized = trimmed.replace(DASH_REGEX, "-");
+  const normalized = trimmed.replace(/^~\s*/, "").replace(DASH_REGEX, "-");
 
   const parts = normalized.split(/\s+/);
   let unitText: string | undefined;

@@ -1,10 +1,17 @@
-import { Button, DataList, Flex, RadioGroup, Text } from "@radix-ui/themes";
+import {
+  Box,
+  Button,
+  DataList,
+  Flex,
+  Heading,
+  RadioGroup,
+  Text,
+} from "@radix-ui/themes";
 import { useCallback, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { FaDove } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import type { TaxonEditFormValues } from "..";
-import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import { localeDisplayValues } from "../../../../../../lib/consts/locale-display-values";
 import { toast } from "../../../../../../lib/utils/toast";
 import { selectInatNames } from "./InatNameModal";
@@ -106,10 +113,9 @@ export const NameEditingForm = ({ inatId, onChange }: NameEditingFormProps) => {
   }, [value]);
 
   return (
-    <FormDescriptor
-      title="Names"
-      description="Add names or import from iNaturalist. Select the preferred name using the buttons to the left of each group."
-      actions={
+    <Box>
+      <Flex mb="2" align="center" justify="between">
+        <Heading size="3">Names</Heading>
         <Button
           type="button"
           radius="full"
@@ -121,8 +127,8 @@ export const NameEditingForm = ({ inatId, onChange }: NameEditingFormProps) => {
           <FaDove size="16" />
           Import from iNaturalist
         </Button>
-      }
-    >
+      </Flex>
+
       {localeEntries.length === 0 ? (
         <Text color="gray" size="2">
           No names added yet. Use the + button to add or import from
@@ -170,6 +176,6 @@ export const NameEditingForm = ({ inatId, onChange }: NameEditingFormProps) => {
           })}
         </DataList.Root>
       )}
-    </FormDescriptor>
+    </Box>
   );
 };
