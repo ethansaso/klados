@@ -26,7 +26,9 @@ function computeCopy(state: UINumberState | UIRangeState): string {
       : null;
   const rangeStr =
     min !== null && max !== null
-      ? `${min}–${max}`
+      ? min === max
+        ? `~${min}`
+        : `${min}–${max}`
       : min !== null
         ? `≥ ${min}`
         : `≤ ${max}`;

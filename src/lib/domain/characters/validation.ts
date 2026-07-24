@@ -9,6 +9,7 @@ const baseCharacterFields = z.object({
     .string("Must be a string")
     .max(1000, "Max 1000 characters")
     .optional(),
+  showInProse: z.boolean("Must be a boolean"),
 });
 
 const createCategoricalCharacterFields = baseCharacterFields.extend({

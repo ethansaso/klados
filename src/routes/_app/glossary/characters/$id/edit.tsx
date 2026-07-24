@@ -79,6 +79,7 @@ function RouteComponent() {
       description: character.description,
       isMultiSelect:
         character.type === "categorical" ? character.isMultiSelect : undefined,
+      showInProse: character.showInProse,
       mediaId: character.media?.id ?? null,
     },
     resolver: zodResolver(updateCharacterSchema),
@@ -186,6 +187,28 @@ function RouteComponent() {
             />
           </Box>
         )}
+
+        {/* showInProse */}
+        <Box>
+          <Controller
+            name="showInProse"
+            control={control}
+            render={({ field }) => (
+              <Text as="label" size="2">
+                <Flex gap="2" align="center">
+                  <Checkbox
+                    checked={field.value ?? false}
+                    onCheckedChange={(checked) =>
+                      field.onChange(checked === true)
+                    }
+                    disabled={mutation.isPending}
+                  />
+                  Show label in prose
+                </Flex>
+              </Text>
+            )}
+          />
+        </Box>
 
         {/* Media */}
         <Box>

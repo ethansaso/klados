@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Card,
-  Container,
   Flex,
   Heading,
   Select,
@@ -22,6 +21,7 @@ import {
   useWatch,
 } from "react-hook-form";
 import { TAXON_RANKS_DESCENDING } from "../../../../db/schema/schema";
+import { ContentContainer } from "../../../components/ContentContainer";
 import { SelectCombobox } from "../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../components/inputs/combobox/types";
 import {
@@ -127,7 +127,7 @@ function RouteComponent() {
   };
 
   return (
-    <Container size="3">
+    <ContentContainer gray>
       <Flex justify="center" mt={{ initial: "4", sm: "6" }}>
         <Box style={{ width: "min(100%, 560px)" }}>
           <Card size="3">
@@ -247,6 +247,6 @@ function RouteComponent() {
           </Card>
         </Box>
       </Flex>
-    </Container>
+    </ContentContainer>
   );
 }

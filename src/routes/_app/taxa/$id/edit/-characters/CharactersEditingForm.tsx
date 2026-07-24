@@ -1,11 +1,13 @@
-import { Box, Button } from "@radix-ui/themes";
-import { useCallback } from "react";
+import { Box, Button, Flex, Heading, Text } from "@radix-ui/themes";
+import { useCallback, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { PiSparkle } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
-import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
-import { EditingFeatureCard } from "./EditingFeatureCard";
+import {
+  characterSearchInputId,
+  EditingFeatureCard,
+} from "./EditingFeatureCard";
 import { selectExtraction } from "./ExtractionModal";
 import { FeatureSearch } from "./search/FeatureSearch";
 import { removeCategoricalTraitValue } from "./stateUtils";
@@ -21,6 +23,9 @@ export function CharacterEditingForm({
   onChange,
 }: CharacterEditingFormProps) {
   const { getValues } = useFormContext<TaxonEditFormValues>();
+  const [lastAddedFeatureId, setLastAddedFeatureId] = useState<number | null>(
+    null,
+  );
 
   const handleGroupSelect = (option: ComboboxOption) => {
     if (value.some((g) => g.featureId === option.id)) return;
@@ -34,11 +39,22 @@ export function CharacterEditingForm({
         characters: [],
       },
     ]);
+    setLastAddedFeatureId(option.id);
   };
 
   const handleDeleteGroup = (groupId: number) => {
     onChange(value.filter((g) => g.featureId !== groupId));
   };
+
+  const sortedGroups = useMemo(
+    () =>
+      [...value].sort((a, b) =>
+        a.featureLabel.localeCompare(b.featureLabel, undefined, {
+          sensitivity: "base",
+        }),
+      ),
+    [value],
+  );
 
   // getValues is stable, so these callbacks are stable
   const handleRemoveCategoricalTrait = useCallback(
@@ -56,13 +72,18 @@ export function CharacterEditingForm({
   );
 
   return (
-    <FormDescriptor
-      title="Characters"
-      description="To add a character, first use the group search to add a character group. Once added, you can select trait values for the characters in that group."
-      actions={
+    <Box width="100%">
+      <Flex mb="2" gap="8" width="100%" justify="between" align="center">
+        <Box>
+          <Heading size="3">Characters</Heading>
+          <Text color="gray" size="2">
+            Add features and character states using the input boxes. Click on
+            any character state to attach modifiers.
+          </Text>
+        </Box>
+
         <Button
           type="button"
-          radius="full"
           size="1"
           color="iris"
           onClick={async () => {
@@ -74,16 +95,26 @@ export function CharacterEditingForm({
           aria-label="Extract states from text description"
         >
           <PiSparkle size="16" />
-          Import text description
+          Import text
         </Button>
-      }
-    >
+      </Flex>
+      <Box mb="5">
+        <FeatureSearch
+          onSelect={handleGroupSelect}
+          onDownShortcut={
+            lastAddedFeatureId != null
+              ? () => {
+                  document
+                    .getElementById(characterSearchInputId(lastAddedFeatureId))
+                    ?.focus();
+                }
+              : undefined
+          }
+        />
+      </Box>
       <Box>
-        <Box mb="4">
-          <FeatureSearch onSelect={handleGroupSelect} />
-        </Box>
         <div className="feature-card-grid">
-          {value.map((group) => (
+          {sortedGroups.map((group) => (
             <EditingFeatureCard
               key={group.featureId}
               feature={group}
@@ -94,6 +125,6 @@ export function CharacterEditingForm({
           ))}
         </div>
       </Box>
-    </FormDescriptor>
+    </Box>
   );
 }

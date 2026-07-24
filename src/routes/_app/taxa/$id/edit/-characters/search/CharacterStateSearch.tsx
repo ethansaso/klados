@@ -1,8 +1,7 @@
-import { Box, Flex, Kbd, Text } from "@radix-ui/themes";
+import { Badge, Box, Flex, Text } from "@radix-ui/themes";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useId, useRef, useState } from "react";
 import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
-import type { ComboboxOption } from "../../../../../../../components/inputs/combobox/types";
 import type { TraitSuggestion } from "../../../../../../../lib/domain/suggestions/types";
 import { listCharacterStateSuggestionsFn } from "../../../../../../../lib/server-fns/character-suggestions/listCharacterStateSuggestionsFn";
 
@@ -12,31 +11,36 @@ type FeatureStateSearchProps = {
   onSelect: (suggestion: TraitSuggestion) => void;
   /** Optional placeholder text in the search input. */
   placeholder?: string;
-  /** Label of the last-added item — shows a / shortcut hint when set. */
-  modifyHint?: string;
   /** Called when the user presses / with an empty input. */
   onModifyShortcut?: () => void;
-  /** Called when the user starts typing a new query (clears the hint). */
-  onQueryActive?: () => void;
+  /** Called when the user presses Escape. */
+  onEscapeShortcut?: () => void;
   /** Stable HTML id for the search input (used for external focus). */
   inputId?: string;
 };
+
+function suggestionLabel(s: TraitSuggestion): string {
+  return s.kind === "categorical-value" ? s.traitValueLabel : s.displayValue;
+}
+
+function suggestionKey(s: TraitSuggestion): string {
+  // displayValue includes the unit symbol, so numeric suggestions expanded
+  // across units stay unique per character.
+  return s.kind === "categorical-value"
+    ? `cat:${s.characterId}:${s.traitValueId}`
+    : `${s.kind}:${s.characterId}:${s.displayValue}`;
+}
 
 export function CharacterStateSearch({
   featureId,
   onSelect,
   placeholder = "Type a value or trait…",
-  modifyHint,
   onModifyShortcut,
-  onQueryActive,
+  onEscapeShortcut,
   inputId,
 }: FeatureStateSearchProps) {
   const [suggestions, setSuggestions] = useState<TraitSuggestion[]>([]);
-  const [options, setOptions] = useState<ComboboxOption[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<ComboboxOption | null>(
-    null,
-  );
 
   const serverSearch = useServerFn(listCharacterStateSuggestionsFn);
 
@@ -48,7 +52,6 @@ export function CharacterStateSearch({
       const trimmed = q.trim();
       if (!trimmed) {
         setSuggestions([]);
-        setOptions([]);
         setLoading(false);
         return;
       }
@@ -65,23 +68,9 @@ export function CharacterStateSearch({
         if (requestId !== requestIdRef.current) return;
 
         setSuggestions(result);
-
-        const nextOptions: ComboboxOption[] = result.map((s, index) => {
-          const primaryLabel =
-            s.kind === "categorical-value" ? s.traitValueLabel : s.displayValue;
-
-          return {
-            id: index, // index into `suggestions`
-            label: primaryLabel,
-            hint: s.characterLabel,
-          };
-        });
-
-        setOptions(nextOptions);
       } catch {
         if (requestId !== requestIdRef.current) return;
         setSuggestions([]);
-        setOptions([]);
       } finally {
         if (requestId === requestIdRef.current) {
           setLoading(false);
@@ -91,22 +80,13 @@ export function CharacterStateSearch({
     [featureId, serverSearch],
   );
 
-  const handleValueChange = useCallback(
-    (opt: ComboboxOption | null) => {
-      setSelectedOption(opt);
-
-      if (!opt) return;
-
-      const suggestion = suggestions[opt.id];
+  // Item values are indices into `suggestions`.
+  const handleSelect = useCallback(
+    (value: string) => {
+      const suggestion = suggestions[Number(value)];
       if (suggestion) {
         onSelect(suggestion);
       }
-
-      // Reset selection so the combobox remains reusable.
-      // Let the popover close first, then clear.
-      setTimeout(() => {
-        setSelectedOption(null);
-      }, 0);
     },
     [suggestions, onSelect],
   );
@@ -118,9 +98,7 @@ export function CharacterStateSearch({
     <Box>
       <InputCombobox.Root
         id={rootId}
-        value={selectedOption}
-        onValueChange={handleValueChange}
-        options={options}
+        onSelect={handleSelect}
         onQueryChange={handleQueryChange}
         loading={loading}
         size="1"
@@ -128,28 +106,48 @@ export function CharacterStateSearch({
         <InputCombobox.Input
           id={rootId}
           placeholder={placeholder}
-          rightSlot={
-            modifyHint ? (
-              <Flex align="center" gap="1">
-                <Kbd size="1">/</Kbd>
-                <Text size="1" color="gray">
-                  modify "{modifyHint}"
-                </Text>
-              </Flex>
-            ) : undefined
-          }
-          onBlur={() => onQueryActive?.()}
           onKeyDown={(e) => {
             if (e.key === "/" && !e.currentTarget.value && onModifyShortcut) {
               e.preventDefault();
               onModifyShortcut();
+            } else if (e.key === "Escape" && onEscapeShortcut) {
+              e.preventDefault();
+              onEscapeShortcut();
             }
           }}
         />
-        <InputCombobox.Popover>
-          <InputCombobox.List>
-            {options.map((opt) => (
-              <InputCombobox.Item key={opt.id} option={opt} />
+        <InputCombobox.Popover matchTriggerWidth>
+          <InputCombobox.List isEmpty={suggestions.length === 0}>
+            {suggestions.map((s, index) => (
+              <InputCombobox.Item key={suggestionKey(s)} value={String(index)}>
+                <Flex align="baseline" gap="2" overflow="hidden">
+                  <Text as="p" weight="medium" style={{ flexShrink: 0 }}>
+                    {suggestionLabel(s)}
+                  </Text>
+
+                  {s.kind === "categorical-value" &&
+                    s.traitValueDescription && (
+                      <Text
+                        as="p"
+                        size="1"
+                        color="gray"
+                        truncate
+                        style={{ minWidth: 0 }}
+                      >
+                        {s.traitValueDescription}
+                      </Text>
+                    )}
+
+                  <Badge
+                    size="1"
+                    color="gray"
+                    ml="auto"
+                    style={{ flexShrink: 0 }}
+                  >
+                    {s.characterLabel}
+                  </Badge>
+                </Flex>
+              </InputCombobox.Item>
             ))}
           </InputCombobox.List>
         </InputCombobox.Popover>

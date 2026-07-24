@@ -1,18 +1,27 @@
 import {
   Box,
+  Checkbox,
   Flex,
   SegmentedControl,
+  Text,
   TextArea,
   TextField,
 } from "@radix-ui/themes";
 import { Label } from "radix-ui";
 import { type PropsWithChildren } from "react";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
 import type { CreateCharacterInput } from "../../../../../lib/domain/characters/validation";
+
+// Illustrative example state per type, used to preview showInProse.
+const EXAMPLE_STATE: Record<CreateCharacterInput["type"], string> = {
+  categorical: "indistinct",
+  number: "12 mm",
+  range: "12-13 mm",
+};
 
 export function AddCharacterBaseForm({ children }: PropsWithChildren) {
   const {
@@ -20,6 +29,13 @@ export function AddCharacterBaseForm({ children }: PropsWithChildren) {
     control,
     formState: { errors },
   } = useFormContext<CreateCharacterInput>();
+
+  const label = useWatch({ control, name: "label" });
+  const type = useWatch({ control, name: "type" });
+  const showInProse = useWatch({ control, name: "showInProse" });
+  const preview = showInProse
+    ? `${label.trim() || "[label]"} ${EXAMPLE_STATE[type]}`
+    : EXAMPLE_STATE[type];
 
   return (
     <>
@@ -66,6 +82,26 @@ export function AddCharacterBaseForm({ children }: PropsWithChildren) {
         </Box>
 
         {children}
+
+        <Box>
+          <Flex gap="2" align="center">
+            <Controller
+              name="showInProse"
+              control={control}
+              render={({ field }) => (
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  id="show-in-prose"
+                />
+              )}
+            />
+            <Label.Root htmlFor="show-in-prose">Show label in prose</Label.Root>
+          </Flex>
+          <Text as="div" size="1" color="gray" mt="1">
+            Will display as: "{preview}"
+          </Text>
+        </Box>
 
         <Box>
           <Flex justify="between" align="baseline" mb="1">

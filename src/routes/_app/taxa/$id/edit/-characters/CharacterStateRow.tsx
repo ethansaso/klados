@@ -44,13 +44,10 @@ export const CharacterStateRow = memo(
     onAutoOpenHandled,
     onReturnToSearch,
   }: CharacterStateRowProps) => {
+    const hasNoStates = !states.length;
     const content = useMemo(() => {
-      if (!states.length) {
-        return (
-          <Text color="gray" size="1">
-            —
-          </Text>
-        );
+      if (hasNoStates) {
+        return <Text size="1">—</Text>;
       }
 
       const numericStates = states.filter(
@@ -84,7 +81,13 @@ export const CharacterStateRow = memo(
                 onReturnToSearch={onReturnToSearch}
               >
                 <CharacterStateDisplay
-                  states={[{ kind: "categorical", trait: state.trait, modifiers: state.modifiers }]}
+                  states={[
+                    {
+                      kind: "categorical",
+                      trait: state.trait,
+                      modifiers: state.modifiers,
+                    },
+                  ]}
                   highlightAffixes
                 />
               </ModifierTag>
@@ -112,12 +115,14 @@ export const CharacterStateRow = memo(
                 onReturnToSearch={onReturnToSearch}
               >
                 <CharacterStateDisplay
-                  states={[{
-                    kind: "number",
-                    siBaseValue: state.siBaseValue,
-                    unit: state.unit,
-                    modifiers: state.modifiers,
-                  }]}
+                  states={[
+                    {
+                      kind: "number",
+                      siBaseValue: state.siBaseValue,
+                      unit: state.unit,
+                      modifiers: state.modifiers,
+                    },
+                  ]}
                   highlightAffixes
                 />
               </ModifierTag>
@@ -145,13 +150,15 @@ export const CharacterStateRow = memo(
                 onReturnToSearch={onReturnToSearch}
               >
                 <CharacterStateDisplay
-                  states={[{
-                    kind: "range",
-                    siBaseMin: state.siBaseMin,
-                    siBaseMax: state.siBaseMax,
-                    unit: state.unit,
-                    modifiers: state.modifiers,
-                  }]}
+                  states={[
+                    {
+                      kind: "range",
+                      siBaseMin: state.siBaseMin,
+                      siBaseMax: state.siBaseMax,
+                      unit: state.unit,
+                      modifiers: state.modifiers,
+                    },
+                  ]}
                   highlightAffixes
                 />
               </ModifierTag>
@@ -163,6 +170,7 @@ export const CharacterStateRow = memo(
         }
       });
     }, [
+      hasNoStates,
       states,
       character.id,
       onRemoveCategoricalTrait,
@@ -176,8 +184,14 @@ export const CharacterStateRow = memo(
 
     return (
       <DataList.Item>
-        <DataList.Label>{character.label}</DataList.Label>
-        <DataList.Value>
+        <DataList.Label
+          style={{ color: hasNoStates ? "var(--gray-a7)" : undefined }}
+        >
+          {character.label}
+        </DataList.Label>
+        <DataList.Value
+          style={{ color: hasNoStates ? "var(--gray-a7)" : undefined }}
+        >
           <Flex
             wrap="wrap"
             gap="1"

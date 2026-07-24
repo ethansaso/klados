@@ -114,9 +114,7 @@ function GroupDataList({
   return (
     <Text as="p" size="2" className="lookalike-modal__group-copy">
       {meaningfulItems.map((it, idx) => {
-        const firstState = it.states[0];
-        const showCharacterLabel =
-          firstState?.kind === "number" || firstState?.kind === "range";
+        const showCharacterLabel = it.showInProse;
         const isSharedCharacter =
           !emphasizeAll && it.states.every((state) => state.isOverlapping);
 

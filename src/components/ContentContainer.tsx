@@ -12,19 +12,24 @@ const pPerSize = {
 export const ContentContainer = ({
   align = "center",
   p = "3",
+  gray,
   className,
   children,
 }: PropsWithChildren<{
+  className?: string;
+  gray?: boolean;
   align?: "start" | "center" | "end" | "baseline" | "stretch";
   p?: "0" | "1" | "2" | "3";
-  className?: string;
 }>) => {
   return (
     <Container
       size={{ initial: undefined, sm: "2", md: "3", lg: "4" }}
       width={{ initial: "100%", sm: undefined }}
       {...pPerSize[p]}
-      style={{ maxWidth: "100%" }}
+      style={{
+        maxWidth: "100%",
+        background: gray ? "var(--gray-2)" : undefined,
+      }}
       className={className}
     >
       <Flex direction="column" align={align}>

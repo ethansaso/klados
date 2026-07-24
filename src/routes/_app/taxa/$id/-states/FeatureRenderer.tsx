@@ -31,7 +31,7 @@ export const FeatureRenderer = ({
     {
       label: string;
       hasInfo: boolean;
-      kind: "categorical" | "number" | "range";
+      showInProse: boolean;
       states: CharacterStateDTO[];
     }
   >();
@@ -41,7 +41,7 @@ export const FeatureRenderer = ({
       group = {
         label: state.characterLabel,
         hasInfo: state.characterHasInfo,
-        kind: state.kind,
+        showInProse: state.showInProse,
         states: [],
       };
       characterGroups.set(state.characterId, group);
@@ -57,23 +57,25 @@ export const FeatureRenderer = ({
         <Strong>{cardHeaderComponent} </Strong>
       </Text>
       {entries.length > 0 ? (
-        entries.map(([characterId, { label, hasInfo, states, kind }], idx) => {
-          const dlLabel = hasInfo ? (
-            <GlossaryCharacterCard id={characterId}>
-              <span className="has-information">{label.toLowerCase()}</span>
-            </GlossaryCharacterCard>
-          ) : (
-            label.toLowerCase()
-          );
+        entries.map(
+          ([characterId, { label, hasInfo, states, showInProse }], idx) => {
+            const dlLabel = hasInfo ? (
+              <GlossaryCharacterCard id={characterId}>
+                <span className="has-information">{label.toLowerCase()}</span>
+              </GlossaryCharacterCard>
+            ) : (
+              label.toLowerCase()
+            );
 
-          return (
-            <Fragment key={characterId}>
-              {kind !== "categorical" && <>{dlLabel} </>}
-              <CharacterStateDisplay states={states} forceLowercase />
-              {idx < entries.length - 1 ? "; " : ""}
-            </Fragment>
-          );
-        })
+            return (
+              <Fragment key={characterId}>
+                {showInProse && <>{dlLabel} </>}
+                <CharacterStateDisplay states={states} forceLowercase />
+                {idx < entries.length - 1 ? "; " : ""}
+              </Fragment>
+            );
+          },
+        )
       ) : (
         <Text>present</Text>
       )}

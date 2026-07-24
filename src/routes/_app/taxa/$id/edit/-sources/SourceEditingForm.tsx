@@ -1,22 +1,23 @@
 import {
+  Box,
   Button,
+  Card,
   Flex,
+  Heading,
   IconButton,
-  Table,
   Text,
   TextArea,
   TextField,
 } from "@radix-ui/themes";
 import React, { type Dispatch } from "react";
 import { PiClockClockwise, PiPlus, PiTrash } from "react-icons/pi";
-import { FormDescriptor } from "../../../../../../components/FormDescriptor";
 import { ResponsiveTooltip } from "../../../../../../components/ResponsiveTooltip";
 import type { SourceDTO } from "../../../../../../lib/domain/sources/types";
 import type {
   SetTaxonSourcesInput,
   TaxonSourceUpsertItem,
 } from "../../../../../../lib/domain/taxon-sources/validation";
-import { formatPublication } from "../../../../../../lib/utils/formatting/formatPublication";
+import { parseSourceFields } from "../../../../../../lib/utils/formatting/formatPublication";
 import { pickSource } from "./SourcePickerModal";
 
 type SourceEditorProps = {
@@ -57,10 +58,9 @@ export const SourceEditingForm = ({
   };
 
   return (
-    <FormDescriptor
-      title="Sources"
-      description="Add or select from existing sources. Use the clock button to update a source's access date."
-      actions={
+    <Box>
+      <Flex justify="between" mb="2">
+        <Heading size="3">Sources</Heading>
         <Button
           type="button"
           radius="full"
@@ -85,55 +85,66 @@ export const SourceEditingForm = ({
           <PiPlus size="16" />
           Add Source
         </Button>
-      }
-      orientation="vertical"
-    >
-      {value.length === 0 ? null : (
-        <Table.Root variant="surface" size="1">
-          <Table.Header>
-            <Table.Row>
-              <Table.ColumnHeaderCell>Publication</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Locator</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Accessed</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Notes</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell />
-            </Table.Row>
-          </Table.Header>
+      </Flex>
+      <Flex direction="column" gap="2">
+        {value.map((item, i) => {
+          const src = sourcesById.get(item.sourceId);
+          const parsed = src ? parseSourceFields(src) : null;
 
-          <Table.Body>
-            {value.map((item, i) => {
-              const src = sourcesById.get(item.sourceId);
-
-              return (
-                <Table.Row key={`${item.sourceId}`}>
-                  <Table.Cell>
-                    {src ? (
-                      <Text size="1">{formatPublication(src)}</Text>
-                    ) : (
-                      <Text color="tomato">
-                        Error: Source not found for ID {item.sourceId}
+          return (
+            <Card key={`${item.sourceId}`}>
+              <Flex direction="column" gap="1">
+                <Flex gap="2" justify="between">
+                  {parsed ? (
+                    <Text size="1" as="p">
+                      <Text weight="bold" as="p">
+                        {parsed.title}
                       </Text>
-                    )}
-                  </Table.Cell>
+                      {parsed.authorAndYear && (
+                        <Text as="p">{parsed.authorAndYear}</Text>
+                      )}
+                      {parsed.publisher && (
+                        <Text as="p">{parsed.publisher}</Text>
+                      )}
+                    </Text>
+                  ) : (
+                    <Text color="tomato">
+                      Error: Source not found for ID {item.sourceId}
+                    </Text>
+                  )}
+                  <ResponsiveTooltip content="Remove source">
+                    <IconButton
+                      type="button"
+                      variant="ghost"
+                      color="tomato"
+                      size="1"
+                      onClick={() => removeRow(i)}
+                    >
+                      <PiTrash />
+                    </IconButton>
+                  </ResponsiveTooltip>
+                </Flex>
 
-                  <Table.Cell>
+                <Flex gap="2" align="center">
+                  <Box flexGrow="1">
                     <TextField.Root
                       size="1"
-                      placeholder='e.g. "Vol. 1, pp. 79-82"'
+                      placeholder='Locator, e.g. "Vol. 1, pp. 79-82"'
                       value={item.locator}
                       onChange={(e) =>
                         setItem(i, { locator: e.currentTarget.value })
                       }
                     />
-                  </Table.Cell>
-
-                  <Table.Cell>
+                  </Box>
+                  <Box>
                     <Flex gap="2" align="center">
-                      <Text>{toDateInputValue(item.accessedAt)}</Text>
+                      <Text size="1" color="gray">
+                        {toDateInputValue(item.accessedAt)}
+                      </Text>
                       <ResponsiveTooltip content="Set accessed date to today">
                         <IconButton
                           type="button"
-                          variant="soft"
+                          variant="ghost"
                           size="1"
                           onClick={() => setItem(i, { accessedAt: new Date() })}
                         >
@@ -141,38 +152,25 @@ export const SourceEditingForm = ({
                         </IconButton>
                       </ResponsiveTooltip>
                     </Flex>
-                  </Table.Cell>
+                  </Box>
+                </Flex>
 
-                  <Table.Cell>
-                    <TextArea
-                      size="1"
-                      value={item.note}
-                      onChange={(e) =>
-                        setItem(i, { note: e.currentTarget.value })
-                      }
-                    />
-                  </Table.Cell>
-
-                  <Table.Cell>
-                    <Flex gap="2" justify="end" align="center">
-                      <ResponsiveTooltip content="Remove source">
-                        <IconButton
-                          type="button"
-                          color="tomato"
-                          size="1"
-                          onClick={() => removeRow(i)}
-                        >
-                          <PiTrash />
-                        </IconButton>
-                      </ResponsiveTooltip>
-                    </Flex>
-                  </Table.Cell>
-                </Table.Row>
-              );
-            })}
-          </Table.Body>
-        </Table.Root>
-      )}
-    </FormDescriptor>
+                <Box>
+                  <TextArea
+                    size="1"
+                    rows={1}
+                    placeholder="Notes"
+                    value={item.note}
+                    onChange={(e) =>
+                      setItem(i, { note: e.currentTarget.value })
+                    }
+                  />
+                </Box>
+              </Flex>
+            </Card>
+          );
+        })}
+      </Flex>
+    </Box>
   );
 };

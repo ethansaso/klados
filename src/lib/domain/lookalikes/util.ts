@@ -75,11 +75,11 @@ export function buildGroupedLookalikeStates(args: {
     if (aStates !== null || bStates !== null) {
       const aByChar = new Map<
         number,
-        { states: CharacterStateDTO[]; label: string }
+        { states: CharacterStateDTO[]; label: string; showInProse: boolean }
       >();
       const bByChar = new Map<
         number,
-        { states: CharacterStateDTO[]; label: string }
+        { states: CharacterStateDTO[]; label: string; showInProse: boolean }
       >();
 
       function collectIntoMap(
@@ -90,6 +90,7 @@ export function buildGroupedLookalikeStates(args: {
           const entry = map.get(s.characterId) ?? {
             states: [],
             label: s.characterLabel,
+            showInProse: s.showInProse,
           };
           entry.states.push(s);
           map.set(s.characterId, entry);
@@ -111,16 +112,19 @@ export function buildGroupedLookalikeStates(args: {
         const aEntry = aByChar.get(characterId);
         const bEntry = bByChar.get(characterId);
         const characterLabel = (aEntry ?? bEntry)!.label;
+        const showInProse = (aEntry ?? bEntry)!.showInProse;
 
         aCharacters.push({
           characterId,
           characterLabel,
+          showInProse,
           states: annotateStates(aEntry?.states ?? [], bEntry?.states ?? []),
         });
 
         bCharacters.push({
           characterId,
           characterLabel,
+          showInProse,
           states: annotateStates(bEntry?.states ?? [], aEntry?.states ?? []),
         });
       }

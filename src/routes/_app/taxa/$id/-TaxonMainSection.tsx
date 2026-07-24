@@ -43,36 +43,30 @@ export const TaxonMainSection = ({
       <Flex gap="2">
         <CuratorOnly>
           <Button
+            asChild
             type="button"
             size={{ initial: "1", sm: "2" }}
             variant="soft"
-            onClick={() =>
-              navigate({
-                to: "/taxa/$id/edit",
-                params: { id: String(taxon.id) },
-              })
-            }
             style={{ flex: 1 }}
           >
-            <PiPencilSimple size={12} />
-            Edit
+            <Link to="/taxa/$id/edit" params={{ id: String(taxon.id) }}>
+              <PiPencilSimple size={12} />
+              Edit
+            </Link>
           </Button>
         </CuratorOnly>
         {taxon.activeChildCount > 0 ? (
           <Button
+            asChild
             type="button"
             disabled={taxon.activeChildCount === 0}
             size={{ initial: "1", sm: "2" }}
-            onClick={() =>
-              navigate({
-                to: "/guides/create",
-                search: { initialId: taxon.id },
-              })
-            }
             style={{ flex: 1 }}
           >
-            <PiTreeStructureFill size={12} />
-            Create Guide
+            <Link to="/guides/create" search={{ initialId: taxon.id }}>
+              <PiTreeStructureFill size={12} />
+              Create Guide
+            </Link>
           </Button>
         ) : (
           <ResponsiveTooltip content="This taxon has no subtaxa.">

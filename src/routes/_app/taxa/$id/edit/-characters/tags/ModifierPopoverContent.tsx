@@ -4,12 +4,10 @@ import {
   Button,
   Flex,
   IconButton,
-  Kbd,
   Popover,
   ScrollArea,
   Separator,
   Text,
-  TextField,
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type RefObject } from "react";
@@ -23,8 +21,6 @@ type Props = {
   filterInputRef: RefObject<HTMLInputElement | null>;
   onAdd: (m: ModifierTokenFormValue) => void;
   onRemove: (id: number) => void;
-  /** Called when the user presses Enter on an empty search to return to the main input. */
-  onDismiss?: () => void;
 };
 
 export function ModifierPopoverContent({
@@ -32,7 +28,6 @@ export function ModifierPopoverContent({
   filterInputRef,
   onAdd,
   onRemove,
-  onDismiss,
 }: Props) {
   // `q` is the debounced/committed query that drives the server call.
   const [q, setQ] = useState("");
@@ -83,9 +78,6 @@ export function ModifierPopoverContent({
         buttons[0]?.focus();
         setActiveIndex(0);
       }
-    } else if (e.key === "/" && !e.currentTarget.value && onDismiss) {
-      e.preventDefault();
-      onDismiss();
     } else if (
       e.key === "Enter" &&
       activeIndex >= 0 &&
@@ -173,18 +165,7 @@ export function ModifierPopoverContent({
         onDebouncedChange={setQ}
         onKeyDown={handleInputKeyDown}
         mb="2"
-      >
-        {onDismiss && !q && (
-          <TextField.Slot side="right">
-            <Flex align="center" gap="1">
-              <Kbd size="1">/</Kbd>
-              <Text size="1" color="gray">
-                Return
-              </Text>
-            </Flex>
-          </TextField.Slot>
-        )}
-      </DebouncedTextField>
+      />
 
       {/* ── Available modifiers list ── */}
       <ScrollArea type="auto" scrollbars="vertical" style={{ maxHeight: 200 }}>

@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Card,
   DataList,
   Flex,
@@ -9,14 +10,15 @@ import {
   TextField,
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
-import { memo, useCallback, useId, useState } from "react";
+import { memo, useCallback, useId, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { PiCheck, PiTrash, PiX } from "react-icons/pi";
+import { PiCheck, PiPlus, PiTrash, PiX } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
 import type { TraitSuggestion } from "../../../../../../lib/domain/suggestions/types";
 import { featureQueryOptions } from "../../../../../../lib/queries/features";
 import { CharacterStateRow } from "./CharacterStateRow";
 import { CharacterStateSearch } from "./search/CharacterStateSearch";
+import { FEATURE_SEARCH_INPUT_ID } from "./search/FeatureSearch";
 import {
   addStateFromSuggestion,
   updateCategoricalTraitValueModifiers,
@@ -28,6 +30,9 @@ type LastAdded = {
   traitIndex?: number;
   label: string;
 };
+
+export const characterSearchInputId = (featureId: number) =>
+  `character-search-${featureId}`;
 
 type Props = {
   feature: FeatureFormValue;
@@ -44,14 +49,22 @@ export const EditingFeatureCard = memo(
   ({ feature, onChange, onDelete, onRemoveCategoricalValue }: Props) => {
     const { getValues } = useFormContext<TaxonEditFormValues>();
     const [confirmingDelete, setConfirmingDelete] = useState(false);
+    const [notesExpanded, setNotesExpanded] = useState(
+      () => feature.notes.length > 0,
+    );
+    const focusNotesOnExpandRef = useRef(false);
     const [lastAdded, setLastAdded] = useState<LastAdded | null>(null);
     const [autoOpenFor, setAutoOpenFor] = useState<LastAdded | null>(null);
-    const searchInputId = useId();
+    const searchInputId = characterSearchInputId(feature.featureId);
     const notesInputId = useId();
 
     const focusSearch = useCallback(() => {
       document.getElementById(searchInputId)?.focus();
     }, [searchInputId]);
+
+    const focusFeatureSearch = useCallback(() => {
+      document.getElementById(FEATURE_SEARCH_INPUT_ID)?.focus();
+    }, []);
 
     const { data, isLoading, isError } = useQuery({
       ...featureQueryOptions(feature.featureId),
@@ -60,6 +73,13 @@ export const EditingFeatureCard = memo(
     });
 
     const label = data?.label;
+
+    const setNotesInputRef = useCallback((el: HTMLInputElement | null) => {
+      if (el && focusNotesOnExpandRef.current) {
+        el.focus();
+        focusNotesOnExpandRef.current = false;
+      }
+    }, []);
 
     const handleSuggestionSelect = useCallback(
       (s: TraitSuggestion) => {
@@ -92,7 +112,6 @@ export const EditingFeatureCard = memo(
 
     const handleAutoOpenHandled = useCallback(() => {
       setAutoOpenFor(null);
-      setLastAdded(null);
     }, []);
 
     const handleUpdateCategoricalModifiers = useCallback(
@@ -196,8 +215,19 @@ export const EditingFeatureCard = memo(
 
     return (
       <Card style={{ display: "flex", flexDirection: "column" }}>
-        <Flex mb="2" align="center" justify="between">
-          <Heading size="2" weight="medium">
+        <Flex
+          m="-3"
+          p="3"
+          py="2"
+          mb="1"
+          align="center"
+          justify="between"
+          style={{
+            background: "var(--gray-a3)",
+            borderBottom: "1px solid var(--gray-a5)",
+          }}
+        >
+          <Heading size="2" weight="bold">
             {label}
           </Heading>
           {confirmingDelete ? (
@@ -240,17 +270,11 @@ export const EditingFeatureCard = memo(
           <CharacterStateSearch
             featureId={feature.featureId}
             onSelect={handleSuggestionSelect}
-            modifyHint={lastAdded?.label}
             inputId={searchInputId}
             onModifyShortcut={
-              lastAdded
-                ? () => {
-                    setAutoOpenFor(lastAdded);
-                    setLastAdded(null); // dismiss hint immediately on /
-                  }
-                : undefined
+              lastAdded ? () => setAutoOpenFor(lastAdded) : undefined
             }
-            onQueryActive={() => setLastAdded(null)}
+            onEscapeShortcut={focusFeatureSearch}
           />
         </Box>
 
@@ -302,15 +326,58 @@ export const EditingFeatureCard = memo(
         )}
 
         <Box mt="auto">
-          <Text as="label" size="1" htmlFor={notesInputId} mb="1" mt="3">
-            Notes
-          </Text>
-          <TextField.Root
-            id={notesInputId}
-            size="1"
-            value={feature.notes}
-            onChange={(e) => handleNotesChange(e.target.value)}
-          />
+          {notesExpanded ? (
+            <>
+              <Flex align="center" justify="between" mb="1" mt="3">
+                <Text as="label" size="1" htmlFor={notesInputId}>
+                  Note
+                </Text>
+                <Button
+                  type="button"
+                  size="1"
+                  variant="ghost"
+                  color="tomato"
+                  onClick={() => {
+                    handleNotesChange("");
+                    setNotesExpanded(false);
+                  }}
+                >
+                  <PiX size={12} />
+                  Remove
+                </Button>
+              </Flex>
+              <TextField.Root
+                id={notesInputId}
+                ref={setNotesInputRef}
+                size="1"
+                variant="surface"
+                value={feature.notes}
+                onChange={(e) => handleNotesChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    focusFeatureSearch();
+                  }
+                }}
+              />
+            </>
+          ) : (
+            <Button
+              type="button"
+              size="1"
+              variant="ghost"
+              color="gray"
+              mt="3"
+              ml="1"
+              onClick={() => {
+                focusNotesOnExpandRef.current = true;
+                setNotesExpanded(true);
+              }}
+            >
+              <PiPlus size={10} />
+              Add note
+            </Button>
+          )}
         </Box>
       </Card>
     );

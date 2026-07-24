@@ -6,6 +6,7 @@ import {
   Button,
   Flex,
   IconButton,
+  Text,
   TextArea,
   TextField,
 } from "@radix-ui/themes";
@@ -185,7 +186,8 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
   }, [characterRes, linkedIds]);
 
   const handleAddCharacter = useCallback(
-    (opt: ComboboxOption | null) => {
+    (value: string) => {
+      const opt = characterOptions.find((o) => String(o.id) === value);
       if (!opt) return;
       if (linkedIds.has(Number(opt.id))) return;
       setValue(
@@ -194,7 +196,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
         { shouldDirty: true },
       );
     },
-    [characters, linkedIds, setValue],
+    [characterOptions, characters, linkedIds, setValue],
   );
 
   const handleRemoveCharacter = useCallback(
@@ -295,18 +297,30 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
           </Flex>
           <InputCombobox.Root
             id="characters"
-            value={null}
-            onValueChange={handleAddCharacter}
+            onSelect={handleAddCharacter}
             onQueryChange={setCharacterQuery}
-            options={characterOptions}
             loading={characterLoading}
             disabled={mutation.isPending}
           >
             <InputCombobox.Input placeholder="Search characters to add..." />
             <InputCombobox.Popover>
-              <InputCombobox.List>
+              <InputCombobox.List isEmpty={characterOptions.length === 0}>
                 {characterOptions.map((opt) => (
-                  <InputCombobox.Item key={String(opt.id)} option={opt} />
+                  <InputCombobox.Item
+                    key={String(opt.id)}
+                    value={String(opt.id)}
+                  >
+                    <Flex align="baseline" gap="2" overflow="hidden">
+                      <Text as="p" truncate weight="medium">
+                        {opt.label}
+                      </Text>
+                      {opt.hint && (
+                        <Text as="p" size="1" color="gray" truncate>
+                          {opt.hint}
+                        </Text>
+                      )}
+                    </Flex>
+                  </InputCombobox.Item>
                 ))}
               </InputCombobox.List>
             </InputCombobox.Popover>
