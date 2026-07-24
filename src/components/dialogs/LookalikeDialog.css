@@ -48,11 +48,11 @@
 }
 
 .lookalike-modal__group-copy--missing {
-  color: var(--gray-9);
+  color: var(--gray-12);
 }
 
 .lookalike-modal__group-copy--present {
-  color: var(--gray-11);
+  color: var(--gray-12);
   font-weight: var(--font-weight-medium);
 }
 

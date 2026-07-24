@@ -1,3 +1,5 @@
+import "./ColorBubble.css";
+
 interface ColorBubbleProps {
   hexColor: string;
   size?: number;
