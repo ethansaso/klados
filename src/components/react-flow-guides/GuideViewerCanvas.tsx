@@ -1,7 +1,9 @@
 import { Box } from "@radix-ui/themes";
+import { useQuery } from "@tanstack/react-query";
 import { ReactFlow } from "@xyflow/react";
 import { useMemo } from "react";
 import type { HydratedKeyGraphDTO } from "../../keygen/hydration/types";
+import { themeQueryOptions } from "../../lib/queries/theme";
 import LogoBackground from "./bg/LogoBackground";
 import { layoutGuideTree } from "./layout/computeGuideTreeLayout";
 import { buildReactFlowFromGraph } from "./rf-adapters/buildReactFlow";
@@ -12,6 +14,7 @@ type GuideViewerCanvasProps = {
 };
 
 export function GuideViewerCanvas({ graph }: GuideViewerCanvasProps) {
+  const { data: theme } = useQuery(themeQueryOptions());
   const { nodes, edges } = useMemo(() => {
     const { nodes: rfNodes, edges: rfEdges } = buildReactFlowFromGraph(graph);
     const laidOutNodes = layoutGuideTree(rfNodes, rfEdges);
@@ -21,6 +24,7 @@ export function GuideViewerCanvas({ graph }: GuideViewerCanvasProps) {
   return (
     <Box asChild width="100%" flexGrow="1">
       <ReactFlow
+        colorMode={theme}
         nodes={nodes}
         edges={edges}
         nodeTypes={viewerNodeTypes}

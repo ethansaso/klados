@@ -96,7 +96,7 @@ export const SourceEditingForm = ({
               <Flex direction="column" gap="1">
                 <Flex gap="2" justify="between">
                   {parsed ? (
-                    <Text size="1" as="p">
+                    <Text size="1" as="span">
                       <Text weight="bold" as="p">
                         {parsed.title}
                       </Text>

@@ -55,21 +55,21 @@ function RouteComponent() {
             </ProseSections.Content>
             <ProseSections.Content>
               You represent and warrant that:
-              <ul>
-                <li>
-                  You own or have the necessary rights to use and share your
-                  User Content
-                </li>
-                <li>
-                  Your User Content does not infringe upon the intellectual
-                  property rights of others
-                </li>
-                <li>
-                  Your User Content complies with all applicable laws and
-                  regulations
-                </li>
-              </ul>
             </ProseSections.Content>
+            <ul>
+              <li>
+                You own or have the necessary rights to use and share your User
+                Content
+              </li>
+              <li>
+                Your User Content does not infringe upon the intellectual
+                property rights of others
+              </li>
+              <li>
+                Your User Content complies with all applicable laws and
+                regulations
+              </li>
+            </ul>
           </ProseSections.Subsection>
           <ProseSections.Subsection title="3.2. License to Klados">
             <ProseSections.Content>
@@ -85,18 +85,18 @@ function RouteComponent() {
           <ProseSections.Subsection title="3.3. Prohibited Content">
             <ProseSections.Content>
               You agree not to submit User Content that:
-              <ul>
-                <li>
-                  Infringes upon the rights of others, including copyright or
-                  other intellectual property rights
-                </li>
-                <li>
-                  Contains substantive expressive material from books, articles,
-                  databases, or other protected works without permission
-                </li>
-                <li>Is unlawful, harmful, or offensive</li>
-              </ul>
             </ProseSections.Content>
+            <ul>
+              <li>
+                Infringes upon the rights of others, including copyright or
+                other intellectual property rights
+              </li>
+              <li>
+                Contains substantive expressive material from books, articles,
+                databases, or other protected works without permission
+              </li>
+              <li>Is unlawful, harmful, or offensive</li>
+            </ul>
           </ProseSections.Subsection>
         </ProseSections.Section>
         <ProseSections.Section title="4. Copyright and DMCA Policy">
@@ -144,12 +144,12 @@ function RouteComponent() {
           </ProseSections.Content>
           <ProseSections.Content>
             Klados makes no warranties regarding:
-            <ul>
-              <li>Accuracy or completeness of biological data</li>
-              <li>Fitness for identification, research, or professional use</li>
-              <li>Continuous or error-free operation</li>
-            </ul>
           </ProseSections.Content>
+          <ul>
+            <li>Accuracy or completeness of biological data</li>
+            <li>Fitness for identification, research, or professional use</li>
+            <li>Continuous or error-free operation</li>
+          </ul>
           <ProseSections.Content>
             You use the Service at your own risk.
           </ProseSections.Content>
