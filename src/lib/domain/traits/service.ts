@@ -3,7 +3,7 @@ import {
   deleteTraitValueById,
   insertTraitValueRow,
   selectAllTraitValuesByCharacters,
-  selectMinimalTraitValueRowById,
+  selectTraitIdentityById,
   selectTraitValueDtoById,
   selectTraitValueDtosByIds,
   selectTraitValuesByCharacterPaginated,
@@ -91,7 +91,7 @@ export async function createTraitValue(args: {
   return db.transaction(async (tx) => {
     // If alias, verify the target exists, is in the same set, and is canonical.
     if (canonicalValueId) {
-      const target = await selectMinimalTraitValueRowById(tx, canonicalValueId);
+      const target = await selectTraitIdentityById(tx, canonicalValueId);
       if (!target) {
         throw new Error("Alias target not found.");
       }
@@ -154,7 +154,7 @@ export async function updateTraitValue(
       if (aliasTargetId === args.id)
         throw new Error("A trait value cannot alias itself.");
 
-      const target = await selectMinimalTraitValueRowById(tx, aliasTargetId);
+      const target = await selectTraitIdentityById(tx, aliasTargetId);
       if (!target) throw new Error("Alias target not found.");
       if (target.characterId !== args.characterId)
         throw new Error("Alias target must belong to the same character.");
