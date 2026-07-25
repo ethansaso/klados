@@ -31,24 +31,21 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
   const sci = alias(namesTbl, "sci");
   const common = alias(namesTbl, "common");
 
-  // Collapses non-canonical into canonical
-  const canonTraitId = sql<number>`coalesce(${traitValTbl.canonicalValueId}, ${traitValTbl.id})`;
-
-  // Request taxon's categorical character states
+  // Target's distinct observations, each one a (feature, character, set) triple
   const target = db
     .select({
       featureId: tfsTbl.featureId,
       characterId: tcsCatTbl.characterId,
-      canonTraitValueId: canonTraitId.as("canon_trait_value_id"),
+      synonymSetId: traitValTbl.synonymSetId,
     })
     .from(tcsCatTbl)
     .innerJoin(traitValTbl, eq(traitValTbl.id, tcsCatTbl.traitValueId))
     .innerJoin(tfsTbl, eq(tfsTbl.id, tcsCatTbl.taxonFeatureStateId))
     .where(eq(tfsTbl.taxonId, args.taxonId))
-    .groupBy(tfsTbl.featureId, tcsCatTbl.characterId, canonTraitId)
+    .groupBy(tfsTbl.featureId, tcsCatTbl.characterId, traitValTbl.synonymSetId)
     .as("target");
 
-  // Get simple count of target's categorical features
+  // |A|: how many observations the target has
   const targetCountSq = db
     .select({
       targetCnt: sql<number>`count(*)::int`.as("target_cnt"),
@@ -56,21 +53,21 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
     .from(target)
     .as("target_cnt");
 
-  // Alias table to use for other taxa
+  // Alias for matching candidate rows against the target's sets
   const tv2 = alias(traitValTbl, "tv2");
-  const canonTraitId2 = sql<number>`coalesce(${tv2.canonicalValueId}, ${tv2.id})`;
 
-  // Count distinct shared (featureId, characterId, canonicalTraitValueId) triplets
+  // |A n B|, distinct since a taxon may record several labels from one set
   const sharedCountBase = sql<number>`
   count(distinct (
     ${tfsTbl.featureId},
     ${tcsCatTbl.characterId},
-    ${canonTraitId2}
+    ${tv2.synonymSetId}
   ))::int
 `;
 
   const sharedCountExpr = sharedCountBase.as("shared_cnt");
 
+  // Candidates overlapping the target by at least minShared observations
   const shared = db
     .select({
       otherTaxonId: tfsTbl.taxonId,
@@ -82,14 +79,14 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
       tfsTbl,
       and(
         eq(tfsTbl.id, tcsCatTbl.taxonFeatureStateId),
-        eq(tfsTbl.featureId, target.featureId), // 👈 enforce same feature
+        eq(tfsTbl.featureId, target.featureId),
       ),
     )
     .innerJoin(
       tv2,
       and(
         eq(tv2.id, tcsCatTbl.traitValueId),
-        eq(canonTraitId2, target.canonTraitValueId),
+        eq(tv2.synonymSetId, target.synonymSetId),
       ),
     )
     .where(ne(tfsTbl.taxonId, args.taxonId))
@@ -97,17 +94,15 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
     .having(sql`${sharedCountBase} >= ${minShared}`)
     .as("shared");
 
-  // Alias again to get actual counts for other taxa
+  // Alias for counting each candidate's own observations
   const tv3 = alias(traitValTbl, "tv3");
-  const canonTraitId3 = sql<number>`coalesce(${tv3.canonicalValueId}, ${tv3.id})`;
 
-  // Count distinct categorical features for other taxa, restricting to
-  // just taxa which share something with the target (`shared`).
+  // |B|: each candidate's total observations, scoped to the candidates above
   const otherCnt = db
     .select({
       taxonId: tfsTbl.taxonId,
       otherCnt: sql<number>`
-      count(distinct (${tfsTbl.featureId}, ${tcsCatTbl.characterId}, ${canonTraitId3}))::int
+      count(distinct (${tfsTbl.featureId}, ${tcsCatTbl.characterId}, ${tv3.synonymSetId}))::int
     `.as("other_cnt"),
     })
     .from(tcsCatTbl)
@@ -117,7 +112,7 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
     .groupBy(tfsTbl.taxonId)
     .as("other_cnt");
 
-  // Rank by jaccard similarity
+  // Jaccard over observation sets, plus the fraction of the target matched
   const jaccardExpr = sql<number>`
     (${shared.sharedCnt}::float /
       nullif((${targetCountSq.targetCnt} + ${otherCnt.otherCnt} - ${shared.sharedCnt}), 0)
@@ -127,7 +122,7 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
     (${shared.sharedCnt}::float / nullif(${targetCountSq.targetCnt}, 0))
   `.as("pct_of_target_matched");
 
-  // Final select to format results
+  // Same rank and active only, best similarity first
   const rows = await db
     .select({
       id: taxaTbl.id,
@@ -168,6 +163,7 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
     .orderBy(desc(jaccardExpr), desc(shared.sharedCnt), taxaTbl.id)
     .limit(limit);
 
+  // Separate query, since joining media would multiply rows and skew the counts
   const mediaMap = await selectMediaByTaxonIds(rows.map((r) => r.id));
 
   return rows.map((r) => ({ ...r, media: mediaMap.get(r.id) ?? [] }));

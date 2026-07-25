@@ -6,7 +6,8 @@ import type {
 } from "./types";
 
 function traitKey(s: CharacterStateDTO): string {
-  if (s.kind === "categorical") return `cat:${s.trait.canonicalId}`;
+  // Keyed on synonym set as canonical identity
+  if (s.kind === "categorical") return `cat:${s.trait.synonymSetId}`;
   if (s.kind === "number") return `num:${s.siBaseValue}`;
   return `range:${s.siBaseMin}:${s.siBaseMax}`;
 }

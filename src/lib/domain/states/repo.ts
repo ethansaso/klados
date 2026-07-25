@@ -34,6 +34,11 @@ import type {
 /** Mapping of taxon ID to TaxonCharacterFeatureStateDTO[]. */
 export type TaxonStatesById = Record<string, FeatureStateDTO[]>;
 
+/** Whether a description carries actual content. */
+function hasText(value: string | null | undefined): boolean {
+  return (value?.trim().length ?? 0) > 0;
+}
+
 /**
  * Load character states for at least one taxon.
  * Returns a map taxonId -> TaxonCharacterFeatureStateDTO[].
@@ -71,7 +76,8 @@ export async function selectTaxonStatesByTaxonIds(
     featuresById.set(row.featureId, {
       featureId: row.featureId,
       featureLabel: row.featureLabel,
-      featureHasInfo: !!row.featureDescription || row.featureMediaId !== null,
+      featureHasInfo:
+        hasText(row.featureDescription) || row.featureMediaId !== null,
       notes: row.notes,
       states: [],
     });
@@ -152,13 +158,13 @@ export async function selectTaxonStatesByTaxonIds(
       characterId: row.characterId,
       characterLabel: row.characterLabel,
       characterHasInfo:
-        !!row.characterDescription || row.characterMediaId !== null,
+        hasText(row.characterDescription) || row.characterMediaId !== null,
       showInProse: row.showInProse,
       trait: {
         id: row.traitValueId,
         synonymSetId: row.traitSynonymSetId,
         label: row.traitValueLabel,
-        hasInfo: row.traitValueDescription.trim().length > 0,
+        hasInfo: hasText(row.traitValueDescription),
         hexCode: row.traitValueHexCode ?? undefined,
       },
       modifiers: modifiersByCatStateId.get(row.stateId) ?? [],
@@ -240,7 +246,7 @@ export async function selectTaxonStatesByTaxonIds(
       characterId: row.characterId,
       characterLabel: row.characterLabel,
       characterHasInfo:
-        !!row.characterDescription || row.characterMediaId !== null,
+        hasText(row.characterDescription) || row.characterMediaId !== null,
       showInProse: row.showInProse,
       siBaseValue: parseFloat(row.siBaseValue),
       unit:
@@ -337,7 +343,7 @@ export async function selectTaxonStatesByTaxonIds(
       characterId: row.characterId,
       characterLabel: row.characterLabel,
       characterHasInfo:
-        !!row.characterDescription || row.characterMediaId !== null,
+        hasText(row.characterDescription) || row.characterMediaId !== null,
       showInProse: row.showInProse,
       siBaseMin: row.siBaseMin !== null ? parseFloat(row.siBaseMin) : null,
       siBaseMax: row.siBaseMax !== null ? parseFloat(row.siBaseMax) : null,
