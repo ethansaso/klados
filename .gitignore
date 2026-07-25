@@ -22,4 +22,5 @@ yarn.lock
 
 # local files
 /uploads/
+/.backups/
 ISSUES.md
