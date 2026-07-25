@@ -1,38 +1,18 @@
-import { capitalizeWord } from "../../utils/case";
 import { COLOR_ALIASES } from "./aliases";
-import {
-  BASE_HUE_NAMES,
-  HUE_MAP,
-  MODIFIERS,
-  MODIFIERS_SL,
-  NEUTRAL_COLOR_NAMES,
-  NEUTRAL_MAP,
-  SPECIAL_COLOR_NAMES,
-} from "./canonicals";
-
-export type Modifier = (typeof MODIFIERS)[number];
+import { BASE_HUES, NEUTRALS, SHADES, SPECIAL_COLOR_NAMES } from "./canonicals";
 
 /**
- * Fully normalized alias entry.
- *
- * - aliasLabel: human-facing string ("Maroon")
- * - canonicalLabel: label of the canonical color ("Dark Red")
- */
-export type NormalizedColorAlias = {
-  aliasLabel: string;
-  canonicalLabel: string;
-};
-
-/**
- * Canonical color definition used by seeding + tests.
+ * One color: a primary label plus every other label that means the same thing.
+ * All of them share `hexCode` and land in a single synonym set.
  */
 export type ColorDef = {
   label: string;
   hexCode: string | null;
+  synonyms: string[];
 };
 
 // TODO: eliminate duplication with src/lib/utils/colorConversions.ts
-export function hslToHex(h: number, s: number, l: number): string {
+function hslToHex(h: number, s: number, l: number): string {
   s /= 100;
   l /= 100;
 
@@ -58,229 +38,90 @@ export function ansiBlock(hex: string): string {
 }
 
 /**
- * Build a label from a modifier + hue name.
- *
- * Rules:
- * - Modifier "" → omitted.
- * - "dark-grayish" → "Dark grayish" (two separate words).
- * - Hyphens are preserved inside hue names: "red-brown" → "Red-Brown".
+ * Trait labels are stored lowercase, matching the rest of the glossary.
+ * Display code capitalizes where it needs to, e.g. at the head of prose.
  */
-export function buildLabel(mod: Modifier, hueName: string): string {
-  const words: string[] = [];
+const normalize = (label: string) => label.trim().toLowerCase();
 
-  if (mod !== "") {
-    if (mod === "dark-grayish") {
-      // Two words, no hyphen between them.
-      words.push("Dark", "grayish");
-    } else {
-      words.push(capitalizeWord(mod));
-    }
-  }
+/**
+ * Every systematically generated color: each base hue crossed with the shade
+ * ramp, plus the neutrals and specials. Vernacular names live in COLOR_ALIASES.
+ */
+function generatePalette(): ColorDef[] {
+  const neutrals = NEUTRALS.map(({ name, hex }) => ({
+    label: normalize(name),
+    hexCode: hex as string | null,
+    synonyms: [],
+  }));
 
-  const hueParts = hueName.split(/\s+/);
-  for (const part of hueParts) {
-    words.push(
-      part
-        .split("-")
-        .map((w) => capitalizeWord(w))
-        .join("-"),
-    );
-  }
-
-  return words.join(" ");
-}
-
-// Turn the parallel arrays into a lookup map
-const MODIFIERS_SL_MAP: Record<Modifier, { s: number; l: number }> =
-  MODIFIERS.reduce(
-    (acc, mod, idx) => {
-      acc[mod] = MODIFIERS_SL[idx];
-      return acc;
-    },
-    {} as Record<Modifier, { s: number; l: number }>,
+  const hues = BASE_HUES.flatMap(({ name, deg }) =>
+    SHADES.map(({ modifier, s, l }) => ({
+      label: normalize(modifier ? `${modifier} ${name}` : name),
+      hexCode: hslToHex(deg, s * 100, l * 100) as string | null,
+      synonyms: [],
+    })),
   );
 
-export function getNeutralColors() {
-  return NEUTRAL_COLOR_NAMES.map((name, i) => ({
-    name,
-    hex: NEUTRAL_MAP[i],
-  }));
-}
-
-export function colorFromHueIndex(
-  rowIndex: number,
-  modifier: Modifier,
-): string {
-  const hueDeg = HUE_MAP[rowIndex];
-  const sl = MODIFIERS_SL_MAP[modifier];
-  if (!sl) {
-    throw new Error(`Missing S/L for modifier "${modifier}"`);
-  }
-  return hslToHex(hueDeg, sl.s * 100, sl.l * 100);
-}
-
-/**
- * Expand one BASE_HUE_NAMES row into 6 semantic color names + hex.
- *
- * Universal HSL slots for each row (modifier → S/L):
- *   pale, light, base, grayish, dark, dark-grayish
- *
- * Naming rules by row type:
- *
- * 1) Unbroken hue (light == base == dark), e.g. ["green","green","green"]
- *    pale green
- *    light green
- *    green
- *    grayish green
- *    dark green
- *    dark grayish green
- *
- * 2) Light-shifted (light != base, dark == base), e.g. ["pink","red","red"]
- *    grayish pink        (pale slot)
- *    pink                (light slot)
- *    red                 (base slot)
- *    grayish red         (grayish slot)
- *    dark red            (dark slot)
- *    dark grayish red    (dark-grayish slot)
- *
- * 3) Dark-shifted (light == base, dark != base), e.g. ["yellow","yellow","brown"]
- *    pale yellow         (pale slot)
- *    light yellow        (light slot)
- *    yellow              (base slot)
- *    grayish yellow      (grayish slot)
- *    brown               (dark slot)
- *    grayish brown       (dark-grayish slot)
- *
- * HSL is driven purely by the modifier; hue names are semantic.
- */
-export function expandHueRow(
-  rowIndex: number,
-  lightHue: string,
-  baseHue: string,
-  darkHue: string,
-): { name: string; hex: string }[] {
-  const isLightShifted = lightHue !== baseHue;
-  const isDarkShifted = darkHue !== baseHue;
-
-  const entries: { name: string; modifier: Modifier }[] = [];
-
-  if (!isLightShifted && !isDarkShifted) {
-    // Case 1: unbroken hue strip
-    entries.push(
-      { name: `pale ${baseHue}`, modifier: "pale" },
-      { name: `light ${baseHue}`, modifier: "light" },
-      { name: baseHue, modifier: "" },
-      { name: `grayish ${baseHue}`, modifier: "grayish" },
-      { name: `dark ${baseHue}`, modifier: "dark" },
-      { name: `dark grayish ${baseHue}`, modifier: "dark-grayish" },
-    );
-  } else if (isLightShifted && !isDarkShifted) {
-    // Case 2: light-shifted (e.g. ["pink","red","red"])
-    entries.push(
-      { name: `grayish ${lightHue}`, modifier: "pale" }, // grayish pink
-      { name: lightHue, modifier: "light" }, // pink
-      { name: baseHue, modifier: "" }, // red
-      { name: `grayish ${baseHue}`, modifier: "grayish" },
-      { name: `dark ${baseHue}`, modifier: "dark" },
-      { name: `dark grayish ${baseHue}`, modifier: "dark-grayish" },
-    );
-  } else if (!isLightShifted && isDarkShifted) {
-    // Case 3: dark-shifted (e.g. ["yellow","yellow","brown"])
-    entries.push(
-      { name: `pale ${baseHue}`, modifier: "pale" },
-      { name: `light ${baseHue}`, modifier: "light" },
-      { name: baseHue, modifier: "" },
-      { name: `grayish ${baseHue}`, modifier: "grayish" },
-      { name: darkHue, modifier: "dark" },
-      { name: `grayish ${darkHue}`, modifier: "dark-grayish" },
-    );
-  } else {
-    // With your current BASE_HUE_NAMES this should never happen.
-    throw new Error(
-      `Unexpected both-shifted hue row: [${lightHue}, ${baseHue}, ${darkHue}]`,
-    );
-  }
-
-  return entries.map(({ name, modifier }) => ({
-    name,
-    hex: colorFromHueIndex(rowIndex, modifier),
-  }));
-}
-
-// Convenience: everything at once
-export function getAllHueColors() {
-  return BASE_HUE_NAMES.map(([lightHue, baseHue, darkHue], rowIndex) => ({
-    groupBase: baseHue,
-    colors: expandHueRow(rowIndex, lightHue, baseHue, darkHue),
-  }));
-}
-
-function generateSpecialColors(): ColorDef[] {
-  return SPECIAL_COLOR_NAMES.map((name) => ({
-    label: capitalizeWord(name),
+  const specials = SPECIAL_COLOR_NAMES.map((name) => ({
+    label: normalize(name),
     hexCode: null,
+    synonyms: [],
   }));
-}
-
-function generateNeutralColorDefs(): ColorDef[] {
-  return getNeutralColors().map(({ name, hex }) => {
-    const rawLabel = name.replace(/-/g, " "); // light-gray -> light gray
-    const label = rawLabel
-      .split(/\s+/)
-      .map((w) => capitalizeWord(w))
-      .join(" ");
-    return { label, hexCode: hex };
-  });
-}
-
-function generateHueColorDefs(): ColorDef[] {
-  const groups = getAllHueColors();
-  const colors: ColorDef[] = [];
-
-  for (const group of groups) {
-    for (const c of group.colors) {
-      // c.name is already something like "grayish pink", "dark grayish red-brown"
-      const label = c.name
-        .split(/\s+/)
-        .map((word) =>
-          word
-            .split("-")
-            .map((w) => capitalizeWord(w))
-            .join("-"),
-        )
-        .join(" ");
-      colors.push({ label, hexCode: c.hex });
-    }
-  }
-
-  return colors;
-}
-
-/**
- * Full canonical palette as ColorDef objects.
- */
-export function generateCanonicalColorDefs(): ColorDef[] {
-  const neutrals = generateNeutralColorDefs();
-  const hues = generateHueColorDefs();
-  const specials = generateSpecialColors();
 
   return [...neutrals, ...hues, ...specials];
 }
 
 /**
- * Flatten COLOR_ALIASES into a list of normalized alias entries.
+ * The generated palette with COLOR_ALIASES folded in, one entry per synonym set.
+ * Throws if any label is claimed twice or an alias key names no generated color.
  */
-export function getNormalizedColorAliases(): NormalizedColorAlias[] {
-  const result: NormalizedColorAlias[] = [];
+export function buildColorSeedPlan(): ColorDef[] {
+  const defs = generatePalette();
+  const errors: string[] = [];
 
-  for (const [canonicalLabel, aliasLabels] of Object.entries(COLOR_ALIASES)) {
-    for (const aliasLabel of aliasLabels) {
-      result.push({
-        aliasLabel,
-        canonicalLabel,
-      });
+  const generated = new Map(defs.map((def) => [def.label, def]));
+  const ownerByLabel = new Map(generated);
+
+  function claim(label: string, def: ColorDef): boolean {
+    const owner = ownerByLabel.get(label);
+
+    if (owner) {
+      errors.push(
+        owner === def
+          ? `Color "${def.label}" lists the label "${label}" more than once.`
+          : `Label "${label}" is claimed by both "${owner.label}" and "${def.label}".`,
+      );
+      return false;
+    }
+
+    ownerByLabel.set(label, def);
+    return true;
+  }
+
+  if (generated.size !== defs.length) {
+    errors.push("Two generated colors share a label.");
+  }
+
+  for (const [colorLabel, synonyms] of Object.entries(COLOR_ALIASES)) {
+    const def = generated.get(normalize(colorLabel));
+
+    if (!def) {
+      errors.push(
+        `"${colorLabel}" is not a generated color label, so its synonyms have nowhere to go.`,
+      );
+      continue;
+    }
+
+    for (const synonym of synonyms.map(normalize)) {
+      if (claim(synonym, def)) def.synonyms.push(synonym);
     }
   }
 
-  return result;
+  if (errors.length > 0) {
+    throw new Error(
+      `Color palette configuration errors:\n${errors.map((e) => `  - ${e}`).join("\n")}`,
+    );
+  }
+
+  return defs;
 }

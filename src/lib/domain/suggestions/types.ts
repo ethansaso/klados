@@ -21,7 +21,7 @@ type BaseNumericSuggestion = BaseCharacterContext & {
 export type CategoricalValueSuggestion = BaseCharacterContext & {
   kind: "categorical-value";
   traitValueId: number;
-  traitValueLabel: string; // "Red"
+  traitValueLabel: string; // "red"
   traitValueDescription: string; // may be ""
   traitValueHexCode: string | null; // "#FF0000" or null
 };
