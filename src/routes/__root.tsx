@@ -2,7 +2,11 @@ import "../assets/styles/main.css";
 
 import NiceModal from "@ebay/nice-modal-react";
 import { Theme } from "@radix-ui/themes";
-import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  QueryClient,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import {
   HeadContent,
   Outlet,
@@ -10,12 +14,14 @@ import {
   createRootRouteWithContext,
   stripSearchParams,
 } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { type ReactNode, useLayoutEffect } from "react";
 import { ToastHost } from "../components/ToastHost";
-import { meQueryOptions } from "../lib/queries/users";
 import { themeQueryOptions } from "../lib/queries/theme";
+import { meQueryOptions } from "../lib/queries/users";
+import { setThemeFn } from "../lib/server-fns/theme/setThemeFn";
 import { GA_ID } from "../lib/utils/head/const";
 import { rootSeo } from "../lib/utils/head/rootSeo";
+import { DEFAULT_THEME, type ThemeMode } from "../lib/utils/theme";
 import { paginationDefaults } from "../lib/validation/pagination";
 
 export const Route = createRootRouteWithContext<{
@@ -95,10 +101,25 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootComponent() {
+  const queryClient = useQueryClient();
   const { data: theme } = useSuspenseQuery(themeQueryOptions());
 
+  // Adopt OS preference if no cookie
+  useLayoutEffect(() => {
+    if (theme !== null) return;
+
+    const detected: ThemeMode = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches
+      ? "dark"
+      : "light";
+
+    queryClient.setQueryData(themeQueryOptions().queryKey, detected);
+    void setThemeFn({ data: { theme: detected } });
+  }, [theme, queryClient]);
+
   return (
-    <RootDocument theme={theme}>
+    <RootDocument theme={theme ?? DEFAULT_THEME}>
       <NiceModal.Provider>
         <Outlet />
       </NiceModal.Provider>
