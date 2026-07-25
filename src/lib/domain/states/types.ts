@@ -12,7 +12,11 @@ export type ModifierStateDTO = {
 
 export type Trait = {
   id: number;
-  canonicalId: number;
+  /**
+   * Equivalence bucket. Traits sharing a set are interchangeable, so
+   * lookalike matching and keygen splitting compare on this rather than `id`.
+   */
+  synonymSetId: number;
   label: string;
   hasInfo: boolean;
   hexCode?: string;
