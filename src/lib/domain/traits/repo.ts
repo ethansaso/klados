@@ -1,5 +1,13 @@
-import { and, asc, count, eq, ilike, inArray, sql } from "drizzle-orm";
-
+import {
+  and,
+  asc,
+  count,
+  eq,
+  ilike,
+  inArray,
+  notExists,
+  sql,
+} from "drizzle-orm";
 import {
   traitSynonymSet as setsTbl,
   taxonCharacterStateCategorical as tcsTbl,
@@ -85,12 +93,30 @@ export async function selectSynonymSetSizes(
   return new Map(rows.map((r) => [r.setId, r.size]));
 }
 
-/** Deletes a synonym set. */
-export async function deleteSynonymSetById(
+/**
+ * Delete a synonym set, but only if it has no members. Returns whether it
+ * was deleted.
+ */
+export async function deleteSynonymSetIfEmpty(
   tx: Transaction,
   setId: number,
-): Promise<void> {
-  await tx.delete(setsTbl).where(eq(setsTbl.id, setId));
+): Promise<boolean> {
+  const deleted = await tx
+    .delete(setsTbl)
+    .where(
+      and(
+        eq(setsTbl.id, setId),
+        notExists(
+          tx
+            .select({ one: sql`1` })
+            .from(valsTbl)
+            .where(eq(valsTbl.synonymSetId, setId)),
+        ),
+      ),
+    )
+    .returning({ id: setsTbl.id });
+
+  return deleted.length > 0;
 }
 
 /**

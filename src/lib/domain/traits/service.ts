@@ -1,8 +1,14 @@
 import { db } from "../../../../db/client";
 import {
+  countTraitsInSet,
+  deleteSynonymSetIfEmpty,
   deleteTraitValueById,
+  insertSynonymSet,
   insertTraitValueRow,
+  moveTraitsBetweenSets,
+  moveTraitToSet,
   selectAllTraitValuesByCharacters,
+  selectSynonymSetSizes,
   selectTraitIdentityById,
   selectTraitValueDtoById,
   selectTraitValueDtosByIds,
@@ -11,6 +17,21 @@ import {
 } from "./repo";
 import type { TraitValueDTO, TraitValuePaginatedResult } from "./types";
 import type { UpdateTraitValueInput } from "./validation";
+
+/** Deterministically chooses the larger of two sets to 'survive' a merge to reduce move operations. */
+function pickKeepAndDrop(
+  setA: number,
+  sizeA: number,
+  setB: number,
+  sizeB: number,
+): { keep: number; drop: number } {
+  if (sizeA !== sizeB) {
+    return sizeA > sizeB
+      ? { keep: setA, drop: setB }
+      : { keep: setB, drop: setA };
+  }
+  return setA < setB ? { keep: setA, drop: setB } : { keep: setB, drop: setA };
+}
 
 /**
  * Delete a trait value by id.
@@ -32,14 +53,9 @@ export async function deleteTraitValue(args: {
       );
     }
 
-    // Block delete if has dependent aliases
-    if (!dto.aliasOf && (dto.aliasCount ?? 0) > 0) {
-      throw new Error(
-        `Cannot delete "${dto.label}" because ${dto.aliasCount} alias value(s) depend on it. Remove or reassign those aliases first.`,
-      );
-    }
-
     const deleted = await deleteTraitValueById(tx, id);
+    await deleteSynonymSetIfEmpty(tx, dto.synonymSetId);
+
     return deleted;
   });
 }
@@ -54,9 +70,7 @@ export async function getTraitValue(args: {
   return db.transaction((tx) => selectTraitValueDtoById(tx, args.id));
 }
 
-/**
- * Bulk fetch trait values by ID.
- */
+/** Bulk fetch trait values by ID. */
 export async function getTraitValuesByIds(
   ids: number[],
 ): Promise<TraitValueDTO[]> {
@@ -72,41 +86,42 @@ export async function getTraitValuesByIds(
 }
 
 /**
- * Create a trait value (canonical or alias).
- *
- * Applies alias invariants:
- *  - target exists
- *  - same set
- *  - target is canonical
+ * Create a trait value.
+ * Will also create a single-member synonym set, unless a `synonymOfTraitId` is passed.
  */
 export async function createTraitValue(args: {
   characterId: number;
   label: string;
-  canonicalValueId?: number | null;
+  description?: string;
+  hexCode?: string | null;
+  synonymOfTraitId?: number;
 }): Promise<TraitValueDTO> {
   const characterId = args.characterId;
   const label = args.label.trim();
-  const canonicalValueId = args.canonicalValueId ?? null;
 
   return db.transaction(async (tx) => {
-    // If alias, verify the target exists, is in the same set, and is canonical.
-    if (canonicalValueId) {
-      const target = await selectTraitIdentityById(tx, canonicalValueId);
-      if (!target) {
-        throw new Error("Alias target not found.");
+    let synonymSetId: number;
+
+    if (args.synonymOfTraitId !== undefined) {
+      const sibling = await selectTraitIdentityById(tx, args.synonymOfTraitId);
+      if (!sibling) {
+        throw new Error("Synonym target not found.");
       }
-      if (target.characterId !== characterId) {
-        throw new Error("Alias target must belong to the same character.");
+      if (sibling.characterId !== characterId) {
+        throw new Error("Synonym target must belong to the same character.");
       }
-      if (target.canonicalValueId !== null) {
-        throw new Error("Alias target must be canonical.");
-      }
+      synonymSetId = sibling.synonymSetId;
+    } else {
+      const set = await insertSynonymSet(tx, characterId);
+      synonymSetId = set.id;
     }
 
     const inserted = await insertTraitValueRow(tx, {
       characterId,
+      synonymSetId,
       label,
-      canonicalValueId,
+      description: args.description?.trim(),
+      hexCode: args.hexCode,
     });
 
     if (!inserted) {
@@ -122,68 +137,27 @@ export async function createTraitValue(args: {
   });
 }
 
+/**
+ * Patch trait value's fields.
+ * To modify synonym membership, see `linkTraitsAsSynonyms` / `unlinkTraitFromSynonyms`.
+ */
 export async function updateTraitValue(
   args: UpdateTraitValueInput,
 ): Promise<TraitValueDTO> {
   return db.transaction(async (tx) => {
-    const cur = await selectTraitValueDtoById(tx, args.id);
+    const cur = await selectTraitIdentityById(tx, args.id);
     if (!cur) throw new Error("Trait value not found.");
     if (cur.characterId !== args.characterId)
       throw new Error("Trait value character mismatch.");
 
-    const aliasTargetId = args.aliasTargetId; // number | null | undefined
-
-    const willBeAlias =
-      aliasTargetId !== undefined
-        ? aliasTargetId !== null
-        : cur.aliasOf !== null;
-
-    // block: setting alias when this value has aliases
-    if (
-      aliasTargetId !== undefined &&
-      aliasTargetId !== null &&
-      cur.aliasCount > 0
-    ) {
-      throw new Error(
-        `Cannot make "${cur.label}" an alias because ${cur.aliasCount} alias value(s) depend on it.`,
-      );
-    }
-
-    // validate target if setting alias
-    if (aliasTargetId !== undefined && aliasTargetId !== null) {
-      if (aliasTargetId === args.id)
-        throw new Error("A trait value cannot alias itself.");
-
-      const target = await selectTraitIdentityById(tx, aliasTargetId);
-      if (!target) throw new Error("Alias target not found.");
-      if (target.characterId !== args.characterId)
-        throw new Error("Alias target must belong to the same character.");
-      if (target.canonicalValueId !== null)
-        throw new Error("Alias target must be canonical.");
-    }
-
-    // if result is alias, reject attempts to set canonical-only fields
-    if (willBeAlias) {
-      if (args.hexCode !== undefined)
-        throw new Error("Hex code can only be set for canonical values.");
-      if (args.description !== undefined)
-        throw new Error("Description can only be set for canonical values.");
-    }
-
-    const patch = {
+    const updated = await updateTraitValueRow(tx, {
       id: args.id,
       characterId: args.characterId,
-      key: args.key?.trim(),
       label: args.label?.trim(),
-      hexCode: args.hexCode === undefined ? undefined : args.hexCode,
+      hexCode: args.hexCode,
       description:
-        args.description === undefined
-          ? undefined
-          : (args.description?.trim() ?? ""),
-      aliasTargetId,
-    };
-
-    const updated = await updateTraitValueRow(tx, patch);
+        args.description === undefined ? undefined : args.description.trim(),
+    });
     if (!updated) throw new Error("Update failed.");
 
     const dto = await selectTraitValueDtoById(tx, args.id);
@@ -194,13 +168,71 @@ export async function updateTraitValue(
 }
 
 /**
- * List trait values for a character, paginated.
+ * Merge two traits into one synonym set.
+ * Order does not matter -- see {@link pickKeepAndDrop}.
  */
+export async function linkTraitsAsSynonyms(args: {
+  traitIdA: number;
+  traitIdB: number;
+}): Promise<{ synonymSetId: number }> {
+  return db.transaction(async (tx) => {
+    const a = await selectTraitIdentityById(tx, args.traitIdA);
+    const b = await selectTraitIdentityById(tx, args.traitIdB);
+
+    if (!a || !b) throw new Error("Trait value not found.");
+    if (a.characterId !== b.characterId) {
+      throw new Error("Traits belong to different characters.");
+    }
+    // Cover linking a trait to itself
+    if (a.synonymSetId === b.synonymSetId) {
+      return { synonymSetId: a.synonymSetId };
+    }
+
+    const sizes = await selectSynonymSetSizes(tx, [
+      a.synonymSetId,
+      b.synonymSetId,
+    ]);
+    const { keep, drop } = pickKeepAndDrop(
+      a.synonymSetId,
+      sizes.get(a.synonymSetId) ?? 0,
+      b.synonymSetId,
+      sizes.get(b.synonymSetId) ?? 0,
+    );
+
+    await moveTraitsBetweenSets(tx, drop, keep);
+    await deleteSynonymSetIfEmpty(tx, drop);
+
+    return { synonymSetId: keep };
+  });
+}
+
+/** Detach a trait from its synonyms by moving it into a fresh set of its own. */
+export async function unlinkTraitFromSynonyms(args: {
+  traitId: number;
+}): Promise<{ synonymSetId: number }> {
+  return db.transaction(async (tx) => {
+    const trait = await selectTraitIdentityById(tx, args.traitId);
+    if (!trait) throw new Error("Trait value not found.");
+
+    // Early return if it's already alone
+    if ((await countTraitsInSet(tx, trait.synonymSetId)) <= 1) {
+      return { synonymSetId: trait.synonymSetId };
+    }
+
+    const set = await insertSynonymSet(tx, trait.characterId);
+    await moveTraitToSet(tx, args.traitId, set.id);
+    // Attempt cleanup -- other part(s) of transaction may have influenced set
+    await deleteSynonymSetIfEmpty(tx, trait.synonymSetId);
+
+    return { synonymSetId: set.id };
+  });
+}
+
+/** List trait values for a character, paginated. */
 export async function listTraitValuesByCharacter(args: {
   characterId: number;
   page: number;
   pageSize: number;
-  canonicalOnly?: boolean;
   q?: string;
 }): Promise<TraitValuePaginatedResult> {
   return db.transaction(async (tx) => {
@@ -209,13 +241,13 @@ export async function listTraitValuesByCharacter(args: {
       args.characterId,
       args.page,
       args.pageSize,
-      { canonicalOnly: args.canonicalOnly, q: args.q },
+      { q: args.q },
     );
   });
 }
 
 /**
- * List all canonical trait values for the given characters (unpaginated),
+ * List all trait values for a list of characters (unpaginated),
  * grouped by character ID.
  */
 export async function listAllTraitValuesByCharacters(
