@@ -50,7 +50,6 @@ async function getOrCreateColorCharacterTx(tx: Transaction) {
       .insert(character)
       .values({
         label: COLOR_CHARACTER_LABEL,
-        // Categorical characters read better without their label in prose
         showInProse: false,
       })
       .returning();

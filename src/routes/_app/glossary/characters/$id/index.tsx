@@ -84,9 +84,8 @@ function RouteComponent() {
     if (!label || isCreating) return;
     setIsCreating(true);
     try {
-      const key = label.toLowerCase().replace(/\s+/g, "_");
       const created = await serverCreateTrait({
-        data: { characterId: id, label, key },
+        data: { characterId: id, label },
       });
       qc.invalidateQueries({ queryKey: ["traitValues"] });
       setNewTraitLabel("");
