@@ -1,5 +1,4 @@
 import {
-  aliasedTable,
   and,
   desc,
   eq,
@@ -148,9 +147,6 @@ export async function queryCategoricalSuggestionRows(opts: {
     sqlLimit,
   } = opts;
 
-  // Alias for self-join to canonical value (hex / description lives there)
-  const canonicalValue = aliasedTable(categoricalTraitValue, "canonical_value");
-
   return (
     db
       .select({
@@ -160,9 +156,8 @@ export async function queryCategoricalSuggestionRows(opts: {
         featureLabel: feature.label,
         traitValueId: categoricalTraitValue.id,
         traitValueLabel: categoricalTraitValue.label,
-        // Hex/description from canonical value (or self when already canonical)
-        traitValueHexCode: canonicalValue.hexCode,
-        traitValueDescription: canonicalValue.description,
+        traitValueHexCode: categoricalTraitValue.hexCode,
+        traitValueDescription: categoricalTraitValue.description,
         similarityScore: sql<number>`
         similarity(
           lower(${categoricalTraitValue.label}),
@@ -177,11 +172,6 @@ export async function queryCategoricalSuggestionRows(opts: {
         eq(characterFeature.characterId, character.id),
       )
       .innerJoin(feature, eq(feature.id, characterFeature.featureId))
-      // Self-join: canonical row if alias, self if already canonical
-      .innerJoin(
-        canonicalValue,
-        sql`${canonicalValue.id} = COALESCE(${categoricalTraitValue.canonicalValueId}, ${categoricalTraitValue.id})`,
-      )
       .where(
         and(
           eq(feature.id, featureId),
