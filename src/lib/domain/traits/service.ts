@@ -16,7 +16,12 @@ import {
   updateTraitValueRow,
 } from "./repo";
 import type { TraitValueDTO, TraitValuePaginatedResult } from "./types";
-import type { UpdateTraitValueInput } from "./validation";
+import type {
+  CreateTraitValueInput,
+  LinkTraitsAsSynonymsInput,
+  UnlinkTraitFromSynonymsInput,
+  UpdateTraitValueInput,
+} from "./validation";
 
 /** Deterministically chooses the larger of two sets to 'survive' a merge to reduce move operations. */
 function pickKeepAndDrop(
@@ -89,13 +94,9 @@ export async function getTraitValuesByIds(
  * Create a trait value.
  * Will also create a single-member synonym set, unless a `synonymOfTraitId` is passed.
  */
-export async function createTraitValue(args: {
-  characterId: number;
-  label: string;
-  description?: string;
-  hexCode?: string | null;
-  synonymOfTraitId?: number;
-}): Promise<TraitValueDTO> {
+export async function createTraitValue(
+  args: CreateTraitValueInput,
+): Promise<TraitValueDTO> {
   const characterId = args.characterId;
   const label = args.label.trim();
 
@@ -171,10 +172,9 @@ export async function updateTraitValue(
  * Merge two traits into one synonym set.
  * Order does not matter -- see {@link pickKeepAndDrop}.
  */
-export async function linkTraitsAsSynonyms(args: {
-  traitIdA: number;
-  traitIdB: number;
-}): Promise<{ synonymSetId: number }> {
+export async function linkTraitsAsSynonyms(
+  args: LinkTraitsAsSynonymsInput,
+): Promise<{ synonymSetId: number }> {
   return db.transaction(async (tx) => {
     const a = await selectTraitIdentityById(tx, args.traitIdA);
     const b = await selectTraitIdentityById(tx, args.traitIdB);
@@ -207,9 +207,9 @@ export async function linkTraitsAsSynonyms(args: {
 }
 
 /** Detach a trait from its synonyms by moving it into a fresh set of its own. */
-export async function unlinkTraitFromSynonyms(args: {
-  traitId: number;
-}): Promise<{ synonymSetId: number }> {
+export async function unlinkTraitFromSynonyms(
+  args: UnlinkTraitFromSynonymsInput,
+): Promise<{ synonymSetId: number }> {
   return db.transaction(async (tx) => {
     const trait = await selectTraitIdentityById(tx, args.traitId);
     if (!trait) throw new Error("Trait value not found.");
