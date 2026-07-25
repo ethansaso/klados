@@ -7,6 +7,7 @@ import {
   useNodesState,
 } from "@xyflow/react";
 import { themeQueryOptions } from "../../../lib/queries/theme";
+import { DEFAULT_THEME } from "../../../lib/utils/theme";
 import LogoBackground from "../bg/LogoBackground";
 import { demoEdges, demoNodes } from "./demoData";
 import { demoEdgeTypes, demoNodeTypes } from "./demoTypes";
@@ -25,7 +26,7 @@ export const GuideDemoCanvas = () => {
     >
       <ReactFlow
         className="rf-demo__canvas"
-        colorMode={theme}
+        colorMode={theme ?? DEFAULT_THEME}
         nodes={nodes}
         edges={edges}
         nodeTypes={demoNodeTypes}
