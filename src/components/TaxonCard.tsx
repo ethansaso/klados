@@ -6,6 +6,7 @@ import type { MediaDTO } from "../lib/domain/media/types";
 import { getMediaUrl } from "../lib/storage/getMediaUrl";
 import { capitalizeFirstLetter } from "../lib/utils/formatting/casing";
 import { AnnotationBubbleWrap } from "./annotations/AnnotationBubbleWrap";
+import "./TaxonCard.css";
 
 interface TaxonCardProps {
   id: number;
@@ -27,12 +28,11 @@ export const TaxonCard = memo(
     acceptedName,
     preferredCommonName,
     rank,
-    inset,
     size = "2",
     serveAsLink = false,
     onClick,
   }: PropsWithChildren<TaxonCardProps>) => {
-    const className = classNames("taxon-card", inset && "inset");
+    const className = classNames("taxon-card");
     const content = (
       <>
         <img
@@ -77,10 +77,7 @@ export const TaxonCard = memo(
     );
 
     return (
-      <AnnotationBubbleWrap
-        media={thumbnail}
-        spacing={inset ? "1" : { initial: "1", sm: "4" }}
-      >
+      <AnnotationBubbleWrap media={thumbnail} spacing={size}>
         {serveAsLink ? (
           <Card className={className} size="1" asChild>
             <Link to="/taxa/$id" params={{ id: String(id) }}>

@@ -15,7 +15,7 @@ export const Footer = () => {
         >
           <Text color="gray">© 2025 Klados. All rights reserved.</Text>
           <Text color="gray">
-            Built with <Text color="red">❤️</Text> by{" "}
+            Built with <Text highContrast>❤️</Text> by{" "}
             <Link
               href="https://ethansaso.github.io/"
               target="_blank"

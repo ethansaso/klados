@@ -14,6 +14,7 @@ import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "../../../../db/client";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
+import { taxonFeatureState as featureStatesTbl } from "../../../../db/schema/taxa/featureStates";
 import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import { likeAnywhere } from "../../utils/sql/likeAnywhere";
@@ -378,7 +379,17 @@ export async function fetchTaxonDetailById(
 export async function listTaxaQuery(
   args: TaxonSearchParams,
 ): Promise<TaxonPaginatedResult> {
-  const { q, page, pageSize, status, highRank, lowRank, hasMedia } = args;
+  const {
+    q,
+    page,
+    pageSize,
+    status,
+    highRank,
+    lowRank,
+    hasMedia,
+    hasMorphology,
+    hasEcology,
+  } = args;
 
   const offset = (page - 1) * pageSize;
 
@@ -388,10 +399,10 @@ export async function listTaxaQuery(
   // Aliases for filtering names when searching
   const searchNames = alias(namesTbl, "search_names");
 
-  // Common predicates
-  const statusFilter = status
-    ? eq(taxaTbl.status, status)
-    : eq(taxaTbl.status, "active");
+  // Common predicates. An empty status list means "any status".
+  const statusFilter = status.length
+    ? inArray(taxaTbl.status, status)
+    : undefined;
 
   const allowedRanks = computeRankBand(highRank, lowRank);
   const rankFilter =
@@ -399,6 +410,17 @@ export async function listTaxaQuery(
       ? inArray(taxaTbl.rank, allowedRanks)
       : undefined;
 
+  const hasMorphologyFilter = hasMorphology
+    ? exists(
+        db
+          .select({ _: sql`1` })
+          .from(featureStatesTbl)
+          .where(eq(featureStatesTbl.taxonId, taxaTbl.id)),
+      )
+    : undefined;
+  const hasEcologyFilter = hasEcology
+    ? sql`length(trim(${taxaTbl.ecology})) > 0`
+    : undefined;
   const hasMediaFilter = hasMedia
     ? exists(
         db
@@ -415,6 +437,8 @@ export async function listTaxaQuery(
       ilike(searchNames.value, like),
       rankFilter,
       hasMediaFilter,
+      hasMorphologyFilter,
+      hasEcologyFilter,
     ];
     const where = and(...(filters.filter(Boolean) as SQL[]));
 
@@ -460,6 +484,8 @@ export async function listTaxaQuery(
     statusFilter,
     rankFilter,
     hasMediaFilter,
+    hasMorphologyFilter,
+    hasEcologyFilter,
   ];
   const where = and(...(baseFilters.filter(Boolean) as SQL[]));
 

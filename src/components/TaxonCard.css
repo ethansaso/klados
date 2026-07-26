@@ -30,32 +30,11 @@
 
     margin: calc(-1 * var(--card-padding));
     margin-bottom: unset;
-
-    @media (min-width: 768px) {
-      width: 100%;
-      margin: 0;
-      border-bottom-left-radius: var(--radius-4);
-      border-bottom-right-radius: var(--radius-4);
-    }
   }
 
   .summary {
     svg {
       font-size: var(--font-size-2);
-    }
-  }
-
-  &.inset {
-    padding: 0;
-    gap: 0;
-
-    img {
-      border-bottom-left-radius: 0;
-      border-bottom-right-radius: 0;
-    }
-
-    .taxonomy {
-      padding: var(--space-1) var(--space-2);
     }
   }
 }

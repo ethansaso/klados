@@ -20,7 +20,7 @@ export const LookalikesList = ({
     <Grid
       columns={{ initial: "2", xs: "3", md: "5" }}
       gap="4"
-      className="taxon-grid lookalikes-list"
+      className="lookalikes-list"
     >
       {lookalikes.map((l) => (
         <Flex key={l.id} direction="column" className="lookalikes-entry">
