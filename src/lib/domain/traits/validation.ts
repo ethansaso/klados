@@ -33,6 +33,7 @@ export const updateTraitValueSchema = z.object({
   label: label.optional(),
   description,
   hexCode,
+  synonymTargetTraitId: traitId.nullable().optional(),
 });
 
 export const linkTraitsAsSynonymsSchema = z.object({
@@ -44,6 +45,12 @@ export const unlinkTraitFromSynonymsSchema = z.object({
   traitId,
 });
 
+export const listSynonymCandidatesSchema = z.object({
+  traitId,
+  q: z.string().trim().max(200).optional(),
+  limit: z.number().int().positive().max(50).default(20),
+});
+
 export type CreateTraitValueInput = z.infer<typeof createTraitValueSchema>;
 export type UpdateTraitValueInput = z.infer<typeof updateTraitValueSchema>;
 export type LinkTraitsAsSynonymsInput = z.infer<
@@ -51,4 +58,7 @@ export type LinkTraitsAsSynonymsInput = z.infer<
 >;
 export type UnlinkTraitFromSynonymsInput = z.infer<
   typeof unlinkTraitFromSynonymsSchema
+>;
+export type ListSynonymCandidatesInput = z.infer<
+  typeof listSynonymCandidatesSchema
 >;

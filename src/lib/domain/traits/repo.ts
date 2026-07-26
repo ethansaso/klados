@@ -5,6 +5,7 @@ import {
   eq,
   ilike,
   inArray,
+  ne,
   notExists,
   sql,
 } from "drizzle-orm";
@@ -13,7 +14,12 @@ import {
   taxonCharacterStateCategorical as tcsTbl,
   categoricalTraitValue as valsTbl,
 } from "../../../../db/schema/schema";
-import type { Transaction } from "../../utils/transactionType";
+import {
+  type FuzzyQuery,
+  fuzzyLabelPredicate,
+  fuzzySimilarity,
+} from "../../utils/sql/fuzzyLabel";
+import type { Transaction } from "../../utils/types/transactionType";
 import type {
   TraitSynonymDTO,
   TraitValueDTO,
@@ -185,6 +191,56 @@ export async function selectTraitIdentityById(
     .limit(1);
 
   return row ?? null;
+}
+
+/**
+ * Every label belonging to a synonym set that has at least one label matching
+ * `fq`, scoped to one character. Has an optional `excludeTraitId` which drops
+ * just that row (without excluding synonyms).
+ *
+ * Unbounded: a character's full label list is small enough that scoring it
+ * in JS afterward is cheap, so there is no row limit to tune here.
+ */
+export async function selectSynonymCandidateRows(
+  tx: Transaction,
+  args: {
+    characterId: number;
+    excludeTraitId?: number;
+    fq: FuzzyQuery | null;
+  },
+): Promise<
+  { id: number; label: string; synonymSetId: number; similarity: number }[]
+> {
+  const { characterId, excludeTraitId, fq } = args;
+
+  const inScope = [eq(valsTbl.characterId, characterId)];
+  if (excludeTraitId !== undefined) {
+    inScope.push(ne(valsTbl.id, excludeTraitId));
+  }
+
+  // With no query, browse all in-scope sets
+  const setFilter = fq
+    ? inArray(
+        valsTbl.synonymSetId,
+        tx
+          .select({ setId: valsTbl.synonymSetId })
+          .from(valsTbl)
+          .where(and(...inScope, fuzzyLabelPredicate(valsTbl.label, fq))),
+      )
+    : undefined;
+
+  return tx
+    .select({
+      id: valsTbl.id,
+      label: valsTbl.label,
+      synonymSetId: valsTbl.synonymSetId,
+      similarity: fq
+        ? fuzzySimilarity(valsTbl.label, fq)
+        : sql<number>`0::real`,
+    })
+    .from(valsTbl)
+    .where(and(...inScope, setFilter))
+    .orderBy(asc(valsTbl.label));
 }
 
 /** Insert a trait value row into an existing synonym set. */

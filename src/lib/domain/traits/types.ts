@@ -17,3 +17,12 @@ export type TraitValueDTO = Pick<
 };
 
 export type TraitValuePaginatedResult = PaginatedResult<TraitValueDTO>;
+
+/** A set of synonyms returned as suggestions for a query. */
+export type SynonymCandidateDTO = {
+  synonymSetId: number;
+  /** Trait to link against: the set's best match for the query. */
+  headTraitId: number;
+  /** Every label in the set, best match first. */
+  labels: string[];
+};

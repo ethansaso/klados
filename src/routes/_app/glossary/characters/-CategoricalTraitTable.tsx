@@ -31,7 +31,7 @@ export default function CategoricalTraitTable({
         <Table.Row>
           <Table.ColumnHeaderCell width="45px">Icon</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Trait</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Alias of</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Synonyms</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Description</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Usages</Table.ColumnHeaderCell>
 
@@ -65,15 +65,10 @@ export default function CategoricalTraitTable({
 }
 
 function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
-  const noDeletionReason: string | null = useMemo(() => {
-    if (value.usageCount > 0) {
-      return "Value in use";
-    }
-    if (!value.aliasOf && (value.aliasCount ?? 0) > 0) {
-      return "Value has aliases";
-    }
-    return null;
-  }, [value]);
+  const noDeletionReason: string | null = useMemo(
+    () => (value.usageCount > 0 ? "Value in use" : null),
+    [value],
+  );
 
   const deleteButton = useMemo(() => {
     if (noDeletionReason) {
@@ -108,7 +103,9 @@ function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
       </Table.Cell>
 
       <Table.Cell>
-        {value.aliasOf && <Text>{value.aliasOf.label}</Text>}
+        <Text color={value.synonyms.length === 0 ? "gray" : undefined}>
+          {value.synonyms.length}
+        </Text>
       </Table.Cell>
 
       <Table.Cell>

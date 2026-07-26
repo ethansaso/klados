@@ -1,7 +1,7 @@
 import { DataList, Flex, Text } from "@radix-ui/themes";
 import { useMemo } from "react";
-import { localeDisplayValues } from "../../../../lib/consts/locale-display-values";
 import type { NameItem } from "../../../../lib/domain/taxon-names/validation";
+import { localeDisplayValues } from "../../../../lib/utils/localeDisplayValues";
 
 type NamesDataListProps = {
   names: NameItem[];

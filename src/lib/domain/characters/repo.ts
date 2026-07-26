@@ -23,8 +23,8 @@ import {
   taxonFeatureState as tfsTbl,
   unitFamily as unitFamilyTbl,
 } from "../../../../db/schema/schema";
-import { likeAnywhere } from "../../utils/likeAnywhere";
-import type { Transaction, TxOrDb } from "../../utils/transactionType";
+import { likeAnywhere } from "../../utils/sql/likeAnywhere";
+import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
 import type { MediaDTO } from "../media/types";
 import {
   catTraitCountSel,

@@ -5,7 +5,10 @@ import {
   type MediaLicense,
 } from "../../../db/utils/mediaLicense";
 import type { MediaDTO } from "../../lib/domain/media/types";
-import type { ResponsiveSize, Size } from "../../lib/utils/responsiveSize";
+import type {
+  ResponsiveSize,
+  Size,
+} from "../../lib/utils/types/responsiveSize";
 import "./AnnotationBubbleWrap.css";
 import { spacingClasses } from "./spacingClasses";
 

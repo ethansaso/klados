@@ -12,7 +12,7 @@ import { useFormContext } from "react-hook-form";
 import { FaDove } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import type { TaxonEditFormValues } from "..";
-import { localeDisplayValues } from "../../../../../../lib/consts/locale-display-values";
+import { localeDisplayValues } from "../../../../../../lib/utils/localeDisplayValues";
 import { toast } from "../../../../../../lib/utils/toast";
 import { selectInatNames } from "./InatNameModal";
 import { NameRow } from "./NameRow";

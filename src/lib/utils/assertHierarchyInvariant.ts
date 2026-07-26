@@ -3,7 +3,7 @@ import {
   taxon as taxaTbl,
   TAXON_RANKS_DESCENDING,
 } from "../../../db/schema/schema";
-import { type Transaction } from "./transactionType";
+import { type Transaction } from "./types/transactionType";
 
 type Rank = (typeof TAXON_RANKS_DESCENDING)[number];
 

@@ -16,9 +16,7 @@ export const DeleteTraitValueModal = NiceModal.create<Props>(
     const modal = useModal();
     const serverDelete = useServerFn(deleteTraitValueFn);
 
-    const canDelete =
-      value.usageCount === 0 &&
-      (value.aliasOf ? true : (value.aliasCount ?? 0) === 0);
+    const canDelete = value.usageCount === 0;
 
     const close = () => modal.hide();
 
@@ -44,11 +42,9 @@ export const DeleteTraitValueModal = NiceModal.create<Props>(
     };
 
     const reason =
-      value.usageCount > 0
-        ? `Used ${value.usageCount} time(s)`
-        : !value.aliasOf && (value.aliasCount ?? 0) > 0
-          ? `Has ${value.aliasCount} alias(es)`
-          : null;
+      value.usageCount > 0 ? `Used ${value.usageCount} time(s)` : null;
+
+    const synonymCount = value.synonyms.length;
 
     return (
       <AlertDialog.Root
@@ -67,6 +63,13 @@ export const DeleteTraitValueModal = NiceModal.create<Props>(
                 <Text weight="bold">"{value.label}"</Text>? This action cannot
                 be undone.
               </Text>
+
+              {synonymCount > 0 && (
+                <Text color="gray">
+                  Its {synonymCount} synonym{synonymCount === 1 ? "" : "s"} will
+                  remain.
+                </Text>
+              )}
 
               {!canDelete && (
                 <Text color="tomato">

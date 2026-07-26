@@ -1,3 +1,4 @@
+import { buildFuzzyQuery, computeFuzzyScore } from "../../utils/sql/fuzzyLabel";
 import type { UnitDTO } from "../units/types";
 import {
   normalizeUnitToken,
@@ -20,45 +21,6 @@ import type {
   NumericSingleSuggestion,
   TraitSuggestion,
 } from "./types";
-
-// ── Private helpers ───────────────────────────────────────────────────────────
-
-/**
- * Shared fuzzy scoring for a single candidate label against a pre-computed
- * query breakdown. Higher score = better match.
- *
- * Callers may add further score bonuses on top (e.g. a character-label bump).
- */
-function computeFuzzyScore(
-  labelLower: string,
-  opts: {
-    qLower: string;
-    normalizedQuery: string;
-    squashedQuery: string;
-    similarityScore: number;
-  },
-): number {
-  const { qLower, normalizedQuery, squashedQuery, similarityScore } = opts;
-  const normalizedLabel = labelLower.replace(/[^a-z0-9]+/g, " ").trim();
-  const squashedLabel = labelLower.replace(/[^a-z0-9]+/g, "").trim();
-
-  let score = 0;
-  // 1) Huge boost: squashed equality ("bluegreen" == "blue-green")
-  if (squashedQuery && squashedLabel === squashedQuery) score += 200;
-  // 2) Strong: normalised equality ("blue green" == "blue-green")
-  if (normalizedQuery && normalizedLabel === normalizedQuery) score += 120;
-  // 3) Prefix normalised match
-  if (normalizedQuery && normalizedLabel.startsWith(normalizedQuery))
-    score += 60;
-  // 4) Substring normalised match
-  if (normalizedQuery && normalizedLabel.includes(normalizedQuery)) score += 40;
-  // 5) Raw prefix / substring on original label
-  if (labelLower.startsWith(qLower)) score += 30;
-  else if (labelLower.includes(qLower)) score += 20;
-  // 6) Trigram similarity as a soft boost
-  score += similarityScore * 25;
-  return score;
-}
 
 /**
  * Determine which unit(s) to expand for a numeric meta row, given an optional
@@ -101,19 +63,11 @@ export async function searchCategoricalSuggestions(opts: {
   const trimmed = q.trim();
   if (!trimmed) return [];
 
-  const qLower = trimmed.toLowerCase();
-  const likeNeedle = `%${qLower.replace(/([%_\\])/g, "\\$1")}%`;
-  const normalizedQuery = qLower.replace(/[^a-z0-9]+/g, " ").trim();
-  const squashedQuery = qLower.replace(/[^a-z0-9]+/g, "").trim();
-
-  const SIM_THRESHOLD = 0.2;
+  const fq = buildFuzzyQuery(trimmed);
 
   const rows = await queryCategoricalSuggestionRows({
     featureId,
-    qLower,
-    likeNeedle,
-    normalizedQuery,
-    simThreshold: SIM_THRESHOLD,
+    fq,
     sqlLimit: limit * 4,
   });
 
@@ -127,15 +81,10 @@ export async function searchCategoricalSuggestions(opts: {
     seen.add(key);
 
     const labelLower = row.traitValueLabel.toLowerCase();
-    let score = computeFuzzyScore(labelLower, {
-      qLower,
-      normalizedQuery,
-      squashedQuery,
-      similarityScore: row.similarityScore ?? 0,
-    });
+    let score = computeFuzzyScore(labelLower, fq, row.similarityScore ?? 0);
 
     // Small bump if the character label also matches the query
-    if (row.characterLabel.toLowerCase().includes(qLower)) score += 5;
+    if (row.characterLabel.toLowerCase().includes(fq.qLower)) score += 5;
 
     scored.push({ row, score });
   }
@@ -398,18 +347,10 @@ export async function searchModifierSuggestions(opts: {
     }));
   }
 
-  const qLower = trimmed.toLowerCase();
-  const likeNeedle = `%${qLower.replace(/([%_\\])/g, "\\$1")}%`;
-  const normalizedQuery = qLower.replace(/[^a-z0-9]+/g, " ").trim();
-  const squashedQuery = qLower.replace(/[^a-z0-9]+/g, "").trim();
-
-  const SIM_THRESHOLD = 0.2;
+  const fq = buildFuzzyQuery(trimmed);
 
   const rows = await queryModifierSuggestionRows({
-    qLower,
-    likeNeedle,
-    normalizedQuery,
-    simThreshold: SIM_THRESHOLD,
+    fq,
     sqlLimit: limit * 4,
   });
 
@@ -421,15 +362,10 @@ export async function searchModifierSuggestions(opts: {
     seen.add(row.modifierId);
 
     const labelLower = row.modifierValue.toLowerCase();
-    let score = computeFuzzyScore(labelLower, {
-      qLower,
-      normalizedQuery,
-      squashedQuery,
-      similarityScore: row.similarityScore ?? 0,
-    });
+    let score = computeFuzzyScore(labelLower, fq, row.similarityScore ?? 0);
 
     // Small bump if the group label also matches the query
-    if (row.groupLabel.toLowerCase().includes(qLower)) score += 5;
+    if (row.groupLabel.toLowerCase().includes(fq.qLower)) score += 5;
 
     scored.push({ row, score });
   }

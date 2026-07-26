@@ -8,8 +8,8 @@ import {
   taxonCharacterStateModifierNumber,
   taxonCharacterStateModifierRange,
 } from "../../../../db/schema/schema";
-import { likeAnywhere } from "../../utils/likeAnywhere";
-import type { Transaction } from "../../utils/transactionType";
+import { likeAnywhere } from "../../utils/sql/likeAnywhere";
+import type { Transaction } from "../../utils/types/transactionType";
 import { modCatUsageSel, modNumUsageSel, modRangeUsageSel } from "./selectors";
 import type {
   ModifierDTO,

@@ -16,7 +16,7 @@ import {
   taxonFeatureState as tfsTbl,
   unit as unitsTbl,
 } from "../../../../db/schema/schema";
-import type { Transaction } from "../../utils/transactionType";
+import type { Transaction } from "../../utils/types/transactionType";
 import type {
   CategoricalStateDTO,
   FeatureStateDTO,

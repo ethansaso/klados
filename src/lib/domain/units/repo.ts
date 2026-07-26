@@ -3,8 +3,8 @@ import {
   unitFamily as unitFamilyTbl,
   unit as unitTbl,
 } from "../../../../db/schema/glossary/units";
-import { likeAnywhere } from "../../utils/likeAnywhere";
-import type { Transaction } from "../../utils/transactionType";
+import { likeAnywhere } from "../../utils/sql/likeAnywhere";
+import type { Transaction } from "../../utils/types/transactionType";
 import type { UnitDTO, UnitFamilyDTO } from "./types";
 
 type UnitFamilyJoinRow = {
