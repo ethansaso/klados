@@ -11,7 +11,7 @@ type Opts = {
 };
 
 export function usePaginatedSearch(opts?: Opts) {
-  const [search, setSearchState] = useState<PaginatedSearchState>({
+  const [searchState, setSearchState] = useState<PaginatedSearchState>({
     page: 1,
     pageSize: opts?.pageSize ?? 20,
     q: "",
@@ -42,5 +42,5 @@ export function usePaginatedSearch(opts?: Opts) {
     setSearchState((s) => ({ ...s, page: Math.max(1, s.page - 1) }));
   }, []);
 
-  return { search, setQ, setPage, next, prev };
+  return { search: searchState, setQ, setPage, next, prev };
 }

@@ -15,12 +15,12 @@ import {
   stripSearchParams,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { PiPencil, PiPlus, PiTrash } from "react-icons/pi";
 import z from "zod";
 import CategoricalTraitTable from "../-CategoricalTraitTable";
-import { DeleteTraitValueModal } from "../-modal/-DeleteTraitValueModal";
-import { EditTraitValueModal } from "../-modal/-EditTraitSetValueModal";
+import { DeleteTraitValueModal } from "../-modal/DeleteTraitValueModal";
+import { EditTraitValueModal } from "../-modal/EditTraitSetValueModal";
 import { AnnotationBubbleWrap } from "../../../../../components/annotations/AnnotationBubbleWrap";
 import { CuratorOnly } from "../../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
@@ -84,9 +84,8 @@ function RouteComponent() {
     if (!label || isCreating) return;
     setIsCreating(true);
     try {
-      const key = label.toLowerCase().replace(/\s+/g, "_");
       const created = await serverCreateTrait({
-        data: { characterId: id, label, key },
+        data: { characterId: id, label },
       });
       qc.invalidateQueries({ queryKey: ["traitValues"] });
       setNewTraitLabel("");
@@ -135,21 +134,6 @@ function RouteComponent() {
       },
     });
   };
-
-  // Propagates canonical values' hexcodes to their aliases.
-  const aliasCorrectedValues = useMemo(
-    () =>
-      traitValuesPage.items.map((val) => {
-        if (!val.aliasOf) {
-          return val;
-        }
-        return {
-          ...val,
-          hexCode: val.aliasOf?.hexCode || null,
-        };
-      }),
-    [traitValuesPage.items],
-  );
 
   const totalPages = Math.max(
     1,
@@ -253,7 +237,7 @@ function RouteComponent() {
             )}
           </Flex>
           <CategoricalTraitTable
-            values={aliasCorrectedValues}
+            values={traitValuesPage.items}
             showActions={isCurator}
             onEditClick={(value) =>
               NiceModal.show(EditTraitValueModal, {

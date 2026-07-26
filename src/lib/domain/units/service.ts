@@ -1,5 +1,5 @@
 import { db } from "../../../../db/client";
-import type { Transaction } from "../../utils/transactionType";
+import type { Transaction } from "../../utils/types/transactionType";
 import { listUnitFamiliesQuery, selectUnitFamilyById } from "./repo";
 import type { UnitFamilyDTO } from "./types";
 

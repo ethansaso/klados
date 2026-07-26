@@ -8,18 +8,16 @@ export const listTraitValuesFn = createServerFn({ method: "GET" })
   .validator(
     PaginationSchema.extend({
       characterId: z.coerce.number().int().positive(),
-      canonicalOnly: z.boolean().optional(),
       q: z.string().optional(),
     }),
   )
   .handler(async ({ data }): Promise<TraitValuePaginatedResult> => {
-    const { characterId, page, pageSize, canonicalOnly, q } = data;
+    const { characterId, page, pageSize, q } = data;
 
     return listTraitValuesByCharacter({
       characterId,
       page,
       pageSize,
-      canonicalOnly,
       q,
     });
   });

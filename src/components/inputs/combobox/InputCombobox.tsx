@@ -261,8 +261,8 @@ function Popover({
             }
           }}
           className={mergedClassName}
-          style={mergedStyles}
           {...props}
+          style={mergedStyles}
         >
           {children}
         </RadixPopover.Content>

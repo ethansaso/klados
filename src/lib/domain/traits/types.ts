@@ -3,22 +3,26 @@ import type { PaginatedResult } from "../../validation/pagination";
 
 export type TraitValueRow = typeof categoricalTraitValue.$inferSelect;
 
-/** The canonical value that an alias trait points to. */
-export type TraitAliasTarget = Pick<
-  TraitValueRow,
-  "id" | "label" | "hexCode" | "description"
->;
+/** For use as siblings in a synonym set. */
+export type TraitSynonymDTO = Pick<TraitValueRow, "id" | "label">;
 
 export type TraitValueDTO = Pick<
   TraitValueRow,
-  "id" | "characterId" | "label" | "hexCode" | "description"
+  "id" | "characterId" | "synonymSetId" | "label" | "hexCode" | "description"
 > & {
-  /** Present when this value is an alias (canonicalValueId is set). */
-  aliasOf: TraitAliasTarget | null;
-  /** Number of usages of this trait (from categorical character state table) */
+  /** States referencing this trait */
   usageCount: number;
-  /** Number of aliases pointing to this trait (=0 if not canonical) */
-  aliasCount: number;
+  /** Other labels in the same set. Excludes self. Sorted by label. */
+  synonyms: TraitSynonymDTO[];
 };
 
 export type TraitValuePaginatedResult = PaginatedResult<TraitValueDTO>;
+
+/** A set of synonyms returned as suggestions for a query. */
+export type SynonymCandidateDTO = {
+  synonymSetId: number;
+  /** Trait to link against: the set's best match for the query. */
+  headTraitId: number;
+  /** Every label in the set, best match first. */
+  labels: string[];
+};

@@ -56,6 +56,7 @@ type RootProps = {
 
 type ContentProps = ComponentProps<typeof Popover.Content> & {
   behavior?: "select" | "input";
+  matchTriggerWidth?: boolean;
 };
 
 type ComboboxContext = {
@@ -226,11 +227,18 @@ function Trigger({ placeholder }: { placeholder?: React.ReactNode }) {
 
 function Content({
   children,
+  matchTriggerWidth,
   minWidth = "280px",
   maxWidth = "400px",
   behavior = "select",
+  style,
   ...props
 }: ContentProps) {
+  const mergedStyles = {
+    ...(matchTriggerWidth && { width: "var(--radix-popover-trigger-width)" }),
+    ...style,
+  };
+
   return (
     <Popover.Content
       side="bottom"
@@ -244,6 +252,7 @@ function Content({
         }
       }}
       {...props}
+      style={mergedStyles}
     >
       {children}
     </Popover.Content>

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
-import type { Transaction } from "../../utils/transactionType";
+import type { Transaction } from "../../utils/types/transactionType";
 import type { NameItem } from "./validation";
 
 export async function replaceNamesForTaxon(

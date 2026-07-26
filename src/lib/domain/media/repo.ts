@@ -2,8 +2,8 @@ import { and, asc, count, eq, ilike, inArray, or, type SQL } from "drizzle-orm";
 import { db } from "../../../../db/client";
 import { media as mediaTbl } from "../../../../db/schema/media/media";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
-import { likeAnywhere } from "../../utils/likeAnywhere";
-import type { Transaction } from "../../utils/transactionType";
+import { likeAnywhere } from "../../utils/sql/likeAnywhere";
+import type { Transaction } from "../../utils/types/transactionType";
 import type { InsertMediaArgs, MediaDTO, MediaPaginatedResult } from "./types";
 
 export async function selectMediaById(

@@ -1,13 +1,18 @@
 import { queryOptions } from "@tanstack/react-query";
-import type { TraitValueDTO, TraitValuePaginatedResult } from "../domain/traits/types";
+import type {
+  SynonymCandidateDTO,
+  TraitValueDTO,
+  TraitValuePaginatedResult,
+} from "../domain/traits/types";
 import { getTraitValueFn } from "../server-fns/traits/getTraitValueFn";
+import { listSynonymCandidatesFn } from "../server-fns/traits/listSynonymCandidatesFn";
 import { listTraitValuesFn } from "../server-fns/traits/listTraitValuesFn";
 
 export const traitValuesQueryOptions = (
   characterId: number,
   page: number,
   pageSize: number,
-  opts?: { canonicalOnly?: boolean; q?: string },
+  opts?: { q?: string },
 ) =>
   queryOptions<TraitValuePaginatedResult>({
     queryKey: [
@@ -16,7 +21,6 @@ export const traitValuesQueryOptions = (
         characterId,
         page,
         pageSize,
-        canonicalOnly: opts?.canonicalOnly ?? null,
         q: opts?.q ?? null,
       },
     ],
@@ -30,4 +34,15 @@ export const traitValueQueryOptions = (id: number) =>
   queryOptions<TraitValueDTO>({
     queryKey: ["traitValues", id] as const,
     queryFn: () => getTraitValueFn({ data: { id } }),
+  });
+
+export const synonymCandidatesQueryOptions = (
+  traitId: number,
+  q: string,
+  limit = 20,
+) =>
+  queryOptions<SynonymCandidateDTO[]>({
+    queryKey: ["synonymCandidates", { traitId, q, limit }] as const,
+    queryFn: () =>
+      listSynonymCandidatesFn({ data: { traitId, q: q || undefined, limit } }),
   });

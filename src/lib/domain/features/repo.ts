@@ -21,8 +21,8 @@ import {
   numericCharacterMeta as numMetaTbl,
   taxonFeatureState as tfsTbl,
 } from "../../../../db/schema/schema";
-import { likeAnywhere } from "../../utils/likeAnywhere";
-import { type Transaction } from "../../utils/transactionType";
+import { likeAnywhere } from "../../utils/sql/likeAnywhere";
+import { type Transaction } from "../../utils/types/transactionType";
 import type { MediaDTO } from "../media/types";
 import type {
   CharacterInFeatureDTO,

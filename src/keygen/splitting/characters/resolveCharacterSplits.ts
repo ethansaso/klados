@@ -149,13 +149,13 @@ function buildGroupsWithDeadTags(
       return null;
     }
 
-    // ! Use canonical IDs to resolve aliases.
-    const traitIds = new Set<number>(traits.map((t) => t.canonicalId));
+    // ! Bucket by synonym set so interchangeable traits count as one.
+    const traitIds = new Set<number>(traits.map((t) => t.synonymSetId));
 
     // If this trait-set uses any dead trait, it is automatically ambiguous.
     let usesDead = false;
     for (const trait of traits) {
-      if (deadTraitIds.has(trait.canonicalId)) {
+      if (deadTraitIds.has(trait.synonymSetId)) {
         usesDead = true;
         break;
       }
@@ -164,7 +164,7 @@ function buildGroupsWithDeadTags(
     if (usesDead) {
       notTaxa.add(taxon);
       for (const trait of traits) {
-        deadTraitIds.add(trait.canonicalId);
+        deadTraitIds.add(trait.synonymSetId);
       }
 
       // Any existing group overlapping this trait-set becomes dead too.
@@ -187,13 +187,13 @@ function buildGroupsWithDeadTags(
 
     // Precompute sorted traits + key for this exact trait-set.
     const sortedTraits = [...traits].sort((a, b) =>
-      a.canonicalId === b.canonicalId
+      a.synonymSetId === b.synonymSetId
         ? 0
-        : a.canonicalId < b.canonicalId
+        : a.synonymSetId < b.synonymSetId
           ? -1
           : 1,
     );
-    const key = sortedTraits.map((t) => t.canonicalId).join("|");
+    const key = sortedTraits.map((t) => t.synonymSetId).join("|");
 
     // Join to existing group if exact match.
     const existingExactGroup = groupMap.get(key);
@@ -254,14 +254,14 @@ function buildGroupsWithDeadTags(
     );
     for (const [key, g] of groupMap) {
       console.log(
-        `[KEYGEN]   remaining group key=${key}: taxa=[${g.taxa.map((t) => t.id).join(", ")}] traits=[${g.traits.map((t) => `${t.id}/${t.canonicalId}:${t.label}`).join(", ")}]`,
+        `[KEYGEN]   remaining group key=${key}: taxa=[${g.taxa.map((t) => t.id).join(", ")}] traits=[${g.traits.map((t) => `${t.id}/${t.synonymSetId}:${t.label}`).join(", ")}]`,
       );
     }
     // Log each taxon's full trait set for this character
     for (const taxon of [...notTaxa, ...groups.flatMap((g) => g.taxa)]) {
       const traits = traitSetsByTaxon.get(taxon.id) ?? [];
       console.log(
-        `[KEYGEN]   taxon ${taxon.id}(${taxon.acceptedName}) traits: [${traits.map((t) => `${t.id}/${t.canonicalId}:${t.label}`).join(", ")}]`,
+        `[KEYGEN]   taxon ${taxon.id}(${taxon.acceptedName}) traits: [${traits.map((t) => `${t.id}/${t.synonymSetId}:${t.label}`).join(", ")}]`,
       );
     }
     return null;
@@ -341,8 +341,8 @@ function createBranches(
     const traitMap = new Map<number, Trait>();
     for (const g of groups) {
       for (const t of g.traits) {
-        if (!traitMap.has(t.canonicalId)) {
-          traitMap.set(t.canonicalId, t);
+        if (!traitMap.has(t.synonymSetId)) {
+          traitMap.set(t.synonymSetId, t);
         }
       }
     }

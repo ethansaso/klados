@@ -5,7 +5,7 @@ import {
   TAXON_RANKS_DESCENDING,
   type TaxonRank,
 } from "../../../../db/schema/taxa/taxon";
-import type { Transaction } from "../../utils/transactionType";
+import type { Transaction } from "../../utils/types/transactionType";
 import type { TaxonRow } from "./types";
 
 /** Precomputed rank: index map to avoid repeated indexOf calls. */

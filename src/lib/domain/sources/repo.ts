@@ -1,8 +1,8 @@
 import { and, asc, count, desc, eq, ilike, or, SQL } from "drizzle-orm";
 import { db } from "../../../../db/client";
 import { source as sourceTbl } from "../../../../db/schema/sources/source";
-import { likeAnywhere } from "../../utils/likeAnywhere";
-import type { Transaction } from "../../utils/transactionType";
+import { likeAnywhere } from "../../utils/sql/likeAnywhere";
+import type { Transaction } from "../../utils/types/transactionType";
 import type { SourceSearchParams } from "./search";
 import { sourceSelectDto, taxonSourceUsageAgg } from "./sqlAdapters";
 import type { SourceDTO, SourcePaginatedResult } from "./types";

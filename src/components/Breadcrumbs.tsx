@@ -1,6 +1,6 @@
 import { Flex, Link, Popover, Text } from "@radix-ui/themes";
 import { PiCaretRight } from "react-icons/pi";
-import type { ResponsiveSize, Size } from "../lib/utils/responsiveSize";
+import type { ResponsiveSize, Size } from "../lib/utils/types/responsiveSize";
 import { RouterRadixLink } from "./RouterRadixLink";
 
 export interface Breadcrumb {

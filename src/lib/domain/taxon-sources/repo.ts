@@ -1,7 +1,7 @@
 import { and, asc, eq, notInArray, sql } from "drizzle-orm";
 import { source as sourceTbl } from "../../../../db/schema/sources/source";
 import { taxonSource as taxonSourceTbl } from "../../../../db/schema/sources/taxonSource";
-import type { Transaction } from "../../utils/transactionType";
+import type { Transaction } from "../../utils/types/transactionType";
 import { sourceSelectDto, taxonSourceUsageAgg } from "../sources/sqlAdapters";
 import type { TaxonSourceDTO } from "./types";
 import type { TaxonSourceUpsertItem } from "./validation";

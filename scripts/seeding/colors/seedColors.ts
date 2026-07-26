@@ -1,21 +1,35 @@
 import "dotenv/config";
-import { and, eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "../../../db/client";
 import {
   categoricalCharacterMeta,
   categoricalTraitValue,
   character,
 } from "../../../db/schema/schema";
+import {
+  deleteSynonymSetIfEmpty,
+  insertSynonymSet,
+} from "../../../src/lib/domain/traits/repo";
 import { Transaction } from "../../../src/lib/utils/transactionType";
 import { askYesNo } from "../../utils/askYesNo";
-import {
-  ansiBlock,
-  ColorDef,
-  generateCanonicalColorDefs,
-  getNormalizedColorAliases,
-} from "../colors/util";
+import { ansiBlock, buildColorSeedPlan, ColorDef } from "../colors/util";
 
 const COLOR_CHARACTER_LABEL = "Color";
+
+type ExistingTrait = {
+  id: number;
+  label: string;
+  hexCode: string | null;
+  synonymSetId: number;
+};
+
+type SyncStats = {
+  inserted: number;
+  updated: number;
+  setsCreated: number;
+  setsDeleted: number;
+  unmanaged: string[];
+};
 
 /**
  * Fetch or create the "Color" character inside a transaction.
@@ -36,6 +50,7 @@ async function getOrCreateColorCharacterTx(tx: Transaction) {
       .insert(character)
       .values({
         label: COLOR_CHARACTER_LABEL,
+        showInProse: false,
       })
       .returning();
 
@@ -55,133 +70,168 @@ async function getOrCreateColorCharacterTx(tx: Transaction) {
 }
 
 /**
- * Upsert all canonical colors for a character inside a transaction.
+ * Index a character's trait values by lowercased label.
+ * Throws on labels that differ only in case, which the seed cannot resolve.
  */
-async function upsertCanonicalColorsTx(
-  tx: Transaction,
-  characterId: number,
-  colors: ColorDef[],
-) {
-  for (const color of colors) {
-    await tx
-      .insert(categoricalTraitValue)
-      .values({
-        characterId,
-        label: color.label,
-        canonicalValueId: null,
-        hexCode: color.hexCode,
-      })
-      .onConflictDoUpdate({
-        target: [
-          categoricalTraitValue.characterId,
-          categoricalTraitValue.label,
-        ],
-        set: {
-          hexCode: color.hexCode,
-          canonicalValueId: null,
-          updatedAt: new Date(),
-        },
-      });
+function indexByLabel(rows: ExistingTrait[]): Map<string, ExistingTrait> {
+  const byLabel = new Map<string, ExistingTrait>();
+  const collisions: string[] = [];
+
+  for (const row of rows) {
+    const key = row.label.toLowerCase();
+    const seen = byLabel.get(key);
+    if (seen) {
+      collisions.push(`"${seen.label}" and "${row.label}"`);
+    } else {
+      byLabel.set(key, row);
+    }
   }
+
+  if (collisions.length > 0) {
+    throw new Error(
+      `Existing colors differ only by case, so seeding cannot tell them apart:\n${collisions
+        .map((c) => `  - ${c}`)
+        .join("\n")}\nMerge or rename them, then re-run.`,
+    );
+  }
+
+  return byLabel;
 }
 
 /**
- * Validate and upsert aliases for the "Color" character inside a transaction.
+ * Pick which set a color's labels should land in: whichever set the most of
+ * them already share, lowest id winning ties. Keeps churn off the common path.
  */
-async function syncColorAliasesTx(tx: Transaction, characterId: number) {
-  const canonicalRows = await tx
-    .select()
+function pickTargetSet(rows: ExistingTrait[]): number {
+  const counts = new Map<number, number>();
+  for (const row of rows) {
+    counts.set(row.synonymSetId, (counts.get(row.synonymSetId) ?? 0) + 1);
+  }
+
+  let best = rows[0].synonymSetId;
+  for (const [setId, n] of counts) {
+    const bestN = counts.get(best)!;
+    if (n > bestN || (n === bestN && setId < best)) best = setId;
+  }
+
+  return best;
+}
+
+/**
+ * Reconcile the character's trait values against the seed plan, one synonym set
+ * per color. Trait values outside the plan are left alone and reported back.
+ */
+async function syncColorSetsTx(
+  tx: Transaction,
+  characterId: number,
+  plan: ColorDef[],
+): Promise<SyncStats> {
+  const existing: ExistingTrait[] = await tx
+    .select({
+      id: categoricalTraitValue.id,
+      label: categoricalTraitValue.label,
+      hexCode: categoricalTraitValue.hexCode,
+      synonymSetId: categoricalTraitValue.synonymSetId,
+    })
     .from(categoricalTraitValue)
-    .where(
-      and(
-        eq(categoricalTraitValue.characterId, characterId),
-        isNull(categoricalTraitValue.canonicalValueId),
-      ),
-    );
+    .where(eq(categoricalTraitValue.characterId, characterId));
 
-  const canonicalByLabel = new Map(
-    canonicalRows.map((row) => [row.label, row]),
+  const byLabel = indexByLabel(existing);
+  const stats: SyncStats = {
+    inserted: 0,
+    updated: 0,
+    setsCreated: 0,
+    setsDeleted: 0,
+    unmanaged: [],
+  };
+
+  const planned = new Set<string>();
+  const targetSets = new Set<number>();
+  const vacatedSets = new Set<number>();
+
+  for (const color of plan) {
+    const labels = [color.label, ...color.synonyms];
+    for (const label of labels) planned.add(label.toLowerCase());
+
+    const rows = labels
+      .map((label) => byLabel.get(label.toLowerCase()))
+      .filter((row): row is ExistingTrait => row !== undefined);
+
+    let setId: number;
+    if (rows.length > 0) {
+      setId = pickTargetSet(rows);
+    } else {
+      setId = (await insertSynonymSet(tx, characterId)).id;
+      stats.setsCreated += 1;
+    }
+    targetSets.add(setId);
+
+    for (const label of labels) {
+      const row = byLabel.get(label.toLowerCase());
+
+      if (!row) {
+        await tx.insert(categoricalTraitValue).values({
+          characterId,
+          synonymSetId: setId,
+          label,
+          hexCode: color.hexCode,
+        });
+        stats.inserted += 1;
+        continue;
+      }
+
+      const settled =
+        row.label === label &&
+        row.synonymSetId === setId &&
+        row.hexCode === color.hexCode;
+      if (settled) continue;
+
+      if (row.synonymSetId !== setId) vacatedSets.add(row.synonymSetId);
+
+      // Label is rewritten too, so the plan owns capitalisation
+      await tx
+        .update(categoricalTraitValue)
+        .set({ label, synonymSetId: setId, hexCode: color.hexCode })
+        .where(eq(categoricalTraitValue.id, row.id));
+      stats.updated += 1;
+    }
+  }
+
+  for (const setId of vacatedSets) {
+    if (targetSets.has(setId)) continue;
+    if (await deleteSynonymSetIfEmpty(tx, setId)) stats.setsDeleted += 1;
+  }
+
+  stats.unmanaged = existing
+    .filter((row) => !planned.has(row.label.toLowerCase()))
+    .map((row) => row.label)
+    .sort();
+
+  return stats;
+}
+
+function printPlan(plan: ColorDef[]) {
+  console.log("\n=== Preview: Standard Color Palette ===\n");
+  console.log(
+    `${plan.length} colors, ${plan.reduce((n, c) => n + 1 + c.synonyms.length, 0)} labels\n`,
   );
-  const canonicalLabels = new Set(canonicalByLabel.keys());
 
-  const aliases = getNormalizedColorAliases();
-  const errors: string[] = [];
-  const aliasLabelToCanonical = new Map<string, string>();
+  for (const color of plan) {
+    const swatch = color.hexCode
+      ? `${ansiBlock(color.hexCode)}  ${color.hexCode}`
+      : "[no swatch / no hex]";
+    console.log(`${color.label.padEnd(32)} ${swatch}`);
 
-  for (const alias of aliases) {
-    const { aliasLabel, canonicalLabel } = alias;
-
-    if (!canonicalByLabel.has(canonicalLabel)) {
-      errors.push(
-        `Alias "${aliasLabel}" references canonical label "${canonicalLabel}", but no canonical color with that label exists.`,
-      );
+    for (const synonym of color.synonyms) {
+      console.log(`    - ${synonym}`);
     }
-
-    if (canonicalLabels.has(aliasLabel)) {
-      errors.push(
-        `Alias "${aliasLabel}" collides with an existing canonical label.`,
-      );
-    }
-
-    const existingCanonicalForAlias = aliasLabelToCanonical.get(aliasLabel);
-    if (
-      existingCanonicalForAlias &&
-      existingCanonicalForAlias !== canonicalLabel
-    ) {
-      errors.push(
-        `Alias label "${aliasLabel}" is mapped to multiple canonicals: "${existingCanonicalForAlias}" and "${canonicalLabel}".`,
-      );
-    } else if (!existingCanonicalForAlias) {
-      aliasLabelToCanonical.set(aliasLabel, canonicalLabel);
-    }
-  }
-
-  if (errors.length > 0) {
-    throw new Error(
-      `Alias configuration errors:\n${errors.map((e) => `  - ${e}`).join("\n")}`,
-    );
-  }
-
-  for (const alias of aliases) {
-    const canonical = canonicalByLabel.get(alias.canonicalLabel)!;
-
-    await tx
-      .insert(categoricalTraitValue)
-      .values({
-        characterId,
-        label: alias.aliasLabel,
-        canonicalValueId: canonical.id,
-        hexCode: null,
-      })
-      .onConflictDoUpdate({
-        target: [
-          categoricalTraitValue.characterId,
-          categoricalTraitValue.label,
-        ],
-        set: {
-          canonicalValueId: canonical.id,
-          hexCode: null,
-          updatedAt: new Date(),
-        },
-      });
   }
 }
 
 export async function run() {
-  const colors = generateCanonicalColorDefs();
+  const plan = buildColorSeedPlan();
 
-  console.log("\n=== Preview: Standard Color Palette ===\n");
-  console.log(`Total colors: ${colors.length}\n`);
-
-  for (const c of colors) {
-    if (c.hexCode) {
-      console.log(
-        `${c.label.padEnd(32)} ${ansiBlock(c.hexCode)}  ${c.hexCode}`,
-      );
-    } else {
-      console.log(`${c.label.padEnd(32)} [no swatch / no hex]`);
-    }
-  }
+  printPlan(plan);
 
   console.log();
   const shouldProceed = await askYesNo(
@@ -193,18 +243,26 @@ export async function run() {
     process.exit(0);
   }
 
-  console.log("\nUpserting colors and aliases into DB...\n");
+  console.log("\nUpserting colors into DB...\n");
 
-  await db.transaction(async (tx) => {
+  const stats = await db.transaction(async (tx) => {
     const colorCharacter = await getOrCreateColorCharacterTx(tx);
-
-    await upsertCanonicalColorsTx(tx, colorCharacter.id, colors);
-    await syncColorAliasesTx(tx, colorCharacter.id);
+    return syncColorSetsTx(tx, colorCharacter.id, plan);
   });
 
   console.log(
-    `\nDone. Seeded canonical colors and aliases into character "${COLOR_CHARACTER_LABEL}".\n`,
+    `Done. ${stats.inserted} label(s) inserted, ${stats.updated} updated, ` +
+      `${stats.setsCreated} synonym set(s) created, ${stats.setsDeleted} removed.`,
   );
+
+  if (stats.unmanaged.length > 0) {
+    console.log(
+      `\n${stats.unmanaged.length} existing color(s) are not in the palette and were left untouched:`,
+    );
+    for (const label of stats.unmanaged) console.log(`  - ${label}`);
+  }
+
+  console.log();
   process.exit(0);
 }
 

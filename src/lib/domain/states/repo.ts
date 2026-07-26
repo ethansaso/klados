@@ -16,7 +16,7 @@ import {
   taxonFeatureState as tfsTbl,
   unit as unitsTbl,
 } from "../../../../db/schema/schema";
-import type { Transaction } from "../../utils/transactionType";
+import type { Transaction } from "../../utils/types/transactionType";
 import type {
   CategoricalStateDTO,
   FeatureStateDTO,
@@ -34,13 +34,14 @@ import type {
 /** Mapping of taxon ID to TaxonCharacterFeatureStateDTO[]. */
 export type TaxonStatesById = Record<string, FeatureStateDTO[]>;
 
+/** Whether a description carries actual content. */
+function hasText(value: string | null | undefined): boolean {
+  return (value?.trim().length ?? 0) > 0;
+}
+
 /**
  * Load character states for at least one taxon.
  * Returns a map taxonId -> TaxonCharacterFeatureStateDTO[].
- *
- * For traitValues:
- * - label comes from the **stored** value (alias or canonical),
- * - hexCode comes from the **canonical** value (or itself if canonical).
  */
 export async function selectTaxonStatesByTaxonIds(
   tx: Transaction,
@@ -75,7 +76,8 @@ export async function selectTaxonStatesByTaxonIds(
     featuresById.set(row.featureId, {
       featureId: row.featureId,
       featureLabel: row.featureLabel,
-      featureHasInfo: !!row.featureDescription || row.featureMediaId !== null,
+      featureHasInfo:
+        hasText(row.featureDescription) || row.featureMediaId !== null,
       notes: row.notes,
       states: [],
     });
@@ -97,7 +99,9 @@ export async function selectTaxonStatesByTaxonIds(
 
       traitValueId: catStateTbl.traitValueId,
       traitValueLabel: catValTbl.label,
-      canonicalValueId: catValTbl.canonicalValueId,
+      traitValueDescription: catValTbl.description,
+      traitValueHexCode: catValTbl.hexCode,
+      traitSynonymSetId: catValTbl.synonymSetId,
     })
     .from(catStateTbl)
     .innerJoin(tfsTbl, eq(tfsTbl.id, catStateTbl.taxonFeatureStateId))
@@ -105,26 +109,6 @@ export async function selectTaxonStatesByTaxonIds(
     .innerJoin(charsTbl, eq(charsTbl.id, catStateTbl.characterId))
     .innerJoin(catValTbl, eq(catValTbl.id, catStateTbl.traitValueId))
     .where(inArray(tfsTbl.taxonId, taxonIds));
-
-  const canonicalIds = Array.from(
-    new Set(catRows.map((r) => r.canonicalValueId ?? r.traitValueId)),
-  );
-
-  const canonicalRows = canonicalIds.length
-    ? await tx
-        .select({
-          id: catValTbl.id,
-          hexCode: catValTbl.hexCode,
-          description: catValTbl.description,
-        })
-        .from(catValTbl)
-        .where(inArray(catValTbl.id, canonicalIds))
-    : [];
-
-  const hexByCanonicalId = new Map(canonicalRows.map((r) => [r.id, r.hexCode]));
-  const descriptionByCanonicalId = new Map(
-    canonicalRows.map((r) => [r.id, r.description]),
-  );
 
   const catStateIds = catRows.map((r) => r.stateId);
   const rawCatModRows = catStateIds.length
@@ -169,21 +153,19 @@ export async function selectTaxonStatesByTaxonIds(
     const feature = featuresById.get(row.featureId);
     if (!feature) continue;
 
-    const canonicalId = row.canonicalValueId ?? row.traitValueId;
-
     const state: CategoricalStateDTO = {
       kind: "categorical",
       characterId: row.characterId,
       characterLabel: row.characterLabel,
       characterHasInfo:
-        !!row.characterDescription || row.characterMediaId !== null,
+        hasText(row.characterDescription) || row.characterMediaId !== null,
       showInProse: row.showInProse,
       trait: {
         id: row.traitValueId,
-        canonicalId,
+        synonymSetId: row.traitSynonymSetId,
         label: row.traitValueLabel,
-        hasInfo: !!descriptionByCanonicalId.get(canonicalId),
-        hexCode: hexByCanonicalId.get(canonicalId) || undefined,
+        hasInfo: hasText(row.traitValueDescription),
+        hexCode: row.traitValueHexCode ?? undefined,
       },
       modifiers: modifiersByCatStateId.get(row.stateId) ?? [],
     };
@@ -264,7 +246,7 @@ export async function selectTaxonStatesByTaxonIds(
       characterId: row.characterId,
       characterLabel: row.characterLabel,
       characterHasInfo:
-        !!row.characterDescription || row.characterMediaId !== null,
+        hasText(row.characterDescription) || row.characterMediaId !== null,
       showInProse: row.showInProse,
       siBaseValue: parseFloat(row.siBaseValue),
       unit:
@@ -361,7 +343,7 @@ export async function selectTaxonStatesByTaxonIds(
       characterId: row.characterId,
       characterLabel: row.characterLabel,
       characterHasInfo:
-        !!row.characterDescription || row.characterMediaId !== null,
+        hasText(row.characterDescription) || row.characterMediaId !== null,
       showInProse: row.showInProse,
       siBaseMin: row.siBaseMin !== null ? parseFloat(row.siBaseMin) : null,
       siBaseMax: row.siBaseMax !== null ? parseFloat(row.siBaseMax) : null,

@@ -20,7 +20,7 @@ export const GlossaryTraitCard: React.FC<Props> = ({ id, children }) => {
       info={
         trait && {
           title: trait.label,
-          description: trait.aliasOf?.description ?? trait.description,
+          description: trait.description,
           media: null,
         }
       }

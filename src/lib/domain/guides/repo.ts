@@ -6,7 +6,7 @@ import {
   taxon as taxonTbl,
   user as userTbl,
 } from "../../../../db/schema/schema";
-import { likeAnywhere } from "../../utils/likeAnywhere";
+import { likeAnywhere } from "../../utils/sql/likeAnywhere";
 import { userDtoSelection } from "../users/sqlAdapters";
 import type { GuideDTO, GuidePaginatedResult } from "./types";
 
