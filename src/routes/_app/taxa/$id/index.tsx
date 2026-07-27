@@ -28,9 +28,8 @@ const ParamsSchema = z.object({
 });
 
 export const Route = createFileRoute("/_app/taxa/$id/")({
-  loader: async ({ context, params }) => {
-    const { id } = ParamsSchema.parse(params);
-
+  params: ParamsSchema,
+  loader: async ({ context, params: { id } }) => {
     const [taxon] = await Promise.all([
       context.queryClient.ensureQueryData(taxonQueryOptions(id)),
       context.queryClient.ensureQueryData(taxonCharacterStatesQueryOptions(id)),

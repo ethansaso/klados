@@ -30,6 +30,7 @@
     "@ai-sdk/openai": "^3.0.53",
     "@ariakit/react": "^0.4.20",
     "@aws-sdk/client-s3": "^3.1045.0",
+    "@better-auth/drizzle-adapter": "1.7.0-rc.2",
     "@dagrejs/dagre": "^1.1.8",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^9.0.0",
@@ -46,9 +47,9 @@
     "@tanstack/react-table": "^8.21.3",
     "@xyflow/react": "^12.10.0",
     "ai": "^6.0.168",
-    "better-auth": "1.4.6",
+    "better-auth": "1.7.0-rc.2",
     "decimal.js": "^10.6.0",
-    "drizzle-orm": "^1.0.0-beta.22",
+    "drizzle-orm": "^1.0.0-rc.4",
     "headless-toast": "github:ethansaso/headless-toast",
     "nitro": "^3.0.260610-beta",
     "pg": "^8.16.3",
@@ -73,13 +74,18 @@
     "@typescript/native": "npm:typescript@^7.0.2",
     "@vitejs/plugin-react": "^5.1.2",
     "dotenv": "^17.2.3",
-    "drizzle-kit": "^1.0.0-beta.22",
-    "eslint-plugin-boundaries": "^5.3.1",
+    "drizzle-kit": "^1.0.0-rc.4",
+    "eslint-plugin-boundaries": "^7.1.0",
     "playwright": "^1.61.1",
     "tsx": "^4.21.0",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.65.0",
     "vite-plugin-svgr": "^4.5.0",
     "vitest": "^4.0.15"
+  },
+  "overrides": {
+    "better-auth": {
+      "drizzle-orm": "$drizzle-orm"
+    }
   }
 }

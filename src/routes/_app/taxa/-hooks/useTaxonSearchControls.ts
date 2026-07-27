@@ -22,7 +22,7 @@ export function useTaxonSearchControls() {
       const touchesFilter = FILTER_KEYS.some((key) => key in partial);
 
       navigate({
-        search: (prev: Record<string, unknown>) => ({
+        search: (prev) => ({
           ...prev,
           ...partial,
           page: partial.page ?? (touchesFilter ? 1 : prev.page),

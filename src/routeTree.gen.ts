@@ -9,77 +9,142 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
-import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as SitemapsSitemapTaxaDotxmlRouteImport } from './routes/_sitemaps/sitemap-taxa[.]xml'
-import { Route as AppVerifyEmailRouteImport } from './routes/_app/verify-email'
-import { Route as AppTosRouteImport } from './routes/_app/tos'
-import { Route as AppSignupRouteImport } from './routes/_app/signup'
-import { Route as AppMonitoringRouteImport } from './routes/_app/monitoring'
-import { Route as AppLogoutRouteImport } from './routes/_app/logout'
-import { Route as AppLoginRouteImport } from './routes/_app/login'
-import { Route as AppImageTestRouteImport } from './routes/_app/image-test'
-import { Route as AppHealthRouteImport } from './routes/_app/health'
-import { Route as AppDonateRouteImport } from './routes/_app/donate'
-import { Route as AppDmcaRouteImport } from './routes/_app/dmca'
 import { Route as AppAboutRouteImport } from './routes/_app/about'
-import { Route as ApiUnauthenticatedRouteRouteImport } from './routes/api/_unauthenticated/route'
-import { Route as AdminUsersRouteRouteImport } from './routes/admin/users/route'
-import { Route as AdminSourcesRouteRouteImport } from './routes/admin/sources/route'
-import { Route as AppUsersRouteRouteImport } from './routes/_app/users/route'
-import { Route as AppGuidesRouteRouteImport } from './routes/_app/guides/route'
+import { Route as AppDmcaRouteImport } from './routes/_app/dmca'
+import { Route as AppDonateRouteImport } from './routes/_app/donate'
 import { Route as AppGlossaryRouteRouteImport } from './routes/_app/glossary/route'
-import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
-import { Route as AdminSourcesIndexRouteImport } from './routes/admin/sources/index'
-import { Route as AppUsersIndexRouteImport } from './routes/_app/users/index'
-import { Route as AppTaxaIndexRouteImport } from './routes/_app/taxa/index'
+import { Route as AppGuidesRouteRouteImport } from './routes/_app/guides/route'
+import { Route as AppHealthRouteImport } from './routes/_app/health'
+import { Route as AppImageTestRouteImport } from './routes/_app/image-test'
+import { Route as AppLoginRouteImport } from './routes/_app/login'
+import { Route as AppLogoutRouteImport } from './routes/_app/logout'
+import { Route as AppMonitoringRouteImport } from './routes/_app/monitoring'
+import { Route as AppSignupRouteImport } from './routes/_app/signup'
+import { Route as AppTosRouteImport } from './routes/_app/tos'
+import { Route as AppUsersRouteRouteImport } from './routes/_app/users/route'
+import { Route as AppVerifyEmailRouteImport } from './routes/_app/verify-email'
+import { Route as SitemapsSitemapTaxaDotxmlRouteImport } from './routes/_sitemaps/sitemap-taxa[.]xml'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminSourcesRouteRouteImport } from './routes/admin/sources/route'
+import { Route as AdminUsersRouteRouteImport } from './routes/admin/users/route'
+import { Route as ApiUnauthenticatedRouteRouteImport } from './routes/api/_unauthenticated/route'
 import { Route as AppGlossaryIndexRouteImport } from './routes/_app/glossary/index'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as ApiUnauthenticatedTaxaRouteImport } from './routes/api/_unauthenticated/taxa'
-import { Route as ApiUnauthenticatedExtractionRouteImport } from './routes/api/_unauthenticated/extraction'
-import { Route as AppTaxaNewRouteImport } from './routes/_app/taxa/new'
-import { Route as AppGuidesBrowsingRouteRouteImport } from './routes/_app/guides/_browsing/route'
-import { Route as AppGlossaryModifiersRouteRouteImport } from './routes/_app/glossary/modifiers/route'
-import { Route as AppGlossaryFeaturesRouteRouteImport } from './routes/_app/glossary/features/route'
 import { Route as AppGlossaryCharactersRouteRouteImport } from './routes/_app/glossary/characters/route'
-import { Route as AppUsersUsernameIndexRouteImport } from './routes/_app/users/$username/index'
-import { Route as AppTaxaIdIndexRouteImport } from './routes/_app/taxa/$id/index'
-import { Route as AppGuidesCreateIndexRouteImport } from './routes/_app/guides/create/index'
-import { Route as AppGuidesBrowsingIndexRouteImport } from './routes/_app/guides/_browsing/index'
-import { Route as AppGuidesIdIndexRouteImport } from './routes/_app/guides/$id/index'
-import { Route as AppGlossaryModifiersIndexRouteImport } from './routes/_app/glossary/modifiers/index'
-import { Route as AppGlossaryFeaturesIndexRouteImport } from './routes/_app/glossary/features/index'
+import { Route as AppGlossaryFeaturesRouteRouteImport } from './routes/_app/glossary/features/route'
+import { Route as AppGlossaryModifiersRouteRouteImport } from './routes/_app/glossary/modifiers/route'
+import { Route as AppGuidesBrowsingRouteRouteImport } from './routes/_app/guides/_browsing/route'
+import { Route as AppTaxaIndexRouteImport } from './routes/_app/taxa/index'
+import { Route as AppTaxaNewRouteImport } from './routes/_app/taxa/new'
+import { Route as AppUsersIndexRouteImport } from './routes/_app/users/index'
+import { Route as AdminSourcesIndexRouteImport } from './routes/admin/sources/index'
+import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
+import { Route as ApiUnauthenticatedExtractionRouteImport } from './routes/api/_unauthenticated/extraction'
+import { Route as ApiUnauthenticatedTaxaRouteImport } from './routes/api/_unauthenticated/taxa'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppGlossaryCharactersIndexRouteImport } from './routes/_app/glossary/characters/index'
-import { Route as AppUsersUsernameEditRouteImport } from './routes/_app/users/$username/edit'
-import { Route as AppGlossaryModifiersIdRouteImport } from './routes/_app/glossary/modifiers/$id'
-import { Route as AppTaxaIdEditRouteRouteImport } from './routes/_app/taxa/$id/edit/route'
-import { Route as AppGlossaryFeaturesIdRouteRouteImport } from './routes/_app/glossary/features/$id/route'
 import { Route as AppGlossaryCharactersIdRouteRouteImport } from './routes/_app/glossary/characters/$id/route'
-import { Route as AppTaxaIdEditIndexRouteImport } from './routes/_app/taxa/$id/edit/index'
-import { Route as AppGlossaryFeaturesIdIndexRouteImport } from './routes/_app/glossary/features/$id/index'
+import { Route as AppGlossaryFeaturesIndexRouteImport } from './routes/_app/glossary/features/index'
+import { Route as AppGlossaryFeaturesIdRouteRouteImport } from './routes/_app/glossary/features/$id/route'
+import { Route as AppGlossaryModifiersIndexRouteImport } from './routes/_app/glossary/modifiers/index'
+import { Route as AppGlossaryModifiersIdRouteImport } from './routes/_app/glossary/modifiers/$id'
+import { Route as AppGuidesIdIndexRouteImport } from './routes/_app/guides/$id/index'
+import { Route as AppGuidesBrowsingIndexRouteImport } from './routes/_app/guides/_browsing/index'
+import { Route as AppGuidesCreateIndexRouteImport } from './routes/_app/guides/create/index'
+import { Route as AppTaxaIdIndexRouteImport } from './routes/_app/taxa/$id/index'
+import { Route as AppTaxaIdEditRouteRouteImport } from './routes/_app/taxa/$id/edit/route'
+import { Route as AppUsersUsernameIndexRouteImport } from './routes/_app/users/$username/index'
+import { Route as AppUsersUsernameEditRouteImport } from './routes/_app/users/$username/edit'
 import { Route as AppGlossaryCharactersIdIndexRouteImport } from './routes/_app/glossary/characters/$id/index'
-import { Route as AppGlossaryFeaturesIdEditRouteImport } from './routes/_app/glossary/features/$id/edit'
 import { Route as AppGlossaryCharactersIdEditRouteImport } from './routes/_app/glossary/characters/$id/edit'
+import { Route as AppGlossaryFeaturesIdIndexRouteImport } from './routes/_app/glossary/features/$id/index'
+import { Route as AppGlossaryFeaturesIdEditRouteImport } from './routes/_app/glossary/features/$id/edit'
+import { Route as AppTaxaIdEditIndexRouteImport } from './routes/_app/taxa/$id/edit/index'
 
+const AppRouteRoute = AppRouteRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppRouteRoute = AppRouteRouteImport.update({
-  id: '/_app',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppAboutRoute = AppAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDmcaRoute = AppDmcaRouteImport.update({
+  id: '/dmca',
+  path: '/dmca',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDonateRoute = AppDonateRouteImport.update({
+  id: '/donate',
+  path: '/donate',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppGlossaryRouteRoute = AppGlossaryRouteRouteImport.update({
+  id: '/glossary',
+  path: '/glossary',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppGuidesRouteRoute = AppGuidesRouteRouteImport.update({
+  id: '/guides',
+  path: '/guides',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppHealthRoute = AppHealthRouteImport.update({
+  id: '/health',
+  path: '/health',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppImageTestRoute = AppImageTestRouteImport.update({
+  id: '/image-test',
+  path: '/image-test',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppLoginRoute = AppLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppLogoutRoute = AppLogoutRouteImport.update({
+  id: '/logout',
+  path: '/logout',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMonitoringRoute = AppMonitoringRouteImport.update({
+  id: '/monitoring',
+  path: '/monitoring',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppSignupRoute = AppSignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppTosRoute = AppTosRouteImport.update({
+  id: '/tos',
+  path: '/tos',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppUsersRouteRoute = AppUsersRouteRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppVerifyEmailRoute = AppVerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const SitemapsSitemapTaxaDotxmlRoute =
@@ -88,69 +153,9 @@ const SitemapsSitemapTaxaDotxmlRoute =
     path: '/sitemap-taxa.xml',
     getParentRoute: () => rootRouteImport,
   } as any)
-const AppVerifyEmailRoute = AppVerifyEmailRouteImport.update({
-  id: '/verify-email',
-  path: '/verify-email',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppTosRoute = AppTosRouteImport.update({
-  id: '/tos',
-  path: '/tos',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppSignupRoute = AppSignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppMonitoringRoute = AppMonitoringRouteImport.update({
-  id: '/monitoring',
-  path: '/monitoring',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppLogoutRoute = AppLogoutRouteImport.update({
-  id: '/logout',
-  path: '/logout',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppLoginRoute = AppLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppImageTestRoute = AppImageTestRouteImport.update({
-  id: '/image-test',
-  path: '/image-test',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppHealthRoute = AppHealthRouteImport.update({
-  id: '/health',
-  path: '/health',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppDonateRoute = AppDonateRouteImport.update({
-  id: '/donate',
-  path: '/donate',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppDmcaRoute = AppDmcaRouteImport.update({
-  id: '/dmca',
-  path: '/dmca',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppAboutRoute = AppAboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const ApiUnauthenticatedRouteRoute = ApiUnauthenticatedRouteRouteImport.update({
-  id: '/api/_unauthenticated',
-  path: '/api',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminUsersRouteRoute = AdminUsersRouteRouteImport.update({
-  id: '/users',
-  path: '/users',
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminSourcesRouteRoute = AdminSourcesRouteRouteImport.update({
@@ -158,75 +163,25 @@ const AdminSourcesRouteRoute = AdminSourcesRouteRouteImport.update({
   path: '/sources',
   getParentRoute: () => AdminRouteRoute,
 } as any)
-const AppUsersRouteRoute = AppUsersRouteRouteImport.update({
+const AdminUsersRouteRoute = AdminUsersRouteRouteImport.update({
   id: '/users',
   path: '/users',
-  getParentRoute: () => AppRouteRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
-const AppGuidesRouteRoute = AppGuidesRouteRouteImport.update({
-  id: '/guides',
-  path: '/guides',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppGlossaryRouteRoute = AppGlossaryRouteRouteImport.update({
-  id: '/glossary',
-  path: '/glossary',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminUsersRouteRoute,
-} as any)
-const AdminSourcesIndexRoute = AdminSourcesIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminSourcesRouteRoute,
-} as any)
-const AppUsersIndexRoute = AppUsersIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppUsersRouteRoute,
-} as any)
-const AppTaxaIndexRoute = AppTaxaIndexRouteImport.update({
-  id: '/taxa/',
-  path: '/taxa/',
-  getParentRoute: () => AppRouteRoute,
+const ApiUnauthenticatedRouteRoute = ApiUnauthenticatedRouteRouteImport.update({
+  id: '/api/_unauthenticated',
+  path: '/api',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppGlossaryIndexRoute = AppGlossaryIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppGlossaryRouteRoute,
 } as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiUnauthenticatedTaxaRoute = ApiUnauthenticatedTaxaRouteImport.update({
-  id: '/taxa',
-  path: '/taxa',
-  getParentRoute: () => ApiUnauthenticatedRouteRoute,
-} as any)
-const ApiUnauthenticatedExtractionRoute =
-  ApiUnauthenticatedExtractionRouteImport.update({
-    id: '/extraction',
-    path: '/extraction',
-    getParentRoute: () => ApiUnauthenticatedRouteRoute,
-  } as any)
-const AppTaxaNewRoute = AppTaxaNewRouteImport.update({
-  id: '/taxa/new',
-  path: '/taxa/new',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppGuidesBrowsingRouteRoute = AppGuidesBrowsingRouteRouteImport.update({
-  id: '/_browsing',
-  getParentRoute: () => AppGuidesRouteRoute,
-} as any)
-const AppGlossaryModifiersRouteRoute =
-  AppGlossaryModifiersRouteRouteImport.update({
-    id: '/modifiers',
-    path: '/modifiers',
+const AppGlossaryCharactersRouteRoute =
+  AppGlossaryCharactersRouteRouteImport.update({
+    id: '/characters',
+    path: '/characters',
     getParentRoute: () => AppGlossaryRouteRoute,
   } as any)
 const AppGlossaryFeaturesRouteRoute =
@@ -235,75 +190,62 @@ const AppGlossaryFeaturesRouteRoute =
     path: '/features',
     getParentRoute: () => AppGlossaryRouteRoute,
   } as any)
-const AppGlossaryCharactersRouteRoute =
-  AppGlossaryCharactersRouteRouteImport.update({
-    id: '/characters',
-    path: '/characters',
+const AppGlossaryModifiersRouteRoute =
+  AppGlossaryModifiersRouteRouteImport.update({
+    id: '/modifiers',
+    path: '/modifiers',
     getParentRoute: () => AppGlossaryRouteRoute,
   } as any)
-const AppUsersUsernameIndexRoute = AppUsersUsernameIndexRouteImport.update({
-  id: '/$username/',
-  path: '/$username/',
-  getParentRoute: () => AppUsersRouteRoute,
+const AppGuidesBrowsingRouteRoute = AppGuidesBrowsingRouteRouteImport.update({
+  id: '/_browsing',
+  getParentRoute: () => AppGuidesRouteRoute,
 } as any)
-const AppTaxaIdIndexRoute = AppTaxaIdIndexRouteImport.update({
-  id: '/taxa/$id/',
-  path: '/taxa/$id/',
+const AppTaxaIndexRoute = AppTaxaIndexRouteImport.update({
+  id: '/taxa/',
+  path: '/taxa/',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppGuidesCreateIndexRoute = AppGuidesCreateIndexRouteImport.update({
-  id: '/create/',
-  path: '/create/',
-  getParentRoute: () => AppGuidesRouteRoute,
+const AppTaxaNewRoute = AppTaxaNewRouteImport.update({
+  id: '/taxa/new',
+  path: '/taxa/new',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AppGuidesBrowsingIndexRoute = AppGuidesBrowsingIndexRouteImport.update({
+const AppUsersIndexRoute = AppUsersIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppGuidesBrowsingRouteRoute,
+  getParentRoute: () => AppUsersRouteRoute,
 } as any)
-const AppGuidesIdIndexRoute = AppGuidesIdIndexRouteImport.update({
-  id: '/$id/',
-  path: '/$id/',
-  getParentRoute: () => AppGuidesRouteRoute,
+const AdminSourcesIndexRoute = AdminSourcesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminSourcesRouteRoute,
 } as any)
-const AppGlossaryModifiersIndexRoute =
-  AppGlossaryModifiersIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AppGlossaryModifiersRouteRoute,
+const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminUsersRouteRoute,
+} as any)
+const ApiUnauthenticatedExtractionRoute =
+  ApiUnauthenticatedExtractionRouteImport.update({
+    id: '/extraction',
+    path: '/extraction',
+    getParentRoute: () => ApiUnauthenticatedRouteRoute,
   } as any)
-const AppGlossaryFeaturesIndexRoute =
-  AppGlossaryFeaturesIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AppGlossaryFeaturesRouteRoute,
-  } as any)
+const ApiUnauthenticatedTaxaRoute = ApiUnauthenticatedTaxaRouteImport.update({
+  id: '/taxa',
+  path: '/taxa',
+  getParentRoute: () => ApiUnauthenticatedRouteRoute,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppGlossaryCharactersIndexRoute =
   AppGlossaryCharactersIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AppGlossaryCharactersRouteRoute,
-  } as any)
-const AppUsersUsernameEditRoute = AppUsersUsernameEditRouteImport.update({
-  id: '/$username/edit',
-  path: '/$username/edit',
-  getParentRoute: () => AppUsersRouteRoute,
-} as any)
-const AppGlossaryModifiersIdRoute = AppGlossaryModifiersIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AppGlossaryModifiersRouteRoute,
-} as any)
-const AppTaxaIdEditRouteRoute = AppTaxaIdEditRouteRouteImport.update({
-  id: '/taxa/$id/edit',
-  path: '/taxa/$id/edit',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppGlossaryFeaturesIdRouteRoute =
-  AppGlossaryFeaturesIdRouteRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AppGlossaryFeaturesRouteRoute,
   } as any)
 const AppGlossaryCharactersIdRouteRoute =
   AppGlossaryCharactersIdRouteRouteImport.update({
@@ -311,28 +253,69 @@ const AppGlossaryCharactersIdRouteRoute =
     path: '/$id',
     getParentRoute: () => AppGlossaryCharactersRouteRoute,
   } as any)
-const AppTaxaIdEditIndexRoute = AppTaxaIdEditIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppTaxaIdEditRouteRoute,
-} as any)
-const AppGlossaryFeaturesIdIndexRoute =
-  AppGlossaryFeaturesIdIndexRouteImport.update({
+const AppGlossaryFeaturesIndexRoute =
+  AppGlossaryFeaturesIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => AppGlossaryFeaturesIdRouteRoute,
+    getParentRoute: () => AppGlossaryFeaturesRouteRoute,
   } as any)
+const AppGlossaryFeaturesIdRouteRoute =
+  AppGlossaryFeaturesIdRouteRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AppGlossaryFeaturesRouteRoute,
+  } as any)
+const AppGlossaryModifiersIndexRoute =
+  AppGlossaryModifiersIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppGlossaryModifiersRouteRoute,
+  } as any)
+const AppGlossaryModifiersIdRoute = AppGlossaryModifiersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppGlossaryModifiersRouteRoute,
+} as any)
+const AppGuidesIdIndexRoute = AppGuidesIdIndexRouteImport.update({
+  id: '/$id/',
+  path: '/$id/',
+  getParentRoute: () => AppGuidesRouteRoute,
+} as any)
+const AppGuidesBrowsingIndexRoute = AppGuidesBrowsingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppGuidesBrowsingRouteRoute,
+} as any)
+const AppGuidesCreateIndexRoute = AppGuidesCreateIndexRouteImport.update({
+  id: '/create/',
+  path: '/create/',
+  getParentRoute: () => AppGuidesRouteRoute,
+} as any)
+const AppTaxaIdIndexRoute = AppTaxaIdIndexRouteImport.update({
+  id: '/taxa/$id/',
+  path: '/taxa/$id/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppTaxaIdEditRouteRoute = AppTaxaIdEditRouteRouteImport.update({
+  id: '/taxa/$id/edit',
+  path: '/taxa/$id/edit',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppUsersUsernameIndexRoute = AppUsersUsernameIndexRouteImport.update({
+  id: '/$username/',
+  path: '/$username/',
+  getParentRoute: () => AppUsersRouteRoute,
+} as any)
+const AppUsersUsernameEditRoute = AppUsersUsernameEditRouteImport.update({
+  id: '/$username/edit',
+  path: '/$username/edit',
+  getParentRoute: () => AppUsersRouteRoute,
+} as any)
 const AppGlossaryCharactersIdIndexRoute =
   AppGlossaryCharactersIdIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AppGlossaryCharactersIdRouteRoute,
-  } as any)
-const AppGlossaryFeaturesIdEditRoute =
-  AppGlossaryFeaturesIdEditRouteImport.update({
-    id: '/edit',
-    path: '/edit',
-    getParentRoute: () => AppGlossaryFeaturesIdRouteRoute,
   } as any)
 const AppGlossaryCharactersIdEditRoute =
   AppGlossaryCharactersIdEditRouteImport.update({
@@ -340,6 +323,23 @@ const AppGlossaryCharactersIdEditRoute =
     path: '/edit',
     getParentRoute: () => AppGlossaryCharactersIdRouteRoute,
   } as any)
+const AppGlossaryFeaturesIdIndexRoute =
+  AppGlossaryFeaturesIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppGlossaryFeaturesIdRouteRoute,
+  } as any)
+const AppGlossaryFeaturesIdEditRoute =
+  AppGlossaryFeaturesIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AppGlossaryFeaturesIdRouteRoute,
+  } as any)
+const AppTaxaIdEditIndexRoute = AppTaxaIdEditIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppTaxaIdEditRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -653,13 +653,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -667,95 +660,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRouteRoute
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/': {
       id: '/_app/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_sitemaps/sitemap-taxa.xml': {
-      id: '/_sitemaps/sitemap-taxa.xml'
-      path: '/sitemap-taxa.xml'
-      fullPath: '/sitemap-taxa.xml'
-      preLoaderRoute: typeof SitemapsSitemapTaxaDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_app/verify-email': {
-      id: '/_app/verify-email'
-      path: '/verify-email'
-      fullPath: '/verify-email'
-      preLoaderRoute: typeof AppVerifyEmailRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/tos': {
-      id: '/_app/tos'
-      path: '/tos'
-      fullPath: '/tos'
-      preLoaderRoute: typeof AppTosRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/signup': {
-      id: '/_app/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof AppSignupRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/monitoring': {
-      id: '/_app/monitoring'
-      path: '/monitoring'
-      fullPath: '/monitoring'
-      preLoaderRoute: typeof AppMonitoringRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/logout': {
-      id: '/_app/logout'
-      path: '/logout'
-      fullPath: '/logout'
-      preLoaderRoute: typeof AppLogoutRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/login': {
-      id: '/_app/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof AppLoginRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/image-test': {
-      id: '/_app/image-test'
-      path: '/image-test'
-      fullPath: '/image-test'
-      preLoaderRoute: typeof AppImageTestRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/health': {
-      id: '/_app/health'
-      path: '/health'
-      fullPath: '/health'
-      preLoaderRoute: typeof AppHealthRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/donate': {
-      id: '/_app/donate'
-      path: '/donate'
-      fullPath: '/donate'
-      preLoaderRoute: typeof AppDonateRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/dmca': {
-      id: '/_app/dmca'
-      path: '/dmca'
-      fullPath: '/dmca'
-      preLoaderRoute: typeof AppDmcaRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/about': {
@@ -765,39 +681,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAboutRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/api/_unauthenticated': {
-      id: '/api/_unauthenticated'
-      path: '/api'
-      fullPath: '/api'
-      preLoaderRoute: typeof ApiUnauthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/users': {
-      id: '/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/sources': {
-      id: '/admin/sources'
-      path: '/sources'
-      fullPath: '/admin/sources'
-      preLoaderRoute: typeof AdminSourcesRouteRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/_app/users': {
-      id: '/_app/users'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof AppUsersRouteRouteImport
+    '/_app/dmca': {
+      id: '/_app/dmca'
+      path: '/dmca'
+      fullPath: '/dmca'
+      preLoaderRoute: typeof AppDmcaRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/guides': {
-      id: '/_app/guides'
-      path: '/guides'
-      fullPath: '/guides'
-      preLoaderRoute: typeof AppGuidesRouteRouteImport
+    '/_app/donate': {
+      id: '/_app/donate'
+      path: '/donate'
+      fullPath: '/donate'
+      preLoaderRoute: typeof AppDonateRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/glossary': {
@@ -807,88 +702,116 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGlossaryRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/admin/users/': {
-      id: '/admin/users/'
-      path: '/'
-      fullPath: '/admin/users/'
-      preLoaderRoute: typeof AdminUsersIndexRouteImport
-      parentRoute: typeof AdminUsersRouteRoute
-    }
-    '/admin/sources/': {
-      id: '/admin/sources/'
-      path: '/'
-      fullPath: '/admin/sources/'
-      preLoaderRoute: typeof AdminSourcesIndexRouteImport
-      parentRoute: typeof AdminSourcesRouteRoute
-    }
-    '/_app/users/': {
-      id: '/_app/users/'
-      path: '/'
-      fullPath: '/users/'
-      preLoaderRoute: typeof AppUsersIndexRouteImport
-      parentRoute: typeof AppUsersRouteRoute
-    }
-    '/_app/taxa/': {
-      id: '/_app/taxa/'
-      path: '/taxa'
-      fullPath: '/taxa/'
-      preLoaderRoute: typeof AppTaxaIndexRouteImport
+    '/_app/guides': {
+      id: '/_app/guides'
+      path: '/guides'
+      fullPath: '/guides'
+      preLoaderRoute: typeof AppGuidesRouteRouteImport
       parentRoute: typeof AppRouteRoute
+    }
+    '/_app/health': {
+      id: '/_app/health'
+      path: '/health'
+      fullPath: '/health'
+      preLoaderRoute: typeof AppHealthRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/image-test': {
+      id: '/_app/image-test'
+      path: '/image-test'
+      fullPath: '/image-test'
+      preLoaderRoute: typeof AppImageTestRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/login': {
+      id: '/_app/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof AppLoginRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/logout': {
+      id: '/_app/logout'
+      path: '/logout'
+      fullPath: '/logout'
+      preLoaderRoute: typeof AppLogoutRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/monitoring': {
+      id: '/_app/monitoring'
+      path: '/monitoring'
+      fullPath: '/monitoring'
+      preLoaderRoute: typeof AppMonitoringRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/signup': {
+      id: '/_app/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof AppSignupRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/tos': {
+      id: '/_app/tos'
+      path: '/tos'
+      fullPath: '/tos'
+      preLoaderRoute: typeof AppTosRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/users': {
+      id: '/_app/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof AppUsersRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/verify-email': {
+      id: '/_app/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof AppVerifyEmailRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_sitemaps/sitemap-taxa.xml': {
+      id: '/_sitemaps/sitemap-taxa.xml'
+      path: '/sitemap-taxa.xml'
+      fullPath: '/sitemap-taxa.xml'
+      preLoaderRoute: typeof SitemapsSitemapTaxaDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/sources': {
+      id: '/admin/sources'
+      path: '/sources'
+      fullPath: '/admin/sources'
+      preLoaderRoute: typeof AdminSourcesRouteRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/api/_unauthenticated': {
+      id: '/api/_unauthenticated'
+      path: '/api'
+      fullPath: '/api'
+      preLoaderRoute: typeof ApiUnauthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/glossary/': {
       id: '/_app/glossary/'
       path: '/'
       fullPath: '/glossary/'
       preLoaderRoute: typeof AppGlossaryIndexRouteImport
-      parentRoute: typeof AppGlossaryRouteRoute
-    }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/_unauthenticated/taxa': {
-      id: '/api/_unauthenticated/taxa'
-      path: '/taxa'
-      fullPath: '/api/taxa'
-      preLoaderRoute: typeof ApiUnauthenticatedTaxaRouteImport
-      parentRoute: typeof ApiUnauthenticatedRouteRoute
-    }
-    '/api/_unauthenticated/extraction': {
-      id: '/api/_unauthenticated/extraction'
-      path: '/extraction'
-      fullPath: '/api/extraction'
-      preLoaderRoute: typeof ApiUnauthenticatedExtractionRouteImport
-      parentRoute: typeof ApiUnauthenticatedRouteRoute
-    }
-    '/_app/taxa/new': {
-      id: '/_app/taxa/new'
-      path: '/taxa/new'
-      fullPath: '/taxa/new'
-      preLoaderRoute: typeof AppTaxaNewRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/guides/_browsing': {
-      id: '/_app/guides/_browsing'
-      path: ''
-      fullPath: '/guides'
-      preLoaderRoute: typeof AppGuidesBrowsingRouteRouteImport
-      parentRoute: typeof AppGuidesRouteRoute
-    }
-    '/_app/glossary/modifiers': {
-      id: '/_app/glossary/modifiers'
-      path: '/modifiers'
-      fullPath: '/glossary/modifiers'
-      preLoaderRoute: typeof AppGlossaryModifiersRouteRouteImport
-      parentRoute: typeof AppGlossaryRouteRoute
-    }
-    '/_app/glossary/features': {
-      id: '/_app/glossary/features'
-      path: '/features'
-      fullPath: '/glossary/features'
-      preLoaderRoute: typeof AppGlossaryFeaturesRouteRouteImport
       parentRoute: typeof AppGlossaryRouteRoute
     }
     '/_app/glossary/characters': {
@@ -898,25 +821,130 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGlossaryCharactersRouteRouteImport
       parentRoute: typeof AppGlossaryRouteRoute
     }
-    '/_app/users/$username/': {
-      id: '/_app/users/$username/'
-      path: '/$username'
-      fullPath: '/users/$username/'
-      preLoaderRoute: typeof AppUsersUsernameIndexRouteImport
-      parentRoute: typeof AppUsersRouteRoute
+    '/_app/glossary/features': {
+      id: '/_app/glossary/features'
+      path: '/features'
+      fullPath: '/glossary/features'
+      preLoaderRoute: typeof AppGlossaryFeaturesRouteRouteImport
+      parentRoute: typeof AppGlossaryRouteRoute
     }
-    '/_app/taxa/$id/': {
-      id: '/_app/taxa/$id/'
-      path: '/taxa/$id'
-      fullPath: '/taxa/$id/'
-      preLoaderRoute: typeof AppTaxaIdIndexRouteImport
+    '/_app/glossary/modifiers': {
+      id: '/_app/glossary/modifiers'
+      path: '/modifiers'
+      fullPath: '/glossary/modifiers'
+      preLoaderRoute: typeof AppGlossaryModifiersRouteRouteImport
+      parentRoute: typeof AppGlossaryRouteRoute
+    }
+    '/_app/guides/_browsing': {
+      id: '/_app/guides/_browsing'
+      path: ''
+      fullPath: '/guides'
+      preLoaderRoute: typeof AppGuidesBrowsingRouteRouteImport
+      parentRoute: typeof AppGuidesRouteRoute
+    }
+    '/_app/taxa/': {
+      id: '/_app/taxa/'
+      path: '/taxa'
+      fullPath: '/taxa/'
+      preLoaderRoute: typeof AppTaxaIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/guides/create/': {
-      id: '/_app/guides/create/'
-      path: '/create'
-      fullPath: '/guides/create/'
-      preLoaderRoute: typeof AppGuidesCreateIndexRouteImport
+    '/_app/taxa/new': {
+      id: '/_app/taxa/new'
+      path: '/taxa/new'
+      fullPath: '/taxa/new'
+      preLoaderRoute: typeof AppTaxaNewRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/users/': {
+      id: '/_app/users/'
+      path: '/'
+      fullPath: '/users/'
+      preLoaderRoute: typeof AppUsersIndexRouteImport
+      parentRoute: typeof AppUsersRouteRoute
+    }
+    '/admin/sources/': {
+      id: '/admin/sources/'
+      path: '/'
+      fullPath: '/admin/sources/'
+      preLoaderRoute: typeof AdminSourcesIndexRouteImport
+      parentRoute: typeof AdminSourcesRouteRoute
+    }
+    '/admin/users/': {
+      id: '/admin/users/'
+      path: '/'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof AdminUsersIndexRouteImport
+      parentRoute: typeof AdminUsersRouteRoute
+    }
+    '/api/_unauthenticated/extraction': {
+      id: '/api/_unauthenticated/extraction'
+      path: '/extraction'
+      fullPath: '/api/extraction'
+      preLoaderRoute: typeof ApiUnauthenticatedExtractionRouteImport
+      parentRoute: typeof ApiUnauthenticatedRouteRoute
+    }
+    '/api/_unauthenticated/taxa': {
+      id: '/api/_unauthenticated/taxa'
+      path: '/taxa'
+      fullPath: '/api/taxa'
+      preLoaderRoute: typeof ApiUnauthenticatedTaxaRouteImport
+      parentRoute: typeof ApiUnauthenticatedRouteRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/glossary/characters/': {
+      id: '/_app/glossary/characters/'
+      path: '/'
+      fullPath: '/glossary/characters/'
+      preLoaderRoute: typeof AppGlossaryCharactersIndexRouteImport
+      parentRoute: typeof AppGlossaryCharactersRouteRoute
+    }
+    '/_app/glossary/characters/$id': {
+      id: '/_app/glossary/characters/$id'
+      path: '/$id'
+      fullPath: '/glossary/characters/$id'
+      preLoaderRoute: typeof AppGlossaryCharactersIdRouteRouteImport
+      parentRoute: typeof AppGlossaryCharactersRouteRoute
+    }
+    '/_app/glossary/features/': {
+      id: '/_app/glossary/features/'
+      path: '/'
+      fullPath: '/glossary/features/'
+      preLoaderRoute: typeof AppGlossaryFeaturesIndexRouteImport
+      parentRoute: typeof AppGlossaryFeaturesRouteRoute
+    }
+    '/_app/glossary/features/$id': {
+      id: '/_app/glossary/features/$id'
+      path: '/$id'
+      fullPath: '/glossary/features/$id'
+      preLoaderRoute: typeof AppGlossaryFeaturesIdRouteRouteImport
+      parentRoute: typeof AppGlossaryFeaturesRouteRoute
+    }
+    '/_app/glossary/modifiers/': {
+      id: '/_app/glossary/modifiers/'
+      path: '/'
+      fullPath: '/glossary/modifiers/'
+      preLoaderRoute: typeof AppGlossaryModifiersIndexRouteImport
+      parentRoute: typeof AppGlossaryModifiersRouteRoute
+    }
+    '/_app/glossary/modifiers/$id': {
+      id: '/_app/glossary/modifiers/$id'
+      path: '/$id'
+      fullPath: '/glossary/modifiers/$id'
+      preLoaderRoute: typeof AppGlossaryModifiersIdRouteImport
+      parentRoute: typeof AppGlossaryModifiersRouteRoute
+    }
+    '/_app/guides/$id/': {
+      id: '/_app/guides/$id/'
+      path: '/$id'
+      fullPath: '/guides/$id/'
+      preLoaderRoute: typeof AppGuidesIdIndexRouteImport
       parentRoute: typeof AppGuidesRouteRoute
     }
     '/_app/guides/_browsing/': {
@@ -926,47 +954,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGuidesBrowsingIndexRouteImport
       parentRoute: typeof AppGuidesBrowsingRouteRoute
     }
-    '/_app/guides/$id/': {
-      id: '/_app/guides/$id/'
-      path: '/$id'
-      fullPath: '/guides/$id/'
-      preLoaderRoute: typeof AppGuidesIdIndexRouteImport
+    '/_app/guides/create/': {
+      id: '/_app/guides/create/'
+      path: '/create'
+      fullPath: '/guides/create/'
+      preLoaderRoute: typeof AppGuidesCreateIndexRouteImport
       parentRoute: typeof AppGuidesRouteRoute
     }
-    '/_app/glossary/modifiers/': {
-      id: '/_app/glossary/modifiers/'
-      path: '/'
-      fullPath: '/glossary/modifiers/'
-      preLoaderRoute: typeof AppGlossaryModifiersIndexRouteImport
-      parentRoute: typeof AppGlossaryModifiersRouteRoute
-    }
-    '/_app/glossary/features/': {
-      id: '/_app/glossary/features/'
-      path: '/'
-      fullPath: '/glossary/features/'
-      preLoaderRoute: typeof AppGlossaryFeaturesIndexRouteImport
-      parentRoute: typeof AppGlossaryFeaturesRouteRoute
-    }
-    '/_app/glossary/characters/': {
-      id: '/_app/glossary/characters/'
-      path: '/'
-      fullPath: '/glossary/characters/'
-      preLoaderRoute: typeof AppGlossaryCharactersIndexRouteImport
-      parentRoute: typeof AppGlossaryCharactersRouteRoute
-    }
-    '/_app/users/$username/edit': {
-      id: '/_app/users/$username/edit'
-      path: '/$username/edit'
-      fullPath: '/users/$username/edit'
-      preLoaderRoute: typeof AppUsersUsernameEditRouteImport
-      parentRoute: typeof AppUsersRouteRoute
-    }
-    '/_app/glossary/modifiers/$id': {
-      id: '/_app/glossary/modifiers/$id'
-      path: '/$id'
-      fullPath: '/glossary/modifiers/$id'
-      preLoaderRoute: typeof AppGlossaryModifiersIdRouteImport
-      parentRoute: typeof AppGlossaryModifiersRouteRoute
+    '/_app/taxa/$id/': {
+      id: '/_app/taxa/$id/'
+      path: '/taxa/$id'
+      fullPath: '/taxa/$id/'
+      preLoaderRoute: typeof AppTaxaIdIndexRouteImport
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/taxa/$id/edit': {
       id: '/_app/taxa/$id/edit'
@@ -975,33 +975,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTaxaIdEditRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/glossary/features/$id': {
-      id: '/_app/glossary/features/$id'
-      path: '/$id'
-      fullPath: '/glossary/features/$id'
-      preLoaderRoute: typeof AppGlossaryFeaturesIdRouteRouteImport
-      parentRoute: typeof AppGlossaryFeaturesRouteRoute
+    '/_app/users/$username/': {
+      id: '/_app/users/$username/'
+      path: '/$username'
+      fullPath: '/users/$username/'
+      preLoaderRoute: typeof AppUsersUsernameIndexRouteImport
+      parentRoute: typeof AppUsersRouteRoute
     }
-    '/_app/glossary/characters/$id': {
-      id: '/_app/glossary/characters/$id'
-      path: '/$id'
-      fullPath: '/glossary/characters/$id'
-      preLoaderRoute: typeof AppGlossaryCharactersIdRouteRouteImport
-      parentRoute: typeof AppGlossaryCharactersRouteRoute
-    }
-    '/_app/taxa/$id/edit/': {
-      id: '/_app/taxa/$id/edit/'
-      path: '/'
-      fullPath: '/taxa/$id/edit/'
-      preLoaderRoute: typeof AppTaxaIdEditIndexRouteImport
-      parentRoute: typeof AppTaxaIdEditRouteRoute
-    }
-    '/_app/glossary/features/$id/': {
-      id: '/_app/glossary/features/$id/'
-      path: '/'
-      fullPath: '/glossary/features/$id/'
-      preLoaderRoute: typeof AppGlossaryFeaturesIdIndexRouteImport
-      parentRoute: typeof AppGlossaryFeaturesIdRouteRoute
+    '/_app/users/$username/edit': {
+      id: '/_app/users/$username/edit'
+      path: '/$username/edit'
+      fullPath: '/users/$username/edit'
+      preLoaderRoute: typeof AppUsersUsernameEditRouteImport
+      parentRoute: typeof AppUsersRouteRoute
     }
     '/_app/glossary/characters/$id/': {
       id: '/_app/glossary/characters/$id/'
@@ -1010,6 +996,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGlossaryCharactersIdIndexRouteImport
       parentRoute: typeof AppGlossaryCharactersIdRouteRoute
     }
+    '/_app/glossary/characters/$id/edit': {
+      id: '/_app/glossary/characters/$id/edit'
+      path: '/edit'
+      fullPath: '/glossary/characters/$id/edit'
+      preLoaderRoute: typeof AppGlossaryCharactersIdEditRouteImport
+      parentRoute: typeof AppGlossaryCharactersIdRouteRoute
+    }
+    '/_app/glossary/features/$id/': {
+      id: '/_app/glossary/features/$id/'
+      path: '/'
+      fullPath: '/glossary/features/$id/'
+      preLoaderRoute: typeof AppGlossaryFeaturesIdIndexRouteImport
+      parentRoute: typeof AppGlossaryFeaturesIdRouteRoute
+    }
     '/_app/glossary/features/$id/edit': {
       id: '/_app/glossary/features/$id/edit'
       path: '/edit'
@@ -1017,12 +1017,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGlossaryFeaturesIdEditRouteImport
       parentRoute: typeof AppGlossaryFeaturesIdRouteRoute
     }
-    '/_app/glossary/characters/$id/edit': {
-      id: '/_app/glossary/characters/$id/edit'
-      path: '/edit'
-      fullPath: '/glossary/characters/$id/edit'
-      preLoaderRoute: typeof AppGlossaryCharactersIdEditRouteImport
-      parentRoute: typeof AppGlossaryCharactersIdRouteRoute
+    '/_app/taxa/$id/edit/': {
+      id: '/_app/taxa/$id/edit/'
+      path: '/'
+      fullPath: '/taxa/$id/edit/'
+      preLoaderRoute: typeof AppTaxaIdEditIndexRouteImport
+      parentRoute: typeof AppTaxaIdEditRouteRoute
     }
   }
 }

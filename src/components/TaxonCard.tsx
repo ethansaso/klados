@@ -78,7 +78,7 @@ export const TaxonCard = memo(
       <AnnotationBubbleWrap media={thumbnail} spacing={size}>
         {serveAsLink ? (
           <Card className={className} size={size} asChild>
-            <Link to="/taxa/$id" params={{ id: String(id) }}>
+            <Link to="/taxa/$id" params={{ id }}>
               {content}
             </Link>
           </Card>

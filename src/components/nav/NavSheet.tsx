@@ -112,7 +112,11 @@ export function NavSheet({ user, onNavigate }: Props) {
                   <NavSheetLinkButton to="/taxa/new" onNavigate={onNavigate}>
                     Create taxon
                   </NavSheetLinkButton>
-                  <NavSheetLinkButton to="/taxa/drafts" onNavigate={onNavigate}>
+                  <NavSheetLinkButton
+                    to="/taxa"
+                    search={{ status: ["draft"] }}
+                    onNavigate={onNavigate}
+                  >
                     Drafts
                   </NavSheetLinkButton>
                 </>
