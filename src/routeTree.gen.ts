@@ -40,8 +40,6 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiUnauthenticatedTaxaRouteImport } from './routes/api/_unauthenticated/taxa'
 import { Route as ApiUnauthenticatedExtractionRouteImport } from './routes/api/_unauthenticated/extraction'
 import { Route as AppTaxaNewRouteImport } from './routes/_app/taxa/new'
-import { Route as AppTaxaDraftsRouteImport } from './routes/_app/taxa/drafts'
-import { Route as AppTaxaIdRouteRouteImport } from './routes/_app/taxa/$id/route'
 import { Route as AppGuidesBrowsingRouteRouteImport } from './routes/_app/guides/_browsing/route'
 import { Route as AppGlossaryModifiersRouteRouteImport } from './routes/_app/glossary/modifiers/route'
 import { Route as AppGlossaryFeaturesRouteRouteImport } from './routes/_app/glossary/features/route'
@@ -221,16 +219,6 @@ const AppTaxaNewRoute = AppTaxaNewRouteImport.update({
   path: '/taxa/new',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppTaxaDraftsRoute = AppTaxaDraftsRouteImport.update({
-  id: '/taxa/drafts',
-  path: '/taxa/drafts',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppTaxaIdRouteRoute = AppTaxaIdRouteRouteImport.update({
-  id: '/taxa/$id',
-  path: '/taxa/$id',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 const AppGuidesBrowsingRouteRoute = AppGuidesBrowsingRouteRouteImport.update({
   id: '/_browsing',
   getParentRoute: () => AppGuidesRouteRoute,
@@ -259,9 +247,9 @@ const AppUsersUsernameIndexRoute = AppUsersUsernameIndexRouteImport.update({
   getParentRoute: () => AppUsersRouteRoute,
 } as any)
 const AppTaxaIdIndexRoute = AppTaxaIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppTaxaIdRouteRoute,
+  id: '/taxa/$id/',
+  path: '/taxa/$id/',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppGuidesCreateIndexRoute = AppGuidesCreateIndexRouteImport.update({
   id: '/create/',
@@ -307,9 +295,9 @@ const AppGlossaryModifiersIdRoute = AppGlossaryModifiersIdRouteImport.update({
   getParentRoute: () => AppGlossaryModifiersRouteRoute,
 } as any)
 const AppTaxaIdEditRouteRoute = AppTaxaIdEditRouteRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => AppTaxaIdRouteRoute,
+  id: '/taxa/$id/edit',
+  path: '/taxa/$id/edit',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppGlossaryFeaturesIdRouteRoute =
   AppGlossaryFeaturesIdRouteRouteImport.update({
@@ -378,8 +366,6 @@ export interface FileRoutesByFullPath {
   '/glossary/characters': typeof AppGlossaryCharactersRouteRouteWithChildren
   '/glossary/features': typeof AppGlossaryFeaturesRouteRouteWithChildren
   '/glossary/modifiers': typeof AppGlossaryModifiersRouteRouteWithChildren
-  '/taxa/$id': typeof AppTaxaIdRouteRouteWithChildren
-  '/taxa/drafts': typeof AppTaxaDraftsRoute
   '/taxa/new': typeof AppTaxaNewRoute
   '/api/extraction': typeof ApiUnauthenticatedExtractionRoute
   '/api/taxa': typeof ApiUnauthenticatedTaxaRoute
@@ -425,7 +411,6 @@ export interface FileRoutesByTo {
   '/sitemap-taxa.xml': typeof SitemapsSitemapTaxaDotxmlRoute
   '/': typeof AppIndexRoute
   '/admin': typeof AdminIndexRoute
-  '/taxa/drafts': typeof AppTaxaDraftsRoute
   '/taxa/new': typeof AppTaxaNewRoute
   '/api/extraction': typeof ApiUnauthenticatedExtractionRoute
   '/api/taxa': typeof ApiUnauthenticatedTaxaRoute
@@ -478,8 +463,6 @@ export interface FileRoutesById {
   '/_app/glossary/features': typeof AppGlossaryFeaturesRouteRouteWithChildren
   '/_app/glossary/modifiers': typeof AppGlossaryModifiersRouteRouteWithChildren
   '/_app/guides/_browsing': typeof AppGuidesBrowsingRouteRouteWithChildren
-  '/_app/taxa/$id': typeof AppTaxaIdRouteRouteWithChildren
-  '/_app/taxa/drafts': typeof AppTaxaDraftsRoute
   '/_app/taxa/new': typeof AppTaxaNewRoute
   '/api/_unauthenticated/extraction': typeof ApiUnauthenticatedExtractionRoute
   '/api/_unauthenticated/taxa': typeof ApiUnauthenticatedTaxaRoute
@@ -535,8 +518,6 @@ export interface FileRouteTypes {
     | '/glossary/characters'
     | '/glossary/features'
     | '/glossary/modifiers'
-    | '/taxa/$id'
-    | '/taxa/drafts'
     | '/taxa/new'
     | '/api/extraction'
     | '/api/taxa'
@@ -582,7 +563,6 @@ export interface FileRouteTypes {
     | '/sitemap-taxa.xml'
     | '/'
     | '/admin'
-    | '/taxa/drafts'
     | '/taxa/new'
     | '/api/extraction'
     | '/api/taxa'
@@ -634,8 +614,6 @@ export interface FileRouteTypes {
     | '/_app/glossary/features'
     | '/_app/glossary/modifiers'
     | '/_app/guides/_browsing'
-    | '/_app/taxa/$id'
-    | '/_app/taxa/drafts'
     | '/_app/taxa/new'
     | '/api/_unauthenticated/extraction'
     | '/api/_unauthenticated/taxa'
@@ -892,20 +870,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTaxaNewRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/taxa/drafts': {
-      id: '/_app/taxa/drafts'
-      path: '/taxa/drafts'
-      fullPath: '/taxa/drafts'
-      preLoaderRoute: typeof AppTaxaDraftsRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/_app/taxa/$id': {
-      id: '/_app/taxa/$id'
-      path: '/taxa/$id'
-      fullPath: '/taxa/$id'
-      preLoaderRoute: typeof AppTaxaIdRouteRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/_app/guides/_browsing': {
       id: '/_app/guides/_browsing'
       path: ''
@@ -943,10 +907,10 @@ declare module '@tanstack/react-router' {
     }
     '/_app/taxa/$id/': {
       id: '/_app/taxa/$id/'
-      path: '/'
+      path: '/taxa/$id'
       fullPath: '/taxa/$id/'
       preLoaderRoute: typeof AppTaxaIdIndexRouteImport
-      parentRoute: typeof AppTaxaIdRouteRoute
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/guides/create/': {
       id: '/_app/guides/create/'
@@ -1006,10 +970,10 @@ declare module '@tanstack/react-router' {
     }
     '/_app/taxa/$id/edit': {
       id: '/_app/taxa/$id/edit'
-      path: '/edit'
+      path: '/taxa/$id/edit'
       fullPath: '/taxa/$id/edit'
       preLoaderRoute: typeof AppTaxaIdEditRouteRouteImport
-      parentRoute: typeof AppTaxaIdRouteRoute
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/glossary/features/$id': {
       id: '/_app/glossary/features/$id'
@@ -1219,20 +1183,6 @@ const AppTaxaIdEditRouteRouteChildren: AppTaxaIdEditRouteRouteChildren = {
 const AppTaxaIdEditRouteRouteWithChildren =
   AppTaxaIdEditRouteRoute._addFileChildren(AppTaxaIdEditRouteRouteChildren)
 
-interface AppTaxaIdRouteRouteChildren {
-  AppTaxaIdEditRouteRoute: typeof AppTaxaIdEditRouteRouteWithChildren
-  AppTaxaIdIndexRoute: typeof AppTaxaIdIndexRoute
-}
-
-const AppTaxaIdRouteRouteChildren: AppTaxaIdRouteRouteChildren = {
-  AppTaxaIdEditRouteRoute: AppTaxaIdEditRouteRouteWithChildren,
-  AppTaxaIdIndexRoute: AppTaxaIdIndexRoute,
-}
-
-const AppTaxaIdRouteRouteWithChildren = AppTaxaIdRouteRoute._addFileChildren(
-  AppTaxaIdRouteRouteChildren,
-)
-
 interface AppRouteRouteChildren {
   AppGlossaryRouteRoute: typeof AppGlossaryRouteRouteWithChildren
   AppGuidesRouteRoute: typeof AppGuidesRouteRouteWithChildren
@@ -1249,10 +1199,10 @@ interface AppRouteRouteChildren {
   AppTosRoute: typeof AppTosRoute
   AppVerifyEmailRoute: typeof AppVerifyEmailRoute
   AppIndexRoute: typeof AppIndexRoute
-  AppTaxaIdRouteRoute: typeof AppTaxaIdRouteRouteWithChildren
-  AppTaxaDraftsRoute: typeof AppTaxaDraftsRoute
   AppTaxaNewRoute: typeof AppTaxaNewRoute
   AppTaxaIndexRoute: typeof AppTaxaIndexRoute
+  AppTaxaIdEditRouteRoute: typeof AppTaxaIdEditRouteRouteWithChildren
+  AppTaxaIdIndexRoute: typeof AppTaxaIdIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
@@ -1271,10 +1221,10 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppTosRoute: AppTosRoute,
   AppVerifyEmailRoute: AppVerifyEmailRoute,
   AppIndexRoute: AppIndexRoute,
-  AppTaxaIdRouteRoute: AppTaxaIdRouteRouteWithChildren,
-  AppTaxaDraftsRoute: AppTaxaDraftsRoute,
   AppTaxaNewRoute: AppTaxaNewRoute,
   AppTaxaIndexRoute: AppTaxaIndexRoute,
+  AppTaxaIdEditRouteRoute: AppTaxaIdEditRouteRouteWithChildren,
+  AppTaxaIdIndexRoute: AppTaxaIdIndexRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

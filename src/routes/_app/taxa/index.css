@@ -1,0 +1,7 @@
+.taxa-search-bar {
+  box-shadow: inset 0 -1px 0 0 var(--gray-a5);
+
+  #taxa-search {
+    min-width: 320px;
+  }
+}

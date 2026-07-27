@@ -41,7 +41,9 @@ export function NavBar({ user }: NavBarProps) {
             <NavDropdown.Link to="/taxa">Browse taxa</NavDropdown.Link>
             <NavDropdown.Separator />
             <NavDropdown.Link to="/taxa/new">Create taxon</NavDropdown.Link>
-            <NavDropdown.Link to="/taxa/drafts">Drafts</NavDropdown.Link>
+            <NavDropdown.Link to="/taxa" search={{ status: ["draft"] }}>
+              Drafts
+            </NavDropdown.Link>
           </NavDropdown.Content>
         </NavDropdown.Root>
       );

@@ -1,0 +1,38 @@
+.taxon-card {
+  --card-padding: 8px;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--card-padding);
+
+  img {
+    display: block;
+    width: calc(100%);
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    border-top-left-radius: var(--radius-4);
+    border-top-right-radius: var(--radius-4);
+    border-bottom: 1px solid var(--gray-a5);
+  }
+
+  .summary {
+    svg {
+      font-size: var(--font-size-2);
+    }
+  }
+}
+
+.taxon-card.rt-r-size-1 {
+  --card-padding: var(--space-1);
+  @media (min-width: 768px) {
+    --card-padding: 6px;
+  }
+}
+.taxon-card.rt-r-size-2 {
+  --card-padding: var(--space-1);
+  @media (min-width: 768px) {
+    --card-padding: var(--space-2);
+  }
+}

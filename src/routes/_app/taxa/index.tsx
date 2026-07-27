@@ -1,26 +1,37 @@
-import { Flex, TextField } from "@radix-ui/themes";
+import { Container, Flex, Heading, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PiMagnifyingGlass } from "react-icons/pi";
 import { useDebounce } from "use-debounce";
 import { ContentContainer } from "../../../components/ContentContainer";
 import {
+  DEFAULT_TAXON_STATUSES,
   type TaxonSearchParams,
   TaxonSearchSchema,
 } from "../../../lib/domain/taxa/search";
 import { taxaQueryOptions } from "../../../lib/queries/taxa";
 import { routeSeo } from "../../../lib/utils/head/routeSeo";
-import { TaxaFilterPopover } from "./-components/TaxonFilterPopover";
+import { TaxonFilters } from "./-components/TaxonFilters";
 import { TaxonGrid } from "./-components/TaxonGrid";
 import { useTaxonSearchControls } from "./-hooks/useTaxonSearchControls";
+import "./index.css";
 
 export const Route = createFileRoute("/_app/taxa/")({
   validateSearch: TaxonSearchSchema,
   loaderDeps: ({ search }) => search,
   loader: async ({ context, deps }) => {
-    const { page, pageSize, q, status, highRank, lowRank, hasMedia } =
-      deps as TaxonSearchParams;
+    const {
+      page,
+      pageSize,
+      q,
+      status,
+      highRank,
+      lowRank,
+      hasMedia,
+      hasMorphology,
+      hasEcology,
+    } = deps as TaxonSearchParams;
 
     await context.queryClient.ensureQueryData(
       taxaQueryOptions(page, pageSize, {
@@ -29,8 +40,13 @@ export const Route = createFileRoute("/_app/taxa/")({
         highRank,
         lowRank,
         hasMedia,
+        hasMorphology,
+        hasEcology,
       }),
     );
+  },
+  search: {
+    middlewares: [stripSearchParams({ status: DEFAULT_TAXON_STATUSES })],
   },
   head: ({ match }) =>
     routeSeo({
@@ -42,7 +58,6 @@ export const Route = createFileRoute("/_app/taxa/")({
 
 function TaxaListPage() {
   const { search, setSearch } = useTaxonSearchControls();
-
   const { data: paginatedResult } = useSuspenseQuery(
     taxaQueryOptions(search.page, search.pageSize, {
       q: search.q,
@@ -50,6 +65,8 @@ function TaxaListPage() {
       highRank: search.highRank,
       lowRank: search.lowRank,
       hasMedia: search.hasMedia,
+      hasMorphology: search.hasMorphology,
+      hasEcology: search.hasEcology,
     }),
   );
 
@@ -63,7 +80,7 @@ function TaxaListPage() {
     cancel();
 
     // Avoid setting if unnecessary (i.e. identical)
-    // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
+    // eslint-disable-next-line @eslint-react/set-state-in-effect
     setLocalInput((prev) => (prev === next ? prev : next));
   }, [search.q, cancel]);
   useEffect(() => {
@@ -71,21 +88,28 @@ function TaxaListPage() {
   }, [debouncedInput, setSearch]);
 
   return (
-    <ContentContainer align="start">
-      <Flex mb="4" gap="2">
-        <TextField.Root
-          placeholder="Search taxa..."
-          id="taxa-search"
-          value={localInput}
-          onChange={(e) => setLocalInput(e.currentTarget.value)}
-        >
-          <TextField.Slot>
-            <PiMagnifyingGlass size="16" />
-          </TextField.Slot>
-        </TextField.Root>
-        <TaxaFilterPopover search={search} setSearch={setSearch} />
-      </Flex>
-      <TaxonGrid results={paginatedResult} />
-    </ContentContainer>
+    <>
+      <Container className="taxa-search-bar" p="4" flexGrow="0">
+        <Flex direction="column" gap="2">
+          <Heading>Browse Taxa</Heading>
+          <Flex gap="2">
+            <TextField.Root
+              placeholder="Search by common or scientific name..."
+              id="taxa-search"
+              value={localInput}
+              onChange={(e) => setLocalInput(e.currentTarget.value)}
+            >
+              <TextField.Slot>
+                <PiMagnifyingGlass size="16" />
+              </TextField.Slot>
+            </TextField.Root>
+            <TaxonFilters search={search} setSearch={setSearch} />
+          </Flex>
+        </Flex>
+      </Container>
+      <ContentContainer align="start" gray>
+        <TaxonGrid results={paginatedResult} />
+      </ContentContainer>
+    </>
   );
 }

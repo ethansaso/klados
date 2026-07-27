@@ -93,7 +93,7 @@ function TaxonPage() {
   }, [taxon.ancestors, taxon.acceptedName, taxon.rank]);
 
   return (
-    <ContentContainer align="start">
+    <ContentContainer align="stretch">
       <StatusCallout status={taxon.status} />
       <Box mb="5">
         <Breadcrumbs items={breadcrumbItems} size={{ initial: "1", xs: "2" }} />
@@ -119,7 +119,11 @@ function TaxonPage() {
         </Flex>
       </Box>
 
-      <Flex gap="8" direction={{ initial: "column", sm: "row" }} align="start">
+      <Flex
+        gap={{ initial: "6", sm: "8" }}
+        direction={{ initial: "column", sm: "row" }}
+        align="start"
+      >
         {/* Left panel */}
         <Box width={{ initial: "unset", sm: "304px" }} flexShrink="0" asChild>
           <Card>
@@ -128,7 +132,7 @@ function TaxonPage() {
         </Box>
 
         {/* Right panel */}
-        <Flex direction="column" flexGrow="1" gap="6">
+        <Flex direction="column" flexGrow="1" gap={{ initial: "4", sm: "6" }}>
           {/* Morphology */}
           <Box>
             <Box>

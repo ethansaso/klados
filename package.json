@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "NODE_OPTIONS='--import ./instrument.server.mjs' vite dev --port 3000",
     "build": "vite build && cp instrument.server.mjs .output/server",
-    "build:keygen": "tsgo -p keygen/tsconfig.json",
+    "build:keygen": "tsc -p keygen/tsconfig.json",
     "start": "npm run db:migrate && node --import ./.output/server/instrument.server.mjs .output/server/index.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx db/migrate.ts",
@@ -21,7 +21,7 @@
     "test:keygen": "tsx scripts/runKeygen.ts",
     "test": "vitest run",
     "lint": "eslint src",
-    "typecheck": "tsgo --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -65,19 +65,20 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
-    "@eslint-react/eslint-plugin": "^2.3.13",
+    "@eslint-react/eslint-plugin": "^5.18.0",
     "@eslint/js": "^10.0.1",
     "@types/pg": "^8.16.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "@typescript/native-preview": "^7.0.0-dev.20260421.2",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "@vitejs/plugin-react": "^5.1.2",
     "dotenv": "^17.2.3",
     "drizzle-kit": "^1.0.0-beta.22",
     "eslint-plugin-boundaries": "^5.3.1",
     "playwright": "^1.61.1",
     "tsx": "^4.21.0",
-    "typescript-eslint": "^8.50.0",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript-eslint": "^8.65.0",
     "vite-plugin-svgr": "^4.5.0",
     "vitest": "^4.0.15"
   }

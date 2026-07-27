@@ -19,9 +19,15 @@ import {
   userQueryOptions,
 } from "../../../../lib/queries/users";
 import { editUserFn } from "../../../../lib/server-fns/users/editUserFn";
+import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { toast } from "../../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/users/$username/edit")({
+  head: ({ match }) =>
+    routeSeo({
+      title: "Edit profile | Klados",
+      canonicalUrl: match.pathname,
+    }),
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData(
       userQueryOptions(params.username),

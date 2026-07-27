@@ -1,5 +1,8 @@
 import { queryOptions } from "@tanstack/react-query";
-import type { TaxonFilters } from "../domain/taxa/search";
+import {
+  DEFAULT_TAXON_STATUSES,
+  type TaxonFilterInput,
+} from "../domain/taxa/search";
 import type { TaxonPaginatedResult } from "../domain/taxa/types";
 import { getTaxonFn } from "../server-fns/taxa/getTaxonFn";
 import { listTaxaFn } from "../server-fns/taxa/listTaxaFn";
@@ -13,19 +16,24 @@ export const taxonQueryOptions = (id: number) =>
 export const taxaQueryOptions = (
   page: number,
   pageSize: number,
-  filters?: TaxonFilters,
-) =>
-  queryOptions({
+  filters?: TaxonFilterInput,
+) => {
+  const status = filters?.status ?? DEFAULT_TAXON_STATUSES;
+  const statuses = Array.isArray(status) ? status : [status];
+
+  return queryOptions({
     queryKey: [
       "taxa",
       {
         page,
         pageSize,
         q: filters?.q ?? null,
-        status: filters?.status ?? "active",
+        status: [...statuses].sort(),
         highRank: filters?.highRank ?? null,
         lowRank: filters?.lowRank ?? null,
         hasMedia: filters?.hasMedia ?? null,
+        hasMorphology: filters?.hasMorphology ?? null,
+        hasEcology: filters?.hasEcology ?? null,
       },
     ] as const,
     queryFn: () =>
@@ -34,10 +42,13 @@ export const taxaQueryOptions = (
           page,
           pageSize,
           q: filters?.q,
-          status: filters?.status,
+          status: statuses,
           highRank: filters?.highRank,
           lowRank: filters?.lowRank,
           hasMedia: filters?.hasMedia,
+          hasMorphology: filters?.hasMorphology,
+          hasEcology: filters?.hasEcology,
         },
       }) as Promise<TaxonPaginatedResult>,
   });
+};
