@@ -80,7 +80,7 @@ function TaxaListPage() {
     cancel();
 
     // Avoid setting if unnecessary (i.e. identical)
-    // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
+    // eslint-disable-next-line @eslint-react/set-state-in-effect
     setLocalInput((prev) => (prev === next ? prev : next));
   }, [search.q, cancel]);
   useEffect(() => {
