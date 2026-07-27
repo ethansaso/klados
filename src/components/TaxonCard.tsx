@@ -1,4 +1,4 @@
-import { Box, Card, Flex, Text } from "@radix-ui/themes";
+import { Box, Card, Flex, Inset, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import classNames from "classnames";
 import { memo, type PropsWithChildren } from "react";
@@ -35,19 +35,21 @@ export const TaxonCard = memo(
     const className = classNames("taxon-card");
     const content = (
       <>
-        <img
-          src={
-            thumbnail
-              ? getMediaUrl(thumbnail.storageKey)
-              : "/logos/LogoDotted.svg"
-          }
-          alt={acceptedName}
-          loading="lazy"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = "/logos/LogoDotted.svg";
-          }}
-        />
+        <Inset side="top" pb="current">
+          <img
+            src={
+              thumbnail
+                ? getMediaUrl(thumbnail.storageKey)
+                : "/logos/LogoDotted.svg"
+            }
+            alt={acceptedName}
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = "/logos/LogoDotted.svg";
+            }}
+          />
+        </Inset>
         <Flex direction="column" flexGrow="1" justify="between">
           <Box className="taxonomy">
             <Text as="div" size="1" weight="bold" color="gray">
@@ -56,11 +58,7 @@ export const TaxonCard = memo(
             <Text
               as="div"
               weight="bold"
-              size={
-                size === "2"
-                  ? { initial: "1", xs: "2", sm: "3" }
-                  : { initial: "1" }
-              }
+              size={size === "2" ? { initial: "1", xs: "2" } : { initial: "1" }}
               truncate
             >
               {acceptedName}
@@ -79,7 +77,7 @@ export const TaxonCard = memo(
     return (
       <AnnotationBubbleWrap media={thumbnail} spacing={size}>
         {serveAsLink ? (
-          <Card className={className} size="1" asChild>
+          <Card className={className} size={size} asChild>
             <Link to="/taxa/$id" params={{ id: String(id) }}>
               {content}
             </Link>
