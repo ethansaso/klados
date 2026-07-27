@@ -294,7 +294,7 @@ function RouteComponent() {
         description: `Successfully deleted taxon draft`,
         variant: "success",
       });
-      navigate({ to: "/taxa/drafts" });
+      navigate({ to: "/taxa", search: { status: ["draft"] } });
     } catch (error) {
       toast({
         description: getErrorMessage(error),

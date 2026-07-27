@@ -232,7 +232,9 @@ function RouteComponent() {
 
                 <Flex justify="between" gap="3" mt="1" align="center">
                   <Button asChild type="button" variant="soft" color="gray">
-                    <Link to="/taxa/drafts">Cancel</Link>
+                    <Link to="/taxa" search={{ status: ["draft"] }}>
+                      Cancel
+                    </Link>
                   </Button>
                   <Button
                     type="submit"

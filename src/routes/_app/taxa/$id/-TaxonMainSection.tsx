@@ -118,7 +118,7 @@ export const TaxonMainSection = ({
                   {taxon.subtaxa.map((st, i, arr) => (
                     <Flex key={st.id} display="inline-flex" align="center">
                       <RadixLink asChild>
-                        <Link to="/taxa/$id" params={{ id: String(st.id) }}>
+                        <Link to="/taxa/$id" params={{ id: st.id }}>
                           <Text as="span">{st.acceptedName}</Text>
                         </Link>
                       </RadixLink>
