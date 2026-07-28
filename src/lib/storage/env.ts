@@ -15,6 +15,18 @@ export const s3Env =
           AWS_ACCESS_KEY_ID: z.string().min(1),
           AWS_SECRET_ACCESS_KEY: z.string().min(1),
           S3_BUCKET_NAME: z.string().min(1),
+          /**
+           * Endpoint for S3-compatible providers (Cloudflare R2, MinIO, ...).
+           * Leave unset to use AWS S3's default endpoint for the region.
+           */
+          S3_ENDPOINT: z.url().optional(),
+          /**
+           * Public base URL objects are served from, e.g.
+           * https://media.klados.bio. Strips trailing slashes.
+           */
+          S3_PUBLIC_BASE_URL: z
+            .url()
+            .transform((url) => url.replace(/\/+$/, "")),
         })
         .parse(process.env)
     : (null as never);
