@@ -42,11 +42,6 @@
   justify-content: center;
   grid-template-columns: repeat(auto-fit, 196px);
 
-  .feature-grid > :last-child:nth-child(odd) {
-    grid-column: 1 / -1;
-    justify-self: center;
-  }
-
   .feature-grid__item {
     display: flex;
     flex-direction: column;
