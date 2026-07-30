@@ -96,10 +96,10 @@ export async function deleteTaxon(args: {
 }
 
 /**
- * Deprecate an active taxon, optionally pointing to a replacement.
+ * Archive an active taxon, optionally pointing to a replacement.
  * Returns the updated TaxonDTO, or null if the taxon does not exist.
  */
-export async function deprecateTaxon(args: {
+export async function archiveTaxon(args: {
   id: number;
   replacedById?: number | null;
 }): Promise<TaxonDTO | null> {
@@ -112,7 +112,7 @@ export async function deprecateTaxon(args: {
     }
 
     if (current.status !== "active") {
-      throw new Error("Only active taxa can be deprecated.");
+      throw new Error("Only active taxa can be archived.");
     }
 
     // Don't allow deprecating with active children
@@ -123,7 +123,7 @@ export async function deprecateTaxon(args: {
     const activeChildren = activeChildrenRows[0]?.activeChildren ?? 0;
 
     if (Number(activeChildren) > 0) {
-      throw new Error("Cannot deprecate a taxon that has active children.");
+      throw new Error("Cannot archived a taxon that has active children.");
     }
 
     if (replacedById) {
@@ -142,7 +142,7 @@ export async function deprecateTaxon(args: {
 
     const dto = await updateTaxonStatusAndReplacement(tx, {
       id,
-      status: "deprecated",
+      status: "archived",
       replacedById: replacedById ?? null,
     });
 
@@ -247,8 +247,8 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
   return db.transaction(async (tx) => {
     const current = await getCurrentTaxonMinimal(tx, id);
     if (!current) throw notFound();
-    if (current.status === "deprecated") {
-      throw new Error("Deprecated taxa cannot be updated.");
+    if (current.status === "archived") {
+      throw new Error("Archived taxa cannot be updated.");
     }
 
     const nextParentId =
@@ -302,15 +302,13 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
     if (mediaIds !== undefined) {
       await tx.delete(taxonMediaTbl).where(eq(taxonMediaTbl.taxonId, id));
       if (mediaIds.length > 0) {
-        await tx
-          .insert(taxonMediaTbl)
-          .values(
-            mediaIds.map((mediaId, position) => ({
-              taxonId: id,
-              mediaId,
-              position,
-            })),
-          );
+        await tx.insert(taxonMediaTbl).values(
+          mediaIds.map((mediaId, position) => ({
+            taxonId: id,
+            mediaId,
+            position,
+          })),
+        );
       }
     }
 

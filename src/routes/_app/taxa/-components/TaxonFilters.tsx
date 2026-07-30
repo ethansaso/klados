@@ -1,22 +1,24 @@
 import {
+  Badge,
+  Box,
   Button,
+  Card,
   Checkbox,
   Flex,
+  Heading,
+  IconButton,
   Popover,
   Select,
-  Switch,
   Text,
+  TextField,
 } from "@radix-ui/themes";
-import { useMemo } from "react";
+import { PiPlus, PiX } from "react-icons/pi";
 import {
   TAXON_RANKS_DESCENDING,
   TAXON_STATUSES,
   type TaxonStatus,
 } from "../../../../../db/schema/schema";
-import {
-  DEFAULT_TAXON_STATUSES,
-  type TaxonSearchParams,
-} from "../../../../lib/domain/taxa/search";
+import { type TaxonSearchParams } from "../../../../lib/domain/taxa/search";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
 
 type Props = {
@@ -33,22 +35,9 @@ const QUALITY_FLAGS = [
   label: string;
 }[];
 
-/** True when the selection is anything other than the default statuses. */
-function isStatusFiltered(status: TaxonStatus[]) {
-  return (
-    status.length !== DEFAULT_TAXON_STATUSES.length ||
-    !DEFAULT_TAXON_STATUSES.every((s) => status.includes(s))
-  );
-}
+const HEADER_MB = "2";
 
 export function TaxonFilters({ search, setSearch }: Props) {
-  const rankFiltered = !!(search.highRank || search.lowRank);
-  const statusFiltered = useMemo(
-    () => isStatusFiltered(search.status),
-    [search.status],
-  );
-  const qualityFiltered = QUALITY_FLAGS.some((flag) => !!search[flag.key]);
-
   const toggleStatus = (status: TaxonStatus, checked: boolean) => {
     const next = checked
       ? TAXON_STATUSES.filter((s) => s === status || search.status.includes(s))
@@ -58,154 +47,212 @@ export function TaxonFilters({ search, setSearch }: Props) {
   };
 
   return (
-    <Flex gap="2">
-      <Popover.Root>
-        <Popover.Trigger>
-          <Button
-            type="button"
-            size="2"
-            variant={rankFiltered ? "solid" : "outline"}
-          >
-            Rank
-          </Button>
-        </Popover.Trigger>
-        <Popover.Content>
-          <Flex direction="column" gap="3" style={{ minWidth: 224 }}>
-            {/* High rank */}
-            <Flex direction="column" gap="1">
-              <Flex align="center" justify="between" gap="2">
-                <Text as="label" htmlFor="high-rank" size="1" color="gray">
-                  High rank
-                </Text>
-                {search.highRank && (
-                  <Button
-                    type="button"
-                    size="1"
-                    variant="ghost"
-                    onClick={() => setSearch({ highRank: undefined })}
-                  >
-                    Clear
-                  </Button>
-                )}
-              </Flex>
-              <Select.Root
-                value={search.highRank ?? ""}
-                onValueChange={(value) =>
-                  setSearch({
-                    highRank: value as TaxonSearchParams["highRank"],
-                  })
-                }
-              >
-                <Select.Trigger placeholder="Any" id="high-rank" />
-                <Select.Content>
-                  {TAXON_RANKS_DESCENDING.map((rank) => (
-                    <Select.Item key={rank} value={rank}>
-                      {capitalizeFirstLetter(rank)}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Root>
-            </Flex>
+    <Box asChild width="100%">
+      <Card size="2">
+        <Flex gap="5">
+          <Flex direction="column" gap="3">
+            <Box>
+              <Heading size="2" mb={HEADER_MB}>
+                Taxonomy
+              </Heading>
 
-            {/* Low rank */}
-            <Flex direction="column" gap="1">
-              <Flex align="center" justify="between" gap="2">
-                <Text as="label" htmlFor="low-rank" size="1" color="gray">
-                  Low rank
-                </Text>
-                {search.lowRank && (
-                  <Button
-                    type="button"
-                    size="1"
-                    variant="ghost"
-                    onClick={() => setSearch({ lowRank: undefined })}
+              <Flex direction="row" gap="3">
+                {/* High rank */}
+                <Flex direction="column" gap="1" style={{ minWidth: 160 }}>
+                  <Flex align="center" justify="between" gap="2">
+                    <Text as="label" htmlFor="high-rank" size="1" color="gray">
+                      High rank
+                    </Text>
+                    {search.highRank && (
+                      <Button
+                        type="button"
+                        size="1"
+                        variant="ghost"
+                        onClick={() => setSearch({ highRank: undefined })}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </Flex>
+                  <Select.Root
+                    value={search.highRank ?? ""}
+                    onValueChange={(value) =>
+                      setSearch({
+                        highRank: value as TaxonSearchParams["highRank"],
+                      })
+                    }
                   >
-                    Clear
-                  </Button>
-                )}
+                    <Select.Trigger placeholder="Any" id="high-rank" />
+                    <Select.Content>
+                      {TAXON_RANKS_DESCENDING.map((rank) => (
+                        <Select.Item key={rank} value={rank}>
+                          {capitalizeFirstLetter(rank)}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                </Flex>
+
+                {/* Low rank */}
+                <Flex direction="column" gap="1" style={{ minWidth: 160 }}>
+                  <Flex align="center" justify="between" gap="2">
+                    <Text as="label" htmlFor="low-rank" size="1" color="gray">
+                      Low rank
+                    </Text>
+                    {search.lowRank && (
+                      <Button
+                        type="button"
+                        size="1"
+                        variant="ghost"
+                        onClick={() => setSearch({ lowRank: undefined })}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </Flex>
+                  <Select.Root
+                    value={search.lowRank ?? ""}
+                    onValueChange={(value) =>
+                      setSearch({
+                        lowRank: value as TaxonSearchParams["lowRank"],
+                      })
+                    }
+                  >
+                    <Select.Trigger placeholder="Any" id="low-rank" />
+                    <Select.Content>
+                      {TAXON_RANKS_DESCENDING.map((rank) => (
+                        <Select.Item key={rank} value={rank}>
+                          {capitalizeFirstLetter(rank)}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                </Flex>
               </Flex>
-              <Select.Root
-                value={search.lowRank ?? ""}
-                onValueChange={(value) =>
-                  setSearch({
-                    lowRank: value as TaxonSearchParams["lowRank"],
-                  })
-                }
-              >
-                <Select.Trigger placeholder="Any" id="low-rank" />
-                <Select.Content>
-                  {TAXON_RANKS_DESCENDING.map((rank) => (
-                    <Select.Item key={rank} value={rank}>
-                      {capitalizeFirstLetter(rank)}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Root>
-            </Flex>
+            </Box>
+            <Box>
+              <Heading size="2" mb={HEADER_MB}>
+                Status
+              </Heading>
+              <Flex gap="1" mb="2" style={{ minWidth: 180 }}>
+                {TAXON_STATUSES.map((status) => {
+                  const active = search.status.includes(status);
+
+                  return (
+                    <Button
+                      key={status}
+                      type="button"
+                      size="1"
+                      radius="full"
+                      variant={active ? "solid" : "outline"}
+                      aria-pressed={active}
+                      onClick={() => toggleStatus(status, !active)}
+                    >
+                      {capitalizeFirstLetter(status)}
+                    </Button>
+                  );
+                })}
+              </Flex>
+            </Box>
           </Flex>
-        </Popover.Content>
-      </Popover.Root>
-
-      <Popover.Root>
-        <Popover.Trigger>
-          <Button
-            type="button"
-            size="2"
-            variant={statusFiltered ? "solid" : "outline"}
-          >
-            Status
-          </Button>
-        </Popover.Trigger>
-        <Popover.Content>
-          <Flex direction="column" gap="2" style={{ minWidth: 180 }}>
-            {TAXON_STATUSES.map((status) => (
-              <Text key={status} as="label" size="2">
-                <Flex align="center" gap="2">
+          <Box>
+            <Heading size="2" mb={HEADER_MB}>
+              Properties
+            </Heading>
+            <Flex direction="column" gap="1" style={{ minWidth: 180 }}>
+              {QUALITY_FLAGS.map(({ key, label }) => (
+                <Flex key={key} align="center" gap="2">
                   <Checkbox
-                    checked={search.status.includes(status)}
+                    id={key}
+                    checked={!!search[key]}
                     onCheckedChange={(checked) =>
-                      toggleStatus(status, checked === true)
+                      setSearch({
+                        [key]: checked === true ? true : undefined,
+                      } as Partial<TaxonSearchParams>)
                     }
                   />
-                  {capitalizeFirstLetter(status)}
+                  <Text as="label" htmlFor={key} size="2">
+                    {label}
+                  </Text>
                 </Flex>
-              </Text>
-            ))}
-          </Flex>
-        </Popover.Content>
-      </Popover.Root>
-
-      <Popover.Root>
-        <Popover.Trigger>
-          <Button
-            type="button"
-            size="2"
-            variant={qualityFiltered ? "solid" : "outline"}
-          >
-            Quality
-          </Button>
-        </Popover.Trigger>
-        <Popover.Content>
-          <Flex direction="column" gap="2" style={{ minWidth: 180 }}>
-            {QUALITY_FLAGS.map(({ key, label }) => (
-              <Flex key={key} align="center" gap="2">
-                <Switch
-                  id={key}
-                  checked={!!search[key]}
-                  onCheckedChange={(checked) =>
-                    setSearch({
-                      [key]: checked ? true : undefined,
-                    } as Partial<TaxonSearchParams>)
-                  }
-                />
-                <Text as="label" htmlFor={key} size="2">
-                  {label}
-                </Text>
-              </Flex>
-            ))}
-          </Flex>
-        </Popover.Content>
-      </Popover.Root>
-    </Flex>
+              ))}
+            </Flex>
+          </Box>
+          <Box ml="auto" minWidth="256px">
+            <Heading size="2" mb={HEADER_MB}>
+              Morphology
+            </Heading>
+            <Flex direction="column" gap="2" style={{ minWidth: 180 }}>
+              <Box>
+                <Flex align="center" justify="between" mb="1">
+                  <Text
+                    as="label"
+                    htmlFor="feature-search"
+                    size="1"
+                    color="gray"
+                  >
+                    Must have features
+                  </Text>
+                  <Popover.Root>
+                    <Popover.Trigger>
+                      <Button size="1" color="gray" variant="surface">
+                        <PiPlus /> Add feature
+                      </Button>
+                    </Popover.Trigger>
+                    <Popover.Content align="end">
+                      <TextField.Root
+                        id="feature-search"
+                        placeholder="Search features..."
+                      />
+                    </Popover.Content>
+                  </Popover.Root>
+                </Flex>
+                <Flex gap="1">
+                  <Badge>
+                    Annulus{" "}
+                    <IconButton size="1" variant="ghost" color="tomato">
+                      <PiX size="0.75rem" />
+                    </IconButton>
+                  </Badge>
+                </Flex>
+              </Box>
+              <Box>
+                <Flex align="center" justify="between" mb="1">
+                  <Text
+                    as="label"
+                    htmlFor="character-search"
+                    size="1"
+                    color="gray"
+                  >
+                    Must have characters
+                  </Text>
+                  <Popover.Root>
+                    <Popover.Trigger>
+                      <Button size="1" color="gray" variant="surface">
+                        <PiPlus /> Add character
+                      </Button>
+                    </Popover.Trigger>
+                    <Popover.Content align="end">
+                      <TextField.Root
+                        id="character-search"
+                        placeholder="Search characters..."
+                      />
+                    </Popover.Content>
+                  </Popover.Root>
+                </Flex>
+                <Flex gap="1">
+                  <Badge>
+                    Cap → Red
+                    <IconButton size="1" variant="ghost" color="tomato">
+                      <PiX size="0.75rem" />
+                    </IconButton>
+                  </Badge>
+                </Flex>
+              </Box>
+            </Flex>
+          </Box>
+        </Flex>
+      </Card>
+    </Box>
   );
 }

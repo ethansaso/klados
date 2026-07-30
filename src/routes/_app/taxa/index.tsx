@@ -1,8 +1,8 @@
-import { Container, Flex, Heading, TextField } from "@radix-ui/themes";
+import { Button, Container, Flex, Heading, TextField } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { PiMagnifyingGlass } from "react-icons/pi";
+import { PiFunnel, PiMagnifyingGlass } from "react-icons/pi";
 import { useDebounce } from "use-debounce";
 import { ContentContainer } from "../../../components/ContentContainer";
 import {
@@ -70,9 +70,11 @@ function TaxaListPage() {
     }),
   );
 
+  const [filtersOpen, setFiltersOpen] = useState(false);
   // Debounced into search, and synced from search for external changes
-  const [localInput, setLocalInput] = useState(search.q ?? "");
-  const [debouncedInput, { cancel }] = useDebounce(localInput, 250);
+  const [localQ, setLocalQ] = useState(search.q ?? "");
+  const [debouncedInput, { cancel }] = useDebounce(localQ, 250);
+
   useEffect(() => {
     const next = search.q ?? "";
 
@@ -81,7 +83,7 @@ function TaxaListPage() {
 
     // Avoid setting if unnecessary (i.e. identical)
     // eslint-disable-next-line @eslint-react/set-state-in-effect
-    setLocalInput((prev) => (prev === next ? prev : next));
+    setLocalQ((prev) => (prev === next ? prev : next));
   }, [search.q, cancel]);
   useEffect(() => {
     setSearch({ q: debouncedInput || undefined });
@@ -96,18 +98,35 @@ function TaxaListPage() {
             <TextField.Root
               placeholder="Search by common or scientific name..."
               id="taxa-search"
-              value={localInput}
-              onChange={(e) => setLocalInput(e.currentTarget.value)}
+              value={localQ}
+              onChange={(e) => setLocalQ(e.currentTarget.value)}
             >
               <TextField.Slot>
                 <PiMagnifyingGlass size="16" />
               </TextField.Slot>
             </TextField.Root>
-            <TaxonFilters search={search} setSearch={setSearch} />
+            <Button
+              aria-expanded={filtersOpen}
+              aria-controls="taxa-filters"
+              onClick={() => setFiltersOpen((open) => !open)}
+            >
+              <PiFunnel size="1rem" />
+              Filter
+            </Button>
           </Flex>
         </Flex>
       </Container>
       <ContentContainer align="start" gray>
+        <div
+          className="taxa-filters"
+          id="taxa-filters"
+          data-open={filtersOpen}
+          aria-hidden={!filtersOpen}
+        >
+          <div>
+            <TaxonFilters search={search} setSearch={setSearch} />
+          </div>
+        </div>
         <TaxonGrid results={paginatedResult} />
       </ContentContainer>
     </>

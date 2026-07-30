@@ -52,7 +52,7 @@ export const NameRow = memo(
         <Flex align="center" gap="2" className="taxon-names__item__label">
           <RadioGroup.Item value={id}>
             {!isEditing && (
-              <Text as="span" color={value ? undefined : "gray"}>
+              <Text as="span" color={value ? undefined : "gray"} ml="2">
                 {value || "(empty)"}
               </Text>
             )}
