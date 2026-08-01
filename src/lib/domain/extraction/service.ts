@@ -438,6 +438,8 @@ export async function extractStates(
           featureId: feature.id,
           featureLabel: feature.label,
           notes: "",
+          // TODO: signal for this
+          unreliable: false,
           characters,
         });
       }
@@ -684,6 +686,8 @@ export async function extractStates(
         featureId: feature.id,
         featureLabel: feature.label,
         notes: "",
+        // TODO: signal for this
+        unreliable: false,
         characters,
       });
     }
@@ -1489,8 +1493,7 @@ function hydrateCharacters(
             // Use resolved modifier IDs from Step 6, fall back to empty
             const resolvedIds =
               ((tv as Record<string, unknown>)._resolvedModifierIds as
-                | number[]
-                | undefined) ?? [];
+                number[] | undefined) ?? [];
             return {
               id: trait.id,
               label: trait.label,
@@ -1534,8 +1537,7 @@ function hydrateCharacters(
 
         const resolvedIds =
           ((rawChar as Record<string, unknown>)._resolvedModifierIds as
-            | number[]
-            | undefined) ?? [];
+            number[] | undefined) ?? [];
 
         characters.push({
           kind: "number",
@@ -1583,8 +1585,7 @@ function hydrateCharacters(
 
         const resolvedIds =
           ((rawChar as Record<string, unknown>)._resolvedModifierIds as
-            | number[]
-            | undefined) ?? [];
+            number[] | undefined) ?? [];
 
         characters.push({
           kind: "range",

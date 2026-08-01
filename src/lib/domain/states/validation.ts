@@ -54,6 +54,7 @@ const featureUpdateSchema = z
   .object({
     featureId: z.number().int(),
     notes: z.string().trim(),
+    unreliable: z.boolean().default(false),
     characters: z.array(characterUpdateSchema),
   })
   .superRefine((group, ctx) => {
