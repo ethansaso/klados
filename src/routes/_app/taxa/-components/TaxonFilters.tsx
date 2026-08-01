@@ -9,6 +9,7 @@ import {
   IconButton,
   Popover,
   Select,
+  Separator,
   Text,
   TextField,
 } from "@radix-ui/themes";
@@ -155,6 +156,7 @@ export function TaxonFilters({ search, setSearch }: Props) {
               </Flex>
             </Box>
           </Flex>
+          <Separator orientation="vertical" style={{ height: "auto" }} />
           <Box>
             <Heading size="2" mb={HEADER_MB}>
               Properties
@@ -178,7 +180,8 @@ export function TaxonFilters({ search, setSearch }: Props) {
               ))}
             </Flex>
           </Box>
-          <Box ml="auto" minWidth="256px">
+          <Separator orientation="vertical" style={{ height: "auto" }} />
+          <Box minWidth="256px">
             <Heading size="2" mb={HEADER_MB}>
               Morphology
             </Heading>

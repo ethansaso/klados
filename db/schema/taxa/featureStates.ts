@@ -38,8 +38,7 @@ export const taxonFeatureState = pgTable(
     // ! REQUIRED FOR COMPOSITE FKs FROM STATE TABLES !
     uniqueIndex("taxon_feature_state_id_feature_uq").on(t.id, t.featureId),
 
-    // Common access patterns
-    index("taxon_feature_state_taxon_idx").on(t.taxonId),
-    index("taxon_feature_state_feature_idx").on(t.featureId),
+    // Whether a taxon carries this feature -- helpful index for search, etc.
+    index("taxon_feature_state_feature_taxon_idx").on(t.featureId, t.taxonId),
   ],
 );

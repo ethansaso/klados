@@ -375,9 +375,15 @@ export async function fetchTaxonDetailById(
 
 /**
  * List taxa with optional search + filters, paginated.
+ *
+ * `featureIdSets` should hold one pre-expanded feature closure per selected
+ * feature filter (see `listTaxa`). A taxon must carry some feature from every
+ * set, so the sets are ANDed while ids within a set are ORed. An empty set
+ * matches nothing.
  */
 export async function listTaxaQuery(
   args: TaxonSearchParams,
+  opts: { featureIdSets: number[][] } = { featureIdSets: [] },
 ): Promise<TaxonPaginatedResult> {
   const {
     q,
@@ -430,6 +436,26 @@ export async function listTaxaQuery(
       )
     : undefined;
 
+  // Most selective set first, so the cheapest EXISTS can disqualify a taxon
+  // before the broader ones are probed.
+  const featureFilters = [...opts.featureIdSets]
+    .sort((a, b) => a.length - b.length)
+    .map((ids) =>
+      ids.length
+        ? exists(
+            db
+              .select({ _: sql`1` })
+              .from(featureStatesTbl)
+              .where(
+                and(
+                  eq(featureStatesTbl.taxonId, taxaTbl.id),
+                  inArray(featureStatesTbl.featureId, ids),
+                ),
+              ),
+          )
+        : sql`false`,
+    );
+
   // When q is provided, filter on names.value (trigram index)
   if (like) {
     const filters: (SQL | undefined)[] = [
@@ -439,6 +465,7 @@ export async function listTaxaQuery(
       hasMediaFilter,
       hasMorphologyFilter,
       hasEcologyFilter,
+      ...featureFilters,
     ];
     const where = and(...(filters.filter(Boolean) as SQL[]));
 
@@ -486,6 +513,7 @@ export async function listTaxaQuery(
     hasMediaFilter,
     hasMorphologyFilter,
     hasEcologyFilter,
+    ...featureFilters,
   ];
   const where = and(...(baseFilters.filter(Boolean) as SQL[]));
 

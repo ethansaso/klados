@@ -435,6 +435,45 @@ export async function getFeatureAncestorMap(
   return map;
 }
 
+/** Given a set of root feature IDs, returns a map of rootId -> every id beneath it. */
+export async function getFeatureDescendantIds(
+  rootIds: number[],
+): Promise<Map<number, number[]>> {
+  const roots = Array.from(new Set(rootIds));
+
+  // Every requested root gets an entry, even if it resolves to nothing
+  const map = new Map<number, number[]>(roots.map((id) => [id, []]));
+  if (!roots.length) return map;
+
+  type DescRow = { rootId: number; id: number };
+
+  // Recursion walks parent_id (feature_parent_idx), so each level scans just children.
+  // Depth cap in case of cycle
+  const rows = await db.execute<DescRow>(sql`
+    WITH RECURSIVE descendants AS (
+      SELECT f.id AS "rootId", f.id, 0 AS depth
+      FROM ${featuresTbl} f
+      WHERE f.id = ANY(ARRAY[${sql.join(
+        roots.map((id) => sql`${id}`),
+        sql`, `,
+      )}]::integer[])
+      UNION ALL
+      SELECT d."rootId", f.id, d.depth + 1
+      FROM ${featuresTbl} f
+      INNER JOIN descendants d ON f.parent_id = d.id
+      WHERE d.depth < 256
+    )
+    SELECT DISTINCT "rootId", id FROM descendants
+    ORDER BY "rootId", id
+  `);
+
+  for (const row of rows.rows) {
+    map.get(row.rootId)?.push(row.id);
+  }
+
+  return map;
+}
+
 /**
  * Delete a feature by id; returns the deleted id or null if nothing deleted.
  */

@@ -4,6 +4,7 @@ import { db } from "../../../../db/client";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import { assertHierarchyInvariant } from "../../utils/assertHierarchyInvariant";
+import { getFeatureDescendantIds } from "../features/repo";
 import { replaceGroupedCharacterStatesForTaxon } from "../states/repo";
 import { replaceNamesForTaxon } from "../taxon-names/repo";
 import type { NameItem } from "../taxon-names/validation";
@@ -173,11 +174,26 @@ export async function getTaxaByIds(ids: number[]): Promise<TaxonDTO[]> {
 
 /**
  * List taxa with optional search, status filter and IDs, paginated.
+ *
+ * Widens feature filters to feature + recursive sub-features so
+ * e.g. "cap" still matches for the filter "sporocarp" if "sporocarp"
+ * isn't explicitly present on a taxon.
  */
 export async function listTaxa(
   args: TaxonSearchParams,
 ): Promise<TaxonPaginatedResult> {
-  return listTaxaQuery(args);
+  if (!args.features.length) {
+    return listTaxaQuery(args, { featureIdSets: [] });
+  }
+
+  const closureByRoot = await getFeatureDescendantIds(args.features);
+
+  // One set per selected feature.
+  const featureIdSets = args.features.map(
+    (rootId) => closureByRoot.get(rootId) ?? [],
+  );
+
+  return listTaxaQuery(args, { featureIdSets });
 }
 
 /**

@@ -21,6 +21,13 @@ const TaxonStatusFilter = z
   .default(DEFAULT_TAXON_STATUSES)
   .catch(DEFAULT_TAXON_STATUSES);
 
+/** Feature ID(s) a taxon must carry (either explicitly or as implied by subfeatures). */
+const TaxonFeatureFilter = z
+  .union([z.coerce.number().int(), z.array(z.coerce.number().int())])
+  .transform((value) => (Array.isArray(value) ? value : [value]))
+  .default([])
+  .catch([]);
+
 export const TaxonFilterSchema = z.object({
   q: z.string().optional(),
   status: TaxonStatusFilter,
@@ -29,6 +36,7 @@ export const TaxonFilterSchema = z.object({
   hasMedia: z.boolean().optional(),
   hasMorphology: z.boolean().optional(),
   hasEcology: z.boolean().optional(),
+  features: TaxonFeatureFilter,
 });
 
 export const TaxonSearchSchema = PaginationSchema.extend(

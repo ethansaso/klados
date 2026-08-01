@@ -1,0 +1,1 @@
+CREATE INDEX "taxon_feature_state_feature_taxon_idx" ON "taxon_feature_state" ("feature_id","taxon_id");
