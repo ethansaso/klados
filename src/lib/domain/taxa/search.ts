@@ -23,7 +23,7 @@ const TaxonStatusFilter = z
 
 /** Feature ID(s) a taxon must carry (either explicitly or as implied by subfeatures). */
 const TaxonFeatureFilter = z
-  .union([z.coerce.number().int(), z.array(z.coerce.number().int())])
+  .union([z.array(z.coerce.number().int()), z.coerce.number().int()])
   .transform((value) => (Array.isArray(value) ? value : [value]))
   .default([])
   .catch([]);
