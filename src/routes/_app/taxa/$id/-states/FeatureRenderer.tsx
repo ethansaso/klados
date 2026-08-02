@@ -56,6 +56,7 @@ export const FeatureRenderer = ({
       <Text>
         <Strong>{cardHeaderComponent} </Strong>
       </Text>
+      {feature.unreliable && entries.length > 0 && <Text>when present, </Text>}
       {entries.length > 0 ? (
         entries.map(
           ([characterId, { label, hasInfo, states, showInProse }], idx) => {
@@ -77,7 +78,7 @@ export const FeatureRenderer = ({
           },
         )
       ) : (
-        <Text>present</Text>
+        <Text>{feature.unreliable ? "sometimes present" : "present"}</Text>
       )}
       {notes.length > 0 && <>; {notes}</>}.{" "}
     </Wrapper>

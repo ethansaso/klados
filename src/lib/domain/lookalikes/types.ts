@@ -54,6 +54,8 @@ export type LookalikeComparisonGroup = {
   groupHasInfo: boolean;
   aHasGroup: boolean;
   bHasGroup: boolean;
+  aUnreliable: boolean;
+  bUnreliable: boolean;
 
   /** When null, taxon lacks group altogether */
   aCharacters: LookalikeComparisonCharacter[] | null;
