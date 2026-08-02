@@ -3,7 +3,7 @@ import type { FeaturePresentAbsentSplitResult } from "./types";
 
 /**
  * Walks up the ancestor chain for a single feature, returning a set of that
- * feature ID plus all ancestor IDs. Memoized via `memo`.
+ * feature ID plus all ancestor IDs. Memoized to avoid re-walking
  */
 function expandWithAncestors(
   featureId: number,
@@ -42,25 +42,36 @@ export function resolveFeaturePresentAbsentSplits(
 
   const expandMemo = new Map<number, Set<number>>();
 
-  // Precompute: taxon -> expanded set of featureIds (explicit + all ancestors)
-  const featuresByTaxon = new Map<number, Set<number>>();
+  // Precompute per-taxon: always vs. sometimes present.
+  // Expands unreliability to ancestors (uncertain cap -> uncertain sporocarp)
+  const certainByTaxon = new Map<number, Set<number>>();
+  const uncertainByTaxon = new Map<number, Set<number>>();
   const allFeatureIds = new Set<number>();
 
   for (const taxon of taxa) {
-    const expanded = new Set<number>();
+    const certain = new Set<number>();
+    const uncertain = new Set<number>();
 
     for (const feature of taxon.states) {
-      for (const id of expandWithAncestors(
+      const expanded = expandWithAncestors(
         feature.featureId,
         featureAncestorMap,
         expandMemo,
-      )) {
-        expanded.add(id);
-        allFeatureIds.add(id);
+      );
+
+      for (const id of expanded) {
+        if (feature.unreliable) {
+          uncertain.add(id);
+        } else {
+          certain.add(id);
+          // If no taxon definitely bears a feature, it can never yield a split
+          allFeatureIds.add(id);
+        }
       }
     }
 
-    featuresByTaxon.set(taxon.id, expanded);
+    certainByTaxon.set(taxon.id, certain);
+    uncertainByTaxon.set(taxon.id, uncertain);
   }
 
   const results: FeaturePresentAbsentSplitResult[] = [];
@@ -69,16 +80,30 @@ export function resolveFeaturePresentAbsentSplits(
     const present: HierarchyTaxonNode[] = [];
     const absent: HierarchyTaxonNode[] = [];
 
+    // Flag to discard split if at least one taxon only sometimes bears a feature
+    let unanswerable = false;
+
     for (const taxon of taxa) {
-      // A taxon with no states at all is "undescribed", not "absent".
-      // Exclude it from both sides so it falls into the unplaced-taxa bucket
-      // rather than being incorrectly classified as feature-absent.
+      // A taxon w/ no states at all is "undescribed", not "absent".
+      // Excluded from keying.
       if (taxon.states.length === 0) continue;
-      const featureSet = featuresByTaxon.get(taxon.id)!;
-      if (featureSet.has(featureId)) present.push(taxon);
-      else absent.push(taxon);
+
+      // Certainty is a 'strong condition' -- if 'annulus' uncertain, but
+      // 'gills' certain, then it certainly has their parent feature 'sporocarp'
+      if (certainByTaxon.get(taxon.id)!.has(featureId)) {
+        present.push(taxon);
+        continue;
+      }
+
+      if (uncertainByTaxon.get(taxon.id)!.has(featureId)) {
+        unanswerable = true;
+        break;
+      }
+
+      absent.push(taxon);
     }
 
+    if (unanswerable) continue;
     if (present.length === 0 || absent.length === 0) continue;
 
     const score = present.length * absent.length;
