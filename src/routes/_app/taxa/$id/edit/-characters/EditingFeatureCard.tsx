@@ -8,11 +8,19 @@ import {
   IconButton,
   Text,
   TextField,
+  Tooltip,
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { memo, useCallback, useId, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { PiCheck, PiPlus, PiTrash, PiX } from "react-icons/pi";
+import {
+  PiCheck,
+  PiPlus,
+  PiSealCheck,
+  PiSealQuestion,
+  PiTrash,
+  PiX,
+} from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
 import type { TraitSuggestion } from "../../../../../../lib/domain/suggestions/types";
 import { featureQueryOptions } from "../../../../../../lib/queries/features";
@@ -208,6 +216,16 @@ export const EditingFeatureCard = memo(
       [getValues, onChange, feature.featureId],
     );
 
+    const handleUnreliableToggle = useCallback(() => {
+      const prev = getValues("states");
+      const next = prev.map((group) =>
+        group.featureId === feature.featureId
+          ? { ...group, unreliable: !group.unreliable }
+          : group,
+      );
+      onChange(next);
+    }, [getValues, onChange, feature.featureId]);
+
     // TODO: Immediately delete if no characters exist in group
     const handleTrashClick = () => {
       setConfirmingDelete(true);
@@ -252,16 +270,45 @@ export const EditingFeatureCard = memo(
               </IconButton>
             </Flex>
           ) : (
-            <IconButton
-              type="button"
-              size="1"
-              variant="ghost"
-              color="tomato"
-              mr="1"
-              onClick={handleTrashClick}
-            >
-              <PiTrash size={12} />
-            </IconButton>
+            <Flex mr="1" gap="2" align="center">
+              <Tooltip
+                content={
+                  feature.unreliable
+                    ? "Not always present on all individuals"
+                    : "Present on most or all individuals"
+                }
+              >
+                <Button
+                  type="button"
+                  size="1"
+                  variant="ghost"
+                  color={feature.unreliable ? "amber" : "grass"}
+                  aria-pressed={feature.unreliable}
+                  onClick={handleUnreliableToggle}
+                >
+                  {feature.unreliable ? (
+                    <>
+                      <PiSealQuestion size={16} />
+                      Unreliable
+                    </>
+                  ) : (
+                    <>
+                      <PiSealCheck size={16} />
+                      Reliable
+                    </>
+                  )}
+                </Button>
+              </Tooltip>
+              <IconButton
+                type="button"
+                size="1"
+                variant="ghost"
+                color="tomato"
+                onClick={handleTrashClick}
+              >
+                <PiTrash size={16} />
+              </IconButton>
+            </Flex>
           )}
         </Flex>
 

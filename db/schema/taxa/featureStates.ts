@@ -1,4 +1,5 @@
 import {
+  boolean,
   index,
   integer,
   pgTable,
@@ -27,6 +28,7 @@ export const taxonFeatureState = pgTable(
       .notNull()
       .references(() => feature.id, { onDelete: "restrict" }),
     notes: text("notes").notNull().default(""),
+    unreliable: boolean("unreliable").notNull().default(false),
   }),
   (t) => [
     // A taxon can only attach a given feature once

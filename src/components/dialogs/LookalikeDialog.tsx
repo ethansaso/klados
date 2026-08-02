@@ -82,10 +82,12 @@ function getAnnotatedStateKey(
 function GroupDataList({
   items,
   hasGroup,
+  unreliable = false,
   emphasizeAll = false,
 }: {
   items: LookalikeComparisonCharacter[] | null;
   hasGroup: boolean;
+  unreliable?: boolean;
   emphasizeAll?: boolean;
 }) {
   const meaningfulItems = getMeaningfulCharacters(items) ?? [];
@@ -107,12 +109,23 @@ function GroupDataList({
         size="2"
         className="lookalike-modal__group-copy lookalike-modal__group-copy--present"
       >
-        present
+        {unreliable ? "sometimes present" : "present"}
       </Text>
     );
 
   return (
     <Text as="p" size="2" className="lookalike-modal__group-copy">
+      {unreliable && (
+        <span
+          className={`lookalike-modal__state-token${
+            emphasizeAll
+              ? " lookalike-modal__state-token--different"
+              : " lookalike-modal__state-token--shared"
+          }`}
+        >
+          when present,{" "}
+        </span>
+      )}
       {meaningfulItems.map((it, idx) => {
         const showCharacterLabel = it.showInProse;
         const isSharedCharacter =
@@ -205,50 +218,65 @@ const ModalContent = ({ data }: { data: LookalikeComparisonDetailDTO }) => {
       </Grid>
 
       <Box className="lookalike-modal__groups">
-        {data.groupedStates.map((annotatedGroup) => (
-          <Box key={annotatedGroup.groupId} className="lookalike-modal__group">
-            <Box className="lookalike-modal__group-header">
-              {annotatedGroup.groupHasInfo ? (
-                <GlossaryFeatureCard id={annotatedGroup.groupId}>
-                  <Text as="span" weight="bold">
-                    <span className="has-information">
-                      {annotatedGroup.groupLabel}
-                    </span>
-                  </Text>
-                </GlossaryFeatureCard>
-              ) : (
-                <Text as="span" weight="bold">
-                  {annotatedGroup.groupLabel}
-                </Text>
-              )}
-            </Box>
+        {data.groupedStates.map((annotatedGroup) => {
+          // Reliability differences are counted as different states
+          const reliabilityDiffers =
+            annotatedGroup.aUnreliable !== annotatedGroup.bUnreliable;
 
-            <Grid
-              columns={{ initial: "1", sm: "2" }}
-              className="lookalike-modal__group-body"
+          return (
+            <Box
+              key={annotatedGroup.groupId}
+              className="lookalike-modal__group"
             >
-              <Box className="lookalike-modal__group-column">
-                <GroupDataList
-                  hasGroup={annotatedGroup.aHasGroup}
-                  items={annotatedGroup.aCharacters}
-                  emphasizeAll={
-                    !getMeaningfulCharacters(annotatedGroup.bCharacters)?.length
-                  }
-                />
+              <Box className="lookalike-modal__group-header">
+                {annotatedGroup.groupHasInfo ? (
+                  <GlossaryFeatureCard id={annotatedGroup.groupId}>
+                    <Text as="span" weight="bold">
+                      <span className="has-information">
+                        {annotatedGroup.groupLabel}
+                      </span>
+                    </Text>
+                  </GlossaryFeatureCard>
+                ) : (
+                  <Text as="span" weight="bold">
+                    {annotatedGroup.groupLabel}
+                  </Text>
+                )}
               </Box>
 
-              <Box className="lookalike-modal__group-column">
-                <GroupDataList
-                  hasGroup={annotatedGroup.bHasGroup}
-                  items={annotatedGroup.bCharacters}
-                  emphasizeAll={
-                    !getMeaningfulCharacters(annotatedGroup.aCharacters)?.length
-                  }
-                />
-              </Box>
-            </Grid>
-          </Box>
-        ))}
+              <Grid
+                columns={{ initial: "1", sm: "2" }}
+                className="lookalike-modal__group-body"
+              >
+                <Box className="lookalike-modal__group-column">
+                  <GroupDataList
+                    hasGroup={annotatedGroup.aHasGroup}
+                    items={annotatedGroup.aCharacters}
+                    unreliable={annotatedGroup.aUnreliable}
+                    emphasizeAll={
+                      reliabilityDiffers ||
+                      !getMeaningfulCharacters(annotatedGroup.bCharacters)
+                        ?.length
+                    }
+                  />
+                </Box>
+
+                <Box className="lookalike-modal__group-column">
+                  <GroupDataList
+                    hasGroup={annotatedGroup.bHasGroup}
+                    items={annotatedGroup.bCharacters}
+                    unreliable={annotatedGroup.bUnreliable}
+                    emphasizeAll={
+                      reliabilityDiffers ||
+                      !getMeaningfulCharacters(annotatedGroup.aCharacters)
+                        ?.length
+                    }
+                  />
+                </Box>
+              </Grid>
+            </Box>
+          );
+        })}
       </Box>
     </Box>
   );

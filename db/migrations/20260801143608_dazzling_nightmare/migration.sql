@@ -1,0 +1,1 @@
+ALTER TABLE "taxon_feature_state" ADD COLUMN "unreliable" boolean DEFAULT false NOT NULL;

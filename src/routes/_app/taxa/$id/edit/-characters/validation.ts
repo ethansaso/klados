@@ -71,6 +71,7 @@ export const featureFormSchema = z
     featureId: z.number().int().positive(),
     featureLabel: z.string(),
     notes: z.string().trim(),
+    unreliable: z.boolean().default(false),
     characters: z.array(characterStateFormSchema),
   })
   .superRefine((feature, ctx) => {

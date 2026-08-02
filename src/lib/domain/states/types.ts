@@ -58,5 +58,6 @@ export type FeatureStateDTO = {
   featureLabel: string;
   featureHasInfo: boolean;
   notes: string;
+  unreliable: boolean;
   states: CharacterStateDTO[];
 };

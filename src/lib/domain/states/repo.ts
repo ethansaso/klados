@@ -57,6 +57,7 @@ export async function selectTaxonStatesByTaxonIds(
       featureId: featuresTbl.id,
       featureLabel: featuresTbl.label,
       notes: tfsTbl.notes,
+      unreliable: tfsTbl.unreliable,
       featureDescription: featuresTbl.description,
       featureMediaId: featuresTbl.mediaId,
     })
@@ -79,6 +80,7 @@ export async function selectTaxonStatesByTaxonIds(
       featureHasInfo:
         hasText(row.featureDescription) || row.featureMediaId !== null,
       notes: row.notes,
+      unreliable: row.unreliable,
       states: [],
     });
   }
@@ -409,7 +411,10 @@ export async function replaceGroupedCharacterStatesForTaxon(
 
       await tx
         .update(tfsTbl)
-        .set({ notes: feature.notes })
+        .set({
+          notes: feature.notes,
+          unreliable: feature.unreliable,
+        })
         .where(eq(tfsTbl.id, featureStateId));
     } else {
       const rows = await tx
@@ -418,6 +423,7 @@ export async function replaceGroupedCharacterStatesForTaxon(
           taxonId,
           featureId: feature.featureId,
           notes: feature.notes,
+          unreliable: feature.unreliable,
         })
         .returning({ id: tfsTbl.id });
 
