@@ -1,0 +1,4 @@
+ALTER TABLE "taxon_character_state_number" ADD COLUMN "value_range" numrange GENERATED ALWAYS AS (numrange(si_base_value::numeric, si_base_value::numeric, '[]')) STORED;--> statement-breakpoint
+ALTER TABLE "taxon_character_state_number_range" ADD COLUMN "value_range" numrange GENERATED ALWAYS AS (numrange(si_base_min::numeric, si_base_max::numeric, '[]')) STORED;--> statement-breakpoint
+CREATE INDEX "tcn_value_range_idx" ON "taxon_character_state_number" USING gist ("value_range");--> statement-breakpoint
+CREATE INDEX "tcnr_value_range_idx" ON "taxon_character_state_number_range" USING gist ("value_range");

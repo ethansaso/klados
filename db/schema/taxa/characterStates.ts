@@ -8,6 +8,7 @@ import {
   pgTable,
   serial,
 } from "drizzle-orm/pg-core";
+import { numrange } from "../../utils/numrange";
 import { withTimestamps } from "../../utils/timestamps";
 import { categoricalTraitValue } from "../glossary/categoricalTraits";
 import { characterFeature } from "../glossary/characterFeatures";
@@ -96,14 +97,24 @@ export const taxonCharacterStateNumber = pgTable(
         onDelete: "restrict",
       }),
 
+    // `mode: "number"` keeps the TS type a number while the column stays exact
+    // decimal, so a bound entered as "5 cm" is stored as exactly 0.05 and a
+    // search for 5 cm matches it. Binary floats can land a bit apart here.
     siBaseValue: numeric("si_base_value", {
       precision: 30,
       scale: 18,
+      mode: "number",
     }).notNull(),
 
     displayUnitId: integer("display_unit_id").references(() => unit.id, {
       onDelete: "restrict",
     }),
+
+    // Matching column with taxonCharacterStateRange -- generated
+    // to accelerate value gist index
+    valueRange: numrange("value_range").generatedAlwaysAs(
+      sql`numrange(si_base_value, si_base_value, '[]')`,
+    ),
 
     // STORED FEATURE ID - MUST MATCH TAXON FEATURE + CHARACTER FEATURE
     featureId: integer("feature_id").notNull(),
@@ -117,6 +128,7 @@ export const taxonCharacterStateNumber = pgTable(
     index("tcn_taxon_feature_state_idx").on(t.taxonFeatureStateId),
     index("tcn_char_idx").on(t.characterId),
     index("tcn_display_unit_idx").on(t.displayUnitId),
+    index("tcn_value_range_idx").using("gist", t.valueRange),
 
     foreignKey({
       name: "tcn_taxon_feature_state_pair_fk",
@@ -150,12 +162,25 @@ export const taxonCharacterStateRange = pgTable(
         onDelete: "restrict",
       }),
 
-    siBaseMin: numeric("si_base_min", { precision: 30, scale: 18 }),
-    siBaseMax: numeric("si_base_max", { precision: 30, scale: 18 }),
+    siBaseMin: numeric("si_base_min", {
+      precision: 30,
+      scale: 18,
+      mode: "number",
+    }),
+    siBaseMax: numeric("si_base_max", {
+      precision: 30,
+      scale: 18,
+      mode: "number",
+    }),
 
     displayUnitId: integer("display_unit_id").references(() => unit.id, {
       onDelete: "restrict",
     }),
+
+    // Matches taxonCharacterStateNumber; note NULL will be unbounded
+    valueRange: numrange("value_range").generatedAlwaysAs(
+      sql`numrange(si_base_min, si_base_max, '[]')`,
+    ),
 
     // STORED FEATURE ID - MUST MATCH TAXON FEATURE + CHARACTER FEATURE
     featureId: integer("feature_id").notNull(),
@@ -175,6 +200,7 @@ export const taxonCharacterStateRange = pgTable(
     index("tcnr_feature_state_idx").on(t.taxonFeatureStateId),
     index("tcnr_char_idx").on(t.characterId),
     index("tcnr_display_unit_idx").on(t.displayUnitId),
+    index("tcnr_value_range_idx").using("gist", t.valueRange),
 
     foreignKey({
       name: "tcnr_taxon_feature_state_pair_fk",

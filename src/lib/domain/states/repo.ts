@@ -250,7 +250,7 @@ export async function selectTaxonStatesByTaxonIds(
       characterHasInfo:
         hasText(row.characterDescription) || row.characterMediaId !== null,
       showInProse: row.showInProse,
-      siBaseValue: parseFloat(row.siBaseValue),
+      siBaseValue: row.siBaseValue,
       unit:
         row.unitId !== null
           ? {
@@ -347,8 +347,8 @@ export async function selectTaxonStatesByTaxonIds(
       characterHasInfo:
         hasText(row.characterDescription) || row.characterMediaId !== null,
       showInProse: row.showInProse,
-      siBaseMin: row.siBaseMin !== null ? parseFloat(row.siBaseMin) : null,
-      siBaseMax: row.siBaseMax !== null ? parseFloat(row.siBaseMax) : null,
+      siBaseMin: row.siBaseMin,
+      siBaseMax: row.siBaseMax,
       unit:
         row.unitId !== null
           ? {
@@ -660,7 +660,7 @@ async function replaceNumberStatesForFeatureState(
     return {
       taxonFeatureStateId,
       characterId: c.characterId,
-      siBaseValue: c.siBaseValue.toString(),
+      siBaseValue: c.siBaseValue,
       displayUnitId: c.unitId ?? null,
       featureId,
     };
@@ -735,8 +735,8 @@ async function replaceRangeStatesForFeatureState(
     return {
       taxonFeatureStateId,
       characterId: c.characterId,
-      siBaseMin: c.siBaseMin !== null ? c.siBaseMin.toString() : null,
-      siBaseMax: c.siBaseMax !== null ? c.siBaseMax.toString() : null,
+      siBaseMin: c.siBaseMin,
+      siBaseMax: c.siBaseMax,
       displayUnitId: c.unitId ?? null,
       featureId,
     };
