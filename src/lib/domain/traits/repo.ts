@@ -19,7 +19,7 @@ import {
   fuzzyLabelPredicate,
   fuzzySimilarity,
 } from "../../utils/sql/fuzzyLabel";
-import type { Transaction } from "../../utils/types/transactionType";
+import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
 import type {
   TraitSynonymDTO,
   TraitValueDTO,
@@ -191,6 +191,21 @@ export async function selectTraitIdentityById(
     .limit(1);
 
   return row ?? null;
+}
+
+/** Resolve trait value IDs to the synonym set each belongs to. */
+export async function selectSynonymSetIdsByTraitValueIds(
+  tx: TxOrDb,
+  traitValueIds: number[],
+): Promise<Map<number, number>> {
+  if (!traitValueIds.length) return new Map();
+
+  const rows = await tx
+    .select({ id: valsTbl.id, synonymSetId: valsTbl.synonymSetId })
+    .from(valsTbl)
+    .where(inArray(valsTbl.id, Array.from(new Set(traitValueIds))));
+
+  return new Map(rows.map((row) => [row.id, row.synonymSetId]));
 }
 
 /**

@@ -7,6 +7,7 @@ import {
   exists,
   ilike,
   inArray,
+  or,
   sql,
   type SQL,
 } from "drizzle-orm";
@@ -14,6 +15,11 @@ import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "../../../../db/client";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
+import {
+  taxonCharacterStateCategorical as catStatesTbl,
+  taxonCharacterStateNumber as numStatesTbl,
+  taxonCharacterStateRange as rangeStatesTbl,
+} from "../../../../db/schema/taxa/characterStates";
 import { taxonFeatureState as featureStatesTbl } from "../../../../db/schema/taxa/featureStates";
 import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
@@ -376,14 +382,31 @@ export async function fetchTaxonDetailById(
 /**
  * List taxa with optional search + filters, paginated.
  *
- * `featureIdSets` should hold one pre-expanded feature closure per selected
- * feature filter (see `listTaxa`). A taxon must carry some feature from every
- * set, so the sets are ANDed while ids within a set are ORed. An empty set
- * matches nothing.
+ * `featureIdSets` hold one pre-expanded feature closure (i.e. w/ ancestry)
+ * per selected feature filter. Sets are ANDed, ids within a set are ORed.
+ *
+ * `characterFilters` are resolved search tokens (categorical -> synonyms, numeric -> SI). ANDed.
  */
+export type ResolvedCharacterFilter =
+  | {
+      kind: "categorical";
+      featureId: number;
+      characterId: number;
+      synonymSetId: number;
+    }
+  | {
+      kind: "numeric";
+      featureId: number;
+      characterId: number;
+      siValue: number;
+    };
+
 export async function listTaxaQuery(
   args: TaxonSearchParams,
-  opts: { featureIdSets: number[][] } = { featureIdSets: [] },
+  opts: {
+    featureIdSets: number[][];
+    characterFilters: ResolvedCharacterFilter[];
+  } = { featureIdSets: [], characterFilters: [] },
 ): Promise<TaxonPaginatedResult> {
   const {
     q,
@@ -441,20 +464,66 @@ export async function listTaxaQuery(
   const featureFilters = [...opts.featureIdSets]
     .sort((a, b) => a.length - b.length)
     .map((ids) =>
-      ids.length
-        ? exists(
-            db
-              .select({ _: sql`1` })
-              .from(featureStatesTbl)
-              .where(
-                and(
-                  eq(featureStatesTbl.taxonId, taxaTbl.id),
-                  inArray(featureStatesTbl.featureId, ids),
-                ),
-              ),
-          )
-        : sql`false`,
+      exists(
+        db
+          .select({ _: sql`1` })
+          .from(featureStatesTbl)
+          .where(
+            and(
+              eq(featureStatesTbl.taxonId, taxaTbl.id),
+              inArray(featureStatesTbl.featureId, ids),
+            ),
+          ),
+      ),
     );
+
+  // Character state filters. ANDed.
+  const characterFilters = opts.characterFilters.map((filter) => {
+    if (filter.kind === "categorical") {
+      return exists(
+        db
+          .select({ _: sql`1` })
+          .from(catStatesTbl)
+          .innerJoin(
+            featureStatesTbl,
+            eq(featureStatesTbl.id, catStatesTbl.taxonFeatureStateId),
+          )
+          .where(
+            and(
+              eq(featureStatesTbl.taxonId, taxaTbl.id),
+              eq(catStatesTbl.featureId, filter.featureId),
+              eq(catStatesTbl.characterId, filter.characterId),
+              eq(catStatesTbl.synonymSetId, filter.synonymSetId),
+            ),
+          ),
+      );
+    }
+
+    // Containment, so range char "5 cm" finds a taxon recorded as 4-7 cm.
+    // For number chars, "4" also finds "4", e.g. basidia count.
+    const containsValue = (
+      table: typeof rangeStatesTbl | typeof numStatesTbl,
+    ) =>
+      exists(
+        db
+          .select({ _: sql`1` })
+          .from(table)
+          .innerJoin(
+            featureStatesTbl,
+            eq(featureStatesTbl.id, table.taxonFeatureStateId),
+          )
+          .where(
+            and(
+              eq(featureStatesTbl.taxonId, taxaTbl.id),
+              eq(table.featureId, filter.featureId),
+              eq(table.characterId, filter.characterId),
+              sql`${table.valueRange} @> ${filter.siValue}::numeric`,
+            ),
+          ),
+      );
+
+    return or(containsValue(rangeStatesTbl), containsValue(numStatesTbl))!;
+  });
 
   // When q is provided, filter on names.value (trigram index)
   if (like) {
@@ -466,6 +535,7 @@ export async function listTaxaQuery(
       hasMorphologyFilter,
       hasEcologyFilter,
       ...featureFilters,
+      ...characterFilters,
     ];
     const where = and(...(filters.filter(Boolean) as SQL[]));
 
@@ -514,6 +584,7 @@ export async function listTaxaQuery(
     hasMorphologyFilter,
     hasEcologyFilter,
     ...featureFilters,
+    ...characterFilters,
   ];
   const where = and(...(baseFilters.filter(Boolean) as SQL[]));
 

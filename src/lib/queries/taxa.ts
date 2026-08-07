@@ -24,6 +24,8 @@ export const taxaQueryOptions = (
   const feature = filters?.features ?? [];
   const features = Array.isArray(feature) ? feature : [feature];
 
+  const characters = filters?.characters ?? [];
+
   return queryOptions({
     queryKey: [
       "taxa",
@@ -38,6 +40,7 @@ export const taxaQueryOptions = (
         hasMorphology: filters?.hasMorphology ?? null,
         hasEcology: filters?.hasEcology ?? null,
         features: [...features].sort((a, b) => a - b),
+        characters: [...characters].map((c) => JSON.stringify(c)).sort(),
       },
     ] as const,
     queryFn: () =>
@@ -53,6 +56,7 @@ export const taxaQueryOptions = (
           hasMorphology: filters?.hasMorphology,
           hasEcology: filters?.hasEcology,
           features,
+          characters,
         },
       }) as Promise<TaxonPaginatedResult>,
   });

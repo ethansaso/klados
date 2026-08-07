@@ -12,6 +12,7 @@ const FILTER_KEYS = [
   "hasMorphology",
   "hasEcology",
   "features",
+  "characters",
 ] as const satisfies readonly (keyof TaxonSearchParams)[];
 
 export function useTaxonSearchControls() {

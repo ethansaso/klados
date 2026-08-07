@@ -4,7 +4,7 @@ import {
   unit as unitTbl,
 } from "../../../../db/schema/glossary/units";
 import { likeAnywhere } from "../../utils/sql/likeAnywhere";
-import type { Transaction } from "../../utils/types/transactionType";
+import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
 import type { UnitDTO, UnitFamilyDTO } from "./types";
 
 type UnitFamilyJoinRow = {
@@ -56,7 +56,7 @@ export async function selectUnitFamilyById(
 }
 
 export async function listUnitFamiliesQuery(
-  tx: Transaction,
+  tx: TxOrDb,
   q?: string,
 ): Promise<UnitFamilyDTO[]> {
   const like = likeAnywhere(q);

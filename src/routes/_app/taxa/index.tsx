@@ -32,6 +32,7 @@ export const Route = createFileRoute("/_app/taxa/")({
       hasMorphology,
       hasEcology,
       features,
+      characters,
     } = deps as TaxonSearchParams;
 
     await context.queryClient.ensureQueryData(
@@ -44,6 +45,7 @@ export const Route = createFileRoute("/_app/taxa/")({
         hasMorphology,
         hasEcology,
         features,
+        characters,
       }),
     );
   },
@@ -76,6 +78,7 @@ function TaxaListPage() {
       hasMorphology: search.hasMorphology,
       hasEcology: search.hasEcology,
       features: search.features,
+      characters: search.characters,
     }),
   );
 

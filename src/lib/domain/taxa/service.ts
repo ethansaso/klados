@@ -9,6 +9,9 @@ import { replaceGroupedCharacterStatesForTaxon } from "../states/repo";
 import { replaceNamesForTaxon } from "../taxon-names/repo";
 import type { NameItem } from "../taxon-names/validation";
 import { setSourcesForTaxon } from "../taxon-sources/repo";
+import { selectSynonymSetIdsByTraitValueIds } from "../traits/repo";
+import { convertToSI } from "../units/conversion";
+import { listUnitFamiliesQuery } from "../units/repo";
 import {
   deleteTaxonById,
   fetchTaxonDetailById,
@@ -21,6 +24,7 @@ import {
   selectTaxonDtosByIds,
   updateTaxonRow,
   updateTaxonStatusAndReplacement,
+  type ResolvedCharacterFilter,
 } from "./repo";
 import type { TaxonSearchParams } from "./search";
 import type {
@@ -182,18 +186,80 @@ export async function getTaxaByIds(ids: number[]): Promise<TaxonDTO[]> {
 export async function listTaxa(
   args: TaxonSearchParams,
 ): Promise<TaxonPaginatedResult> {
-  if (!args.features.length) {
-    return listTaxaQuery(args, { featureIdSets: [] });
-  }
+  const [featureIdSets, characterFilters] = await Promise.all([
+    resolveFeatureFilters(args.features),
+    resolveCharacterFilters(args.characters),
+  ]);
 
-  const closureByRoot = await getFeatureDescendantIds(args.features);
+  return listTaxaQuery(args, { featureIdSets, characterFilters });
+}
 
-  // One set per selected feature.
-  const featureIdSets = args.features.map(
-    (rootId) => closureByRoot.get(rootId) ?? [],
+/** One closure per selected feature; a feature that no longer exists is dropped. */
+async function resolveFeatureFilters(featureIds: number[]) {
+  if (!featureIds.length) return [];
+
+  const closureByRoot = await getFeatureDescendantIds(featureIds);
+  return featureIds
+    .map((rootId) => closureByRoot.get(rootId) ?? [])
+    .filter((closure) => closure.length > 0);
+}
+
+/**
+ * Turn URL tokens into predicates the repo can run directly,
+ * i.e. categorical values -> synonym set, and numeric -> SI units
+ */
+async function resolveCharacterFilters(
+  tokens: TaxonSearchParams["characters"],
+): Promise<ResolvedCharacterFilter[]> {
+  if (!tokens.length) return [];
+
+  const { synonymSetByValue, scaleByUnit } = await db.transaction(
+    async (tx) => {
+      const synonymSetByValue = await selectSynonymSetIdsByTraitValueIds(
+        tx,
+        tokens.filter((token) => token.k === "c").map((token) => token.t),
+      );
+
+      const families = tokens.some((token) => token.k === "n")
+        ? await listUnitFamiliesQuery(tx)
+        : [];
+
+      return {
+        synonymSetByValue,
+        scaleByUnit: new Map(
+          families.flatMap((family) =>
+            family.units.map((unit) => [unit.id, unit.scale] as const),
+          ),
+        ),
+      };
+    },
   );
 
-  return listTaxaQuery(args, { featureIdSets });
+  // A token whose trait value or unit no longer exists is dropped w/o
+  // interfering with rest of filter process
+  return tokens.flatMap((token) => {
+    if (token.k === "c") {
+      const synonymSetId = synonymSetByValue.get(token.t);
+      if (synonymSetId === undefined) return [];
+
+      return {
+        kind: "categorical",
+        featureId: token.f,
+        characterId: token.c,
+        synonymSetId,
+      };
+    }
+
+    const scale = scaleByUnit.get(token.u);
+    if (scale === undefined) return [];
+
+    return {
+      kind: "numeric",
+      featureId: token.f,
+      characterId: token.c,
+      siValue: convertToSI(token.v, scale),
+    };
+  });
 }
 
 /**
