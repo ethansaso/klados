@@ -49,7 +49,11 @@ export const Route = createFileRoute("/_app/taxa/")({
   },
   search: {
     middlewares: [
-      stripSearchParams({ status: DEFAULT_TAXON_STATUSES, features: [] }),
+      stripSearchParams({
+        status: DEFAULT_TAXON_STATUSES,
+        features: [],
+        characters: [],
+      }),
     ],
   },
   head: ({ match }) =>

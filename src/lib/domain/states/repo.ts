@@ -521,6 +521,7 @@ async function replaceCategoricalStatesForFeatureState(
     .select({
       id: catValTbl.id,
       characterId: catValTbl.characterId,
+      synonymSetId: catValTbl.synonymSetId,
     })
     .from(catValTbl)
     .where(inArray(catValTbl.id, allTraitValueIds));
@@ -532,6 +533,7 @@ async function replaceCategoricalStatesForFeatureState(
     characterId: number;
     traitValueId: number;
     featureId: number;
+    synonymSetId: number;
   }> = [];
   const modifierIdsByRow: number[][] = [];
 
@@ -561,6 +563,8 @@ async function replaceCategoricalStatesForFeatureState(
       characterId: u.characterId,
       traitValueId: u.traitValueId,
       featureId,
+      // Denormalised from the value we just validated above
+      synonymSetId: traitValue.synonymSetId,
     });
     modifierIdsByRow.push(u.modifierIds);
   }

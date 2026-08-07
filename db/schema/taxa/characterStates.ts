@@ -40,6 +40,9 @@ export const taxonCharacterStateCategorical = pgTable(
 
     // STORED FEATURE ID - MUST MATCH TAXON FEATURE + CHARACTER FEATURE
     featureId: integer("feature_id").notNull(),
+
+    // STORED SYNONYM SET - MUST MATCH THE TRAIT VALUE'S SET
+    synonymSetId: integer("synonym_set_id").notNull(),
   }),
   (t) => [
     index("tcs_cat_feature_state_char_trait_idx").on(
@@ -52,6 +55,7 @@ export const taxonCharacterStateCategorical = pgTable(
     index("tcs_cat_character_idx").on(t.characterId),
     index("tcs_cat_trait_idx").on(t.traitValueId),
     index("tcs_cat_character_trait_idx").on(t.characterId, t.traitValueId),
+    index("tcs_cat_char_set_idx").on(t.characterId, t.synonymSetId),
 
     // Enforce taxonFeatureState <-> featureId consistency
     foreignKey({
@@ -79,6 +83,17 @@ export const taxonCharacterStateCategorical = pgTable(
         categoricalTraitValue.id,
       ],
     }),
+
+    // CASCADEing reference to denormalized synonymSetId
+    foreignKey({
+      name: "tcs_cat_trait_synonym_set_fk",
+      columns: [t.characterId, t.traitValueId, t.synonymSetId],
+      foreignColumns: [
+        categoricalTraitValue.characterId,
+        categoricalTraitValue.id,
+        categoricalTraitValue.synonymSetId,
+      ],
+    }).onUpdate("cascade"),
   ],
 );
 

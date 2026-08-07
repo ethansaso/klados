@@ -28,6 +28,45 @@ const TaxonFeatureFilter = z
   .default([])
   .catch([]);
 
+const CategoricalStateFilter = z.object({
+  k: z.literal("c"),
+  f: z.coerce.number().int(),
+  c: z.coerce.number().int(),
+  t: z.coerce.number().int(),
+});
+
+const NumericStateFilter = z.object({
+  k: z.literal("n"),
+  f: z.coerce.number().int(),
+  c: z.coerce.number().int(),
+  u: z.coerce.number().int(),
+  v: z.coerce.number(),
+});
+
+/**
+ * Character states a taxon must carry.
+ * Malformed entries dropped w/o throwing.
+ * ! Keys terse to keep URLs small.
+ *
+ *   k  kind: "c"ategorical or "n"umeric
+ *   f  featureId — scopes the character, since one character (e.g. "Diameter")
+ *      can hang off several features
+ *   c  characterId
+ *   t  traitValueId (categorical)
+ *   u  unitId of `v` (numeric)
+ *   v  value as typed
+ */
+const TaxonCharacterFilter = z
+  .array(
+    z
+      .discriminatedUnion("k", [CategoricalStateFilter, NumericStateFilter])
+      .nullable()
+      .catch(null),
+  )
+  .transform((tokens) => tokens.filter((token) => token !== null))
+  .default([])
+  .catch([]);
+
 export const TaxonFilterSchema = z.object({
   q: z.string().optional(),
   status: TaxonStatusFilter,
@@ -37,6 +76,7 @@ export const TaxonFilterSchema = z.object({
   hasMorphology: z.boolean().optional(),
   hasEcology: z.boolean().optional(),
   features: TaxonFeatureFilter,
+  characters: TaxonCharacterFilter,
 });
 
 export const TaxonSearchSchema = PaginationSchema.extend(
@@ -47,3 +87,9 @@ export const TaxonSearchSchema = PaginationSchema.extend(
 export type TaxonFilterInput = z.input<typeof TaxonFilterSchema>;
 export type TaxonFilters = z.infer<typeof TaxonFilterSchema>;
 export type TaxonSearchParams = z.infer<typeof TaxonSearchSchema>;
+export type CategoricalStateFilterToken = z.infer<
+  typeof CategoricalStateFilter
+>;
+export type NumericStateFilterToken = z.infer<typeof NumericStateFilter>;
+export type CharacterStateFilterToken =
+  CategoricalStateFilterToken | NumericStateFilterToken;
