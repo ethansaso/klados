@@ -21,10 +21,7 @@ export const taxaQueryOptions = (
   const status = filters?.status ?? DEFAULT_TAXON_STATUSES;
   const statuses = Array.isArray(status) ? status : [status];
 
-  const feature = filters?.features ?? [];
-  const features = Array.isArray(feature) ? feature : [feature];
-
-  const characters = filters?.characters ?? [];
+  const tokens = (filters?.filters ?? []).filter((token) => token !== null);
 
   return queryOptions({
     queryKey: [
@@ -39,8 +36,7 @@ export const taxaQueryOptions = (
         hasMedia: filters?.hasMedia ?? null,
         hasMorphology: filters?.hasMorphology ?? null,
         hasEcology: filters?.hasEcology ?? null,
-        features: [...features].sort((a, b) => a - b),
-        characters: [...characters].map((c) => JSON.stringify(c)).sort(),
+        filters: tokens.map((token) => JSON.stringify(token)).sort(),
       },
     ] as const,
     queryFn: () =>
@@ -55,8 +51,7 @@ export const taxaQueryOptions = (
           hasMedia: filters?.hasMedia,
           hasMorphology: filters?.hasMorphology,
           hasEcology: filters?.hasEcology,
-          features,
-          characters,
+          filters: tokens,
         },
       }) as Promise<TaxonPaginatedResult>,
   });

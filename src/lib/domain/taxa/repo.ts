@@ -382,12 +382,16 @@ export async function fetchTaxonDetailById(
 /**
  * List taxa with optional search + filters, paginated.
  *
- * `featureIdSets` hold one pre-expanded feature closure (i.e. w/ ancestry)
- * per selected feature filter. Sets are ANDed, ids within a set are ORed.
- *
- * `characterFilters` are resolved search tokens (categorical -> synonyms, numeric -> SI). ANDed.
+ * Filters are ANDed. "feature" filter includes a closure over its ancestors,
+ * so e.g. 'sporocarp' is satisfied if a mushroom doesn't have 'sporocarp' described
+ * but does have 'stipe'.
  */
-export type ResolvedCharacterFilter =
+export type ResolvedFilter =
+  | {
+      kind: "feature";
+      /** Pre-expanded closure: the feature plus its descendants. */
+      featureIds: number[];
+    }
   | {
       kind: "categorical";
       /** Omitted matches the state on any feature. */
@@ -404,10 +408,7 @@ export type ResolvedCharacterFilter =
 
 export async function listTaxaQuery(
   args: TaxonSearchParams,
-  opts: {
-    featureIdSets: number[][];
-    characterFilters: ResolvedCharacterFilter[];
-  } = { featureIdSets: [], characterFilters: [] },
+  opts: { filters: ResolvedFilter[] } = { filters: [] },
 ): Promise<TaxonPaginatedResult> {
   const {
     q,
@@ -460,26 +461,23 @@ export async function listTaxaQuery(
       )
     : undefined;
 
-  // Most selective set first, so the cheapest EXISTS can disqualify a taxon
-  // before the broader ones are probed.
-  const featureFilters = [...opts.featureIdSets]
-    .sort((a, b) => a.length - b.length)
-    .map((ids) =>
-      exists(
+  // Every filter kind reduces to one EXISTS against whichever state table
+  // holds it, so they can all be ANDed together as peers.
+  const filterPredicates = opts.filters.map((filter) => {
+    if (filter.kind === "feature") {
+      return exists(
         db
           .select({ _: sql`1` })
           .from(featureStatesTbl)
           .where(
             and(
               eq(featureStatesTbl.taxonId, taxaTbl.id),
-              inArray(featureStatesTbl.featureId, ids),
+              inArray(featureStatesTbl.featureId, filter.featureIds),
             ),
           ),
-      ),
-    );
+      );
+    }
 
-  // Character state filters. ANDed.
-  const characterFilters = opts.characterFilters.map((filter) => {
     if (filter.kind === "categorical") {
       return exists(
         db
@@ -539,8 +537,7 @@ export async function listTaxaQuery(
       hasMediaFilter,
       hasMorphologyFilter,
       hasEcologyFilter,
-      ...featureFilters,
-      ...characterFilters,
+      ...filterPredicates,
     ];
     const where = and(...(filters.filter(Boolean) as SQL[]));
 
@@ -588,8 +585,7 @@ export async function listTaxaQuery(
     hasMediaFilter,
     hasMorphologyFilter,
     hasEcologyFilter,
-    ...featureFilters,
-    ...characterFilters,
+    ...filterPredicates,
   ];
   const where = and(...(baseFilters.filter(Boolean) as SQL[]));
 

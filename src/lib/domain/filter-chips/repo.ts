@@ -19,7 +19,7 @@ const toMap = (rows: { id: number; label: string }[]) =>
   new Map(rows.map((row) => [row.id, row.label]));
 
 /** Labels for every id a set of filter tokens references, in one round trip. */
-export async function selectCharacterFilterLabels(ids: {
+export async function selectFilterLabels(ids: {
   featureIds: number[];
   characterIds: number[];
   traitValueIds: number[];

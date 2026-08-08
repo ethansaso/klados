@@ -24,7 +24,7 @@ import {
   selectTaxonDtosByIds,
   updateTaxonRow,
   updateTaxonStatusAndReplacement,
-  type ResolvedCharacterFilter,
+  type ResolvedFilter,
 } from "./repo";
 import type { TaxonSearchParams } from "./search";
 import type {
@@ -186,92 +186,98 @@ export async function getTaxaByIds(ids: number[]): Promise<TaxonDTO[]> {
 export async function listTaxa(
   args: TaxonSearchParams,
 ): Promise<TaxonPaginatedResult> {
-  const [featureIdSets, characterFilters] = await Promise.all([
-    resolveFeatureFilters(args.features),
-    resolveCharacterFilters(args.characters),
-  ]);
-
-  return listTaxaQuery(args, { featureIdSets, characterFilters });
-}
-
-/** One closure per selected feature; a feature that no longer exists is dropped. */
-async function resolveFeatureFilters(featureIds: number[]) {
-  if (!featureIds.length) return [];
-
-  const closureByRoot = await getFeatureDescendantIds(featureIds);
-  return featureIds
-    .map((rootId) => closureByRoot.get(rootId) ?? [])
-    .filter((closure) => closure.length > 0);
+  return listTaxaQuery(args, { filters: await resolveFilters(args.filters) });
 }
 
 /**
- * Turn URL tokens into predicates the repo can run directly,
- * i.e. categorical values -> synonym set, and numeric -> SI units
+ * Turn URL tokens into resolved predicates. Order preserved, invalid dropped. Rules:
+ * * features -> ancestry closure,
+ * * categorical values -> synonym set,
+ * * numeric -> SI.
  */
-async function resolveCharacterFilters(
-  tokens: TaxonSearchParams["characters"],
-): Promise<ResolvedCharacterFilter[]> {
+async function resolveFilters(
+  tokens: TaxonSearchParams["filters"],
+): Promise<ResolvedFilter[]> {
   if (!tokens.length) return [];
 
-  const { synonymSetByValue, scaleByUnit } = await db.transaction(
-    async (tx) => {
-      const synonymSetByValue = await selectSynonymSetIdsByTraitValueIds(
-        tx,
-        tokens.filter((token) => token.k === "c").map((token) => token.t),
-      );
+  const featureIds = tokens
+    .filter((token) => token.k === "f")
+    .map((token) => token.f);
 
-      const families = tokens.some(
-        (token) => token.k === "n" && token.u !== undefined,
-      )
-        ? await listUnitFamiliesQuery(tx)
-        : [];
+  const [closureByRoot, { synonymSetByValue, scaleByUnit }] = await Promise.all(
+    [
+      featureIds.length
+        ? getFeatureDescendantIds(featureIds)
+        : new Map<number, number[]>(),
+      db.transaction(async (tx) => {
+        const synonymSetByValue = await selectSynonymSetIdsByTraitValueIds(
+          tx,
+          tokens.filter((token) => token.k === "c").map((token) => token.t),
+        );
 
-      return {
-        synonymSetByValue,
-        scaleByUnit: new Map(
-          families.flatMap((family) =>
-            family.units.map((unit) => [unit.id, unit.scale] as const),
+        const families = tokens.some(
+          (token) => token.k === "n" && token.u !== undefined,
+        )
+          ? await listUnitFamiliesQuery(tx)
+          : [];
+
+        return {
+          synonymSetByValue,
+          scaleByUnit: new Map(
+            families.flatMap((family) =>
+              family.units.map((unit) => [unit.id, unit.scale] as const),
+            ),
           ),
-        ),
-      };
-    },
+        };
+      }),
+    ],
   );
 
-  // A token whose trait value or unit no longer exists is dropped w/o
-  // interfering with rest of filter process
-  return tokens.flatMap((token) => {
+  return tokens.flatMap((token): ResolvedFilter[] => {
+    if (token.k === "f") {
+      const closure = closureByRoot.get(token.f) ?? [];
+      if (closure.length === 0) return [];
+      return [{ kind: "feature", featureIds: closure }];
+    }
+
     if (token.k === "c") {
       const synonymSetId = synonymSetByValue.get(token.t);
       if (synonymSetId === undefined) return [];
 
-      return {
-        kind: "categorical",
-        featureId: token.f,
-        characterId: token.c,
-        synonymSetId,
-      };
+      return [
+        {
+          kind: "categorical",
+          featureId: token.f,
+          characterId: token.c,
+          synonymSetId,
+        },
+      ];
     }
 
     // A dimensionless value is already in base units, so there is nothing to
     // convert and no unit to resolve.
     if (token.u === undefined) {
-      return {
-        kind: "numeric",
-        featureId: token.f,
-        characterId: token.c,
-        siValue: token.v,
-      };
+      return [
+        {
+          kind: "numeric",
+          featureId: token.f,
+          characterId: token.c,
+          siValue: token.v,
+        },
+      ];
     }
 
     const scale = scaleByUnit.get(token.u);
     if (scale === undefined) return [];
 
-    return {
-      kind: "numeric",
-      featureId: token.f,
-      characterId: token.c,
-      siValue: convertToSI(token.v, scale),
-    };
+    return [
+      {
+        kind: "numeric",
+        featureId: token.f,
+        characterId: token.c,
+        siValue: convertToSI(token.v, scale),
+      },
+    ];
   });
 }
 

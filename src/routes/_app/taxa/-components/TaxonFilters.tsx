@@ -16,8 +16,7 @@ import {
 } from "../../../../../db/schema/schema";
 import { type TaxonSearchParams } from "../../../../lib/domain/taxa/search";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
-import { CharacterFilterField } from "./CharacterFilterField";
-import { FeatureFilterField } from "./FeatureFilterField";
+import { TaxonStateFilterField } from "./TaxonStateFilterField";
 
 type Props = {
   search: TaxonSearchParams;
@@ -47,7 +46,7 @@ export function TaxonFilters({ search, setSearch }: Props) {
   return (
     <Box asChild width="100%">
       <Card size="2">
-        <Flex gap="5">
+        <Flex gap="5" wrap="wrap">
           <Flex direction="column" gap="3">
             <Box>
               <Heading size="2" mb={HEADER_MB}>
@@ -179,17 +178,11 @@ export function TaxonFilters({ search, setSearch }: Props) {
           </Box>
           <Separator orientation="vertical" style={{ height: "auto" }} />
           <Box minWidth="256px">
-            <Heading size="2" mb={HEADER_MB}>
-              Morphology
-            </Heading>
             <Flex direction="column" gap="2" style={{ minWidth: 180 }}>
-              <FeatureFilterField
-                selectedIds={search.features}
-                onChange={(features) => setSearch({ features })}
-              />
-              <CharacterFilterField
-                selected={search.characters}
-                onChange={(characters) => setSearch({ characters })}
+              <TaxonStateFilterField
+                label={<Heading size="2">Morphology</Heading>}
+                selected={search.filters}
+                onChange={(filters) => setSearch({ filters })}
               />
             </Flex>
           </Box>

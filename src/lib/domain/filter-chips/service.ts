@@ -1,20 +1,22 @@
-import { type CharacterStateFilterToken } from "../taxa/search";
-import { characterTokenKey } from "../taxa/utils";
-import { selectCharacterFilterLabels } from "./repo";
-import type { CharacterFilterChip } from "./types";
+import { type TaxonFilterToken } from "../taxa/search";
+import { filterTokenKey } from "../taxa/utils";
+import { selectFilterLabels } from "./repo";
+import type { FilterChip } from "./types";
 
 /**
  * Describe filter tokens for display, e.g. "Cap · Diameter: 5 cm".
  * Marks token null (undescribable) whenever any id it names is gone
  */
-export async function resolveCharacterFilterChips(
-  tokens: CharacterStateFilterToken[],
-): Promise<CharacterFilterChip[]> {
+export async function resolveFilterChips(
+  tokens: TaxonFilterToken[],
+): Promise<FilterChip[]> {
   if (!tokens.length) return [];
 
-  const labels = await selectCharacterFilterLabels({
+  const labels = await selectFilterLabels({
     featureIds: tokens.map((token) => token.f).filter((id) => id !== undefined),
-    characterIds: tokens.map((token) => token.c),
+    characterIds: tokens
+      .filter((token) => token.k !== "f")
+      .map((token) => token.c),
     traitValueIds: tokens
       .filter((token) => token.k === "c")
       .map((token) => token.t),
@@ -25,7 +27,13 @@ export async function resolveCharacterFilterChips(
   });
 
   return tokens.map((token) => {
-    const key = characterTokenKey(token);
+    const key = filterTokenKey(token);
+
+    if (token.k === "f") {
+      const label = labels.features.get(token.f);
+      return { key, label: label ?? null };
+    }
+
     const characterLabel = labels.characters.get(token.c);
     const featureLabel =
       token.f === undefined ? null : labels.features.get(token.f);

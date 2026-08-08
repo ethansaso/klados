@@ -31,8 +31,7 @@ export const Route = createFileRoute("/_app/taxa/")({
       hasMedia,
       hasMorphology,
       hasEcology,
-      features,
-      characters,
+      filters,
     } = deps as TaxonSearchParams;
 
     await context.queryClient.ensureQueryData(
@@ -44,8 +43,7 @@ export const Route = createFileRoute("/_app/taxa/")({
         hasMedia,
         hasMorphology,
         hasEcology,
-        features,
-        characters,
+        filters,
       }),
     );
   },
@@ -53,8 +51,7 @@ export const Route = createFileRoute("/_app/taxa/")({
     middlewares: [
       stripSearchParams({
         status: DEFAULT_TAXON_STATUSES,
-        features: [],
-        characters: [],
+        filters: [],
       }),
     ],
   },
@@ -77,8 +74,7 @@ function TaxaListPage() {
       hasMedia: search.hasMedia,
       hasMorphology: search.hasMorphology,
       hasEcology: search.hasEcology,
-      features: search.features,
-      characters: search.characters,
+      filters: search.filters,
     }),
   );
 
