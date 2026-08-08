@@ -1,19 +1,14 @@
 import {
-  Badge,
   Box,
   Button,
   Card,
   Checkbox,
   Flex,
   Heading,
-  IconButton,
-  Popover,
   Select,
   Separator,
   Text,
-  TextField,
 } from "@radix-ui/themes";
-import { PiPlus, PiX } from "react-icons/pi";
 import {
   TAXON_RANKS_DESCENDING,
   TAXON_STATUSES,
@@ -21,6 +16,7 @@ import {
 } from "../../../../../db/schema/schema";
 import { type TaxonSearchParams } from "../../../../lib/domain/taxa/search";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
+import { CharacterFilterField } from "./CharacterFilterField";
 import { FeatureFilterField } from "./FeatureFilterField";
 
 type Props = {
@@ -191,39 +187,10 @@ export function TaxonFilters({ search, setSearch }: Props) {
                 selectedIds={search.features}
                 onChange={(features) => setSearch({ features })}
               />
-              <Box>
-                <Flex align="center" justify="between" mb="1">
-                  <Text
-                    as="label"
-                    htmlFor="character-search"
-                    size="1"
-                    color="gray"
-                  >
-                    Must have characters
-                  </Text>
-                  <Popover.Root>
-                    <Popover.Trigger>
-                      <Button size="1" color="gray" variant="surface">
-                        <PiPlus /> Add character
-                      </Button>
-                    </Popover.Trigger>
-                    <Popover.Content align="end">
-                      <TextField.Root
-                        id="character-search"
-                        placeholder="Search characters..."
-                      />
-                    </Popover.Content>
-                  </Popover.Root>
-                </Flex>
-                <Flex gap="1">
-                  <Badge>
-                    Cap → Red
-                    <IconButton size="1" variant="ghost" color="tomato">
-                      <PiX size="0.75rem" />
-                    </IconButton>
-                  </Badge>
-                </Flex>
-              </Box>
+              <CharacterFilterField
+                selected={search.characters}
+                onChange={(characters) => setSearch({ characters })}
+              />
             </Flex>
           </Box>
         </Flex>

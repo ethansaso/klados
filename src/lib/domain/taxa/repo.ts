@@ -390,13 +390,14 @@ export async function fetchTaxonDetailById(
 export type ResolvedCharacterFilter =
   | {
       kind: "categorical";
-      featureId: number;
+      /** Omitted matches the state on any feature. */
+      featureId?: number;
       characterId: number;
       synonymSetId: number;
     }
   | {
       kind: "numeric";
-      featureId: number;
+      featureId?: number;
       characterId: number;
       siValue: number;
     };
@@ -491,7 +492,9 @@ export async function listTaxaQuery(
           .where(
             and(
               eq(featureStatesTbl.taxonId, taxaTbl.id),
-              eq(catStatesTbl.featureId, filter.featureId),
+              filter.featureId === undefined
+                ? undefined
+                : eq(catStatesTbl.featureId, filter.featureId),
               eq(catStatesTbl.characterId, filter.characterId),
               eq(catStatesTbl.synonymSetId, filter.synonymSetId),
             ),
@@ -515,7 +518,9 @@ export async function listTaxaQuery(
           .where(
             and(
               eq(featureStatesTbl.taxonId, taxaTbl.id),
-              eq(table.featureId, filter.featureId),
+              filter.featureId === undefined
+                ? undefined
+                : eq(table.featureId, filter.featureId),
               eq(table.characterId, filter.characterId),
               sql`${table.valueRange} @> ${filter.siValue}::numeric`,
             ),

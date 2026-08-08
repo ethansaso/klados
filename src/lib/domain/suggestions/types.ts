@@ -1,9 +1,9 @@
-// Shared character context for all suggestions.
+/**
+ * Shared character context for all suggestions.
+ */
 type BaseCharacterContext = {
   characterId: number;
   characterLabel: string; // "Cap color", "Cap diameter"
-  featureId: number;
-  featureLabel: string; // "Cap", "Gills", etc.
 };
 
 // Base type for numeric suggestions.
@@ -59,4 +59,11 @@ export type ModifierSuggestion = {
   groupLabel: string; // e.g. "Position"
   groupClass:
     "positional" | "reliability" | "demographic" | "reactive" | "intensity";
+};
+
+/** A feature suggestion for typeahead pickers. */
+export type FeatureSuggestion = {
+  id: number;
+  label: string;
+  description: string;
 };

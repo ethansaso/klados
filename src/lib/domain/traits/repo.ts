@@ -16,6 +16,7 @@ import {
 } from "../../../../db/schema/schema";
 import {
   type FuzzyQuery,
+  SIM_THRESHOLD,
   fuzzyLabelPredicate,
   fuzzySimilarity,
 } from "../../utils/sql/fuzzyLabel";
@@ -227,6 +228,13 @@ export async function selectSynonymCandidateRows(
   { id: number; label: string; synonymSetId: number; similarity: number }[]
 > {
   const { characterId, excludeTraitId, fq } = args;
+
+  // Pin to more ideal similarity threshold
+  if (fq) {
+    await tx.execute(
+      sql.raw(`SET LOCAL pg_trgm.similarity_threshold = ${SIM_THRESHOLD}`),
+    );
+  }
 
   const inScope = [eq(valsTbl.characterId, characterId)];
   if (excludeTraitId !== undefined) {

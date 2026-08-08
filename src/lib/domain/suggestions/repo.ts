@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, exists, inArray, isNull, or, sql } from "drizzle-orm";
 import { db } from "../../../../db/client";
 import {
   modifierGroup,
@@ -16,6 +16,7 @@ import {
   type FuzzyQuery,
   fuzzyLabelPredicate,
   fuzzySimilarity,
+  withFuzzyThreshold,
 } from "../../utils/sql/fuzzyLabel";
 import {
   modCatUsageSel,
@@ -24,11 +25,10 @@ import {
 } from "../modifiers/selectors";
 import type { UnitDTO } from "../units/types";
 
+/** Includes trigram similarity. */
 export type CategoricalSuggestionRow = {
   characterId: number;
   characterLabel: string;
-  featureId: number;
-  featureLabel: string;
   traitValueId: number;
   traitValueLabel: string;
   traitValueDescription: string;
@@ -39,8 +39,6 @@ export type CategoricalSuggestionRow = {
 export type NumericCharacterMetaRow = {
   characterId: number;
   characterLabel: string;
-  featureId: number;
-  featureLabel: string;
   unitFamilyId: number;
   kind: "single" | "range";
 };
@@ -53,6 +51,13 @@ export type ModifierSuggestionRow = {
   groupLabel: string;
   groupClass:
     "positional" | "reliability" | "demographic" | "reactive" | "intensity";
+  similarityScore: number;
+};
+
+export type FeatureSuggestionRow = {
+  id: number;
+  label: string;
+  description: string;
   similarityScore: number;
 };
 
@@ -114,80 +119,116 @@ export async function getUnitsForFamilies(
   return byFamily;
 }
 
+/** Features matching a fuzzy query, ranked by relevance. */
+export async function queryFeatureSuggestionRows(opts: {
+  fq: FuzzyQuery;
+  sqlLimit: number;
+}): Promise<FeatureSuggestionRow[]> {
+  const { fq, sqlLimit } = opts;
+  const similarity = fuzzySimilarity(feature.label, fq);
+
+  return withFuzzyThreshold((tx) =>
+    tx
+      .select({
+        id: feature.id,
+        label: feature.label,
+        description: feature.description,
+        similarityScore: similarity,
+      })
+      .from(feature)
+      .where(fuzzyLabelPredicate(feature.label, fq))
+      .orderBy(desc(similarity), feature.label)
+      .limit(sqlLimit),
+  );
+}
+
 /**
- * Raw DB query for categorical trait-value suggestions within a feature.
- * Returns more rows than `limit` so the service can re-rank in JS.
+ * Trait values matching a fuzzy query, one row per value.
+ * Ordered by relevance.
  *
- * Trigram similarity is included in the SELECT so the service can use it
- * as a scoring signal without a second query.
+ * Feature scope uses EXISTS, not JOIN, to avoid row bloat.
  */
 export async function queryCategoricalSuggestionRows(opts: {
-  featureId: number;
+  /** Omit to search every character. */
+  featureId?: number;
   fq: FuzzyQuery;
   sqlLimit: number;
 }): Promise<CategoricalSuggestionRow[]> {
   const { featureId, fq, sqlLimit } = opts;
+  const similarity = fuzzySimilarity(categoricalTraitValue.label, fq);
 
-  return db
-    .select({
-      characterId: character.id,
-      characterLabel: character.label,
-      featureId: feature.id,
-      featureLabel: feature.label,
-      traitValueId: categoricalTraitValue.id,
-      traitValueLabel: categoricalTraitValue.label,
-      traitValueHexCode: categoricalTraitValue.hexCode,
-      traitValueDescription: categoricalTraitValue.description,
-      similarityScore: fuzzySimilarity(categoricalTraitValue.label, fq),
-    })
-    .from(categoricalTraitValue)
-    .innerJoin(character, eq(character.id, categoricalTraitValue.characterId))
-    .innerJoin(characterFeature, eq(characterFeature.characterId, character.id))
-    .innerJoin(feature, eq(feature.id, characterFeature.featureId))
-    .where(
-      and(
-        eq(feature.id, featureId),
-        fuzzyLabelPredicate(categoricalTraitValue.label, fq),
-      ),
-    )
-    // Stable default order; JS re-ranks by score
-    .orderBy(character.label, categoricalTraitValue.label)
-    .limit(sqlLimit);
+  return withFuzzyThreshold((tx) =>
+    tx
+      .select({
+        characterId: character.id,
+        characterLabel: character.label,
+        traitValueId: categoricalTraitValue.id,
+        traitValueLabel: categoricalTraitValue.label,
+        traitValueHexCode: categoricalTraitValue.hexCode,
+        traitValueDescription: categoricalTraitValue.description,
+        similarityScore: similarity,
+      })
+      .from(categoricalTraitValue)
+      .innerJoin(character, eq(character.id, categoricalTraitValue.characterId))
+      .where(
+        and(
+          fuzzyLabelPredicate(categoricalTraitValue.label, fq),
+          featureId === undefined
+            ? undefined
+            : exists(
+                db
+                  .select({ _: sql`1` })
+                  .from(characterFeature)
+                  .where(
+                    and(
+                      eq(characterFeature.characterId, character.id),
+                      eq(characterFeature.featureId, featureId),
+                    ),
+                  ),
+              ),
+        ),
+      )
+      .orderBy(desc(similarity), categoricalTraitValue.label)
+      .limit(sqlLimit),
+  );
 }
 
 /**
  * Raw DB query for modifier value suggestions (canonical values only).
  * Returns more rows than `limit` so the service can re-rank in JS.
  *
- * Not scoped to a feature — modifiers are global vocabulary.
+ * Not scoped to a feature -- modifiers are global vocabulary.
  */
 export async function queryModifierSuggestionRows(opts: {
   fq: FuzzyQuery;
   sqlLimit: number;
 }): Promise<ModifierSuggestionRow[]> {
   const { fq, sqlLimit } = opts;
+  const similarity = fuzzySimilarity(modifierValue.value, fq);
 
-  return db
-    .select({
-      modifierId: modifierValue.id,
-      modifierValue: modifierValue.value,
-      affixType: modifierValue.affixType,
-      groupId: modifierGroup.id,
-      groupLabel: modifierGroup.label,
-      groupClass: modifierGroup.class,
-      similarityScore: fuzzySimilarity(modifierValue.value, fq),
-    })
-    .from(modifierValue)
-    .innerJoin(modifierGroup, eq(modifierGroup.id, modifierValue.groupId))
-    .where(
-      and(
-        // Only canonical values (no aliases)
-        isNull(modifierValue.canonicalValueId),
-        fuzzyLabelPredicate(modifierValue.value, fq),
-      ),
-    )
-    .orderBy(modifierGroup.label, modifierValue.value)
-    .limit(sqlLimit);
+  return withFuzzyThreshold((tx) =>
+    tx
+      .select({
+        modifierId: modifierValue.id,
+        modifierValue: modifierValue.value,
+        affixType: modifierValue.affixType,
+        groupId: modifierGroup.id,
+        groupLabel: modifierGroup.label,
+        groupClass: modifierGroup.class,
+        similarityScore: similarity,
+      })
+      .from(modifierValue)
+      .innerJoin(modifierGroup, eq(modifierGroup.id, modifierValue.groupId))
+      .where(
+        and(
+          // Only canonical values (no aliases)
+          isNull(modifierValue.canonicalValueId),
+          fuzzyLabelPredicate(modifierValue.value, fq),
+        ),
+      )
+      .orderBy(desc(similarity), modifierValue.value)
+      .limit(sqlLimit),
+  );
 }
 
 /**
@@ -231,7 +272,8 @@ export async function queryAllModifiersByUsage(
  */
 export async function queryNumericCharacterMetas(opts: {
   featureId: number;
-  kind: "single" | "range";
+  /** Omit to return both kinds. */
+  kind?: "single" | "range";
   limit: number;
 }): Promise<NumericCharacterMetaRow[]> {
   const { featureId, kind, limit } = opts;
@@ -240,16 +282,27 @@ export async function queryNumericCharacterMetas(opts: {
     .select({
       characterId: character.id,
       characterLabel: character.label,
-      featureId: feature.id,
-      featureLabel: feature.label,
       unitFamilyId: numericCharacterMeta.unitFamilyId,
       kind: numericCharacterMeta.kind,
     })
     .from(numericCharacterMeta)
     .innerJoin(character, eq(character.id, numericCharacterMeta.characterId))
-    .innerJoin(characterFeature, eq(characterFeature.characterId, character.id))
-    .innerJoin(feature, eq(feature.id, characterFeature.featureId))
     .innerJoin(unitFamily, eq(unitFamily.id, numericCharacterMeta.unitFamilyId))
-    .where(and(eq(feature.id, featureId), eq(numericCharacterMeta.kind, kind)))
+    .where(
+      and(
+        exists(
+          db
+            .select({ _: sql`1` })
+            .from(characterFeature)
+            .where(
+              and(
+                eq(characterFeature.characterId, character.id),
+                eq(characterFeature.featureId, featureId),
+              ),
+            ),
+        ),
+        kind === undefined ? undefined : eq(numericCharacterMeta.kind, kind),
+      ),
+    )
     .limit(limit * 4);
 }

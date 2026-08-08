@@ -92,7 +92,7 @@ export const EditingFeatureCard = memo(
     const handleSuggestionSelect = useCallback(
       (s: TraitSuggestion) => {
         const prev = getValues("states");
-        const next = addStateFromSuggestion(prev, s);
+        const next = addStateFromSuggestion(prev, feature.featureId, s);
         onChange(next);
 
         const label =
@@ -100,7 +100,7 @@ export const EditingFeatureCard = memo(
         if (s.kind === "categorical-value") {
           const catStatesForChar =
             next
-              .find((g) => g.featureId === s.featureId)
+              .find((g) => g.featureId === feature.featureId)
               ?.characters.filter(
                 (c) =>
                   c.characterId === s.characterId && c.kind === "categorical",
@@ -115,7 +115,7 @@ export const EditingFeatureCard = memo(
         }
         setAutoOpenFor(null);
       },
-      [getValues, onChange],
+      [getValues, onChange, feature.featureId],
     );
 
     const handleAutoOpenHandled = useCallback(() => {

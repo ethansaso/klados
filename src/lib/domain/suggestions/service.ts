@@ -1,4 +1,4 @@
-import { buildFuzzyQuery, computeFuzzyScore } from "../../utils/sql/fuzzyLabel";
+import { buildFuzzyQuery, rankByFuzzyScore } from "../../utils/sql/fuzzyLabel";
 import type { UnitDTO } from "../units/types";
 import {
   normalizeUnitToken,
@@ -9,6 +9,7 @@ import {
   getUnitsForFamilies,
   queryAllModifiersByUsage,
   queryCategoricalSuggestionRows,
+  queryFeatureSuggestionRows,
   queryModifierSuggestionRows,
   queryNumericCharacterMetas,
   resolveUnitFromToken,
@@ -16,6 +17,7 @@ import {
 } from "./repo";
 import type {
   CategoricalValueSuggestion,
+  FeatureSuggestion,
   ModifierSuggestion,
   NumericRangeSuggestion,
   NumericSingleSuggestion,
@@ -71,45 +73,23 @@ export async function searchCategoricalSuggestions(opts: {
     sqlLimit: limit * 4,
   });
 
-  // JS-side dedupe + scoring
-  const seen = new Set<string>();
-  const scored: { row: (typeof rows)[number]; score: number }[] = [];
-
-  for (const row of rows) {
-    const key = `${row.characterId}:${row.traitValueId}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-
-    const labelLower = row.traitValueLabel.toLowerCase();
-    let score = computeFuzzyScore(labelLower, fq, row.similarityScore ?? 0);
-
+  return rankByFuzzyScore(rows, fq, {
+    label: (row) => row.traitValueLabel,
+    similarity: (row) => row.similarityScore,
     // Small bump if the character label also matches the query
-    if (row.characterLabel.toLowerCase().includes(fq.qLower)) score += 5;
-
-    scored.push({ row, score });
-  }
-
-  scored.sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    const aChar = a.row.characterLabel.toLowerCase();
-    const bChar = b.row.characterLabel.toLowerCase();
-    if (aChar !== bChar) return aChar.localeCompare(bChar);
-    return a.row.traitValueLabel
-      .toLowerCase()
-      .localeCompare(b.row.traitValueLabel.toLowerCase());
-  });
-
-  return scored.slice(0, limit).map(({ row }) => ({
-    kind: "categorical-value",
-    characterId: row.characterId,
-    characterLabel: row.characterLabel,
-    featureId: row.featureId,
-    featureLabel: row.featureLabel,
-    traitValueId: row.traitValueId,
-    traitValueLabel: row.traitValueLabel,
-    traitValueDescription: row.traitValueDescription,
-    traitValueHexCode: row.traitValueHexCode,
-  }));
+    bonus: (row) =>
+      row.characterLabel.toLowerCase().includes(fq.qLower) ? 5 : 0,
+  })
+    .slice(0, limit)
+    .map((row) => ({
+      kind: "categorical-value" as const,
+      characterId: row.characterId,
+      characterLabel: row.characterLabel,
+      traitValueId: row.traitValueId,
+      traitValueLabel: row.traitValueLabel,
+      traitValueDescription: row.traitValueDescription,
+      traitValueHexCode: row.traitValueHexCode,
+    }));
 }
 
 /**
@@ -120,18 +100,21 @@ export async function buildNumericSingleSuggestions(opts: {
   featureId: number;
   parsedNumeric: ParsedNumeric;
   limit: number;
+  /**
+   * Optional lever to return single/range/both for single-style suggestions,
+   * i.e. if you want to include "1 cm" as a result for a range character
+   * rather than using the full-range "~1cm"/"<=1cm"/"1-3cm" from
+   * {@link buildNumericRangeSuggestions}.
+   */
+  kind?: "single" | "range";
 }): Promise<NumericSingleSuggestion[]> {
-  const { featureId, parsedNumeric, limit } = opts;
+  const { featureId, parsedNumeric, limit, kind } = opts;
   if (parsedNumeric.kind !== "single") return [];
 
   const token = normalizeUnitToken(parsedNumeric.unitText);
   const resolvedUnit = token ? await resolveUnitFromToken(token) : null;
 
-  const metas = await queryNumericCharacterMetas({
-    featureId,
-    kind: "single",
-    limit,
-  });
+  const metas = await queryNumericCharacterMetas({ featureId, kind, limit });
 
   const unitsByFamily = await getUnitsForFamilies([
     ...new Set(metas.map((m) => m.unitFamilyId)),
@@ -147,8 +130,6 @@ export async function buildNumericSingleSuggestions(opts: {
       kind: "numeric-single" as const,
       characterId: row.characterId,
       characterLabel: row.characterLabel,
-      featureId: row.featureId,
-      featureLabel: row.featureLabel,
       value,
       unitFamilyId: row.unitFamilyId,
     };
@@ -245,8 +226,6 @@ export async function buildNumericRangeSuggestions(opts: {
       kind: "numeric-range" as const,
       characterId: row.characterId,
       characterLabel: row.characterLabel,
-      featureId: row.featureId,
-      featureLabel: row.featureLabel,
       min,
       max,
       unitFamilyId: row.unitFamilyId,
@@ -307,7 +286,12 @@ export async function searchCharacterStateSuggestions(opts: {
   const [categorical, numericSingle, numericRange] = await Promise.all([
     searchCategoricalSuggestions({ featureId, q, limit }),
     isNumericQuery
-      ? buildNumericSingleSuggestions({ featureId, parsedNumeric, limit })
+      ? buildNumericSingleSuggestions({
+          featureId,
+          parsedNumeric,
+          limit,
+          kind: "single",
+        })
       : Promise.resolve([]),
     isNumericQuery
       ? buildNumericRangeSuggestions({ featureId, parsedNumeric, limit })
@@ -354,39 +338,90 @@ export async function searchModifierSuggestions(opts: {
     sqlLimit: limit * 4,
   });
 
-  const seen = new Set<number>();
-  const scored: { row: (typeof rows)[number]; score: number }[] = [];
-
-  for (const row of rows) {
-    if (seen.has(row.modifierId)) continue;
-    seen.add(row.modifierId);
-
-    const labelLower = row.modifierValue.toLowerCase();
-    let score = computeFuzzyScore(labelLower, fq, row.similarityScore ?? 0);
-
+  return rankByFuzzyScore(rows, fq, {
+    label: (row) => row.modifierValue,
+    similarity: (row) => row.similarityScore,
     // Small bump if the group label also matches the query
-    if (row.groupLabel.toLowerCase().includes(fq.qLower)) score += 5;
+    bonus: (row) => (row.groupLabel.toLowerCase().includes(fq.qLower) ? 5 : 0),
+  })
+    .slice(0, limit)
+    .map((row) => ({
+      kind: "modifier",
+      modifierId: row.modifierId,
+      modifierValue: row.modifierValue,
+      affixType: row.affixType,
+      groupId: row.groupId,
+      groupLabel: row.groupLabel,
+      groupClass: row.groupClass,
+    }));
+}
 
-    scored.push({ row, score });
-  }
+/**
+ * State suggestions for search filters, as opposed to authoring.
+ * Feature scope is optional, and both single/range yield single values.
+ */
+export async function searchCharacterStateFilterSuggestions(opts: {
+  /** Omit to search every character. */
+  featureId?: number;
+  q: string;
+  limit?: number;
+}): Promise<TraitSuggestion[]> {
+  const { featureId, q } = opts;
+  const limit = opts.limit ?? 20;
+  const trimmed = q.trim();
+  if (!trimmed) return [];
 
-  scored.sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    const aGroup = a.row.groupLabel.toLowerCase();
-    const bGroup = b.row.groupLabel.toLowerCase();
-    if (aGroup !== bGroup) return aGroup.localeCompare(bGroup);
-    return a.row.modifierValue
-      .toLowerCase()
-      .localeCompare(b.row.modifierValue.toLowerCase());
-  });
+  const fq = buildFuzzyQuery(trimmed);
+  const parsedNumeric = parseNumericQuery(trimmed);
 
-  return scored.slice(0, limit).map(({ row }) => ({
-    kind: "modifier",
-    modifierId: row.modifierId,
-    modifierValue: row.modifierValue,
-    affixType: row.affixType,
-    groupId: row.groupId,
-    groupLabel: row.groupLabel,
-    groupClass: row.groupClass,
+  const [rows, numeric] = await Promise.all([
+    queryCategoricalSuggestionRows({ featureId, fq, sqlLimit: limit * 4 }),
+    // Numeric states need feature to mean anything;
+    // "Diameter 5 cm" isn't really worth surfacing, since...
+    // diameter of what?
+    parsedNumeric.kind === "single" && featureId !== undefined
+      ? buildNumericSingleSuggestions({ featureId, parsedNumeric, limit })
+      : Promise.resolve([]),
+  ]);
+
+  const categorical = rankByFuzzyScore(rows, fq, {
+    label: (row) => row.traitValueLabel,
+    similarity: (row) => row.similarityScore,
+    bonus: (row) =>
+      row.characterLabel.toLowerCase().includes(fq.qLower) ? 5 : 0,
+  }).map((row): CategoricalValueSuggestion => ({
+    kind: "categorical-value",
+    characterId: row.characterId,
+    characterLabel: row.characterLabel,
+    traitValueId: row.traitValueId,
+    traitValueLabel: row.traitValueLabel,
+    traitValueDescription: row.traitValueDescription,
+    traitValueHexCode: row.traitValueHexCode,
   }));
+
+  return [...numeric, ...categorical].slice(0, limit);
+}
+
+/** Fuzzy feature search by name. */
+export async function searchFeatureSuggestions(opts: {
+  q: string;
+  limit?: number;
+}): Promise<FeatureSuggestion[]> {
+  const limit = opts.limit ?? 20;
+  const trimmed = opts.q.trim();
+  if (!trimmed) return [];
+
+  const fq = buildFuzzyQuery(trimmed);
+  const rows = await queryFeatureSuggestionRows({ fq, sqlLimit: limit * 4 });
+
+  return rankByFuzzyScore(rows, fq, {
+    label: (row) => row.label,
+    similarity: (row) => row.similarityScore,
+  })
+    .slice(0, limit)
+    .map((row) => ({
+      id: row.id,
+      label: row.label,
+      description: row.description,
+    }));
 }

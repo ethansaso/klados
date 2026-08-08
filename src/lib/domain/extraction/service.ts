@@ -870,7 +870,7 @@ async function fuzzyMatchUnmatched(
       qualifiers: [],
     });
     console.log(
-      `[extraction] Fuzzy matched "${entry.text}" → ${best.featureLabel} > ${best.characterLabel} > "${best.traitValueLabel}"`,
+      `[extraction] Fuzzy matched "${entry.text}" > ${best.characterLabel} > "${best.traitValueLabel}"`,
     );
     resolved++;
   }

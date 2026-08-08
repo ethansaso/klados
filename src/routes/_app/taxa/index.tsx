@@ -105,7 +105,7 @@ function TaxaListPage() {
     <>
       <Container className="taxa-search-bar" p="4" flexGrow="0">
         <Flex direction="column" gap="2">
-          <Heading>Browse Taxa</Heading>
+          <Heading weight="medium">Browse Taxa</Heading>
           <Flex gap="2">
             <TextField.Root
               placeholder="Search by common or scientific name..."

@@ -30,14 +30,14 @@ const TaxonFeatureFilter = z
 
 const CategoricalStateFilter = z.object({
   k: z.literal("c"),
-  f: z.coerce.number().int(),
+  f: z.coerce.number().int().optional(),
   c: z.coerce.number().int(),
   t: z.coerce.number().int(),
 });
 
 const NumericStateFilter = z.object({
   k: z.literal("n"),
-  f: z.coerce.number().int(),
+  f: z.coerce.number().int().optional(),
   c: z.coerce.number().int(),
   u: z.coerce.number().int(),
   v: z.coerce.number(),
@@ -49,8 +49,7 @@ const NumericStateFilter = z.object({
  * ! Keys terse to keep URLs small.
  *
  *   k  kind: "c"ategorical or "n"umeric
- *   f  featureId — scopes the character, since one character (e.g. "Diameter")
- *      can hang off several features
+ *   f  featureId — optionally narrows to specific feature's characters
  *   c  characterId
  *   t  traitValueId (categorical)
  *   u  unitId of `v` (numeric)

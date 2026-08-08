@@ -13,6 +13,7 @@ import { PiPlus, PiX } from "react-icons/pi";
 import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../../components/inputs/combobox/types";
 import { featuresQueryOptions } from "../../../../lib/queries/features";
+import { featureSuggestionsQueryOptions } from "../../../../lib/queries/suggestions";
 
 const FEATURE_SEARCH_ID = "feature-search";
 
@@ -21,34 +22,22 @@ type Props = {
   onChange: (ids: number[]) => void;
 };
 
-/**
- * Picks the features a taxon must carry. Selecting a broad feature also matches
- * taxa that only carry a narrower one beneath it, so the hint below spells that
- * out — otherwise "sporocarp" returning cap-only taxa reads as a bug.
- */
+/** Popover to select the features a taxon must carry. */
 export function FeatureFilterField({ selectedIds, onChange }: Props) {
-  // SelectCombobox.Root owns the popover's open state, so tracking it here too
-  // would desync on Escape/outside-click. A one-way latch is enough to keep the
-  // feature list from being fetched before the picker is ever opened.
-  const [hasOpened, setHasOpened] = useState(false);
   const [searchQ, setSearchQ] = useState("");
 
   const { data: searchData, isLoading } = useQuery({
-    ...featuresQueryOptions(1, 20, searchQ ? { q: searchQ } : undefined),
-    enabled: hasOpened,
+    ...featureSuggestionsQueryOptions(searchQ),
   });
 
-  // Resolve the selected ids to labels for the chips. Selections live in the
-  // URL as bare ids, so this is what survives a page load or a shared link.
+  // Grab labels for chips using IDs
   const { data: selectedData } = useQuery({
     ...featuresQueryOptions(1, 100, { ids: selectedIds }),
     enabled: selectedIds.length > 0,
   });
 
-  const selected = selectedData?.items ?? [];
-
   // Already-picked features shouldn't be offered again
-  const options: ComboboxOption[] = (searchData?.items ?? [])
+  const options: ComboboxOption[] = (searchData ?? [])
     .filter((f) => !selectedIds.includes(f.id))
     .map((f) => ({
       id: f.id,
@@ -56,11 +45,11 @@ export function FeatureFilterField({ selectedIds, onChange }: Props) {
       hint: f.description || undefined,
     }));
 
-  // Selection is transient — each pick appends to the list rather than becoming
-  // the combobox's own value, so `value` stays null.
-  const add = (option: ComboboxOption | null) => {
-    if (!option || selectedIds.includes(option.id)) return;
+  const selected = selectedData?.items ?? [];
 
+  const add = (option: ComboboxOption | null) => {
+    // Don't add if already selected
+    if (!option || selectedIds.includes(option.id)) return;
     onChange([...selectedIds, option.id]);
   };
 
@@ -80,15 +69,12 @@ export function FeatureFilterField({ selectedIds, onChange }: Props) {
           <Text as="label" htmlFor={FEATURE_SEARCH_ID} size="1" color="gray">
             Must have features
           </Text>
-          {/* Replaces SelectCombobox.Trigger: same popover, "add to a list"
-              affordance instead of a select-style field showing one value. */}
           <Popover.Trigger>
             <Button
               id={FEATURE_SEARCH_ID}
               size="1"
               color="gray"
               variant="surface"
-              onClick={() => setHasOpened(true)}
             >
               <PiPlus /> Add feature
             </Button>
