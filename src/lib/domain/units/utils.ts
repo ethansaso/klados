@@ -1,4 +1,5 @@
 import Decimal from "decimal.js";
+import type { CharacterUnitRequirement } from "./types";
 
 /**
  * Convert a value from SI base units to display units.
@@ -18,4 +19,19 @@ export function convertToSI(displayValue: number, scale?: string): number {
   const displayDecimal = new Decimal(displayValue);
   const scaleDecimal = new Decimal(scale ?? "1.0");
   return displayDecimal.times(scaleDecimal).toNumber();
+}
+
+/** Whether a numeric filter token names a unit its character can be measured in. */
+export function unitFitsCharacter(
+  unitId: number | undefined,
+  unitFamilyId: number | undefined,
+  /** 'undefined' is a fast-fail shortcut. */
+  requirement: CharacterUnitRequirement | undefined,
+): boolean {
+  if (requirement === undefined) return false;
+
+  if (!requirement.requiresUnit) return unitId === undefined;
+  return (
+    unitFamilyId !== undefined && unitFamilyId === requirement.unitFamilyId
+  );
 }

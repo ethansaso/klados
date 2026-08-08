@@ -1,5 +1,6 @@
 import { type TaxonFilterToken } from "../taxa/search";
 import { filterTokenKey } from "../taxa/utils";
+import { unitFitsCharacter } from "../units/utils";
 import { selectFilterLabels } from "./repo";
 import type { FilterChip } from "./types";
 
@@ -16,6 +17,9 @@ export async function resolveFilterChips(
     featureIds: tokens.map((token) => token.f).filter((id) => id !== undefined),
     characterIds: tokens
       .filter((token) => token.k !== "f")
+      .map((token) => token.c),
+    numericCharacterIds: tokens
+      .filter((token) => token.k === "n")
       .map((token) => token.c),
     traitValueIds: tokens
       .filter((token) => token.k === "c")
@@ -55,12 +59,26 @@ export async function resolveFilterChips(
       return { key, label: `${prefix}${characterLabel}: ${value.label}` };
     }
 
-    if (token.u === undefined) {
-      return { key, label: `${prefix}${characterLabel}: ${token.v}` };
+    const namedUnit = token.u === undefined ? undefined : labels.units.get(token.u);
+
+    // Matches the query's rule: a unit that doesn't fit the character makes
+    // the value uninterpretable, so the chip must not look ordinary.
+    if (
+      !unitFitsCharacter(
+        token.u,
+        namedUnit?.familyId,
+        labels.unitRequirements.get(token.c),
+      )
+    ) {
+      return { key, label: null };
     }
 
-    const symbol = labels.units.get(token.u);
-    if (symbol === undefined) return { key, label: null };
-    return { key, label: `${prefix}${characterLabel}: ${token.v} ${symbol}` };
+    if (namedUnit === undefined) {
+      return { key, label: `${prefix}${characterLabel}: ${token.v}` };
+    }
+    return {
+      key,
+      label: `${prefix}${characterLabel}: ${token.v} ${namedUnit.symbol}`,
+    };
   });
 }

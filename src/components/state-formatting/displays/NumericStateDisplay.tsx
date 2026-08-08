@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { convertFromSI } from "../../../lib/domain/units/conversion";
+import { convertFromSI } from "../../../lib/domain/units/utils";
 import { formatWithUnit } from "../formatting";
 import { AffixedValue } from "../helpers/AffixedValue";
 import type { UINumberState, UIRangeState } from "../types";

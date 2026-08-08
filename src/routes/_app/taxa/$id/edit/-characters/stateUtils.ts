@@ -4,7 +4,7 @@ import type {
   NumericSingleSuggestion,
   TraitSuggestion,
 } from "../../../../../../lib/domain/suggestions/types";
-import { convertToSI } from "../../../../../../lib/domain/units/conversion";
+import { convertToSI } from "../../../../../../lib/domain/units/utils";
 import type {
   CharacterStateFormValue,
   GroupedCharacterFormValue,

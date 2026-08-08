@@ -1,11 +1,12 @@
-import { asc, eq, ilike } from "drizzle-orm";
+import { asc, eq, ilike, inArray, sql } from "drizzle-orm";
+import { numericCharacterMeta as numMetaTbl } from "../../../../db/schema/glossary/characters";
 import {
   unitFamily as unitFamilyTbl,
   unit as unitTbl,
 } from "../../../../db/schema/glossary/units";
 import { likeAnywhere } from "../../utils/sql/likeAnywhere";
 import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
-import type { UnitDTO, UnitFamilyDTO } from "./types";
+import type { CharacterUnitRequirement, UnitDTO, UnitFamilyDTO } from "./types";
 
 type UnitFamilyJoinRow = {
   family: { id: number; label: string };
@@ -78,4 +79,33 @@ export async function listUnitFamiliesQuery(
     .orderBy(asc(unitFamilyTbl.label), asc(unitTbl.key));
 
   return rowsToUnitFamilies(rows);
+}
+
+/**
+ * The unit family each numeric character measures in, plus whether that family
+ * has any units at all. Tosses non-numeric characters.
+ */
+export async function selectCharacterUnitRequirements(
+  tx: TxOrDb,
+  characterIds: number[],
+): Promise<Map<number, CharacterUnitRequirement>> {
+  if (!characterIds.length) return new Map();
+
+  const rows = await tx
+    .select({
+      characterId: numMetaTbl.characterId,
+      unitFamilyId: numMetaTbl.unitFamilyId,
+      requiresUnit: sql<boolean>`exists (
+        select 1 from ${unitTbl} where ${unitTbl.familyId} = ${numMetaTbl.unitFamilyId}
+      )`,
+    })
+    .from(numMetaTbl)
+    .where(inArray(numMetaTbl.characterId, characterIds));
+
+  return new Map(
+    rows.map((row) => [
+      row.characterId,
+      { unitFamilyId: row.unitFamilyId, requiresUnit: row.requiresUnit },
+    ]),
+  );
 }

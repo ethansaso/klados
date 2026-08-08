@@ -10,8 +10,11 @@ import { replaceNamesForTaxon } from "../taxon-names/repo";
 import type { NameItem } from "../taxon-names/validation";
 import { setSourcesForTaxon } from "../taxon-sources/repo";
 import { selectSynonymSetIdsByTraitValueIds } from "../traits/repo";
-import { convertToSI } from "../units/conversion";
-import { listUnitFamiliesQuery } from "../units/repo";
+import {
+  listUnitFamiliesQuery,
+  selectCharacterUnitRequirements,
+} from "../units/repo";
+import { convertToSI, unitFitsCharacter } from "../units/utils";
 import {
   deleteTaxonById,
   fetchTaxonDetailById,
@@ -204,34 +207,49 @@ async function resolveFilters(
     .filter((token) => token.k === "f")
     .map((token) => token.f);
 
-  const [closureByRoot, { synonymSetByValue, scaleByUnit }] = await Promise.all(
-    [
-      featureIds.length
-        ? getFeatureDescendantIds(featureIds)
-        : new Map<number, number[]>(),
-      db.transaction(async (tx) => {
-        const synonymSetByValue = await selectSynonymSetIdsByTraitValueIds(
-          tx,
-          tokens.filter((token) => token.k === "c").map((token) => token.t),
-        );
+  const numericCharacterIds = tokens
+    .filter((token) => token.k === "n")
+    .map((token) => token.c);
 
-        const families = tokens.some(
-          (token) => token.k === "n" && token.u !== undefined,
-        )
-          ? await listUnitFamiliesQuery(tx)
-          : [];
+  const [
+    closureByRoot,
+    { synonymSetByValue, unitRequirements, scaleByUnit, familyByUnit },
+  ] = await Promise.all([
+    featureIds.length
+      ? getFeatureDescendantIds(featureIds)
+      : new Map<number, number[]>(),
+    // Sequential: one transaction is one connection, so these can't overlap.
+    db.transaction(async (tx) => {
+      const synonymSetByValue = await selectSynonymSetIdsByTraitValueIds(
+        tx,
+        tokens.filter((token) => token.k === "c").map((token) => token.t),
+      );
 
-        return {
-          synonymSetByValue,
-          scaleByUnit: new Map(
-            families.flatMap((family) =>
-              family.units.map((unit) => [unit.id, unit.scale] as const),
-            ),
+      const unitRequirements = await selectCharacterUnitRequirements(
+        tx,
+        numericCharacterIds,
+      );
+
+      const families = numericCharacterIds.length
+        ? await listUnitFamiliesQuery(tx)
+        : [];
+
+      return {
+        synonymSetByValue,
+        unitRequirements,
+        scaleByUnit: new Map(
+          families.flatMap((family) =>
+            family.units.map((unit) => [unit.id, unit.scale] as const),
           ),
-        };
-      }),
-    ],
-  );
+        ),
+        familyByUnit: new Map(
+          families.flatMap((family) =>
+            family.units.map((unit) => [unit.id, family.id] as const),
+          ),
+        ),
+      };
+    }),
+  ]);
 
   return tokens.flatMap((token): ResolvedFilter[] => {
     if (token.k === "f") {
@@ -253,6 +271,14 @@ async function resolveFilters(
         },
       ];
     }
+
+    // Make sure correct unit actually provided, if applicable
+    const fits = unitFitsCharacter(
+      token.u,
+      token.u === undefined ? undefined : familyByUnit.get(token.u),
+      unitRequirements.get(token.c),
+    );
+    if (!fits) return [];
 
     // A dimensionless value is already in base units, so there is nothing to
     // convert and no unit to resolve.

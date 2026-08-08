@@ -15,9 +15,9 @@ import { listAllModifiers } from "../modifiers/service";
 import { searchCategoricalSuggestions } from "../suggestions/service";
 import { listAllTraitValuesByCharacters } from "../traits/service";
 
-import { convertToSI } from "../units/conversion";
 import { listUnitFamilies } from "../units/service";
 import type { UnitDTO } from "../units/types";
+import { convertToSI } from "../units/utils";
 import {
   type ExtractionGlossary,
   type PerFeatureGlossary,

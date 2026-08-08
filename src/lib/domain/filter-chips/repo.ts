@@ -6,13 +6,17 @@ import {
   character,
   feature,
 } from "../../../../db/schema/schema";
+import { selectCharacterUnitRequirements } from "../units/repo";
+import type { CharacterUnitRequirement } from "../units/types";
 
 export type FilterLabelMaps = {
+  /** Absent for non-numeric characters; see selectCharacterUnitRequirements. */
+  unitRequirements: Map<number, CharacterUnitRequirement>;
   features: Map<number, string>;
   characters: Map<number, string>;
   /** Carries owning character, so value can be checked against the token */
   traitValues: Map<number, { label: string; characterId: number }>;
-  units: Map<number, string>;
+  units: Map<number, { symbol: string; familyId: number }>;
 };
 
 const toMap = (rows: { id: number; label: string }[]) =>
@@ -22,10 +26,12 @@ const toMap = (rows: { id: number; label: string }[]) =>
 export async function selectFilterLabels(ids: {
   featureIds: number[];
   characterIds: number[];
+  numericCharacterIds: number[];
   traitValueIds: number[];
   unitIds: number[];
 }): Promise<FilterLabelMaps> {
-  const [features, characters, traitValues, units] = await Promise.all([
+  const [features, characters, traitValues, units, unitRequirements] =
+    await Promise.all([
     ids.featureIds.length
       ? db
           .select({ id: feature.id, label: feature.label })
@@ -50,13 +56,15 @@ export async function selectFilterLabels(ids: {
       : [],
     ids.unitIds.length
       ? db
-          .select({ id: unit.id, label: unit.symbol })
+          .select({ id: unit.id, symbol: unit.symbol, familyId: unit.familyId })
           .from(unit)
           .where(inArray(unit.id, ids.unitIds))
       : [],
+    selectCharacterUnitRequirements(db, ids.numericCharacterIds),
   ]);
 
   return {
+    unitRequirements,
     features: toMap(features),
     characters: toMap(characters),
     traitValues: new Map(
@@ -65,6 +73,8 @@ export async function selectFilterLabels(ids: {
         { label: row.label, characterId: row.characterId },
       ]),
     ),
-    units: toMap(units),
+    units: new Map(
+      units.map((row) => [row.id, { symbol: row.symbol, familyId: row.familyId }]),
+    ),
   };
 }
