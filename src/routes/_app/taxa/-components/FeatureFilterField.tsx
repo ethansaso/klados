@@ -76,7 +76,7 @@ export function FeatureFilterField({ selectedIds, onChange }: Props) {
               color="gray"
               variant="surface"
             >
-              <PiPlus /> Add feature
+              <PiPlus /> Feature
             </Button>
           </Popover.Trigger>
         </Flex>

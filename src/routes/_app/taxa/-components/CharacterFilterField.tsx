@@ -5,6 +5,7 @@ import {
   Flex,
   IconButton,
   Popover,
+  Spinner,
   Text,
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
@@ -15,7 +16,9 @@ import { InputCombobox } from "../../../../components/inputs/combobox/InputCombo
 import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../../components/inputs/combobox/types";
 import type { TraitSuggestion } from "../../../../lib/domain/suggestions/types";
-import type { CharacterStateFilterToken } from "../../../../lib/domain/taxa/search";
+import { type CharacterStateFilterToken } from "../../../../lib/domain/taxa/search";
+import { characterTokenKey as tokenKey } from "../../../../lib/domain/taxa/utils";
+import { characterFilterChipsQueryOptions } from "../../../../lib/queries/filterChips";
 import {
   characterStateFilterSuggestionsQueryOptions,
   featureSuggestionsQueryOptions,
@@ -43,11 +46,16 @@ export function CharacterFilterField({ selected, onChange }: Props) {
     featureSuggestionsQueryOptions(featureQ),
   );
 
+  const { data: chips } = useQuery(characterFilterChipsQueryOptions(selected));
   const { data: suggestions, isLoading } = useQuery(
     characterStateFilterSuggestionsQueryOptions({
       q: stateQ,
       featureId: scope?.id,
     }),
+  );
+
+  const labelByKey = new Map(
+    (chips ?? []).map((chip) => [chip.key, chip.label]),
   );
 
   const featureOptions: ComboboxOption[] = (featureData ?? []).map(
@@ -91,7 +99,7 @@ export function CharacterFilterField({ selected, onChange }: Props) {
         <Popover.Root open={open} onOpenChange={handleOpenChange}>
           <Popover.Trigger>
             <Button size="1" color="gray" variant="surface">
-              <PiPlus /> Add character
+              <PiPlus /> Character
             </Button>
           </Popover.Trigger>
           <Popover.Content align="end" width="320px" size="1">
@@ -207,15 +215,22 @@ export function CharacterFilterField({ selected, onChange }: Props) {
         <Flex gap="1" wrap="wrap">
           {selected.map((token) => {
             const key = tokenKey(token);
+            // Undefined until resolved; result or null (invalid) afterwards.
+            const label = labelByKey.get(key);
+            const unresolvable = label === null;
+
             return (
-              // TODO: resolve ids to labels, and render unresolvable tokens red
-              <Badge key={key}>
-                {key}
+              <Badge key={key} color={unresolvable ? "tomato" : undefined}>
+                {label === undefined ? (
+                  <Spinner size="1" />
+                ) : (
+                  (label ?? "Unrecognized filter")
+                )}
                 <IconButton
                   size="1"
                   variant="ghost"
                   color="tomato"
-                  aria-label={`Remove ${key} filter`}
+                  aria-label={`Remove ${label ?? "unrecognized"} filter`}
                   onClick={() => remove(key)}
                 >
                   <PiX size="0.75rem" />
@@ -227,13 +242,6 @@ export function CharacterFilterField({ selected, onChange }: Props) {
       )}
     </Box>
   );
-}
-
-/** Tokens are compared on identity, not object equality. */
-function tokenKey(token: CharacterStateFilterToken) {
-  return token.k === "c"
-    ? `c:${token.f ?? "*"}:${token.c}:${token.t}`
-    : `n:${token.f ?? "*"}:${token.c}:${token.u}:${token.v}`;
 }
 
 function tokenFromSuggestion(

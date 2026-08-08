@@ -56,7 +56,7 @@ const NumericStateFilter = z.object({
  *   u  unitId of `v` (numeric); absent when the character is dimensionless
  *   v  value as typed
  */
-const TaxonCharacterFilter = z
+export const TaxonCharacterFilterSchema = z
   .array(
     z
       .discriminatedUnion("k", [CategoricalStateFilter, NumericStateFilter])
@@ -76,7 +76,7 @@ export const TaxonFilterSchema = z.object({
   hasMorphology: z.boolean().optional(),
   hasEcology: z.boolean().optional(),
   features: TaxonFeatureFilter,
-  characters: TaxonCharacterFilter,
+  characters: TaxonCharacterFilterSchema,
 });
 
 export const TaxonSearchSchema = PaginationSchema.extend(
