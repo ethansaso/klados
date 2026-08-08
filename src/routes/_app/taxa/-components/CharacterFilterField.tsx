@@ -249,12 +249,13 @@ function tokenFromSuggestion(
     };
   }
 
-  if (suggestion.kind === "numeric-single" && suggestion.displayUnitId) {
+  if (suggestion.kind === "numeric-single") {
     return {
       k: "n",
       f: featureId,
       c: suggestion.characterId,
-      u: suggestion.displayUnitId,
+      // Null for dimensionless characters, e.g. a spore count
+      u: suggestion.displayUnitId ?? undefined,
       v: suggestion.value,
     };
   }

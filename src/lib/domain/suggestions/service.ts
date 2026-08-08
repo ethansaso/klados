@@ -114,7 +114,12 @@ export async function buildNumericSingleSuggestions(opts: {
   const token = normalizeUnitToken(parsedNumeric.unitText);
   const resolvedUnit = token ? await resolveUnitFromToken(token) : null;
 
-  const metas = await queryNumericCharacterMetas({ featureId, kind, limit });
+  const metas = await queryNumericCharacterMetas({
+    featureId,
+    kind,
+    unitFamilyId: resolvedUnit?.familyId,
+    limit,
+  });
 
   const unitsByFamily = await getUnitsForFamilies([
     ...new Set(metas.map((m) => m.unitFamilyId)),
@@ -194,6 +199,7 @@ export async function buildNumericRangeSuggestions(opts: {
   const metas = await queryNumericCharacterMetas({
     featureId,
     kind: "range",
+    unitFamilyId: resolvedUnit?.familyId,
     limit,
   });
 

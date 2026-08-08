@@ -220,7 +220,9 @@ async function resolveCharacterFilters(
         tokens.filter((token) => token.k === "c").map((token) => token.t),
       );
 
-      const families = tokens.some((token) => token.k === "n")
+      const families = tokens.some(
+        (token) => token.k === "n" && token.u !== undefined,
+      )
         ? await listUnitFamiliesQuery(tx)
         : [];
 
@@ -247,6 +249,17 @@ async function resolveCharacterFilters(
         featureId: token.f,
         characterId: token.c,
         synonymSetId,
+      };
+    }
+
+    // A dimensionless value is already in base units, so there is nothing to
+    // convert and no unit to resolve.
+    if (token.u === undefined) {
+      return {
+        kind: "numeric",
+        featureId: token.f,
+        characterId: token.c,
+        siValue: token.v,
       };
     }
 

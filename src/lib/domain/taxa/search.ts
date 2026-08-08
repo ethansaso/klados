@@ -39,7 +39,8 @@ const NumericStateFilter = z.object({
   k: z.literal("n"),
   f: z.coerce.number().int().optional(),
   c: z.coerce.number().int(),
-  u: z.coerce.number().int(),
+  /** Omitted for dimensionless characters (a spore count is not 4 of anything). */
+  u: z.coerce.number().int().optional(),
   v: z.coerce.number(),
 });
 
@@ -52,7 +53,7 @@ const NumericStateFilter = z.object({
  *   f  featureId — optionally narrows to specific feature's characters
  *   c  characterId
  *   t  traitValueId (categorical)
- *   u  unitId of `v` (numeric)
+ *   u  unitId of `v` (numeric); absent when the character is dimensionless
  *   v  value as typed
  */
 const TaxonCharacterFilter = z

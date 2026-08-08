@@ -274,9 +274,14 @@ export async function queryNumericCharacterMetas(opts: {
   featureId: number;
   /** Omit to return both kinds. */
   kind?: "single" | "range";
+  /**
+   * Restricts to characters measured in this family. Set when the query names
+   * a unit, so that "4 g" can't offer a length character (or a unitless one).
+   */
+  unitFamilyId?: number;
   limit: number;
 }): Promise<NumericCharacterMetaRow[]> {
-  const { featureId, kind, limit } = opts;
+  const { featureId, kind, unitFamilyId, limit } = opts;
 
   return db
     .select({
@@ -302,6 +307,9 @@ export async function queryNumericCharacterMetas(opts: {
             ),
         ),
         kind === undefined ? undefined : eq(numericCharacterMeta.kind, kind),
+        unitFamilyId === undefined
+          ? undefined
+          : eq(numericCharacterMeta.unitFamilyId, unitFamilyId),
       ),
     )
     .limit(limit * 4);
