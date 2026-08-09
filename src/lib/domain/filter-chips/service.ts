@@ -46,6 +46,15 @@ export async function resolveFilterChips(
       return { key, label: null };
     }
 
+    // A character not attached to the named feature can
+    // never have a state row for that pair.
+    if (
+      token.f !== undefined &&
+      !labels.featuresByCharacter.get(token.c)?.has(token.f)
+    ) {
+      return { key, label: null };
+    }
+
     const prefix = featureLabel === null ? "" : `${featureLabel} > `;
 
     if (token.k === "c") {
@@ -59,7 +68,8 @@ export async function resolveFilterChips(
       return { key, label: `${prefix}${characterLabel}: ${value.label}` };
     }
 
-    const namedUnit = token.u === undefined ? undefined : labels.units.get(token.u);
+    const namedUnit =
+      token.u === undefined ? undefined : labels.units.get(token.u);
 
     // Matches the query's rule: a unit that doesn't fit the character makes
     // the value uninterpretable, so the chip must not look ordinary.

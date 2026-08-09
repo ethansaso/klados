@@ -4,6 +4,7 @@ import { db } from "../../../../db/client";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import { assertHierarchyInvariant } from "../../utils/assertHierarchyInvariant";
+import { selectFeatureIdsByCharacterIds } from "../characters/repo";
 import { getFeatureDescendantIds } from "../features/repo";
 import { replaceGroupedCharacterStatesForTaxon } from "../states/repo";
 import { replaceNamesForTaxon } from "../taxon-names/repo";
@@ -213,7 +214,13 @@ async function resolveFilters(
 
   const [
     closureByRoot,
-    { synonymSetByValue, unitRequirements, scaleByUnit, familyByUnit },
+    {
+      synonymSetByValue,
+      unitRequirements,
+      featuresByCharacter,
+      scaleByUnit,
+      familyByUnit,
+    },
   ] = await Promise.all([
     featureIds.length
       ? getFeatureDescendantIds(featureIds)
@@ -230,6 +237,11 @@ async function resolveFilters(
         numericCharacterIds,
       );
 
+      const featuresByCharacter = await selectFeatureIdsByCharacterIds(
+        tx,
+        tokens.filter((token) => token.k !== "f").map((token) => token.c),
+      );
+
       const families = numericCharacterIds.length
         ? await listUnitFamiliesQuery(tx)
         : [];
@@ -237,6 +249,7 @@ async function resolveFilters(
       return {
         synonymSetByValue,
         unitRequirements,
+        featuresByCharacter,
         scaleByUnit: new Map(
           families.flatMap((family) =>
             family.units.map((unit) => [unit.id, unit.scale] as const),
@@ -258,16 +271,28 @@ async function resolveFilters(
       return [{ kind: "feature", featureIds: closure }];
     }
 
+    // A character w/o attachment to the named feature can't have states for it.
+    if (
+      token.f !== undefined &&
+      !featuresByCharacter.get(token.c)?.has(token.f)
+    ) {
+      return [];
+    }
+
     if (token.k === "c") {
-      const synonymSetId = synonymSetByValue.get(token.t);
-      if (synonymSetId === undefined) return [];
+      const traitValue = synonymSetByValue.get(token.t);
+
+      // Also drops an unknown character: no value can belong to one.
+      if (traitValue === undefined || traitValue.characterId !== token.c) {
+        return [];
+      }
 
       return [
         {
           kind: "categorical",
           featureId: token.f,
           characterId: token.c,
-          synonymSetId,
+          synonymSetId: traitValue.synonymSetId,
         },
       ];
     }

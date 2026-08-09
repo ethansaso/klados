@@ -672,3 +672,32 @@ export async function updateCategoricalMeta(
     .set({ isMultiSelect })
     .where(eq(catMetaTbl.characterId, characterId));
 }
+
+/** Features each character is attached to. */
+export async function selectFeatureIdsByCharacterIds(
+  tx: TxOrDb,
+  characterIds: number[],
+): Promise<Map<number, Set<number>>> {
+  if (!characterIds.length) return new Map();
+
+  const rows = await tx
+    .select({
+      characterId: characterFeatureTbl.characterId,
+      featureId: characterFeatureTbl.featureId,
+    })
+    .from(characterFeatureTbl)
+    .where(
+      inArray(
+        characterFeatureTbl.characterId,
+        Array.from(new Set(characterIds)),
+      ),
+    );
+
+  const byCharacter = new Map<number, Set<number>>();
+  for (const row of rows) {
+    const features = byCharacter.get(row.characterId) ?? new Set<number>();
+    features.add(row.featureId);
+    byCharacter.set(row.characterId, features);
+  }
+  return byCharacter;
+}

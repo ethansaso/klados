@@ -6,10 +6,13 @@ import {
   character,
   feature,
 } from "../../../../db/schema/schema";
+import { selectFeatureIdsByCharacterIds } from "../characters/repo";
 import { selectCharacterUnitRequirements } from "../units/repo";
 import type { CharacterUnitRequirement } from "../units/types";
 
 export type FilterLabelMaps = {
+  /** Features each character is attached to. */
+  featuresByCharacter: Map<number, Set<number>>;
   /** Absent for non-numeric characters; see selectCharacterUnitRequirements. */
   unitRequirements: Map<number, CharacterUnitRequirement>;
   features: Map<number, string>;
@@ -30,8 +33,14 @@ export async function selectFilterLabels(ids: {
   traitValueIds: number[];
   unitIds: number[];
 }): Promise<FilterLabelMaps> {
-  const [features, characters, traitValues, units, unitRequirements] =
-    await Promise.all([
+  const [
+    features,
+    characters,
+    traitValues,
+    units,
+    unitRequirements,
+    featuresByCharacter,
+  ] = await Promise.all([
     ids.featureIds.length
       ? db
           .select({ id: feature.id, label: feature.label })
@@ -61,10 +70,12 @@ export async function selectFilterLabels(ids: {
           .where(inArray(unit.id, ids.unitIds))
       : [],
     selectCharacterUnitRequirements(db, ids.numericCharacterIds),
+    selectFeatureIdsByCharacterIds(db, ids.characterIds),
   ]);
 
   return {
     unitRequirements,
+    featuresByCharacter,
     features: toMap(features),
     characters: toMap(characters),
     traitValues: new Map(
@@ -74,7 +85,10 @@ export async function selectFilterLabels(ids: {
       ]),
     ),
     units: new Map(
-      units.map((row) => [row.id, { symbol: row.symbol, familyId: row.familyId }]),
+      units.map((row) => [
+        row.id,
+        { symbol: row.symbol, familyId: row.familyId },
+      ]),
     ),
   };
 }

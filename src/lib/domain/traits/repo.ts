@@ -198,15 +198,24 @@ export async function selectTraitIdentityById(
 export async function selectSynonymSetIdsByTraitValueIds(
   tx: TxOrDb,
   traitValueIds: number[],
-): Promise<Map<number, number>> {
+): Promise<Map<number, { synonymSetId: number; characterId: number }>> {
   if (!traitValueIds.length) return new Map();
 
   const rows = await tx
-    .select({ id: valsTbl.id, synonymSetId: valsTbl.synonymSetId })
+    .select({
+      id: valsTbl.id,
+      synonymSetId: valsTbl.synonymSetId,
+      characterId: valsTbl.characterId,
+    })
     .from(valsTbl)
     .where(inArray(valsTbl.id, Array.from(new Set(traitValueIds))));
 
-  return new Map(rows.map((row) => [row.id, row.synonymSetId]));
+  return new Map(
+    rows.map((row) => [
+      row.id,
+      { synonymSetId: row.synonymSetId, characterId: row.characterId },
+    ]),
+  );
 }
 
 /**
