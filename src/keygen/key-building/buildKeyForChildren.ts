@@ -3,7 +3,12 @@ import type { HierarchyTaxonNode } from "../hierarchy/types";
 import type { KeyGenOptions } from "../options";
 import { mergeCharacterDefinitionSplits } from "../splitting/characters/mergeCompatibleCharacterSplits";
 import { resolveCharacterSplits } from "../splitting/characters/resolveCharacterSplits";
-import { resolveFeaturePresentAbsentSplits } from "../splitting/resolveFeaturePresentAbsentSplits";
+import {
+  expandInheritedStatements,
+  extendInheritedStatements,
+  type InheritedFeatureStatements,
+  resolveFeaturePresentAbsentSplits,
+} from "../splitting/resolveFeaturePresentAbsentSplits";
 import type {
   CharacterDefinitionSplitResult,
   FeaturePresentAbsentSplitResult,
@@ -31,7 +36,6 @@ function makeDiffNode(): KeyDiffNode {
 function makeTaxonNode(taxonId: number): KeyTaxonNode {
   return {
     kind: "taxon",
-    // IMPORTANT: ids are now strings, but semantically “the taxon id”
     id: String(taxonId),
     branches: [],
   };
@@ -182,6 +186,7 @@ function buildKeyForSiblings(
   hierarchy: Map<number, HierarchyTaxonNode>,
   options: KeyGenOptions,
   featureAncestorMap: Map<number, number | null>,
+  inheritedStatements: InheritedFeatureStatements,
 ): void {
   if (siblings.length === 0) return;
 
@@ -193,7 +198,13 @@ function buildKeyForSiblings(
     const branch = makeBranch(null, childNode);
     parent.branches.push(branch);
 
-    buildKeySubtreeForTaxon(childNode, hierarchy, options, featureAncestorMap);
+    buildKeySubtreeForTaxon(
+      childNode,
+      hierarchy,
+      options,
+      featureAncestorMap,
+      inheritedStatements,
+    );
     return;
   }
 
@@ -206,6 +217,7 @@ function buildKeyForSiblings(
   const featureSplits = resolveFeaturePresentAbsentSplits(
     siblings,
     featureAncestorMap,
+    expandInheritedStatements(inheritedStatements, featureAncestorMap),
   );
   const candidates: SplitResult[] = [...characterSplits, ...featureSplits];
 
@@ -228,6 +240,7 @@ function buildKeyForSiblings(
         hierarchy,
         options,
         featureAncestorMap,
+        inheritedStatements,
       );
     }
     return;
@@ -258,6 +271,7 @@ function buildKeyForSiblings(
         hierarchy,
         options,
         featureAncestorMap,
+        inheritedStatements,
       );
     } else {
       const diffNode = makeDiffNode();
@@ -271,6 +285,7 @@ function buildKeyForSiblings(
         hierarchy,
         options,
         featureAncestorMap,
+        inheritedStatements,
       );
     }
   });
@@ -289,7 +304,13 @@ function buildKeyForSiblings(
     const only = unplaced[0]!;
     const childNode = makeTaxonNode(only.id);
     parent.branches.push(makeBranch(null, childNode));
-    buildKeySubtreeForTaxon(childNode, hierarchy, options, featureAncestorMap);
+    buildKeySubtreeForTaxon(
+      childNode,
+      hierarchy,
+      options,
+      featureAncestorMap,
+      inheritedStatements,
+    );
   } else if (unplaced.length > 1) {
     // Multiple unplaced taxa: collect under a shared diff node so the parent
     // gets one null branch rather than N.
@@ -303,6 +324,7 @@ function buildKeyForSiblings(
         hierarchy,
         options,
         featureAncestorMap,
+        inheritedStatements,
       );
     }
   }
@@ -320,6 +342,7 @@ export function buildKeySubtreeForTaxon(
   hierarchy: Map<number, HierarchyTaxonNode>,
   options: KeyGenOptions,
   featureAncestorMap: Map<number, number | null>,
+  inheritedStatements: InheritedFeatureStatements = new Map(),
 ): void {
   const children: TaxonGroup = getChildrenForTaxonNode(taxonNode, hierarchy);
 
@@ -327,6 +350,13 @@ export function buildKeySubtreeForTaxon(
     // No subtaxa to key further.
     return;
   }
+
+  // This taxon's own statements bind everything below it, overriding whatever
+  // its ancestors said about the same feature.
+  const inheritedForChildren = extendInheritedStatements(
+    inheritedStatements,
+    hierarchy.get(getNumericTaxonId(taxonNode))?.states,
+  );
 
   if (children.length === 1) {
     // Single child: attach with null rationale, then continue down hierarchy.
@@ -340,6 +370,7 @@ export function buildKeySubtreeForTaxon(
       hierarchy,
       options,
       featureAncestorMap,
+      inheritedForChildren,
     );
     return;
   }
@@ -351,5 +382,6 @@ export function buildKeySubtreeForTaxon(
     hierarchy,
     options,
     featureAncestorMap,
+    inheritedForChildren,
   );
 }

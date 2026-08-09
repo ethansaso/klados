@@ -16,6 +16,7 @@ export const TAXON_RANKS_DESCENDING = [
   "domain",
   "kingdom",
   "phylum",
+  "subphylum",
   "class",
   "subclass",
   "superorder",
