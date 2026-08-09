@@ -6,6 +6,7 @@ import {
   type TaxonRank,
 } from "../../../../db/schema/taxa/taxon";
 import type { Transaction } from "../../utils/types/transactionType";
+import type { TaxonFilterToken } from "./search";
 import type { TaxonRow } from "./types";
 
 /** Precomputed rank: index map to avoid repeated indexOf calls. */
@@ -99,4 +100,19 @@ export function computeRankBand(
   const end = Math.max(highIdx, lowIdx);
 
   return TAXON_RANKS_DESCENDING.slice(start, end + 1);
+}
+
+/**
+ * Identity of a token, for deduping and for matching resolved chip labels back
+ * to their token. Shared so the client and server can't disagree on the key.
+ */
+export function filterTokenKey(token: TaxonFilterToken) {
+  switch (token.k) {
+    case "f":
+      return `f:${token.f}`;
+    case "c":
+      return `c:${token.f ?? "*"}:${token.c}:${token.t}`;
+    case "n":
+      return `n:${token.f}:${token.c}:${token.u ?? "*"}:${token.v}`;
+  }
 }

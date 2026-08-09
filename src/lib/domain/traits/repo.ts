@@ -16,10 +16,11 @@ import {
 } from "../../../../db/schema/schema";
 import {
   type FuzzyQuery,
+  SIM_THRESHOLD,
   fuzzyLabelPredicate,
   fuzzySimilarity,
 } from "../../utils/sql/fuzzyLabel";
-import type { Transaction } from "../../utils/types/transactionType";
+import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
 import type {
   TraitSynonymDTO,
   TraitValueDTO,
@@ -193,6 +194,30 @@ export async function selectTraitIdentityById(
   return row ?? null;
 }
 
+/** Resolve trait value IDs to the synonym set each belongs to. */
+export async function selectSynonymSetIdsByTraitValueIds(
+  tx: TxOrDb,
+  traitValueIds: number[],
+): Promise<Map<number, { synonymSetId: number; characterId: number }>> {
+  if (!traitValueIds.length) return new Map();
+
+  const rows = await tx
+    .select({
+      id: valsTbl.id,
+      synonymSetId: valsTbl.synonymSetId,
+      characterId: valsTbl.characterId,
+    })
+    .from(valsTbl)
+    .where(inArray(valsTbl.id, Array.from(new Set(traitValueIds))));
+
+  return new Map(
+    rows.map((row) => [
+      row.id,
+      { synonymSetId: row.synonymSetId, characterId: row.characterId },
+    ]),
+  );
+}
+
 /**
  * Every label belonging to a synonym set that has at least one label matching
  * `fq`, scoped to one character. Has an optional `excludeTraitId` which drops
@@ -212,6 +237,13 @@ export async function selectSynonymCandidateRows(
   { id: number; label: string; synonymSetId: number; similarity: number }[]
 > {
   const { characterId, excludeTraitId, fq } = args;
+
+  // Pin to more ideal similarity threshold
+  if (fq) {
+    await tx.execute(
+      sql.raw(`SET LOCAL pg_trgm.similarity_threshold = ${SIM_THRESHOLD}`),
+    );
+  }
 
   const inScope = [eq(valsTbl.characterId, characterId)];
   if (excludeTraitId !== undefined) {

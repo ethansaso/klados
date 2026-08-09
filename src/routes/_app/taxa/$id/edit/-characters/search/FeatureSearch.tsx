@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
 import type { ComboboxOption } from "../../../../../../../components/inputs/combobox/types";
-import { featuresQueryOptions } from "../../../../../../../lib/queries/features";
+import { featureSuggestionsQueryOptions } from "../../../../../../../lib/queries/suggestions";
 
 export const FEATURE_SEARCH_INPUT_ID = "feature-search";
 
@@ -19,12 +19,8 @@ export const FeatureSearch = ({
 }: FeatureSearchProps) => {
   const [searchQ, setSearchQ] = React.useState("");
 
-  // First page of features, filtered by q.
-  const { data, isLoading } = useQuery(
-    featuresQueryOptions(1, 20, searchQ ? { q: searchQ } : undefined),
-  );
-  const featureQueryResults = data?.items ?? [];
-  const options: ComboboxOption[] = featureQueryResults.map((f) => ({
+  const { data, isLoading } = useQuery(featureSuggestionsQueryOptions(searchQ));
+  const options: ComboboxOption[] = (data ?? []).map((f) => ({
     id: f.id,
     label: f.label,
     hint: f.description ?? undefined,

@@ -5,3 +5,26 @@
     min-width: 320px;
   }
 }
+
+/* Transition 0fr to 1fr */
+.taxa-filters {
+  display: grid;
+  grid-template-rows: 0fr;
+  width: 100%;
+  visibility: hidden; /* for screen readers */
+  transition:
+    grid-template-rows 250ms ease-in-out,
+    margin-bottom 250ms ease-in-out,
+    visibility 250ms;
+}
+
+.taxa-filters[data-open="true"] {
+  grid-template-rows: 1fr;
+  margin-bottom: var(--space-6);
+  visibility: visible;
+}
+
+.taxa-filters > * {
+  min-height: 0;
+  overflow: hidden;
+}

@@ -4,10 +4,18 @@ import { db } from "../../../../db/client";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import { assertHierarchyInvariant } from "../../utils/assertHierarchyInvariant";
+import { selectFeatureIdsByCharacterIds } from "../characters/repo";
+import { getFeatureDescendantIds } from "../features/repo";
 import { replaceGroupedCharacterStatesForTaxon } from "../states/repo";
 import { replaceNamesForTaxon } from "../taxon-names/repo";
 import type { NameItem } from "../taxon-names/validation";
 import { setSourcesForTaxon } from "../taxon-sources/repo";
+import { selectSynonymSetIdsByTraitValueIds } from "../traits/repo";
+import {
+  listUnitFamiliesQuery,
+  selectCharacterUnitRequirements,
+} from "../units/repo";
+import { convertToSI, unitFitsCharacter } from "../units/utils";
 import {
   deleteTaxonById,
   fetchTaxonDetailById,
@@ -20,6 +28,7 @@ import {
   selectTaxonDtosByIds,
   updateTaxonRow,
   updateTaxonStatusAndReplacement,
+  type ResolvedFilter,
 } from "./repo";
 import type { TaxonSearchParams } from "./search";
 import type {
@@ -96,10 +105,10 @@ export async function deleteTaxon(args: {
 }
 
 /**
- * Deprecate an active taxon, optionally pointing to a replacement.
+ * Archive an active taxon, optionally pointing to a replacement.
  * Returns the updated TaxonDTO, or null if the taxon does not exist.
  */
-export async function deprecateTaxon(args: {
+export async function archiveTaxon(args: {
   id: number;
   replacedById?: number | null;
 }): Promise<TaxonDTO | null> {
@@ -112,7 +121,7 @@ export async function deprecateTaxon(args: {
     }
 
     if (current.status !== "active") {
-      throw new Error("Only active taxa can be deprecated.");
+      throw new Error("Only active taxa can be archived.");
     }
 
     // Don't allow deprecating with active children
@@ -123,7 +132,7 @@ export async function deprecateTaxon(args: {
     const activeChildren = activeChildrenRows[0]?.activeChildren ?? 0;
 
     if (Number(activeChildren) > 0) {
-      throw new Error("Cannot deprecate a taxon that has active children.");
+      throw new Error("Cannot archived a taxon that has active children.");
     }
 
     if (replacedById) {
@@ -142,7 +151,7 @@ export async function deprecateTaxon(args: {
 
     const dto = await updateTaxonStatusAndReplacement(tx, {
       id,
-      status: "deprecated",
+      status: "archived",
       replacedById: replacedById ?? null,
     });
 
@@ -173,11 +182,154 @@ export async function getTaxaByIds(ids: number[]): Promise<TaxonDTO[]> {
 
 /**
  * List taxa with optional search, status filter and IDs, paginated.
+ *
+ * Widens feature filters to feature + recursive sub-features so
+ * e.g. "cap" still matches for the filter "sporocarp" if "sporocarp"
+ * isn't explicitly present on a taxon.
  */
 export async function listTaxa(
   args: TaxonSearchParams,
 ): Promise<TaxonPaginatedResult> {
-  return listTaxaQuery(args);
+  return listTaxaQuery(args, { filters: await resolveFilters(args.filters) });
+}
+
+/**
+ * Turn URL tokens into resolved predicates. Order preserved, invalid dropped. Rules:
+ * * features -> ancestry closure,
+ * * categorical values -> synonym set,
+ * * numeric -> SI.
+ */
+async function resolveFilters(
+  tokens: TaxonSearchParams["filters"],
+): Promise<ResolvedFilter[]> {
+  if (!tokens.length) return [];
+
+  const featureIds = tokens
+    .filter((token) => token.k === "f")
+    .map((token) => token.f);
+
+  const numericCharacterIds = tokens
+    .filter((token) => token.k === "n")
+    .map((token) => token.c);
+
+  const [
+    closureByRoot,
+    {
+      synonymSetByValue,
+      unitRequirements,
+      featuresByCharacter,
+      scaleByUnit,
+      familyByUnit,
+    },
+  ] = await Promise.all([
+    featureIds.length
+      ? getFeatureDescendantIds(featureIds)
+      : new Map<number, number[]>(),
+    // Sequential: one transaction is one connection, so these can't overlap.
+    db.transaction(async (tx) => {
+      const synonymSetByValue = await selectSynonymSetIdsByTraitValueIds(
+        tx,
+        tokens.filter((token) => token.k === "c").map((token) => token.t),
+      );
+
+      const unitRequirements = await selectCharacterUnitRequirements(
+        tx,
+        numericCharacterIds,
+      );
+
+      const featuresByCharacter = await selectFeatureIdsByCharacterIds(
+        tx,
+        tokens.filter((token) => token.k !== "f").map((token) => token.c),
+      );
+
+      const families = numericCharacterIds.length
+        ? await listUnitFamiliesQuery(tx)
+        : [];
+
+      return {
+        synonymSetByValue,
+        unitRequirements,
+        featuresByCharacter,
+        scaleByUnit: new Map(
+          families.flatMap((family) =>
+            family.units.map((unit) => [unit.id, unit.scale] as const),
+          ),
+        ),
+        familyByUnit: new Map(
+          families.flatMap((family) =>
+            family.units.map((unit) => [unit.id, family.id] as const),
+          ),
+        ),
+      };
+    }),
+  ]);
+
+  return tokens.flatMap((token): ResolvedFilter[] => {
+    if (token.k === "f") {
+      const closure = closureByRoot.get(token.f) ?? [];
+      if (closure.length === 0) return [];
+      return [{ kind: "feature", featureIds: closure }];
+    }
+
+    // A character w/o attachment to the named feature can't have states for it.
+    if (
+      token.f !== undefined &&
+      !featuresByCharacter.get(token.c)?.has(token.f)
+    ) {
+      return [];
+    }
+
+    if (token.k === "c") {
+      const traitValue = synonymSetByValue.get(token.t);
+
+      // Also drops an unknown character: no value can belong to one.
+      if (traitValue === undefined || traitValue.characterId !== token.c) {
+        return [];
+      }
+
+      return [
+        {
+          kind: "categorical",
+          featureId: token.f,
+          characterId: token.c,
+          synonymSetId: traitValue.synonymSetId,
+        },
+      ];
+    }
+
+    // Make sure correct unit actually provided, if applicable
+    const fits = unitFitsCharacter(
+      token.u,
+      token.u === undefined ? undefined : familyByUnit.get(token.u),
+      unitRequirements.get(token.c),
+    );
+    if (!fits) return [];
+
+    // A dimensionless value is already in base units, so there is nothing to
+    // convert and no unit to resolve.
+    if (token.u === undefined) {
+      return [
+        {
+          kind: "numeric",
+          featureId: token.f,
+          characterId: token.c,
+          siValue: token.v,
+        },
+      ];
+    }
+
+    const scale = scaleByUnit.get(token.u);
+    if (scale === undefined) return [];
+
+    return [
+      {
+        kind: "numeric",
+        featureId: token.f,
+        characterId: token.c,
+        siValue: convertToSI(token.v, scale),
+      },
+    ];
+  });
 }
 
 /**
@@ -247,8 +399,8 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
   return db.transaction(async (tx) => {
     const current = await getCurrentTaxonMinimal(tx, id);
     if (!current) throw notFound();
-    if (current.status === "deprecated") {
-      throw new Error("Deprecated taxa cannot be updated.");
+    if (current.status === "archived") {
+      throw new Error("Archived taxa cannot be updated.");
     }
 
     const nextParentId =
@@ -302,15 +454,13 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
     if (mediaIds !== undefined) {
       await tx.delete(taxonMediaTbl).where(eq(taxonMediaTbl.taxonId, id));
       if (mediaIds.length > 0) {
-        await tx
-          .insert(taxonMediaTbl)
-          .values(
-            mediaIds.map((mediaId, position) => ({
-              taxonId: id,
-              mediaId,
-              position,
-            })),
-          );
+        await tx.insert(taxonMediaTbl).values(
+          mediaIds.map((mediaId, position) => ({
+            taxonId: id,
+            mediaId,
+            position,
+          })),
+        );
       }
     }
 

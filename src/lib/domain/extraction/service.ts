@@ -15,9 +15,9 @@ import { listAllModifiers } from "../modifiers/service";
 import { searchCategoricalSuggestions } from "../suggestions/service";
 import { listAllTraitValuesByCharacters } from "../traits/service";
 
-import { convertToSI } from "../units/conversion";
 import { listUnitFamilies } from "../units/service";
 import type { UnitDTO } from "../units/types";
+import { convertToSI } from "../units/utils";
 import {
   type ExtractionGlossary,
   type PerFeatureGlossary,
@@ -870,7 +870,7 @@ async function fuzzyMatchUnmatched(
       qualifiers: [],
     });
     console.log(
-      `[extraction] Fuzzy matched "${entry.text}" → ${best.featureLabel} > ${best.characterLabel} > "${best.traitValueLabel}"`,
+      `[extraction] Fuzzy matched "${entry.text}" > ${best.characterLabel} > "${best.traitValueLabel}"`,
     );
     resolved++;
   }

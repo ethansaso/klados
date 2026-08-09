@@ -1,0 +1,2 @@
+CREATE INDEX "trait_values_label_trgm_idx" ON "categorical_trait_value" USING gin (lower("label") gin_trgm_ops);--> statement-breakpoint
+CREATE INDEX "trait_values_label_norm_trgm_idx" ON "categorical_trait_value" USING gin (regexp_replace(lower("label"), '[^a-z0-9]+', ' ', 'g') gin_trgm_ops);

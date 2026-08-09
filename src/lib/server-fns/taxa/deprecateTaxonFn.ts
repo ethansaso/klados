@@ -2,10 +2,10 @@ import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
-import { deprecateTaxon as deprecateTaxonDomain } from "../../domain/taxa/service";
+import { archiveTaxon } from "../../domain/taxa/service";
 import type { TaxonDTO } from "../../domain/taxa/types";
 
-export const deprecateTaxonFn = createServerFn({ method: "POST" })
+export const archiveTaxonFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
   .validator(
     z.object({
@@ -14,7 +14,7 @@ export const deprecateTaxonFn = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }): Promise<TaxonDTO> => {
-    const dto = await deprecateTaxonDomain({
+    const dto = await archiveTaxon({
       id: data.id,
       replacedById: data.replacedById ?? null,
     });

@@ -6,7 +6,7 @@ export const StatusCallout = ({ status }: { status: TaxonStatus }) => {
 
   return (
     <Box asChild width="100%" mb="4">
-      <Callout.Root color={status === "deprecated" ? "tomato" : undefined}>
+      <Callout.Root color={status === "archived" ? "tomato" : undefined}>
         <Callout.Text>
           Heads up! This taxon is{" "}
           {status === "draft" ? "currently under review." : "not active."}

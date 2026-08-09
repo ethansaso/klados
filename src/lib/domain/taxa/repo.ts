@@ -7,6 +7,7 @@ import {
   exists,
   ilike,
   inArray,
+  or,
   sql,
   type SQL,
 } from "drizzle-orm";
@@ -14,6 +15,11 @@ import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "../../../../db/client";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
+import {
+  taxonCharacterStateCategorical as catStatesTbl,
+  taxonCharacterStateNumber as numStatesTbl,
+  taxonCharacterStateRange as rangeStatesTbl,
+} from "../../../../db/schema/taxa/characterStates";
 import { taxonFeatureState as featureStatesTbl } from "../../../../db/schema/taxa/featureStates";
 import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
@@ -375,9 +381,34 @@ export async function fetchTaxonDetailById(
 
 /**
  * List taxa with optional search + filters, paginated.
+ *
+ * Filters are ANDed. "feature" filter includes a closure over its ancestors,
+ * so e.g. 'sporocarp' is satisfied if a mushroom doesn't have 'sporocarp' described
+ * but does have 'stipe'.
  */
+export type ResolvedFilter =
+  | {
+      kind: "feature";
+      /** Pre-expanded closure: the feature plus its descendants. */
+      featureIds: number[];
+    }
+  | {
+      kind: "categorical";
+      /** Omitted matches the state on any feature. */
+      featureId?: number;
+      characterId: number;
+      synonymSetId: number;
+    }
+  | {
+      kind: "numeric";
+      featureId?: number;
+      characterId: number;
+      siValue: number;
+    };
+
 export async function listTaxaQuery(
   args: TaxonSearchParams,
+  opts: { filters: ResolvedFilter[] } = { filters: [] },
 ): Promise<TaxonPaginatedResult> {
   const {
     q,
@@ -430,6 +461,73 @@ export async function listTaxaQuery(
       )
     : undefined;
 
+  // Every filter kind reduces to one EXISTS against whichever state table
+  // holds it, so they can all be ANDed together as peers.
+  const filterPredicates = opts.filters.map((filter) => {
+    if (filter.kind === "feature") {
+      return exists(
+        db
+          .select({ _: sql`1` })
+          .from(featureStatesTbl)
+          .where(
+            and(
+              eq(featureStatesTbl.taxonId, taxaTbl.id),
+              inArray(featureStatesTbl.featureId, filter.featureIds),
+            ),
+          ),
+      );
+    }
+
+    if (filter.kind === "categorical") {
+      return exists(
+        db
+          .select({ _: sql`1` })
+          .from(catStatesTbl)
+          .innerJoin(
+            featureStatesTbl,
+            eq(featureStatesTbl.id, catStatesTbl.taxonFeatureStateId),
+          )
+          .where(
+            and(
+              eq(featureStatesTbl.taxonId, taxaTbl.id),
+              filter.featureId === undefined
+                ? undefined
+                : eq(catStatesTbl.featureId, filter.featureId),
+              eq(catStatesTbl.characterId, filter.characterId),
+              eq(catStatesTbl.synonymSetId, filter.synonymSetId),
+            ),
+          ),
+      );
+    }
+
+    // Containment, so range char "5 cm" finds a taxon recorded as 4-7 cm.
+    // For number chars, "4" also finds "4", e.g. basidia count.
+    const containsValue = (
+      table: typeof rangeStatesTbl | typeof numStatesTbl,
+    ) =>
+      exists(
+        db
+          .select({ _: sql`1` })
+          .from(table)
+          .innerJoin(
+            featureStatesTbl,
+            eq(featureStatesTbl.id, table.taxonFeatureStateId),
+          )
+          .where(
+            and(
+              eq(featureStatesTbl.taxonId, taxaTbl.id),
+              filter.featureId === undefined
+                ? undefined
+                : eq(table.featureId, filter.featureId),
+              eq(table.characterId, filter.characterId),
+              sql`${table.valueRange} @> ${filter.siValue}::numeric`,
+            ),
+          ),
+      );
+
+    return or(containsValue(rangeStatesTbl), containsValue(numStatesTbl))!;
+  });
+
   // When q is provided, filter on names.value (trigram index)
   if (like) {
     const filters: (SQL | undefined)[] = [
@@ -439,6 +537,7 @@ export async function listTaxaQuery(
       hasMediaFilter,
       hasMorphologyFilter,
       hasEcologyFilter,
+      ...filterPredicates,
     ];
     const where = and(...(filters.filter(Boolean) as SQL[]));
 
@@ -486,6 +585,7 @@ export async function listTaxaQuery(
     hasMediaFilter,
     hasMorphologyFilter,
     hasEcologyFilter,
+    ...filterPredicates,
   ];
   const where = and(...(baseFilters.filter(Boolean) as SQL[]));
 

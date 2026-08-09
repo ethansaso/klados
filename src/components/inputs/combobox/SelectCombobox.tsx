@@ -426,7 +426,7 @@ function Item({
           setOpen(false);
         }}
         style={{
-          padding: "6px var(--space-2)",
+          padding: "var(--space-1) var(--space-2)",
           borderRadius: 6,
           cursor: "pointer",
           background: active ? "var(--accent-3)" : "transparent",

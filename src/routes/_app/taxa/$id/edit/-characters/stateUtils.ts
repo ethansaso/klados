@@ -4,7 +4,7 @@ import type {
   NumericSingleSuggestion,
   TraitSuggestion,
 } from "../../../../../../lib/domain/suggestions/types";
-import { convertToSI } from "../../../../../../lib/domain/units/conversion";
+import { convertToSI } from "../../../../../../lib/domain/units/utils";
 import type {
   CharacterStateFormValue,
   GroupedCharacterFormValue,
@@ -23,9 +23,10 @@ function updateFeature(
 
 export function addCategoricalStateFromSuggestion(
   featureStates: GroupedCharacterFormValue,
+  featureId: number,
   suggestion: CategoricalValueSuggestion,
 ): GroupedCharacterFormValue {
-  return updateFeature(featureStates, suggestion.featureId, (current) => {
+  return updateFeature(featureStates, featureId, (current) => {
     return [
       ...current,
       {
@@ -45,9 +46,10 @@ export function addCategoricalStateFromSuggestion(
 
 export function addNumericSingleStateFromSuggestion(
   featureStates: GroupedCharacterFormValue,
+  featureId: number,
   suggestion: NumericSingleSuggestion,
 ): GroupedCharacterFormValue {
-  return updateFeature(featureStates, suggestion.featureId, (current) => {
+  return updateFeature(featureStates, featureId, (current) => {
     // Unitless (dimensionless) character
     if (suggestion.displayUnitId === null) {
       return [
@@ -91,9 +93,10 @@ export function addNumericSingleStateFromSuggestion(
 
 export function addNumericRangeStateFromSuggestion(
   featureStates: GroupedCharacterFormValue,
+  featureId: number,
   suggestion: NumericRangeSuggestion,
 ): GroupedCharacterFormValue {
-  return updateFeature(featureStates, suggestion.featureId, (current) => {
+  return updateFeature(featureStates, featureId, (current) => {
     // Unitless (dimensionless) character
     if (suggestion.displayUnitId === null) {
       return [
@@ -144,17 +147,31 @@ export function addNumericRangeStateFromSuggestion(
   });
 }
 
+/** The caller scoped the search to a feature, so it supplies that feature here. */
 export function addStateFromSuggestion(
   featureStates: GroupedCharacterFormValue,
+  featureId: number,
   suggestion: TraitSuggestion,
 ): GroupedCharacterFormValue {
   switch (suggestion.kind) {
     case "categorical-value":
-      return addCategoricalStateFromSuggestion(featureStates, suggestion);
+      return addCategoricalStateFromSuggestion(
+        featureStates,
+        featureId,
+        suggestion,
+      );
     case "numeric-single":
-      return addNumericSingleStateFromSuggestion(featureStates, suggestion);
+      return addNumericSingleStateFromSuggestion(
+        featureStates,
+        featureId,
+        suggestion,
+      );
     case "numeric-range":
-      return addNumericRangeStateFromSuggestion(featureStates, suggestion);
+      return addNumericRangeStateFromSuggestion(
+        featureStates,
+        featureId,
+        suggestion,
+      );
   }
 }
 
@@ -167,7 +184,8 @@ export function removeCategoricalTraitValue(
   return updateFeature(featureStates, groupId, (current) => {
     let catSeen = -1;
     return current.filter((row) => {
-      if (row.kind !== "categorical" || row.characterId !== characterId) return true;
+      if (row.kind !== "categorical" || row.characterId !== characterId)
+        return true;
       catSeen += 1;
       return catSeen !== stateIndex;
     });
@@ -184,7 +202,8 @@ export function updateCategoricalTraitValueModifiers(
   return updateFeature(featureStates, featureId, (current) => {
     let catSeen = -1;
     return current.map((row) => {
-      if (row.kind !== "categorical" || row.characterId !== characterId) return row;
+      if (row.kind !== "categorical" || row.characterId !== characterId)
+        return row;
       catSeen += 1;
       if (catSeen !== stateIndex) return row;
       return { ...row, modifiers };

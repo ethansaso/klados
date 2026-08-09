@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useId, useRef, useState } from "react";
 import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
 import type { TraitSuggestion } from "../../../../../../../lib/domain/suggestions/types";
-import { listCharacterStateSuggestionsFn } from "../../../../../../../lib/server-fns/character-suggestions/listCharacterStateSuggestionsFn";
+import { listCharacterStateSuggestionsFn } from "../../../../../../../lib/server-fns/suggestions/listCharacterStateSuggestionsFn";
 
 type FeatureStateSearchProps = {
   featureId: number;

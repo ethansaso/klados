@@ -9,10 +9,18 @@ import { listFeaturesFn } from "../server-fns/features/listFeaturesFn";
 export const featuresQueryOptions = (
   page: number,
   pageSize: number,
-  opts?: { q?: string },
+  opts?: { q?: string; ids?: number[] },
 ) =>
   queryOptions<FeaturePaginatedResult>({
-    queryKey: ["features", { page, pageSize, q: opts?.q ?? null }],
+    queryKey: [
+      "features",
+      {
+        page,
+        pageSize,
+        q: opts?.q ?? null,
+        ids: opts?.ids ? [...opts.ids].sort((a, b) => a - b) : null,
+      },
+    ],
     queryFn: () => listFeaturesFn({ data: { page, pageSize, ...opts } }),
   });
 
