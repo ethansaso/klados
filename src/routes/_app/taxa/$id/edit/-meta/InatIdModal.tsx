@@ -26,6 +26,7 @@ const INTERNAL_RANK_TO_INAT_MAPPING: Record<
   domain: null,
   kingdom: "kingdom",
   phylum: "phylum",
+  subphylum: "subphylum",
   class: "class",
   subclass: "subclass",
   superorder: "superorder",
