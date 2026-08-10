@@ -1,0 +1,30 @@
+.feature-strip {
+  background-color: var(--accent-a2);
+
+  .feature-strip__list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-6);
+    width: 100%;
+    max-width: 1080px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      /* Shrinkable so a narrow viewport fits two per row before wrapping to
+         one; wrapped rows stay centred rather than orphaning to the left. */
+      flex: 0 1 176px;
+    }
+  }
+
+  .feature-strip__icon {
+    color: var(--accent-11);
+    margin-bottom: var(--space-3);
+  }
+}

@@ -6,6 +6,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { summaryStatsQueryOptions } from "../../lib/queries/stats";
 import { routeSeo } from "../../lib/utils/head/routeSeo";
+import { FeatureStrip } from "./-index-resources/FeatureStrip";
 import { FinalCTA } from "./-index-resources/FinalCTA";
 import { GuideDemo } from "./-index-resources/GuideDemo";
 import { HeroSection } from "./-index-resources/HeroSection";
@@ -32,6 +33,7 @@ function Home() {
   return (
     <Flex direction="column" align="center">
       <HeroSection />
+      <FeatureStrip />
       <GuideDemo />
       <Separator size="4" />
       <PurposeSection />
