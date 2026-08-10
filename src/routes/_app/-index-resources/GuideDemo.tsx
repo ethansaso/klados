@@ -18,6 +18,7 @@ export const GuideDemo = () => {
           gap={{ initial: "6", sm: "9" }}
           align="center"
         >
+          <GuideDemoCanvas />
           <Box maxWidth={{ sm: "380px" }}>
             <Heading as="h2" size={{ initial: "7", sm: "8" }} mb="4">
               A Clearer Way to Navigate Biodiversity
@@ -39,7 +40,6 @@ export const GuideDemo = () => {
               </Button>
             </Box>
           </Box>
-          <GuideDemoCanvas />
         </Flex>
       </Container>
     </Box>

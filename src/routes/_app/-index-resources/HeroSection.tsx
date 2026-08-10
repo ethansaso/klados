@@ -39,17 +39,34 @@ export const HeroSection = () => {
           align={{ initial: "left", xs: "center" }}
           className="hero-text"
         >
-          Browse thousands of species and explore interactive,
-          community-maintained guides built from real biological data.
+          Explore thousands of species using interactive resources grounded in
+          structured, biological data.
         </Text>
-        <Box asChild width={{ initial: "100%", xs: "auto" }}>
-          <Button size={{ initial: "3", sm: "4" }} asChild radius="full">
-            <Link to="/taxa">
-              Browse Species
-              <PiArrowRight />
-            </Link>
-          </Button>
-        </Box>
+        <Flex gap="3">
+          <Box asChild width={{ initial: "100%", xs: "auto" }}>
+            <Button size={{ initial: "3", sm: "4" }} asChild radius="full">
+              <Link to="/taxa">
+                Browse Species
+                <PiArrowRight />
+              </Link>
+            </Button>
+          </Box>
+          <Box asChild width={{ initial: "100%", xs: "auto" }}>
+            <Button
+              size={{ initial: "3", sm: "4" }}
+              asChild
+              radius="full"
+              highContrast
+              variant="surface"
+              color="gray"
+            >
+              <Link to="/guides">
+                Explore guides
+                <PiArrowRight />
+              </Link>
+            </Button>
+          </Box>
+        </Flex>
       </Flex>
     </Flex>
   );

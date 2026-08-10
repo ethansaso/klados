@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_app/users/$username/")({
     if (me?.username === effectiveUsername) isMe = true;
 
     await context.queryClient.ensureQueryData(
-      userQueryOptions(effectiveUsername),
+      userQueryOptions(effectiveUsername)
     );
 
     return { effectiveUsername, isMe };
@@ -84,7 +84,7 @@ function UserProfilePage() {
             {user.banned
               ? "This user has been banned for violating our terms of service."
               : (user.description ??
-                `${preferredDisplay(user)} has not added a description yet.`)}
+                `${preferredDisplay(user)} hasn't added a description yet.`)}
           </p>
         </div>
       </section>

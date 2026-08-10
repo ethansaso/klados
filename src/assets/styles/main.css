@@ -8,9 +8,11 @@
 
 :root,
 .radix-themes {
-  --default-font-family:
-    "Open Sans", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue",
+  --ff-declaration: "Open Sans", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue",
     Arial, "Noto Sans";
+  --default-font-family: var(--ff-declaration);
+  --em-font-family: var(--ff-declaration);
+  --em-font-size-adjust: 1.18;
 }
 
 .radix-themes[data-is-root-theme="true"] {
