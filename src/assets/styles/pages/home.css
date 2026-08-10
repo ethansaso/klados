@@ -83,3 +83,97 @@
   background-color: var(--gray-12);
   color: var(--gray-1);
 }
+
+/* Annotated species card on the home page */
+.description-demo {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
+
+  .description-demo__card {
+    width: 256px;
+    margin-inline: auto;
+  }
+
+  .description-demo__annotations {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    text-align: center;
+  }
+
+  .description-demo__lines {
+    display: none;
+  }
+}
+
+/* Radix `lg`, the breakpoint where the container is wide enough to fit
+   the 640px design space. */
+@media (min-width: 1280px) {
+  .description-demo {
+    height: 300px;
+    width: 640px;
+    flex: 0 0 auto;
+
+    .description-demo__annotations {
+      display: contents;
+    }
+
+    .description-demo__lines {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .description-demo__lead--outer,
+    .description-demo__lead--inner {
+      fill: none;
+      stroke-width: 1;
+      stroke-linecap: round;
+    }
+
+    .description-demo__lead--outer {
+      stroke: var(--gray-a8);
+    }
+
+    .description-demo__lead--inner,
+    .description-demo__lead-dot {
+      stroke: none;
+      fill: rgb(255 255 255 / 0.9);
+    }
+
+    .description-demo__lead--inner {
+      fill: none;
+      stroke: rgb(255 255 255 / 0.9);
+    }
+
+    .description-demo__label {
+      position: absolute;
+      width: 176px;
+    }
+
+    .description-demo__label--cap {
+      left: 0;
+      top: 20px;
+      text-align: right;
+    }
+
+    .description-demo__label--gills {
+      right: 0;
+      top: 54px;
+      text-align: left;
+    }
+
+    .description-demo__label--stipe {
+      left: 0;
+      top: 140px;
+      text-align: right;
+    }
+  }
+}
