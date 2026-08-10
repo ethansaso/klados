@@ -10,8 +10,7 @@ import { FeatureStrip } from "./-index-resources/FeatureStrip";
 import { FinalCTA } from "./-index-resources/FinalCTA";
 import { GuideDemo } from "./-index-resources/GuideDemo";
 import { HeroSection } from "./-index-resources/HeroSection";
-import { PurposeSection } from "./-index-resources/PurposeSection";
-import { StatsFeatureGrid } from "./-index-resources/StatsFeatureGrid";
+import { StatsFeatureGrid } from "./-index-resources/StatsGrid";
 
 export const Route = createFileRoute("/_app/")({
   beforeLoad: async ({ context }) => {
@@ -35,8 +34,6 @@ function Home() {
       <HeroSection />
       <FeatureStrip />
       <GuideDemo />
-      <Separator size="4" />
-      <PurposeSection />
       <Separator size="4" />
       <StatsFeatureGrid summaryStats={summaryStats} />
       <FinalCTA />

@@ -2,19 +2,19 @@ import "./FeatureStrip.css";
 
 import { Box, Flex, Heading, Text } from "@radix-ui/themes";
 import {
-  PiArticle,
   PiBrowsers,
   PiGlobeHemisphereWest,
+  PiNewspaperClipping,
   PiNotePencil,
   PiTreeStructure,
 } from "react-icons/pi";
+import { RouterRadixLink } from "../../../components/RouterRadixLink";
 
-/** Each entry completes the sentence in the heading above the strip. */
 const CAPABILITIES = [
   {
-    icon: PiArticle,
+    icon: PiNewspaperClipping,
     verb: "Learn",
-    object: "diverse morphological descriptions",
+    object: "biodiversity through visual resources",
   },
   {
     icon: PiBrowsers,
@@ -29,7 +29,12 @@ const CAPABILITIES = [
   {
     icon: PiNotePencil,
     verb: "Author",
-    object: "guides and glossary entries",
+    object: "guides and descriptions",
+    extras: (
+      <RouterRadixLink to="/curators/new" size="1" highContrast mt="1">
+        (apply to be a curator!)
+      </RouterRadixLink>
+    ),
   },
   {
     icon: PiGlobeHemisphereWest,
@@ -53,7 +58,7 @@ export const FeatureStrip = () => {
       </Heading>
       <Box asChild>
         <ul className="feature-strip__list">
-          {CAPABILITIES.map(({ icon: Icon, verb, object }) => (
+          {CAPABILITIES.map(({ icon: Icon, verb, object, extras }) => (
             <li key={verb}>
               <Icon className="feature-strip__icon" aria-hidden size="4rem" />
               <Heading as="h3" size="4" mb="1">
@@ -62,6 +67,7 @@ export const FeatureStrip = () => {
               <Text as="p" size="2" color="gray">
                 {object}
               </Text>
+              {extras && extras}
             </li>
           ))}
         </ul>

@@ -10,7 +10,7 @@ export const HeroSection = () => {
       justify="center"
       py="7"
       px="6"
-      minHeight={{ initial: "60svh", sm: "496px" }}
+      minHeight={{ initial: "60svh", sm: "512px" }}
       width="100%"
       style={{
         backgroundImage: "url(/about/forest-bg.webp)",
@@ -74,7 +74,7 @@ export const HeroSection = () => {
                   asChild
                   radius="full"
                   highContrast
-                  variant="surface"
+                  variant="solid"
                   color="gray"
                 >
                   <Link to="/guides">

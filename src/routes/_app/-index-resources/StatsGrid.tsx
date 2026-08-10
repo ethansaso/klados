@@ -1,6 +1,7 @@
 import { Box, Flex, Heading, Text } from "@radix-ui/themes";
 import { PiDna, PiTreeStructure, PiUsersThree } from "react-icons/pi";
 import { type SummaryStatsDTO } from "../../../lib/domain/stats/types";
+import "./StatsGrid.css";
 
 interface StatsFeatureGridProps {
   summaryStats: SummaryStatsDTO;
@@ -29,19 +30,16 @@ export const StatsFeatureGrid = ({ summaryStats }: StatsFeatureGridProps) => {
 
   return (
     <Flex direction="column" align="center" py="8" px="6" width="100%">
-      <Heading as="h2" mb="5" size={{ initial: "7", sm: "8" }} align="center">
-        Our community in numbers
-      </Heading>
-      <Box className="feature-grid">
+      <Box className="stats-grid">
         {stats.map(({ icon: Icon, count, label }) => (
-          <Box className="feature-grid__item" key={label(count)}>
-            <Box className="feature-icon__container">
-              <Icon className="feature-icon" />
+          <Box className="stats-grid__item" key={label(count)}>
+            <Box className="stats-icon__container">
+              <Icon className="stats-icon" />
             </Box>
-            <Heading as="h3" size="6">
+            <Heading as="h3" size="7">
               {count.toLocaleString()}
             </Heading>
-            <Text>{label(count)}</Text>
+            <Text size="4">{label(count)}</Text>
           </Box>
         ))}
       </Box>
