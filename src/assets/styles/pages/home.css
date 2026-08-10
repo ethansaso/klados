@@ -5,6 +5,21 @@
   }
 }
 
+/* The figure needs a definite width: a content-derived one feeds back into its
+   own container query and collapses the flex item. */
+.hero-figure {
+  width: 100%;
+  max-width: 672px;
+  min-width: 0;
+}
+
+@media (min-width: 1640px) {
+  .hero-figure {
+    flex: none;
+    width: 672px;
+  }
+}
+
 .hero-text {
   text-shadow:
     0px 1px 2px rgb(0 0 0 / 0.1),
@@ -85,11 +100,32 @@
 }
 
 /* Annotated species card on the home page */
+.description-demo__figure {
+  width: 100%;
+  max-width: 672px;
+  margin-inline: auto;
+  padding: var(--space-4);
+  /* The callout layout depends on the room this figure actually has, not on
+     the viewport — it sits in a split column in one place and a full-width
+     stack in another. */
+  container-type: inline-size;
+}
+
+.description-demo__figure--framed {
+  border: 1px solid var(--gray-6);
+  border-radius: var(--radius-3);
+  background-color: var(--gray-a2);
+}
+
 .description-demo {
   position: relative;
   width: 100%;
   max-width: 640px;
   margin-inline: auto;
+
+  .has-information {
+    text-decoration-color: unset;
+  }
 
   .description-demo__card {
     width: 256px;
@@ -112,6 +148,10 @@
 /* Radix `lg`, the breakpoint where the container is wide enough to fit
    the 640px design space. */
 @media (min-width: 1280px) {
+  .description-demo__figure {
+    flex: 0 0 auto;
+  }
+
   .description-demo {
     height: 300px;
     width: 640px;

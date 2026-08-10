@@ -7,44 +7,43 @@ interface StatsFeatureGridProps {
 }
 
 export const StatsFeatureGrid = ({ summaryStats }: StatsFeatureGridProps) => {
+  const stats = [
+    {
+      icon: PiDna,
+      count: summaryStats.taxaCount,
+      label: (n: number) =>
+        n === 1 ? "Taxon in database" : "Taxa in database",
+    },
+    {
+      icon: PiUsersThree,
+      count: summaryStats.memberCount,
+      label: (n: number) =>
+        n === 1 ? "Community member" : "Community members",
+    },
+    {
+      icon: PiTreeStructure,
+      count: summaryStats.guidesCount,
+      label: (n: number) => (n === 1 ? "Guide published" : "Guides published"),
+    },
+  ];
+
   return (
     <Flex direction="column" align="center" py="8" px="6" width="100%">
-      <Heading
-        as="h2"
-        mb="5"
-        size={{ initial: "7", sm: "8" }}
-        align={{ initial: "center", sm: "left" }}
-      >
-        Our Community in Numbers
+      <Heading as="h2" mb="5" size={{ initial: "7", sm: "8" }} align="center">
+        Our community in numbers
       </Heading>
       <Box className="feature-grid">
-        <Box className="feature-grid__item">
-          <Box className="feature-icon__container">
-            <PiDna className="feature-icon" />
+        {stats.map(({ icon: Icon, count, label }) => (
+          <Box className="feature-grid__item" key={label(count)}>
+            <Box className="feature-icon__container">
+              <Icon className="feature-icon" />
+            </Box>
+            <Heading as="h3" size="6">
+              {count.toLocaleString()}
+            </Heading>
+            <Text>{label(count)}</Text>
           </Box>
-          <Heading as="h3" size="6">
-            {summaryStats.taxaCount.toLocaleString()}
-          </Heading>
-          <Text>Taxa in Database</Text>
-        </Box>
-        <Box className="feature-grid__item">
-          <Box className="feature-icon__container">
-            <PiUsersThree className="feature-icon" />
-          </Box>
-          <Heading as="h3" size="6">
-            {summaryStats.memberCount.toLocaleString()}
-          </Heading>
-          <Text>Community Members</Text>
-        </Box>
-        <Box className="feature-grid__item">
-          <Box className="feature-icon__container">
-            <PiTreeStructure className="feature-icon" />
-          </Box>
-          <Heading as="h3" size="6">
-            {summaryStats.guidesCount.toLocaleString()}
-          </Heading>
-          <Text>Guides Published</Text>
-        </Box>
+        ))}
       </Box>
     </Flex>
   );

@@ -21,7 +21,7 @@ export const GuideDemo = () => {
           <GuideDemoCanvas />
           <Box maxWidth={{ sm: "380px" }}>
             <Heading as="h2" size={{ initial: "7", sm: "8" }} mb="4">
-              A Clearer Way to Navigate Biodiversity
+              Visual-first identification guides
             </Heading>
             <Text as="p" mb="3" size="4">
               Klados turns complex morphological data into clear, readable

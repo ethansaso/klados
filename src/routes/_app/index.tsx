@@ -11,7 +11,6 @@ import { GuideDemo } from "./-index-resources/GuideDemo";
 import { HeroSection } from "./-index-resources/HeroSection";
 import { PurposeSection } from "./-index-resources/PurposeSection";
 import { StatsFeatureGrid } from "./-index-resources/StatsFeatureGrid";
-import { DescriptionSection } from "./-index-resources/DescriptionSection";
 
 export const Route = createFileRoute("/_app/")({
   beforeLoad: async ({ context }) => {
@@ -33,8 +32,6 @@ function Home() {
   return (
     <Flex direction="column" align="center">
       <HeroSection />
-      <DescriptionSection />
-      <Separator size="4" />
       <GuideDemo />
       <Separator size="4" />
       <PurposeSection />

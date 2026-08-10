@@ -16,7 +16,7 @@ export const PurposeSection = () => {
       className="purpose-section"
     >
       <Heading as="h2" mb="5" size={{ initial: "7", sm: "8" }} align="center">
-        How Klados Helps You Learn
+        How Klados helps you learn
       </Heading>
       <Grid
         columns={{ initial: "1", sm: "2" }}
@@ -30,7 +30,7 @@ export const PurposeSection = () => {
             <PiBookOpenUser />
             <Box>
               <Heading as="h3" size="5" mb="2">
-                Browse Species
+                Browse species
               </Heading>
               <Text size="4">
                 Explore diverse species with rich images, descriptions, and
@@ -42,7 +42,7 @@ export const PurposeSection = () => {
             <PiGraphFill />
             <Box>
               <Heading as="h3" size="5" mb="2">
-                Follow Visual Guides
+                Follow visual guides
               </Heading>
               <Text size="4">
                 Use interactive, flowchart-style guides to identify organisms
@@ -54,7 +54,7 @@ export const PurposeSection = () => {
             <PiBrowsers />
             <Box>
               <Heading as="h3" size="5" mb="2">
-                Compare Lookalikes
+                Compare lookalikes
               </Heading>
               <Text size="4">
                 Visualize side-by-side comparisons of similar species to spot
@@ -66,7 +66,7 @@ export const PurposeSection = () => {
             <PiBrain />
             <Box>
               <Heading as="h3" size="5" mb="2">
-                Contribute to Biodiversity Knowledge
+                Contribute to biodiversity knowledge
               </Heading>
               <Text size="4">
                 Know a group of species well? Make a guide and share your

@@ -19,7 +19,7 @@ export const FinalCTA = () => {
         <Box asChild width={{ initial: "100%", xs: "auto" }}>
           <Button type="button" size="4" radius="full" asChild>
             <Text weight="bold" asChild>
-              <Link to="/signup">Join Now</Link>
+              <Link to="/signup">Join now</Link>
             </Text>
           </Button>
         </Box>
