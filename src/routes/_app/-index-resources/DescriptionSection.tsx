@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Card,
   Container,
   Em,
@@ -10,9 +9,6 @@ import {
   Strong,
   Text,
 } from "@radix-ui/themes";
-import { Link } from "@tanstack/react-router";
-import { PiArrowRightBold } from "react-icons/pi";
-import { GuideDemoCanvas } from "../../../components/react-flow-guides/demo/GuideDemoCanvas";
 
 export const DescriptionSection = () => {
   return (
@@ -34,11 +30,11 @@ export const DescriptionSection = () => {
               Descriptions that teach themselves
             </Heading>
             <Text as="p" mb="3" size="4">
-              Klados' descriptions draw from a rich glossary of images and
-              descriptions
+              Klados' descriptions draw from a rich glossary of educational text
+              and imagery.
             </Text>
             <Text as="p" mb="5" size="4">
-              TODO
+              This keeps jargon from raising the barrier to entry.
             </Text>
           </Box>
           <Box>

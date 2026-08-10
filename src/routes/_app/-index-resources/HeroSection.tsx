@@ -24,7 +24,7 @@ export const HeroSection = () => {
       <Flex
         direction="column"
         align={{ initial: "start", xs: "center" }}
-        gap="4"
+        gap="5"
         maxWidth="600px"
       >
         <Heading
