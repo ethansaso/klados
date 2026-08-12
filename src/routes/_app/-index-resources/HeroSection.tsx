@@ -10,7 +10,7 @@ export const HeroSection = () => {
       justify="center"
       py="7"
       px="6"
-      minHeight={{ initial: "60svh", sm: "512px" }}
+      minHeight={{ initial: "60svh", sm: "528px" }}
       width="100%"
       style={{
         backgroundImage: "url(/about/forest-bg.webp)",
@@ -18,7 +18,7 @@ export const HeroSection = () => {
         backgroundPosition: "0 50%",
         // darken by 50%
         backgroundBlendMode: "darken",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        backgroundColor: "rgba(0, 0, 0, 0.6)",
       }}
     >
       <Flex
@@ -43,7 +43,7 @@ export const HeroSection = () => {
             mb="2"
             className="hero-text"
           >
-            A structured language for identification.
+            A shared language for identification.
           </Heading>
           <Text
             size={{ initial: "5", sm: "6" }}
@@ -52,7 +52,7 @@ export const HeroSection = () => {
             className="hero-text"
           >
             Explore biodiversity using interactive resources grounded in
-            biological data.
+            structured, biological data.
           </Text>
           <Flex
             gap="3"

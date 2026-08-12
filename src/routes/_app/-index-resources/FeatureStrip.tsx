@@ -14,17 +14,17 @@ const CAPABILITIES = [
   {
     icon: PiNewspaperClipping,
     verb: "Learn",
-    object: "biodiversity through visual resources",
-  },
-  {
-    icon: PiBrowsers,
-    verb: "Compare",
-    object: "species lookalikes side-by-side",
+    object: "biodiversity through visual descriptions",
   },
   {
     icon: PiTreeStructure,
     verb: "Identify",
     object: "using visual, flowchart-style guides",
+  },
+  {
+    icon: PiBrowsers,
+    verb: "Compare",
+    object: "species lookalikes side-by-side",
   },
   {
     icon: PiNotePencil,
@@ -60,7 +60,7 @@ export const FeatureStrip = () => {
         <ul className="feature-strip__list">
           {CAPABILITIES.map(({ icon: Icon, verb, object, extras }) => (
             <li key={verb}>
-              <Icon className="feature-strip__icon" aria-hidden size="4rem" />
+              <Icon className="feature-strip__icon" aria-hidden size="5rem" />
               <Heading as="h3" size="4" mb="1">
                 {verb}
               </Heading>

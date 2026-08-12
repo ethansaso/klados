@@ -7,7 +7,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { summaryStatsQueryOptions } from "../../lib/queries/stats";
 import { routeSeo } from "../../lib/utils/head/routeSeo";
 import { FeatureStrip } from "./-index-resources/FeatureStrip";
-import { FinalCTA } from "./-index-resources/FinalCTA";
 import { GuideDemo } from "./-index-resources/GuideDemo";
 import { HeroSection } from "./-index-resources/HeroSection";
 import { StatsFeatureGrid } from "./-index-resources/StatsGrid";
@@ -33,10 +32,10 @@ function Home() {
     <Flex direction="column" align="center">
       <HeroSection />
       <FeatureStrip />
+      <Separator size="4" />
       <GuideDemo />
       <Separator size="4" />
       <StatsFeatureGrid summaryStats={summaryStats} />
-      <FinalCTA />
     </Flex>
   );
 }

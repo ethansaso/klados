@@ -5,7 +5,7 @@
   align-items: center;
   justify-items: center;
   justify-content: center;
-  grid-template-columns: repeat(auto-fit, 212px);
+  grid-template-columns: repeat(auto-fit, 228px);
 
   .stats-grid__item {
     display: flex;
