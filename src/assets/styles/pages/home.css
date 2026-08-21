@@ -3,6 +3,10 @@
     border-radius: var(--radius-3);
     border: 1px solid var(--gray-6);
   }
+
+  .react-flow__node .annotation-bubble__wrapper {
+    pointer-events: auto !important;
+  }
 }
 
 /* The figure needs a definite width: a content-derived one feeds back into its
