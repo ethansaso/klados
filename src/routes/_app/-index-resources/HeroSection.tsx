@@ -40,7 +40,7 @@ export const HeroSection = () => {
           <Heading
             size={{ initial: "8", sm: "9" }}
             align={{ initial: "left", xs: "center", xl: "left" }}
-            mb="2"
+            mb="3"
             className="hero-text"
           >
             A shared language for identification.

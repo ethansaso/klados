@@ -15,6 +15,7 @@
   --em-font-family: var(--ff-declaration);
   --em-font-size-adjust: 1.05;
   --font-size-9: calc(48px * var(--scaling));
+  --heading-line-height-9: calc(48px * var(--scaling));
 }
 
 .radix-themes[data-is-root-theme="true"] {
