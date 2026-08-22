@@ -1,3 +1,4 @@
+import type { FeatureStateDTO } from "../../lib/domain/states/types";
 import type { HierarchyTaxonNode } from "../hierarchy/types";
 import type { FeaturePresentAbsentSplitResult } from "./types";
 
@@ -5,7 +6,7 @@ import type { FeaturePresentAbsentSplitResult } from "./types";
  * Walks up the ancestor chain for a single feature, returning a set of that
  * feature ID plus all ancestor IDs. Memoized to avoid re-walking
  */
-function expandWithAncestors(
+export function expandWithAncestors(
   featureId: number,
   parentMap: Map<number, number | null>,
   memo: Map<number, Set<number>>,
@@ -26,17 +27,67 @@ function expandWithAncestors(
 }
 
 /**
+ * What ancestor taxa have said about a feature, nearest statement winning.
+ * `true` means reliably borne, so descendants bear it too.
+ */
+export type InheritedFeatureStatements = ReadonlyMap<number, boolean>;
+
+/**
+ * Folds a taxon's own statements over what it inherited, nearest wins.
+ *
+ * A nearer taxon marking a feature unreliable withdraws the ancestor's claim
+ * rather than being ignored: a family described as annulate, refined by a genus
+ * whose annulus varies, must leave its species keyable on annulus again.
+ */
+export function extendInheritedStatements(
+  inherited: InheritedFeatureStatements,
+  states: FeatureStateDTO[] | undefined,
+): InheritedFeatureStatements {
+  if (!states?.length) return inherited;
+
+  const next = new Map(inherited);
+  for (const state of states) {
+    next.set(state.featureId, !state.unreliable);
+  }
+  return next;
+}
+
+/**
+ * The features descendants can be assumed to bear, expanded through the feature
+ * hierarchy at the point of use rather than as statements accumulate.
+ */
+export function expandInheritedStatements(
+  inherited: InheritedFeatureStatements,
+  featureAncestorMap: Map<number, number | null>,
+): ReadonlySet<number> {
+  const memo = new Map<number, Set<number>>();
+  const certain = new Set<number>();
+
+  for (const [featureId, reliable] of inherited) {
+    if (!reliable) continue;
+    for (const id of expandWithAncestors(featureId, featureAncestorMap, memo)) {
+      certain.add(id);
+    }
+  }
+  return certain;
+}
+
+/**
  * Try to split taxa into two groups based on
  * "taxon has feature G" vs "taxon does not have feature G".
  *
  * A taxon is considered to have an ancestor feature if any of its explicitly
  * stated features is a descendant of that ancestor (implicit presence).
  *
+ * `inheritedFeatureIds` are features an ancestor taxon reliably bears, so every
+ * taxon here bears them too whether or not anyone wrote it down.
+ *
  * Returns all possible splits along with their scores.
  */
 export function resolveFeaturePresentAbsentSplits(
   taxa: HierarchyTaxonNode[],
   featureAncestorMap: Map<number, number | null>,
+  inheritedFeatureIds: ReadonlySet<number> = new Set(),
 ): FeaturePresentAbsentSplitResult[] {
   if (taxa.length < 2) return [];
 
@@ -49,7 +100,9 @@ export function resolveFeaturePresentAbsentSplits(
   const allFeatureIds = new Set<number>();
 
   for (const taxon of taxa) {
-    const certain = new Set<number>();
+    // Seeded with what an ancestor reliably bears: certain for every taxon in
+    // the group, which collapses the "absent" branch and drops the split.
+    const certain = new Set<number>(inheritedFeatureIds);
     const uncertain = new Set<number>();
 
     for (const feature of taxon.states) {

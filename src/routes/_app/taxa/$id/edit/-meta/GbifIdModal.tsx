@@ -33,6 +33,7 @@ const INTERNAL_RANK_TO_GBIF_MAPPING: Record<
   domain: "DOMAIN",
   kingdom: "KINGDOM",
   phylum: "PHYLUM",
+  subphylum: "SUBPHYLUM",
   class: "CLASS",
   subclass: "SUBCLASS",
   superorder: "SUPERORDER",
