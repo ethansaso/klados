@@ -7,6 +7,7 @@ on:
 permissions:
   contents: read
   issues: read
+  pull-requests: write
 
 jobs:
   check-title:
@@ -14,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Validate KLADOS-<issue> prefix
+        id: validate
         env:
           TITLE: ${{ github.event.pull_request.title }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -40,3 +42,37 @@ jobs:
           fi
 
           echo "OK: title references issue #$ISSUE"
+          echo "issue=$ISSUE" >> "$GITHUB_OUTPUT"
+
+      - name: Link PR to issue
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+          ISSUE: ${{ steps.validate.outputs.issue }}
+          NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # Fork PRs hand this workflow a read-only token, so the edit would fail.
+          if [[ "$HEAD_REPO" != "$REPO" ]]; then
+            echo "::warning::PR is from a fork ($HEAD_REPO); cannot edit its body. Add 'Closes #$ISSUE' manually."
+            exit 0
+          fi
+
+          # Idempotent: the edit below re-triggers this workflow, and the second
+          # run must be a no-op.
+          if grep -qiE "(close[sd]?|fix(e[sd])?|resolve[sd]?)[[:space:]]+#${ISSUE}([^0-9]|$)" <<<"$BODY"; then
+            echo "Body already closes #$ISSUE; nothing to do."
+            exit 0
+          fi
+
+          if [[ -n "${BODY//[[:space:]]/}" ]]; then
+            NEW_BODY="$BODY"$'\n\n'"Closes #$ISSUE"
+          else
+            NEW_BODY="Closes #$ISSUE"
+          fi
+
+          gh api "repos/$REPO/pulls/$NUMBER" -X PATCH -f body="$NEW_BODY"
+          echo "Added 'Closes #$ISSUE' to the PR body."
