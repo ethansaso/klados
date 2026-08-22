@@ -205,7 +205,7 @@ export const SpeciesDescription = () => (
           >
             <span className="has-information">machine-readable</span>
           </GlossaryCard>{" "}
-          data as rich prose, and explains the technical terms in place.
+          data as regular prose, and explains the technical terms in place.
         </Text>
       </Flex>
 

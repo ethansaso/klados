@@ -61,7 +61,7 @@ export const FeatureStrip = () => {
           {CAPABILITIES.map(({ icon: Icon, verb, object, extras }) => (
             <li key={verb}>
               <Icon className="feature-strip__icon" aria-hidden size="5rem" />
-              <Heading as="h3" size="4" mb="1">
+              <Heading as="h3" size="5" mb="1">
                 {verb}
               </Heading>
               <Text as="p" size="2" color="gray">

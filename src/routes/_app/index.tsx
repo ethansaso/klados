@@ -32,6 +32,7 @@ function Home() {
   return (
     <Flex direction="column" align="center">
       <HeroSection />
+      <Separator size="4" />
       <FeatureStrip />
       <Separator size="4" />
       <SpeciesDescription />
