@@ -31,7 +31,6 @@ export async function selectModifierGroupById(
       id: modifierGroupTbl.id,
       label: modifierGroupTbl.label,
       description: modifierGroupTbl.description,
-      class: modifierGroupTbl.class,
     })
     .from(modifierGroupTbl)
     .where(eq(modifierGroupTbl.id, id))
@@ -57,7 +56,6 @@ export async function listModifierGroupsQuery(args: {
       id: modifierGroupTbl.id,
       label: modifierGroupTbl.label,
       description: modifierGroupTbl.description,
-      class: modifierGroupTbl.class,
       valueCount: count(modifierValueTbl.id),
     })
     .from(modifierGroupTbl)
@@ -70,7 +68,6 @@ export async function listModifierGroupsQuery(args: {
       modifierGroupTbl.id,
       modifierGroupTbl.label,
       modifierGroupTbl.description,
-      modifierGroupTbl.class,
     )
     .orderBy(asc(modifierGroupTbl.label))
     .limit(pageSize)
@@ -184,13 +181,11 @@ export async function insertModifierGroup(
     .values({
       label: args.label,
       description: args.description,
-      class: args.class,
     })
     .returning({
       id: modifierGroupTbl.id,
       label: modifierGroupTbl.label,
       description: modifierGroupTbl.description,
-      class: modifierGroupTbl.class,
     });
 
   if (!group) return null;

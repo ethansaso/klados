@@ -11,7 +11,6 @@ export const createModifierGroupFn = createServerFn({ method: "POST" })
     const dto = await createModifierGroup({
       label: data.label,
       description: data.description,
-      class: data.class,
     });
 
     if (!dto) {

@@ -122,7 +122,6 @@ export async function selectTaxonStatesByTaxonIds(
           affixType: modValTbl.affixType,
           groupId: modGroupTbl.id,
           groupLabel: modGroupTbl.label,
-          groupClass: modGroupTbl.class,
         })
         .from(modCatJunctionTbl)
         .innerJoin(modValTbl, eq(modValTbl.id, modCatJunctionTbl.modifierId))
@@ -143,7 +142,6 @@ export async function selectTaxonStatesByTaxonIds(
       affixType: m.affixType,
       groupId: m.groupId,
       groupLabel: m.groupLabel,
-      groupClass: m.groupClass,
     });
     modifiersByCatStateId.set(m.stateId, arr);
   }
@@ -213,7 +211,6 @@ export async function selectTaxonStatesByTaxonIds(
           affixType: modValTbl.affixType,
           groupId: modGroupTbl.id,
           groupLabel: modGroupTbl.label,
-          groupClass: modGroupTbl.class,
         })
         .from(modNumJunctionTbl)
         .innerJoin(modValTbl, eq(modValTbl.id, modNumJunctionTbl.modifierId))
@@ -231,7 +228,6 @@ export async function selectTaxonStatesByTaxonIds(
       affixType: m.affixType,
       groupId: m.groupId,
       groupLabel: m.groupLabel,
-      groupClass: m.groupClass,
     });
     modifiersByNumStateId.set(m.stateId, arr);
   }
@@ -307,7 +303,6 @@ export async function selectTaxonStatesByTaxonIds(
           affixType: modValTbl.affixType,
           groupId: modGroupTbl.id,
           groupLabel: modGroupTbl.label,
-          groupClass: modGroupTbl.class,
         })
         .from(modRangeJunctionTbl)
         .innerJoin(modValTbl, eq(modValTbl.id, modRangeJunctionTbl.modifierId))
@@ -328,7 +323,6 @@ export async function selectTaxonStatesByTaxonIds(
       affixType: m.affixType,
       groupId: m.groupId,
       groupLabel: m.groupLabel,
-      groupClass: m.groupClass,
     });
     modifiersByRangeStateId.set(m.stateId, arr);
   }

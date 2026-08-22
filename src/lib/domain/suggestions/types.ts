@@ -57,8 +57,6 @@ export type ModifierSuggestion = {
   affixType: "prefix" | "suffix";
   groupId: number;
   groupLabel: string; // e.g. "Position"
-  groupClass:
-    "positional" | "reliability" | "demographic" | "reactive" | "intensity";
 };
 
 /** A feature suggestion for typeahead pickers. */

@@ -1,4 +1,3 @@
-import type { ModifierClass } from "../../../../db/schema/schema";
 import { type UnitDTO } from "../units/types";
 
 export type ModifierStateDTO = {
@@ -7,7 +6,6 @@ export type ModifierStateDTO = {
   affixType: "prefix" | "suffix";
   groupId: number;
   groupLabel: string;
-  groupClass: ModifierClass;
 };
 
 export type Trait = {
