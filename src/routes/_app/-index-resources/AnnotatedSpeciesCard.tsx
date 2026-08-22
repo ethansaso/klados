@@ -1,5 +1,5 @@
 import { Box, Card, Em, Flex, Inset, Strong, Text } from "@radix-ui/themes";
-import { DemoGlossaryTerm } from "./DemoGlossaryTerm";
+import { GlossaryCard } from "../../../components/glossary-cards/GlossaryCard";
 
 /**
  * Leader lines are drawn against a fixed 640x300 design space (see home.css),
@@ -100,32 +100,44 @@ export const AnnotatedSpeciesCard: React.FC<Props> = ({ framed }) => {
           <Box className="description-demo__label description-demo__label--cap">
             <MorphologyLine feature="Cap">
               rosy,{" "}
-              <DemoGlossaryTerm title="Sulcate" description="Grooved.">
-                sulcate
-              </DemoGlossaryTerm>
+              <GlossaryCard
+                info={{
+                  title: "Sulcate",
+                  description: "Grooved.",
+                  media: null,
+                }}
+              >
+                <span className="has-information">sulcate</span>
+              </GlossaryCard>
             </MorphologyLine>
           </Box>
 
           <Box className="description-demo__label description-demo__label--gills">
             <MorphologyLine feature="Gills">
-              <DemoGlossaryTerm
-                title="Decurrent"
-                description="Running gradually down the stipe."
+              <GlossaryCard
+                info={{
+                  title: "Decurrent",
+                  description: "Running gradually down the stipe.",
+                  media: null,
+                }}
               >
-                decurrent
-              </DemoGlossaryTerm>
+                <span className="has-information">decurrent</span>
+              </GlossaryCard>
             </MorphologyLine>
           </Box>
 
           <Box className="description-demo__label description-demo__label--stipe">
             <MorphologyLine
               feature={
-                <DemoGlossaryTerm
-                  title="Stipe"
-                  description="Another term for 'stem'."
+                <GlossaryCard
+                  info={{
+                    title: "Stipe",
+                    description: "Another term for 'stem'.",
+                    media: null,
+                  }}
                 >
-                  Stipe
-                </DemoGlossaryTerm>
+                  <span className="has-information">Stipe</span>
+                </GlossaryCard>
               }
             >
               finely crystalline

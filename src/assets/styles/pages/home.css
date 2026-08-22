@@ -82,10 +82,6 @@
   max-width: 640px;
   margin-inline: auto;
 
-  .has-information {
-    text-decoration-color: unset;
-  }
-
   .description-demo__card {
     width: 256px;
     margin-inline: auto;

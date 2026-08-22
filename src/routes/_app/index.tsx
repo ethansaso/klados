@@ -9,6 +9,7 @@ import { routeSeo } from "../../lib/utils/head/routeSeo";
 import { FeatureStrip } from "./-index-resources/FeatureStrip";
 import { GuideDemo } from "./-index-resources/GuideDemo";
 import { HeroSection } from "./-index-resources/HeroSection";
+import { SpeciesDescription } from "./-index-resources/SpeciesDescription";
 import { StatsFeatureGrid } from "./-index-resources/StatsGrid";
 
 export const Route = createFileRoute("/_app/")({
@@ -32,6 +33,8 @@ function Home() {
     <Flex direction="column" align="center">
       <HeroSection />
       <FeatureStrip />
+      <Separator size="4" />
+      <SpeciesDescription />
       <Separator size="4" />
       <GuideDemo />
       <Separator size="4" />

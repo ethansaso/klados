@@ -2,6 +2,6 @@
   display: inline-block;
   text-decoration: underline;
   text-decoration-style: dotted;
-  text-decoration-color: var(--gray-a9);
+  text-decoration-color: var(--gray-9);
   cursor: help;
 }

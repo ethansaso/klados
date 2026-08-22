@@ -1,25 +1,20 @@
 import { Box, Button, Flex, Heading, Text, Theme } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import { PiArrowRight } from "react-icons/pi";
+import { GlossaryCard } from "../../../components/glossary-cards/GlossaryCard";
 import { AnnotatedSpeciesCard } from "./AnnotatedSpeciesCard";
+import "./HeroSection.css";
 
 export const HeroSection = () => {
   return (
     <Flex
+      className="hero-section"
       align="center"
       justify="center"
       py="7"
       px="6"
       minHeight={{ initial: "60svh", sm: "528px" }}
       width="100%"
-      style={{
-        backgroundImage: "url(/about/forest-bg.webp)",
-        backgroundSize: "cover",
-        backgroundPosition: "0 50%",
-        // darken by 50%
-        backgroundBlendMode: "darken",
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
-      }}
     >
       <Flex
         direction={{ initial: "column", xl: "row" }}
@@ -51,8 +46,28 @@ export const HeroSection = () => {
             mb="5"
             className="hero-text"
           >
-            Explore biodiversity using interactive resources grounded in
-            structured, biological data.
+            Explore{" "}
+            <GlossaryCard
+              info={{
+                title: "Biodiversity",
+                description: "The variety of life on Earth.",
+                media: null,
+              }}
+            >
+              <span className="has-information">biodiversity</span>
+            </GlossaryCard>{" "}
+            using interactive resources grounded in{" "}
+            <GlossaryCard
+              info={{
+                title: "Structured data",
+                description:
+                  "Data in a standardized format defined by a strict set of rules, in contrast to unstructured data like raw prose.",
+                media: null,
+              }}
+            >
+              <span className="has-information">structured data</span>
+            </GlossaryCard>
+            .
           </Text>
           <Flex
             gap="3"
