@@ -49,8 +49,6 @@ export type ModifierSuggestionRow = {
   affixType: "prefix" | "suffix";
   groupId: number;
   groupLabel: string;
-  groupClass:
-    "positional" | "reliability" | "demographic" | "reactive" | "intensity";
   similarityScore: number;
 };
 
@@ -214,7 +212,6 @@ export async function queryModifierSuggestionRows(opts: {
         affixType: modifierValue.affixType,
         groupId: modifierGroup.id,
         groupLabel: modifierGroup.label,
-        groupClass: modifierGroup.class,
         similarityScore: similarity,
       })
       .from(modifierValue)
@@ -251,7 +248,6 @@ export async function queryAllModifiersByUsage(
       affixType: modifierValue.affixType,
       groupId: modifierGroup.id,
       groupLabel: modifierGroup.label,
-      groupClass: modifierGroup.class,
       similarityScore: sql<number>`0`,
     })
     .from(modifierValue)

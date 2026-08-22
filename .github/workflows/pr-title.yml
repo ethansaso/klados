@@ -1,0 +1,42 @@
+name: PR Title
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  check-title:
+    name: Check PR title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate KLADOS-<issue> prefix
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$TITLE" =~ ^KLADOS-([0-9]+):\ .+ ]]; then
+            echo "::error::PR title must start with 'KLADOS-<issue number>: '. Got: $TITLE"
+            echo "Example: KLADOS-100: add species description section"
+            exit 1
+          fi
+
+          ISSUE="${BASH_REMATCH[1]}"
+
+          # Confirm the referenced issue actually exists (and isn't a PR).
+          if ! gh api "repos/$REPO/issues/$ISSUE" --jq '.number' >/dev/null 2>&1; then
+            echo "::error::Issue #$ISSUE does not exist in $REPO"
+            exit 1
+          fi
+          if [[ "$(gh api "repos/$REPO/issues/$ISSUE" --jq '.pull_request != null')" == "true" ]]; then
+            echo "::error::#$ISSUE is a pull request, not an issue"
+            exit 1
+          fi
+
+          echo "OK: title references issue #$ISSUE"

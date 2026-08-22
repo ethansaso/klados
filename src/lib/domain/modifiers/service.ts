@@ -64,7 +64,6 @@ export async function createModifierGroup(
     const dto = await insertModifierGroup(tx, {
       label,
       description,
-      class: args.class,
     });
 
     if (!dto) {

@@ -17,7 +17,6 @@ import z from "zod";
 import { type AffixType } from "../../../../../db/schema/schema";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../components/dialogs/ConfirmDeleteModal";
-import { ModifierIcon } from "../../../../components/icons/modular/ModifierIcon";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { roleHasCuratorRights } from "../../../../lib/auth/utils";
 import type { ModifierDTO } from "../../../../lib/domain/modifiers/types";
@@ -28,7 +27,6 @@ import {
 import { createModifierFn } from "../../../../lib/server-fns/modifiers/createModifierFn";
 import { deleteModifierFn } from "../../../../lib/server-fns/modifiers/deleteModifierFn";
 import { deleteModifierGroupFn } from "../../../../lib/server-fns/modifiers/deleteModifierGroupFn";
-import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
 import { toast } from "../../../../lib/utils/toast";
 import ModifierTable from "./-ModifierTable";
 
@@ -180,14 +178,6 @@ function RouteComponent() {
               Delete
             </Button>
           </CuratorOnly>
-        </Flex>
-        <Flex gap="1" align="center">
-          <Text color="gray" size="2" asChild>
-            <ModifierIcon type={modifierGroup.class} />
-          </Text>
-          <Text size="2" color="gray">
-            {capitalizeFirstLetter(modifierGroup.class)}
-          </Text>
         </Flex>
       </Box>
       <Text

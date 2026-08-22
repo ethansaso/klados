@@ -1,5 +1,5 @@
 import z from "zod";
-import { AFFIX_TYPES, MODIFIER_CLASSES } from "../../../../db/schema/schema";
+import { AFFIX_TYPES } from "../../../../db/schema/schema";
 
 export const createModifierGroupSchema = z.object({
   label: z
@@ -10,10 +10,6 @@ export const createModifierGroupSchema = z.object({
     .string("Must be a string")
     .max(1000, "Max 1000 characters")
     .optional(),
-  class: z.enum(
-    MODIFIER_CLASSES,
-    `Invalid modifier class; must be one of ${Object.values(MODIFIER_CLASSES).join(", ")}`,
-  ),
 });
 
 export const createModifierSchema = z.object({
