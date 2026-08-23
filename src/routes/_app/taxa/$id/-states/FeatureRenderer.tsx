@@ -3,10 +3,17 @@ import { Fragment } from "react";
 import { GlossaryCharacterCard } from "../../../../../components/glossary-cards/GlossaryCharacterCard";
 import { GlossaryFeatureCard } from "../../../../../components/glossary-cards/GlossaryFeatureCard";
 import { CharacterStateDisplay } from "../../../../../components/state-formatting/CharacterStateDisplay";
+import type { FeaturePresence } from "../../../../../../db/schema/schema";
 import type {
   CharacterStateDTO,
   FeatureStateDTO,
 } from "../../../../../lib/domain/states/types";
+
+const PRESENCE_LABELS: Record<FeaturePresence, string> = {
+  present: "present",
+  variable: "sometimes present",
+  absent: "absent",
+};
 
 export const FeatureRenderer = ({
   feature,
@@ -56,7 +63,9 @@ export const FeatureRenderer = ({
       <Text>
         <Strong>{cardHeaderComponent} </Strong>
       </Text>
-      {feature.unreliable && entries.length > 0 && <Text>when present, </Text>}
+      {feature.presence === "variable" && entries.length > 0 && (
+        <Text>when present, </Text>
+      )}
       {entries.length > 0 ? (
         entries.map(
           ([characterId, { label, hasInfo, states, showInProse }], idx) => {
@@ -78,7 +87,7 @@ export const FeatureRenderer = ({
           },
         )
       ) : (
-        <Text>{feature.unreliable ? "sometimes present" : "present"}</Text>
+        <Text>{PRESENCE_LABELS[feature.presence]}</Text>
       )}
       {notes.length > 0 && <>; {notes}</>}.{" "}
     </Wrapper>
