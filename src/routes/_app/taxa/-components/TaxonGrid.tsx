@@ -1,16 +1,16 @@
 import { Grid, Text } from "@radix-ui/themes";
 import { TaxonCard } from "../../../../components/TaxonCard";
-import { type TaxonPaginatedResult } from "../../../../lib/domain/taxa/types";
+import { type TaxonDTO } from "../../../../lib/domain/taxa/types";
 
-export const TaxonGrid = ({ results }: { results: TaxonPaginatedResult }) => {
-  if (!results.items.length) return <Text>No taxa found.</Text>;
+export const TaxonGrid = ({ taxa }: { taxa: TaxonDTO[] }) => {
+  if (!taxa.length) return <Text>No taxa found.</Text>;
   return (
     <Grid
       columns={{ initial: "3", sm: "4", md: "5" }}
       gap={{ initial: "1", sm: "2", md: "4" }}
       className="taxon-grid"
     >
-      {results.items.map((t) => (
+      {taxa.map((t) => (
         <TaxonCard
           key={t.id}
           id={t.id}

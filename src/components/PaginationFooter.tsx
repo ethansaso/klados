@@ -1,6 +1,7 @@
 import { Button, Flex, Text } from "@radix-ui/themes";
 
 export function PaginationFooter({
+  size = "1",
   page,
   pageSize,
   total,
@@ -8,6 +9,7 @@ export function PaginationFooter({
   onPrev,
   onNext,
 }: {
+  size?: "1" | "2" | "3";
   page: number;
   pageSize: number;
   total: number;
@@ -18,15 +20,25 @@ export function PaginationFooter({
   const max = Math.max(1, Math.ceil(total / pageSize));
   return (
     <Flex mt="3" justify="between" align="center" wrap="wrap" gap="2">
-      <Text size="1" color="gray">
+      <Text size={size} color="gray">
         Page {page} of {max}
         {showTotal ? ` · ${total} value${total === 1 ? "" : "s"}` : ""}
       </Text>
       <Flex gap="2">
-        <Button size="1" variant="soft" disabled={page <= 1} onClick={onPrev}>
+        <Button
+          size={size}
+          variant="soft"
+          disabled={page <= 1}
+          onClick={onPrev}
+        >
           Previous
         </Button>
-        <Button size="1" variant="soft" disabled={page >= max} onClick={onNext}>
+        <Button
+          size={size}
+          variant="soft"
+          disabled={page >= max}
+          onClick={onNext}
+        >
           Next
         </Button>
       </Flex>
