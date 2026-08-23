@@ -439,7 +439,7 @@ export async function extractStates(
           featureLabel: feature.label,
           notes: "",
           // TODO: signal for this
-          unreliable: false,
+          presence: "present",
           characters,
         });
       }
@@ -687,7 +687,7 @@ export async function extractStates(
         featureLabel: feature.label,
         notes: "",
         // TODO: signal for this
-        unreliable: false,
+        presence: "present",
         characters,
       });
     }

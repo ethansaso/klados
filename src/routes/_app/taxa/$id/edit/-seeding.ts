@@ -84,7 +84,7 @@ const seedCharacterGroups = (
     featureId: feature.featureId,
     featureLabel: feature.featureLabel,
     notes: feature.notes,
-    unreliable: feature.unreliable,
+    presence: feature.presence,
     characters: seedFeatureStates(feature.states),
   }));
 

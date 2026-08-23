@@ -1,4 +1,5 @@
 import z from "zod";
+import { FEATURE_PRESENCES } from "../../../../../../../db/schema/schema";
 
 // utils
 
@@ -71,7 +72,7 @@ export const featureFormSchema = z
     featureId: z.number().int().positive(),
     featureLabel: z.string(),
     notes: z.string().trim(),
-    unreliable: z.boolean().default(false),
+    presence: z.enum(FEATURE_PRESENCES).default("present"),
     characters: z.array(characterStateFormSchema),
   })
   .superRefine((feature, ctx) => {

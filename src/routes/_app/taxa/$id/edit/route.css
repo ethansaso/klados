@@ -72,3 +72,9 @@ button.modifier-tag__available-item {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
+
+/* Absent feature still holding states, which the server will refuse to save. */
+.feature-card--absent-with-states {
+  outline: 1px solid var(--tomato-11);
+  outline-offset: -1px;
+}
