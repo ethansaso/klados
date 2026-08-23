@@ -4,6 +4,7 @@ import { PiPencil, PiTrash } from "react-icons/pi";
 import { ResponsiveTooltip } from "../../../../components/ResponsiveTooltip";
 import { ColorBubble } from "../../../../components/state-formatting/helpers/ColorBubble";
 import type { TraitValueDTO } from "../../../../lib/domain/traits/types";
+import { getMediaUrl } from "../../../../lib/storage/getMediaUrl";
 
 type RootProps = {
   values: TraitValueDTO[];
@@ -32,6 +33,7 @@ export default function CategoricalTraitTable({
           <Table.ColumnHeaderCell>Trait</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Synonyms</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Description</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Media</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Usages</Table.ColumnHeaderCell>
 
           {showActions && (
@@ -94,12 +96,12 @@ function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
   return (
     <Table.Row>
       <Table.Cell>
+        <Text>{value.label}</Text>
         {value.hexCode && (
-          <Box mr="1" asChild>
+          <Box ml="1" asChild>
             <ColorBubble hexColor={value.hexCode} />
           </Box>
         )}
-        <Text>{value.label}</Text>
       </Table.Cell>
 
       <Table.Cell>
@@ -110,6 +112,23 @@ function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
 
       <Table.Cell>
         <Text>{value.description}</Text>
+      </Table.Cell>
+
+      <Table.Cell justify="center">
+        {value.media && (
+          <img
+            src={getMediaUrl(value.media.storageKey)}
+            alt={value.media.title || value.label}
+            loading="lazy"
+            style={{
+              width: "32px",
+              height: "32px",
+              objectFit: "cover",
+              borderRadius: "var(--radius-2)",
+              display: "block",
+            }}
+          />
+        )}
       </Table.Cell>
 
       <Table.Cell>
