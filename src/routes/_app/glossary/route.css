@@ -1,0 +1,10 @@
+/* Hide trait editor while media picker modals are open */
+.rt-DialogOverlay:has(.glossary-trait-dialog[data-picker-open]) {
+  visibility: hidden;
+}
+
+.glossary-sidebar__list {
+  div.rt-ScrollAreaViewport > div {
+    max-width: 100%;
+  }
+}

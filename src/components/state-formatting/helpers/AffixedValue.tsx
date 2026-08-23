@@ -45,7 +45,7 @@ export const AffixedValue = memo(
                   marginRight: 4,
                 }}
               >
-                <ColorBubble size={8} hexColor={hexCode} />
+                <ColorBubble hexColor={hexCode} />
               </span>
             )}
             {children}
@@ -83,7 +83,7 @@ export const AffixedValue = memo(
                   marginRight: 4,
                 }}
               >
-                <ColorBubble size={8} hexColor={hexCode} />
+                <ColorBubble hexColor={hexCode} />
               </span>
             )}
             {children}

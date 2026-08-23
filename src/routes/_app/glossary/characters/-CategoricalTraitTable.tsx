@@ -1,4 +1,4 @@
-import { Flex, IconButton, Table, Text } from "@radix-ui/themes";
+import { Box, Flex, IconButton, Table, Text } from "@radix-ui/themes";
 import { useMemo } from "react";
 import { PiPencil, PiTrash } from "react-icons/pi";
 import { ResponsiveTooltip } from "../../../../components/ResponsiveTooltip";
@@ -29,7 +29,6 @@ export default function CategoricalTraitTable({
     <Table.Root size="1" variant="surface">
       <Table.Header>
         <Table.Row>
-          <Table.ColumnHeaderCell width="45px">Icon</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Trait</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Synonyms</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Description</Table.ColumnHeaderCell>
@@ -94,11 +93,12 @@ function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
 
   return (
     <Table.Row>
-      <Table.Cell justify="center">
-        {value.hexCode && <ColorBubble size={12} hexColor={value.hexCode} />}
-      </Table.Cell>
-
       <Table.Cell>
+        {value.hexCode && (
+          <Box mr="1" asChild>
+            <ColorBubble hexColor={value.hexCode} />
+          </Box>
+        )}
         <Text>{value.label}</Text>
       </Table.Cell>
 

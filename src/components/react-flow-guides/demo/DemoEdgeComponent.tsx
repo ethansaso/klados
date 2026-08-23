@@ -58,9 +58,7 @@ const DemoEdgeComponent = memo((props: EdgeProps<DemoEdge>) => {
                         align="center"
                         gap="1"
                       >
-                        {s.hexCode && (
-                          <ColorBubble size={8} hexColor={s.hexCode} />
-                        )}
+                        {s.hexCode && <ColorBubble hexColor={s.hexCode} />}
                         <Text>
                           {s.label}
                           {idx !== states.length - 1 && ","}

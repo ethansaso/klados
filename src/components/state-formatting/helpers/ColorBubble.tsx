@@ -1,15 +1,25 @@
+import classNames from "classnames";
+import type { ComponentProps } from "react";
 import "./ColorBubble.css";
 
-interface ColorBubbleProps {
+interface ColorBubbleProps extends ComponentProps<"span"> {
   hexColor: string;
   size?: number;
 }
 
-export const ColorBubble = ({ hexColor, size = 16 }: ColorBubbleProps) => {
+export const ColorBubble = ({
+  className,
+  style,
+  hexColor,
+  size = 8,
+  ...props
+}: ColorBubbleProps) => {
+  const resolvedClassname = classNames("color-bubble", className);
   return (
     <span
-      className="color-bubble"
-      style={{ backgroundColor: hexColor, width: size, height: size }}
+      className={resolvedClassname}
+      style={{ backgroundColor: hexColor, width: size, height: size, ...style }}
+      {...props}
     />
   );
 };
