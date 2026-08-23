@@ -276,10 +276,57 @@ export const EditTraitValueModal = NiceModal.create<Props>(
                 </Box>
 
                 <Box>
-                  <ClearableColorField
-                    name="hexCode"
-                    label="Color"
-                    disabled={mutationPending}
+                  <Box mb="1">
+                    <Label.Root htmlFor="synonyms">Synonyms</Label.Root>
+                  </Box>
+
+                  <Controller
+                    control={control}
+                    name="membership"
+                    render={({ field }) => (
+                      <SelectCombobox.Root
+                        id="synonyms"
+                        value={selectedOption}
+                        onValueChange={(opt) => {
+                          // Clearing leaves the trait standing on its own
+                          const set =
+                            opt &&
+                            candidates?.find((c) => c.synonymSetId === opt.id);
+
+                          field.onChange(
+                            set
+                              ? {
+                                  synonymSetId: set.synonymSetId,
+                                  traitId: set.headTraitId,
+                                  labels: set.labels,
+                                }
+                              : null,
+                          );
+                          setSynonymQuery("");
+                        }}
+                        onQueryChange={setSynonymQuery}
+                        options={candidateOptions}
+                        loading={candidatesLoading}
+                        disabled={mutationPending}
+                      >
+                        <SelectCombobox.Trigger placeholder="Stands on its own" />
+                        <SelectCombobox.Content
+                          behavior="input"
+                          matchTriggerWidth
+                        >
+                          <SelectCombobox.Input placeholder="Search traits…" />
+                          <SelectCombobox.List>
+                            {candidateOptions.map((opt, i) => (
+                              <SelectCombobox.Item
+                                key={String(opt.id)}
+                                option={opt}
+                                index={i}
+                              />
+                            ))}
+                          </SelectCombobox.List>
+                        </SelectCombobox.Content>
+                      </SelectCombobox.Root>
+                    )}
                   />
                 </Box>
 
@@ -295,6 +342,14 @@ export const EditTraitValueModal = NiceModal.create<Props>(
                     id="description"
                     {...register("description")}
                     {...a11yProps("description-error", !!errors.description)}
+                  />
+                </Box>
+
+                <Box>
+                  <ClearableColorField
+                    name="hexCode"
+                    label="Color"
+                    disabled={mutationPending}
                   />
                 </Box>
 
@@ -349,61 +404,6 @@ export const EditTraitValueModal = NiceModal.create<Props>(
                       }}
                     />
                   )}
-                </Box>
-
-                <Box>
-                  <Box mb="1">
-                    <Label.Root htmlFor="synonyms">Synonyms</Label.Root>
-                  </Box>
-
-                  <Controller
-                    control={control}
-                    name="membership"
-                    render={({ field }) => (
-                      <SelectCombobox.Root
-                        id="synonyms"
-                        value={selectedOption}
-                        onValueChange={(opt) => {
-                          // Clearing leaves the trait standing on its own
-                          const set =
-                            opt &&
-                            candidates?.find((c) => c.synonymSetId === opt.id);
-
-                          field.onChange(
-                            set
-                              ? {
-                                  synonymSetId: set.synonymSetId,
-                                  traitId: set.headTraitId,
-                                  labels: set.labels,
-                                }
-                              : null,
-                          );
-                          setSynonymQuery("");
-                        }}
-                        onQueryChange={setSynonymQuery}
-                        options={candidateOptions}
-                        loading={candidatesLoading}
-                        disabled={mutationPending}
-                      >
-                        <SelectCombobox.Trigger placeholder="Stands on its own" />
-                        <SelectCombobox.Content
-                          behavior="input"
-                          matchTriggerWidth
-                        >
-                          <SelectCombobox.Input placeholder="Search traits…" />
-                          <SelectCombobox.List>
-                            {candidateOptions.map((opt, i) => (
-                              <SelectCombobox.Item
-                                key={String(opt.id)}
-                                option={opt}
-                                index={i}
-                              />
-                            ))}
-                          </SelectCombobox.List>
-                        </SelectCombobox.Content>
-                      </SelectCombobox.Root>
-                    )}
-                  />
                 </Box>
               </Flex>
               <Flex justify="end" gap="3">

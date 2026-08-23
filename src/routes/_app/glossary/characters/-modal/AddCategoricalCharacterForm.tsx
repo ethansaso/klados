@@ -31,7 +31,7 @@ export function AddCategoricalCharacterForm() {
           </Label.Root>
         </Flex>
         <Text as="div" size="1" color="gray" mt="1">
-          If disabled, taxa can only be assigned a single trait for this
+          If disabled, taxa can only be assigned a single state for this
           character.
         </Text>
       </Box>
