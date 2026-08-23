@@ -47,38 +47,16 @@
   line-height: 1.45;
 }
 
-.lookalike-modal__group-copy--missing {
-  color: var(--gray-12);
-}
-
-.lookalike-modal__group-copy--present {
-  color: var(--gray-12);
-  font-weight: var(--font-weight-medium);
-}
-
-.lookalike-modal__state-segment--shared,
-.lookalike-modal__state-token--shared {
+.lookalike-modal__value--shared {
   color: var(--gray-10);
-}
-
-.lookalike-modal__state-segment--different,
-.lookalike-modal__state-token--different {
-  color: var(--gray-12);
-}
-
-.lookalike-modal__state-token--different {
-  font-weight: var(--font-weight-medium);
-}
-
-.lookalike-modal__state-label {
-  color: inherit;
   font-weight: var(--font-weight-regular);
 }
 
-.lookalike-modal__state-label--different {
+.lookalike-modal__value--different {
+  color: var(--gray-12);
   font-weight: var(--font-weight-medium);
 }
 
-.lookalike-modal__state-token--shared .color-bubble {
+.lookalike-modal__value--shared .color-bubble {
   opacity: 0.25;
 }

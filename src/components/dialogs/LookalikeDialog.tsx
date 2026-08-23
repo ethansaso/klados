@@ -13,6 +13,7 @@ import type {
   LookalikeComparisonAnnotatedState,
   LookalikeComparisonCharacter,
   LookalikeComparisonDetailDTO,
+  LookalikeComparisonPresence,
 } from "../../lib/domain/lookalikes/types";
 import type { TaxonDTO } from "../../lib/domain/taxa/types";
 import { lookalikeDetailsQueryOptions } from "../../lib/queries/lookalikes";
@@ -79,50 +80,49 @@ function getAnnotatedStateKey(
   }
 }
 
+/** Whether a value matches its opposite number, the only distinction the modal draws. */
+function differenceClassname(differs: boolean): string {
+  return differs
+    ? "lookalike-modal__value--different"
+    : "lookalike-modal__value--shared";
+}
+
+const PRESENCE_COPY: Record<LookalikeComparisonPresence, string> = {
+  unstated: "\u2014",
+  present: "present",
+  variable: "sometimes present",
+  absent: "absent",
+};
+
 function GroupDataList({
   items,
-  hasGroup,
-  unreliable = false,
+  presence,
+  presenceDiffers,
   emphasizeAll = false,
 }: {
   items: LookalikeComparisonCharacter[] | null;
-  hasGroup: boolean;
-  unreliable?: boolean;
+  presence: LookalikeComparisonPresence;
+  presenceDiffers: boolean;
   emphasizeAll?: boolean;
 }) {
   const meaningfulItems = getMeaningfulCharacters(items) ?? [];
 
-  if (!hasGroup)
+  // No feature state / no character states, just short circuit to copy
+  if (presence === "unstated" || meaningfulItems.length === 0)
     return (
       <Text
         as="p"
         size="2"
-        className="lookalike-modal__group-copy lookalike-modal__group-copy--missing"
+        className={`lookalike-modal__group-copy ${differenceClassname(presenceDiffers)}`}
       >
-        &mdash;
-      </Text>
-    );
-  if (meaningfulItems.length === 0)
-    return (
-      <Text
-        as="p"
-        size="2"
-        className="lookalike-modal__group-copy lookalike-modal__group-copy--present"
-      >
-        {unreliable ? "sometimes present" : "present"}
+        {PRESENCE_COPY[presence]}
       </Text>
     );
 
   return (
     <Text as="p" size="2" className="lookalike-modal__group-copy">
-      {unreliable && (
-        <span
-          className={`lookalike-modal__state-token${
-            emphasizeAll
-              ? " lookalike-modal__state-token--different"
-              : " lookalike-modal__state-token--shared"
-          }`}
-        >
+      {presence === "variable" && (
+        <span className={differenceClassname(emphasizeAll)}>
           when present,{" "}
         </span>
       )}
@@ -134,32 +134,17 @@ function GroupDataList({
         return (
           <span
             key={it.characterId}
-            className={`lookalike-modal__state-segment${
-              emphasizeAll || !isSharedCharacter
-                ? " lookalike-modal__state-segment--different"
-                : " lookalike-modal__state-segment--shared"
-            }`}
+            className={differenceClassname(emphasizeAll || !isSharedCharacter)}
           >
             {showCharacterLabel && (
-              <Text
-                as="span"
-                className={`lookalike-modal__state-label${
-                  emphasizeAll || !isSharedCharacter
-                    ? " lookalike-modal__state-label--different"
-                    : " lookalike-modal__state-label--shared"
-                }`}
-              >
-                {it.characterLabel.toLowerCase()}{" "}
-              </Text>
+              <Text as="span">{it.characterLabel.toLowerCase()} </Text>
             )}
             {it.states.map((state, stateIdx) => (
               <span
                 key={getAnnotatedStateKey(state)}
-                className={`lookalike-modal__state-token${
-                  emphasizeAll || !state.isOverlapping
-                    ? " lookalike-modal__state-token--different"
-                    : " lookalike-modal__state-token--shared"
-                }`}
+                className={differenceClassname(
+                  emphasizeAll || !state.isOverlapping,
+                )}
               >
                 <CharacterStateDisplay
                   states={[toUIState(state)]}
@@ -219,9 +204,8 @@ const ModalContent = ({ data }: { data: LookalikeComparisonDetailDTO }) => {
 
       <Box className="lookalike-modal__groups">
         {data.groupedStates.map((annotatedGroup) => {
-          // Reliability differences are counted as different states
-          const reliabilityDiffers =
-            annotatedGroup.aUnreliable !== annotatedGroup.bUnreliable;
+          const presenceDiffers =
+            annotatedGroup.aPresence !== annotatedGroup.bPresence;
 
           return (
             <Box
@@ -250,11 +234,11 @@ const ModalContent = ({ data }: { data: LookalikeComparisonDetailDTO }) => {
               >
                 <Box className="lookalike-modal__group-column">
                   <GroupDataList
-                    hasGroup={annotatedGroup.aHasGroup}
+                    presence={annotatedGroup.aPresence}
+                    presenceDiffers={presenceDiffers}
                     items={annotatedGroup.aCharacters}
-                    unreliable={annotatedGroup.aUnreliable}
                     emphasizeAll={
-                      reliabilityDiffers ||
+                      presenceDiffers ||
                       !getMeaningfulCharacters(annotatedGroup.bCharacters)
                         ?.length
                     }
@@ -263,11 +247,11 @@ const ModalContent = ({ data }: { data: LookalikeComparisonDetailDTO }) => {
 
                 <Box className="lookalike-modal__group-column">
                   <GroupDataList
-                    hasGroup={annotatedGroup.bHasGroup}
+                    presence={annotatedGroup.bPresence}
+                    presenceDiffers={presenceDiffers}
                     items={annotatedGroup.bCharacters}
-                    unreliable={annotatedGroup.bUnreliable}
                     emphasizeAll={
-                      reliabilityDiffers ||
+                      presenceDiffers ||
                       !getMeaningfulCharacters(annotatedGroup.aCharacters)
                         ?.length
                     }

@@ -1,5 +1,3 @@
-import "../../../../../assets/styles/pages/taxa/edit.css";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Badge, Box, Button, Flex, Heading, Separator } from "@radix-ui/themes";
 import { Query, useQueryClient } from "@tanstack/react-query";
@@ -69,7 +67,7 @@ const convertToServerCharacterValues = (
   return values.map((feature) => ({
     featureId: feature.featureId,
     notes: feature.notes,
-    unreliable: feature.unreliable,
+    presence: feature.presence,
     characters: feature.characters.map((v) => {
       switch (v.kind) {
         case "categorical":

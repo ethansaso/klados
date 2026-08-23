@@ -9,6 +9,11 @@ import type { HierarchyTaxonNode } from "./types";
 
 type QueueItem = { id: number; depth: number };
 
+/** If a taxon has an "absent" feature, don't even evaluate it for keygen. */
+function isActuallyBorne(state: FeatureStateDTO): boolean {
+  return state.presence !== "absent";
+}
+
 /**
  * Fetches a single taxon and its character states to assemble a KGTaxonNode.
  * Uses per-taxon character state fetch; fine for one-offs, not for bulk traversal.
@@ -29,7 +34,8 @@ export const fetchAndAssembleTaxonNode = async (
     id: taxonId,
     acceptedName: taxon.acceptedName,
     rank: taxon.rank,
-    states: taxonData,
+    states: taxonData.filter(isActuallyBorne),
+    allStates: taxonData,
     subtaxonIds: taxon.subtaxa.map((subtaxon) => subtaxon.id),
   };
 
@@ -130,12 +136,13 @@ function assembleHierarchyNodes(
   const tree = new Map<number, HierarchyTaxonNode>();
 
   for (const [id, meta] of metaById) {
-    const states = statesByTaxonId[id] ?? [];
+    const allStates = statesByTaxonId[id] ?? [];
     const node: HierarchyTaxonNode = {
       id: meta.id,
       acceptedName: meta.acceptedName,
       rank: meta.rank,
-      states,
+      states: allStates.filter(isActuallyBorne),
+      allStates,
       subtaxonIds: meta.subtaxonIds,
     };
     tree.set(id, node);

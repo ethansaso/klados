@@ -57,11 +57,14 @@ export const taxonCharacterStateCategorical = pgTable(
     index("tcs_cat_character_trait_idx").on(t.characterId, t.traitValueId),
     index("tcs_cat_char_set_idx").on(t.characterId, t.synonymSetId),
 
-    // Enforce taxonFeatureState <-> featureId consistency
+    // Enforce taxonFeatureState <-> featureId consistency, and that feature is present
     foreignKey({
       name: "tcs_cat_taxon_feature_state_pair_fk",
       columns: [t.taxonFeatureStateId, t.featureId],
-      foreignColumns: [taxonFeatureState.id, taxonFeatureState.featureId],
+      foreignColumns: [
+        taxonFeatureState.characterizableId,
+        taxonFeatureState.featureId,
+      ],
     }),
 
     // Ensure this state references an existing (character, feature) pairing
@@ -145,10 +148,14 @@ export const taxonCharacterStateNumber = pgTable(
     index("tcn_display_unit_idx").on(t.displayUnitId),
     index("tcn_value_range_idx").using("gist", t.valueRange),
 
+    // Enforce taxonFeatureState <-> featureId consistency, and that feature is present
     foreignKey({
       name: "tcn_taxon_feature_state_pair_fk",
       columns: [t.taxonFeatureStateId, t.featureId],
-      foreignColumns: [taxonFeatureState.id, taxonFeatureState.featureId],
+      foreignColumns: [
+        taxonFeatureState.characterizableId,
+        taxonFeatureState.featureId,
+      ],
     }),
     // Ensure this state references an existing (character, feature) pairing
     foreignKey({
@@ -217,10 +224,14 @@ export const taxonCharacterStateRange = pgTable(
     index("tcnr_display_unit_idx").on(t.displayUnitId),
     index("tcnr_value_range_idx").using("gist", t.valueRange),
 
+    // Enforce taxonFeatureState <-> featureId consistency, and that
     foreignKey({
       name: "tcnr_taxon_feature_state_pair_fk",
       columns: [t.taxonFeatureStateId, t.featureId],
-      foreignColumns: [taxonFeatureState.id, taxonFeatureState.featureId],
+      foreignColumns: [
+        taxonFeatureState.characterizableId,
+        taxonFeatureState.featureId,
+      ],
     }),
     // Ensure this state references an existing (character, feature) pairing
     foreignKey({

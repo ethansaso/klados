@@ -3,6 +3,7 @@ import {
   generateLoginRedirectFromLocation,
   roleHasCuratorRights,
 } from "../../../../../lib/auth/utils";
+import "./route.css";
 
 export const Route = createFileRoute("/_app/taxa/$id/edit")({
   beforeLoad: async ({ context, location }) => {

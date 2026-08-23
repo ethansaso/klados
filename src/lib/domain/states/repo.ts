@@ -57,7 +57,7 @@ export async function selectTaxonStatesByTaxonIds(
       featureId: featuresTbl.id,
       featureLabel: featuresTbl.label,
       notes: tfsTbl.notes,
-      unreliable: tfsTbl.unreliable,
+      presence: tfsTbl.presence,
       featureDescription: featuresTbl.description,
       featureMediaId: featuresTbl.mediaId,
     })
@@ -80,7 +80,7 @@ export async function selectTaxonStatesByTaxonIds(
       featureHasInfo:
         hasText(row.featureDescription) || row.featureMediaId !== null,
       notes: row.notes,
-      unreliable: row.unreliable,
+      presence: row.presence,
       states: [],
     });
   }
@@ -399,35 +399,14 @@ export async function replaceGroupedCharacterStatesForTaxon(
 
   // Process each incoming feature
   for (const feature of features) {
-    let featureStateId: number;
+    const isAbsent = feature.presence === "absent";
 
-    const existingFeature = existingByFeatureId.get(feature.featureId);
-    if (existingFeature) {
-      featureStateId = existingFeature.id;
-
-      await tx
-        .update(tfsTbl)
-        .set({
-          notes: feature.notes,
-          unreliable: feature.unreliable,
-        })
-        .where(eq(tfsTbl.id, featureStateId));
-    } else {
-      const rows = await tx
-        .insert(tfsTbl)
-        .values({
-          taxonId,
-          featureId: feature.featureId,
-          notes: feature.notes,
-          unreliable: feature.unreliable,
-        })
-        .returning({ id: tfsTbl.id });
-
-      if (rows.length !== 1) {
-        throw new Error("Failed to create taxon feature state.");
-      }
-
-      featureStateId = rows[0]!.id;
+    // The composite FK to characterizable_id enforces this too, but only as a
+    // raw constraint violation. Callers get told what they did wrong instead.
+    if (isAbsent && feature.characters.length > 0) {
+      throw new Error(
+        `Feature ${feature.featureId} is marked absent and cannot carry character states.`,
+      );
     }
 
     const categorical = feature.characters.filter(
@@ -440,26 +419,67 @@ export async function replaceGroupedCharacterStatesForTaxon(
       (c): c is RangeCharacterUpdate => c.kind === "range",
     );
 
-    await replaceCategoricalStatesForFeatureState(
-      tx,
-      featureStateId,
-      feature.featureId,
-      categorical,
-    );
+    const replaceCharacterStates = async (featureStateId: number) => {
+      await replaceCategoricalStatesForFeatureState(
+        tx,
+        featureStateId,
+        feature.featureId,
+        categorical,
+      );
 
-    await replaceNumberStatesForFeatureState(
-      tx,
-      featureStateId,
-      feature.featureId,
-      number,
-    );
+      await replaceNumberStatesForFeatureState(
+        tx,
+        featureStateId,
+        feature.featureId,
+        number,
+      );
 
-    await replaceRangeStatesForFeatureState(
-      tx,
-      featureStateId,
-      feature.featureId,
-      range,
-    );
+      await replaceRangeStatesForFeatureState(
+        tx,
+        featureStateId,
+        feature.featureId,
+        range,
+      );
+    };
+
+    const existingFeature = existingByFeatureId.get(feature.featureId);
+    if (existingFeature) {
+      const featureStateId = existingFeature.id;
+
+      const updateFeatureRow = () =>
+        tx
+          .update(tfsTbl)
+          .set({
+            notes: feature.notes,
+            presence: feature.presence,
+          })
+          .where(eq(tfsTbl.id, featureStateId));
+
+      // Special rules for switching presence to avoid violating FKs
+      if (isAbsent) {
+        await replaceCharacterStates(featureStateId);
+        await updateFeatureRow();
+      } else {
+        await updateFeatureRow();
+        await replaceCharacterStates(featureStateId);
+      }
+    } else {
+      const rows = await tx
+        .insert(tfsTbl)
+        .values({
+          taxonId,
+          featureId: feature.featureId,
+          notes: feature.notes,
+          presence: feature.presence,
+        })
+        .returning({ id: tfsTbl.id });
+
+      if (rows.length !== 1) {
+        throw new Error("Failed to create taxon feature state.");
+      }
+
+      await replaceCharacterStates(rows[0]!.id);
+    }
   }
 }
 

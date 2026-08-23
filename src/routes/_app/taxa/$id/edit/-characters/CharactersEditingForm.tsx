@@ -36,7 +36,7 @@ export function CharacterEditingForm({
         featureId: option.id,
         featureLabel: option.label,
         notes: "",
-        unreliable: false,
+        presence: "present" as const,
         characters: [],
       },
     ]);

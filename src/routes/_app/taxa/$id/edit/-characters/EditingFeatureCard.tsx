@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Callout,
   Card,
   DataList,
   Flex,
@@ -16,12 +17,14 @@ import { useFormContext } from "react-hook-form";
 import {
   PiCheck,
   PiPlus,
+  PiProhibit,
   PiSealCheck,
   PiSealQuestion,
   PiTrash,
   PiX,
 } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
+import type { FeaturePresence } from "../../../../../../../db/schema/schema";
 import type { TraitSuggestion } from "../../../../../../lib/domain/suggestions/types";
 import { featureQueryOptions } from "../../../../../../lib/queries/features";
 import { CharacterStateRow } from "./CharacterStateRow";
@@ -37,6 +40,39 @@ type LastAdded = {
   characterId: number;
   traitIndex?: number;
   label: string;
+};
+
+const PRESENCE_CYCLE: Record<
+  FeaturePresence,
+  {
+    next: FeaturePresence;
+    label: string;
+    hint: string;
+    color: "grass" | "amber" | "tomato";
+    Icon: typeof PiSealCheck;
+  }
+> = {
+  present: {
+    next: "variable",
+    label: "Present",
+    hint: "Present on most or all individuals",
+    color: "grass",
+    Icon: PiSealCheck,
+  },
+  variable: {
+    next: "absent",
+    label: "Variable",
+    hint: "Not always present on all individuals",
+    color: "amber",
+    Icon: PiSealQuestion,
+  },
+  absent: {
+    next: "present",
+    label: "Absent",
+    hint: "Conclusively not borne by this taxon",
+    color: "tomato",
+    Icon: PiProhibit,
+  },
 };
 
 export const characterSearchInputId = (featureId: number) =>
@@ -216,11 +252,11 @@ export const EditingFeatureCard = memo(
       [getValues, onChange, feature.featureId],
     );
 
-    const handleUnreliableToggle = useCallback(() => {
+    const handlePresenceCycle = useCallback(() => {
       const prev = getValues("states");
       const next = prev.map((group) =>
         group.featureId === feature.featureId
-          ? { ...group, unreliable: !group.unreliable }
+          ? { ...group, presence: PRESENCE_CYCLE[group.presence].next }
           : group,
       );
       onChange(next);
@@ -231,8 +267,18 @@ export const EditingFeatureCard = memo(
       setConfirmingDelete(true);
     };
 
+    const presence = PRESENCE_CYCLE[feature.presence];
+    // Indicator for 'you left states on an absent feature'
+    const absentWithStates =
+      feature.presence === "absent" && feature.characters.length > 0;
+
     return (
-      <Card style={{ display: "flex", flexDirection: "column" }}>
+      <Card
+        className={
+          absentWithStates ? "feature-card--absent-with-states" : undefined
+        }
+        style={{ display: "flex", flexDirection: "column" }}
+      >
         <Flex
           m="-3"
           p="3"
@@ -271,32 +317,16 @@ export const EditingFeatureCard = memo(
             </Flex>
           ) : (
             <Flex mr="1" gap="2" align="center">
-              <Tooltip
-                content={
-                  feature.unreliable
-                    ? "Not always present on all individuals"
-                    : "Present on most or all individuals"
-                }
-              >
+              <Tooltip content={presence.hint}>
                 <Button
                   type="button"
                   size="1"
                   variant="ghost"
-                  color={feature.unreliable ? "amber" : "grass"}
-                  aria-pressed={feature.unreliable}
-                  onClick={handleUnreliableToggle}
+                  color={presence.color}
+                  onClick={handlePresenceCycle}
                 >
-                  {feature.unreliable ? (
-                    <>
-                      <PiSealQuestion size={16} />
-                      Unreliable
-                    </>
-                  ) : (
-                    <>
-                      <PiSealCheck size={16} />
-                      Reliable
-                    </>
-                  )}
+                  <presence.Icon size={16} />
+                  {presence.label}
                 </Button>
               </Tooltip>
               <IconButton
@@ -311,6 +341,14 @@ export const EditingFeatureCard = memo(
             </Flex>
           )}
         </Flex>
+
+        {absentWithStates && (
+          <Callout.Root color="tomato" size="1" mt="2">
+            <Callout.Text>
+              Marked absent. Remove all character states before saving.
+            </Callout.Text>
+          </Callout.Root>
+        )}
 
         {/* Add states via search */}
         <Box mt="2" mb="3">

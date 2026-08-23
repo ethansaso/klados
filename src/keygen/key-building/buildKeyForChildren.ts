@@ -355,7 +355,7 @@ export function buildKeySubtreeForTaxon(
   // its ancestors said about the same feature.
   const inheritedForChildren = extendInheritedStatements(
     inheritedStatements,
-    hierarchy.get(getNumericTaxonId(taxonNode))?.states,
+    hierarchy.get(getNumericTaxonId(taxonNode))?.allStates,
   );
 
   if (children.length === 1) {
