@@ -42,9 +42,9 @@ function RouteComponent() {
         </Text>
         <Text as="p" mb="2">
           Furthermore, Klados is not intended to replace traditional dichotomous
-          keys, or other established identification resources. Instead, Klados
-          provides a community-driven alternative that emphasizes collaboration,
-          accessibility, and ease of use.
+          keys, or other established identification resources. Rather, Klados
+          simply provides a community-driven alternative that emphasizes
+          collaboration, accessibility, and ease of use.
         </Text>
         <Text as="p">
           <Strong>
@@ -58,12 +58,13 @@ function RouteComponent() {
         <Heading mb="3">Our Mission</Heading>
         <Text as="p">
           Klados was created with the idea of free, equitable access to learning
-          resources for anyone seeking to learn to identify organisms.
-          Dichotomous keys for many fields are often hard to obtain, and are
-          written in a jargon-heavy, inaccessible fashion which discourages
-          newcomers to the field and ultimately hinders community contribution
-          to science. Klados addresses this with an intuitive, modern
-          alternative to traditional keys, accessible to all audiences.
+          resources for anyone seeking to learn to identify organisms. Field
+          guides, dichotomous keys, and other educational materials are often
+          hard to obtain, and are frequently written in a jargon-heavy,
+          inaccessible fashion which discourages newcomers to the field. Klados
+          addresses this with an intuitive, modern alternative to traditional
+          keys, accessible to all audiences, built to break down barriers to
+          community science.
         </Text>
       </Box>
       <Box mb="5">
