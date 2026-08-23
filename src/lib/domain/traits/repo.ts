@@ -10,6 +10,7 @@ import {
   sql,
 } from "drizzle-orm";
 import {
+  media as mediaTbl,
   traitSynonymSet as setsTbl,
   taxonCharacterStateCategorical as tcsTbl,
   categoricalTraitValue as valsTbl,
@@ -21,12 +22,18 @@ import {
   fuzzySimilarity,
 } from "../../utils/sql/fuzzyLabel";
 import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
+import type { MediaDTO } from "../media/types";
 import type {
   TraitSynonymDTO,
   TraitValueDTO,
   TraitValuePaginatedResult,
   TraitValueRow,
 } from "./types";
+
+/** Helper type for un-media-hydrated traits */
+type TraitValueRawRow = Omit<TraitValueDTO, "media"> & {
+  mediaId: number | null;
+};
 
 /** Aggregate of a trait's synonyms, ordered by label. */
 const synonymsAgg = sql<TraitSynonymDTO[]>`
@@ -52,6 +59,32 @@ function usageAggFor(tx: Transaction, filter: ReturnType<typeof eq>) {
     .where(filter)
     .groupBy(tcsTbl.traitValueId)
     .as("usage_agg");
+}
+
+/** Resolve trait rows' `mediaId` references into full media objects. */
+async function hydrateTraitValueMedia(
+  tx: Transaction,
+  rows: TraitValueRawRow[],
+): Promise<TraitValueDTO[]> {
+  const mediaIds = Array.from(
+    new Set(
+      rows.map((r) => r.mediaId).filter((id): id is number => id != null),
+    ),
+  );
+
+  const mediaByIds = new Map<number, MediaDTO>();
+  if (mediaIds.length) {
+    const mediaRows = await tx
+      .select()
+      .from(mediaTbl)
+      .where(inArray(mediaTbl.id, mediaIds));
+    for (const m of mediaRows) mediaByIds.set(m.id, m);
+  }
+
+  return rows.map(({ mediaId, ...rest }) => ({
+    ...rest,
+    media: mediaId != null ? (mediaByIds.get(mediaId) ?? null) : null,
+  }));
 }
 
 /** Allocate a new, empty synonym set for a character. */
@@ -284,6 +317,7 @@ export async function insertTraitValueRow(
     label: string;
     description?: string;
     hexCode?: string | null;
+    mediaId?: number | null;
   },
 ): Promise<TraitValueRow | null> {
   const [inserted] = await tx
@@ -294,6 +328,7 @@ export async function insertTraitValueRow(
       label: args.label,
       description: args.description ?? "",
       hexCode: args.hexCode ?? null,
+      mediaId: args.mediaId ?? null,
     })
     .returning();
 
@@ -317,13 +352,17 @@ export async function selectTraitValueDtoById(
       description: valsTbl.description,
       usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
       synonyms: synonymsAgg,
+      mediaId: valsTbl.mediaId,
     })
     .from(valsTbl)
     .leftJoin(usageAgg, eq(usageAgg.traitValueId, valsTbl.id))
     .where(eq(valsTbl.id, id))
     .limit(1);
 
-  return row ?? null;
+  if (!row) return null;
+
+  const [dto] = await hydrateTraitValueMedia(tx, [row]);
+  return dto ?? null;
 }
 
 /** Fetch multiple TraitValueDTOs by IDs. */
@@ -337,7 +376,7 @@ export async function selectTraitValueDtosByIds(
 
   const usageAgg = usageAggFor(tx, inArray(tcsTbl.traitValueId, ids));
 
-  return tx
+  const rows = await tx
     .select({
       id: valsTbl.id,
       characterId: valsTbl.characterId,
@@ -347,11 +386,14 @@ export async function selectTraitValueDtosByIds(
       description: valsTbl.description,
       usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
       synonyms: synonymsAgg,
+      mediaId: valsTbl.mediaId,
     })
     .from(valsTbl)
     .leftJoin(usageAgg, eq(usageAgg.traitValueId, valsTbl.id))
     .where(inArray(valsTbl.id, ids))
     .orderBy(asc(valsTbl.id));
+
+  return hydrateTraitValueMedia(tx, rows);
 }
 
 /**
@@ -366,15 +408,17 @@ export async function updateTraitValueRow(
     label?: string;
     hexCode?: string | null;
     description?: string;
+    mediaId?: number | null;
   },
 ): Promise<{ id: number } | null> {
   const patch: Partial<
-    Pick<TraitValueRow, "label" | "hexCode" | "description">
+    Pick<TraitValueRow, "label" | "hexCode" | "description" | "mediaId">
   > = {};
 
   if (args.label !== undefined) patch.label = args.label;
   if (args.hexCode !== undefined) patch.hexCode = args.hexCode;
   if (args.description !== undefined) patch.description = args.description;
+  if (args.mediaId !== undefined) patch.mediaId = args.mediaId;
 
   const scope = and(
     eq(valsTbl.id, args.id),
@@ -418,7 +462,7 @@ export async function selectTraitValuesByCharacterPaginated(
   const where = and(...filters)!;
   const usageAgg = usageAggFor(tx, eq(tcsTbl.characterId, characterId));
 
-  const items = await tx
+  const rawItems = await tx
     .select({
       id: valsTbl.id,
       characterId: valsTbl.characterId,
@@ -428,6 +472,7 @@ export async function selectTraitValuesByCharacterPaginated(
       description: valsTbl.description,
       usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
       synonyms: synonymsAgg,
+      mediaId: valsTbl.mediaId,
     })
     .from(valsTbl)
     .leftJoin(usageAgg, eq(usageAgg.traitValueId, valsTbl.id))
@@ -435,6 +480,8 @@ export async function selectTraitValuesByCharacterPaginated(
     .orderBy(asc(valsTbl.label), asc(valsTbl.id))
     .limit(pageSize)
     .offset(offset);
+
+  const items = await hydrateTraitValueMedia(tx, rawItems);
 
   const [totals] = await tx
     .select({ total: count() })
