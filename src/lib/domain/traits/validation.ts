@@ -19,11 +19,15 @@ const hexCode = z
   .nullable()
   .optional();
 
+/* `null` clears the image. */
+const mediaId = z.number().int().positive().nullable().optional();
+
 export const createTraitValueSchema = z.object({
   characterId: z.number().int().positive(),
   label,
   description,
   hexCode,
+  mediaId,
   synonymOfTraitId: traitId.optional(),
 });
 
@@ -33,6 +37,7 @@ export const updateTraitValueSchema = z.object({
   label: label.optional(),
   description,
   hexCode,
+  mediaId,
   synonymTargetTraitId: traitId.nullable().optional(),
 });
 

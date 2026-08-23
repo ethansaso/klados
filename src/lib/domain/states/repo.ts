@@ -102,6 +102,7 @@ export async function selectTaxonStatesByTaxonIds(
       traitValueId: catStateTbl.traitValueId,
       traitValueLabel: catValTbl.label,
       traitValueDescription: catValTbl.description,
+      traitValueMediaId: catValTbl.mediaId,
       traitValueHexCode: catValTbl.hexCode,
       traitSynonymSetId: catValTbl.synonymSetId,
     })
@@ -164,7 +165,8 @@ export async function selectTaxonStatesByTaxonIds(
         id: row.traitValueId,
         synonymSetId: row.traitSynonymSetId,
         label: row.traitValueLabel,
-        hasInfo: hasText(row.traitValueDescription),
+        hasInfo:
+          hasText(row.traitValueDescription) || row.traitValueMediaId !== null,
         hexCode: row.traitValueHexCode ?? undefined,
       },
       modifiers: modifiersByCatStateId.get(row.stateId) ?? [],

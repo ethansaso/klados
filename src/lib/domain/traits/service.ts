@@ -131,6 +131,7 @@ export async function createTraitValue(
       label,
       description: args.description?.trim(),
       hexCode: args.hexCode,
+      mediaId: args.mediaId,
     });
 
     if (!inserted) {
@@ -166,6 +167,7 @@ export async function updateTraitValue(
       hexCode: args.hexCode,
       description:
         args.description === undefined ? undefined : args.description.trim(),
+      mediaId: args.mediaId,
     });
     if (!updated) throw new Error("Update failed.");
 

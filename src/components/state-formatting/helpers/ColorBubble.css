@@ -1,5 +1,6 @@
 .color-bubble {
   display: inline-block;
+  box-sizing: content-box;
   border-radius: 50%;
   border: 1px solid var(--gray-a7);
 

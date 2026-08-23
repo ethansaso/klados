@@ -10,7 +10,7 @@ type Props = Omit<
   onDebouncedChange: (value: string) => void;
 };
 
-const DEBOUNCE_DELAY = 200;
+const DEBOUNCE_DELAY = 300;
 
 export const DebouncedTextField = ({
   initialValue,

@@ -75,6 +75,7 @@ export const MediaBrowserView: React.FC<Props> = ({
     try {
       await serverDelete({ data: { id: media.id } });
       qc.invalidateQueries({ queryKey: ["media"] });
+      setSelected((prev) => prev.filter((m) => m.id !== media.id));
     } catch (error) {
       console.log(error);
       toast({
