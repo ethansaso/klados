@@ -1,4 +1,5 @@
 import z from "zod";
+import { FEATURE_PRESENCES } from "../../../../db/schema/schema";
 
 const categoricalCharacterUpdateSchema = z.object({
   kind: z.literal("categorical"),
@@ -54,10 +55,18 @@ const featureUpdateSchema = z
   .object({
     featureId: z.number().int(),
     notes: z.string().trim(),
-    unreliable: z.boolean().default(false),
+    presence: z.enum(FEATURE_PRESENCES).default("present"),
     characters: z.array(characterUpdateSchema),
   })
   .superRefine((group, ctx) => {
+    if (group.presence === "absent" && group.characters.length > 0) {
+      ctx.addIssue({
+        code: "custom",
+        message: `Feature ${group.featureId} is marked absent and cannot carry character states.`,
+        path: ["characters"],
+      });
+    }
+
     // Duplicates allowed when modifier sets differ (same trait value, different modifiers = valid multi-entry)
     const seenCategorical = new Set<string>();
     // For numeric/range: track (characterId, modifierSignature) pairs to allow different modifier sets

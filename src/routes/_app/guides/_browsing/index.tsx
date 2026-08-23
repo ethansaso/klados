@@ -68,8 +68,8 @@ function RouteComponent() {
         page={currentPage}
         pageSize={currentPageSize}
         total={total}
-        onNext={handleNext}
-        onPrev={handlePrev}
+        onNext={handlePrev}
+        onPrev={handleNext}
       />
     </Flex>
   );

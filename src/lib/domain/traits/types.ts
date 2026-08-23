@@ -1,5 +1,6 @@
 import { categoricalTraitValue } from "../../../../db/schema/schema";
 import type { PaginatedResult } from "../../validation/pagination";
+import type { MediaDTO } from "../media/types";
 
 export type TraitValueRow = typeof categoricalTraitValue.$inferSelect;
 
@@ -14,6 +15,7 @@ export type TraitValueDTO = Pick<
   usageCount: number;
   /** Other labels in the same set. Excludes self. Sorted by label. */
   synonyms: TraitSynonymDTO[];
+  media: MediaDTO | null;
 };
 
 export type TraitValuePaginatedResult = PaginatedResult<TraitValueDTO>;

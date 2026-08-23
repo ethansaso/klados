@@ -7,14 +7,13 @@ import {
   RadioCards,
   Spinner,
   Text,
-  TextField,
 } from "@radix-ui/themes";
-import { useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
-import { useDebounce } from "use-debounce";
+import { useState } from "react";
 import z from "zod";
 import { type MediaLicense } from "../../../../db/utils/mediaLicense";
+import { DebouncedTextField } from "../../../components/inputs/DebouncedTextField";
 import type { MediaDTO } from "../../../lib/domain/media/types";
 import { uploadMediaFn } from "../../../lib/server-fns/media/uploadMediaFn";
 
@@ -61,73 +60,61 @@ const WikimediaImageInfoResponseSchema = z.object({
     .optional(),
 });
 
-const WikimediaPhotoSelectModal = NiceModal.create<Props>(
+/** Commons search over a File, narrowed to minimal fields */
+const wikimediaPhotosQueryOptions = (query: string) =>
+  queryOptions({
+    queryKey: ["wikimediaPhotos", query] as const,
+    queryFn: async ({ signal }): Promise<WikimediaPhoto[]> => {
+      const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(query)}&gsrlimit=20&prop=imageinfo&iiprop=url%7Cextmetadata&iiextmetadatafilter=LicenseShortName%7CArtist&iiurlwidth=400&format=json&origin=*`;
+
+      const res = await fetch(searchUrl, { signal });
+      if (!res.ok) throw new Error(`Failed: ${res.status}`);
+      const data: unknown = await res.json();
+
+      const media = extractWikimediaPhotos(data);
+      if (media === null) {
+        throw new Error(
+          "Failed to parse Wikimedia response. Please contact Klados developers.",
+        );
+      }
+
+      return media;
+    },
+  });
+
+export const WikimediaPhotoSelectModal = NiceModal.create<Props>(
   ({ initialQuery, onConfirm }) => {
     const { visible, remove } = NiceModal.useModal();
     const qc = useQueryClient();
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [allMedia, setAllMedia] = useState<WikimediaPhoto[] | null>(null);
+    const [uploadError, setUploadError] = useState<string | null>(null);
     const [uploading, setUploading] = useState(false);
-    const [selectedId, setSelectedId] = useState<number | null>(null);
-    const [searchInput, setSearchInput] = useState(initialQuery);
-    const [debouncedQuery] = useDebounce(searchInput, 400);
+    // Keyed by url, not index, so a stale pick simply matches nothing new
+    const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
+    const [query, setQuery] = useState(initialQuery);
     const upload = useServerFn(uploadMediaFn);
 
-    useEffect(() => {
-      const controller = new AbortController();
+    const {
+      data: allMedia,
+      isPending: loading,
+      error: searchError,
+    } = useQuery({
+      ...wikimediaPhotosQueryOptions(query),
+      enabled: visible,
+    });
 
-      async function fetchWikimediaPhotos() {
-        try {
-          setLoading(true);
-          setError(null);
-          setAllMedia(null);
-          setSelectedId(null);
-
-          // search Wikimedia Commons File: namespace
-          const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(debouncedQuery)}&gsrlimit=20&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=400&format=json&origin=*`;
-          const res = await fetch(searchUrl, { signal: controller.signal });
-          if (!res.ok) throw new Error(`Failed: ${res.status}`);
-          const data: unknown = await res.json();
-
-          const media = extractWikimediaPhotos(data);
-          if (media === null) {
-            setError(
-              "Failed to parse Wikimedia response. Please contact Klados developers.",
-            );
-            return;
-          }
-
-          setAllMedia(media);
-        } catch (e: unknown) {
-          if (e instanceof DOMException && e.name === "AbortError") return;
-          if (!controller.signal.aborted) {
-            setError(
-              e instanceof Error
-                ? e.message
-                : "Failed to fetch Wikimedia photos.",
-            );
-          }
-        } finally {
-          if (!controller.signal.aborted) setLoading(false);
-        }
-      }
-
-      fetchWikimediaPhotos();
-      return () => controller.abort();
-    }, [debouncedQuery]);
+    const error = uploadError ?? searchError?.message ?? null;
 
     const handleExit = () => {
-      setSelectedId(null);
+      setSelectedUrl(null);
       remove();
     };
 
     const handleFinish = async () => {
-      if (!allMedia || selectedId === null) return;
-      const selectedMedia = allMedia[selectedId];
+      const selectedMedia = allMedia?.find((m) => m.url === selectedUrl);
       if (!selectedMedia) return;
 
       setUploading(true);
+      setUploadError(null);
       try {
         const items = [
           {
@@ -145,7 +132,7 @@ const WikimediaPhotoSelectModal = NiceModal.create<Props>(
         qc.invalidateQueries({ queryKey: ["media"] });
         handleExit();
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Upload failed.");
+        setUploadError(e instanceof Error ? e.message : "Upload failed.");
       } finally {
         setUploading(false);
       }
@@ -158,9 +145,9 @@ const WikimediaPhotoSelectModal = NiceModal.create<Props>(
       >
         <Dialog.Content maxWidth="400px" aria-describedby={undefined}>
           <Dialog.Title>Import Wikimedia Photos</Dialog.Title>
-          <TextField.Root
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+          <DebouncedTextField
+            initialValue={initialQuery}
+            onDebouncedChange={setQuery}
             placeholder="Search Wikimedia Commons…"
             mb="3"
           />
@@ -180,13 +167,11 @@ const WikimediaPhotoSelectModal = NiceModal.create<Props>(
                   columns="3"
                   gap="1"
                   className="select-image-grid"
-                  value={selectedId !== null ? String(selectedId) : ""}
-                  onValueChange={(value) =>
-                    setSelectedId(value ? Number(value) : null)
-                  }
+                  value={selectedUrl ?? ""}
+                  onValueChange={(value) => setSelectedUrl(value || null)}
                 >
-                  {allMedia.map((m, i) => (
-                    <RadioCards.Item value={String(i)} key={m.url}>
+                  {allMedia.map((m) => (
+                    <RadioCards.Item value={m.url} key={m.url}>
                       <img src={m.url} />
                     </RadioCards.Item>
                   ))}
@@ -204,7 +189,7 @@ const WikimediaPhotoSelectModal = NiceModal.create<Props>(
               Cancel
             </Button>
             <Button
-              disabled={!allMedia || uploading || selectedId === null}
+              disabled={!allMedia || uploading || selectedUrl === null}
               loading={uploading}
               onClick={handleFinish}
             >

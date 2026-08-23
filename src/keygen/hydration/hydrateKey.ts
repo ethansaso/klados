@@ -146,7 +146,7 @@ async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
     traitById.set(tr.id, {
       id: tr.id,
       label: tr.label,
-      hasInfo: tr.description.trim().length > 0,
+      hasInfo: tr.description.trim().length > 0 || tr.media !== null,
       synonymSetId: tr.synonymSetId,
       hexCode: tr.hexCode ?? undefined,
     });

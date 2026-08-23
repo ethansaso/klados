@@ -7,6 +7,7 @@ import {
   exists,
   ilike,
   inArray,
+  ne,
   or,
   sql,
   type SQL,
@@ -435,6 +436,9 @@ export async function listTaxaQuery(
     ? inArray(taxaTbl.status, status)
     : undefined;
 
+  // Treat 'absent' as not having it at all
+  const isBorne = ne(featureStatesTbl.presence, "absent");
+
   const allowedRanks = computeRankBand(highRank, lowRank);
   const rankFilter =
     allowedRanks && allowedRanks.length
@@ -446,7 +450,7 @@ export async function listTaxaQuery(
         db
           .select({ _: sql`1` })
           .from(featureStatesTbl)
-          .where(eq(featureStatesTbl.taxonId, taxaTbl.id)),
+          .where(and(eq(featureStatesTbl.taxonId, taxaTbl.id), isBorne)),
       )
     : undefined;
   const hasEcologyFilter = hasEcology
@@ -473,6 +477,7 @@ export async function listTaxaQuery(
             and(
               eq(featureStatesTbl.taxonId, taxaTbl.id),
               inArray(featureStatesTbl.featureId, filter.featureIds),
+              isBorne,
             ),
           ),
       );

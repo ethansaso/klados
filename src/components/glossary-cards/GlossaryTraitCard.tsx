@@ -21,7 +21,7 @@ export const GlossaryTraitCard: React.FC<Props> = ({ id, children }) => {
         trait && {
           title: trait.label,
           description: trait.description,
-          media: null,
+          media: trait.media,
         }
       }
       onOpenChange={setOpen}

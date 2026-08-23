@@ -35,9 +35,8 @@ export type InheritedFeatureStatements = ReadonlyMap<number, boolean>;
 /**
  * Folds a taxon's own statements over what it inherited, nearest wins.
  *
- * A nearer taxon marking a feature unreliable withdraws the ancestor's claim
- * rather than being ignored: a family described as annulate, refined by a genus
- * whose annulus varies, must leave its species keyable on annulus again.
+ * Closest taxon calling feature variable/absent withdraws ancestor's claim,
+ * e.g. family annulate, genus annulus varies, don't key species.
  */
 export function extendInheritedStatements(
   inherited: InheritedFeatureStatements,
@@ -47,7 +46,7 @@ export function extendInheritedStatements(
 
   const next = new Map(inherited);
   for (const state of states) {
-    next.set(state.featureId, !state.unreliable);
+    next.set(state.featureId, state.presence === "present");
   }
   return next;
 }
@@ -113,7 +112,7 @@ export function resolveFeaturePresentAbsentSplits(
       );
 
       for (const id of expanded) {
-        if (feature.unreliable) {
+        if (feature.presence === "variable") {
           uncertain.add(id);
         } else {
           certain.add(id);

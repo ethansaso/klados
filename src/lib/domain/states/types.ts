@@ -1,4 +1,4 @@
-import type { ModifierClass } from "../../../../db/schema/schema";
+import type { FeaturePresence } from "../../../../db/schema/schema";
 import { type UnitDTO } from "../units/types";
 
 export type ModifierStateDTO = {
@@ -7,7 +7,6 @@ export type ModifierStateDTO = {
   affixType: "prefix" | "suffix";
   groupId: number;
   groupLabel: string;
-  groupClass: ModifierClass;
 };
 
 export type Trait = {
@@ -58,6 +57,6 @@ export type FeatureStateDTO = {
   featureLabel: string;
   featureHasInfo: boolean;
   notes: string;
-  unreliable: boolean;
+  presence: FeaturePresence;
   states: CharacterStateDTO[];
 };

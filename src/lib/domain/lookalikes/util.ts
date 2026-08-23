@@ -61,14 +61,12 @@ export function buildGroupedLookalikeStates(args: {
   for (const groupId of allGroupIds) {
     const aGroup = aByGroup.get(groupId);
     const bGroup = bByGroup.get(groupId);
-    const aHasGroup = aGroup !== undefined;
-    const bHasGroup = bGroup !== undefined;
 
     const groupLabel = aGroup?.featureLabel ?? bGroup?.featureLabel ?? "";
     const groupHasInfo =
       aGroup?.featureHasInfo ?? bGroup?.featureHasInfo ?? false;
-    const aUnreliable = aGroup?.unreliable ?? false;
-    const bUnreliable = bGroup?.unreliable ?? false;
+    const aPresence = aGroup?.presence ?? "unstated";
+    const bPresence = bGroup?.presence ?? "unstated";
     const aStates = aGroup?.states ?? null;
     const bStates = bGroup?.states ?? null;
 
@@ -144,10 +142,8 @@ export function buildGroupedLookalikeStates(args: {
       groupId,
       groupLabel,
       groupHasInfo,
-      aHasGroup,
-      bHasGroup,
-      aUnreliable,
-      bUnreliable,
+      aPresence,
+      bPresence,
       aCharacters,
       bCharacters,
     });

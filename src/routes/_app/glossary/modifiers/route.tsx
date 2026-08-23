@@ -7,7 +7,6 @@ import { GlossarySidebarLayout } from "../-chrome/GlossarySidebarLayout";
 import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
-import { ModifierIcon } from "../../../../components/icons/modular/ModifierIcon";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { useRoutedPaginatedSearch } from "../../../../lib/hooks/useRoutedPaginatedSearch";
 import { modifierGroupsQueryOptions } from "../../../../lib/queries/modifiers";
@@ -76,7 +75,6 @@ function RouteComponent() {
               key={item.id}
               label={
                 <Flex align="center" gap="1">
-                  <ModifierIcon type={item.class} />
                   {item.label}
                 </Flex>
               }

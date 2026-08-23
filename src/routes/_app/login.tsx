@@ -101,7 +101,7 @@ function RouteComponent() {
         default:
           toast({
             variant: "error",
-            description: "Failed to sign in. Please try again later.",
+            description: "Failed to sign in. Please try again.",
           });
       }
       return;

@@ -1,4 +1,4 @@
-import type { TaxonRank } from "../../../../db/schema/schema";
+import type { FeaturePresence, TaxonRank } from "../../../../db/schema/schema";
 import type { MediaDTO } from "../media/types";
 import type {
   CategoricalStateDTO,
@@ -48,14 +48,15 @@ export type LookalikeComparisonCharacter = {
   states: LookalikeComparisonAnnotatedState[];
 };
 
+/** Presence column extended to 'unstated' for lacking feature */
+export type LookalikeComparisonPresence = FeaturePresence | "unstated";
+
 export type LookalikeComparisonGroup = {
   groupId: number;
   groupLabel: string;
   groupHasInfo: boolean;
-  aHasGroup: boolean;
-  bHasGroup: boolean;
-  aUnreliable: boolean;
-  bUnreliable: boolean;
+  aPresence: FeaturePresence | "unstated";
+  bPresence: LookalikeComparisonPresence;
 
   /** When null, taxon lacks group altogether */
   aCharacters: LookalikeComparisonCharacter[] | null;

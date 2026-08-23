@@ -12,20 +12,12 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
+import { media } from "../schema";
 
-export type ModifierClass = (typeof MODIFIER_CLASSES)[number];
 export type AffixType = (typeof AFFIX_TYPES)[number];
 
-export const MODIFIER_CLASSES = [
-  "positional",
-  "reliability",
-  "demographic",
-  "reactive",
-  "intensity",
-] as const;
 export const AFFIX_TYPES = ["prefix", "suffix"] as const;
 
-export const modifierClassEnum = pgEnum("modifier_type", MODIFIER_CLASSES);
 export const modifierAffixEnum = pgEnum("affix", AFFIX_TYPES);
 
 /**
@@ -37,7 +29,6 @@ export const modifierGroup = pgTable(
     id: serial("id").primaryKey(),
     label: text("label").notNull(),
     description: text("description").notNull().default(""),
-    class: modifierClassEnum("class").notNull(),
   }),
   (t) => [uniqueIndex("modifier_groups_label_uq").on(t.label)],
 );
@@ -56,6 +47,9 @@ export const modifierValue = pgTable(
     description: text("description").notNull().default(""),
     affixType: modifierAffixEnum("affix_type").notNull(),
     canonicalValueId: integer("canonical_value_id"),
+    mediaId: integer("media_id").references(() => media.id, {
+      onDelete: "set null",
+    }),
   }),
   (t) => [
     unique("modifier_values_group_id_id_uq").on(t.groupId, t.id),

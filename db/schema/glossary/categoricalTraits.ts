@@ -11,6 +11,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
+import { media } from "../schema";
 import { categoricalCharacterMeta } from "./characters";
 
 /**
@@ -51,9 +52,12 @@ export const categoricalTraitValue = pgTable(
     label: text("label").notNull(),
     hexCode: text("hex_code"),
     description: text("description").notNull().default(""),
+    mediaId: integer("media_id").references(() => media.id, {
+      onDelete: "set null",
+    }),
   }),
   (t) => [
-    // Composite target for the state tables — DO NOT REMOVE
+    // Composite target for the state tables [DO NOT REMOVE]
     unique("trait_values_character_id_id_uq").on(t.characterId, t.id),
 
     // Composite target for a future denormalized set id on state rows

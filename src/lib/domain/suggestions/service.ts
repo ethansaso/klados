@@ -333,7 +333,6 @@ export async function searchModifierSuggestions(opts: {
       affixType: row.affixType,
       groupId: row.groupId,
       groupLabel: row.groupLabel,
-      groupClass: row.groupClass,
     }));
   }
 
@@ -358,7 +357,6 @@ export async function searchModifierSuggestions(opts: {
       affixType: row.affixType,
       groupId: row.groupId,
       groupLabel: row.groupLabel,
-      groupClass: row.groupClass,
     }));
 }
 

@@ -21,6 +21,10 @@ import {
   useWatch,
 } from "react-hook-form";
 import z from "zod";
+import {
+  selectWikimediaPhotos,
+  WikimediaPhotoSelectModal,
+} from "../../-WikimediaPhotoSelectModal";
 import { ClearableColorField } from "../../../../../components/inputs/ClearableColorField";
 import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../../../components/inputs/combobox/types";
@@ -28,9 +32,12 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
+import MediaBrowser from "../../../../../components/media-browser";
+import type { MediaDTO } from "../../../../../lib/domain/media/types";
 import type { TraitValueDTO } from "../../../../../lib/domain/traits/types";
 import { synonymCandidatesQueryOptions } from "../../../../../lib/queries/traits";
 import { updateTraitValueFn } from "../../../../../lib/server-fns/traits/updateTraitValueFn";
+import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 import { toast } from "../../../../../lib/utils/toast";
 import {
   trimmed,
@@ -67,6 +74,7 @@ const formSchema = z.object({
     .refine((v) => v === "" || /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(v), {
       message: "Must be a valid hex color code",
     }),
+  media: z.custom<MediaDTO>().nullable(),
   membership: membershipSchema,
 });
 
@@ -84,6 +92,7 @@ const seedFormValues = (value: TraitValueDTO): FormValues => ({
   label: value.label,
   description: value.description ?? "",
   hexCode: value.hexCode ?? "",
+  media: value.media,
   membership: seedMembership(value),
 });
 
@@ -108,6 +117,11 @@ export const EditTraitValueModal = NiceModal.create<Props>(
 
     const [synonymQuery, setSynonymQuery] = useState("");
 
+    // Hide while media modals are open
+    const mediaBrowser = NiceModal.useModal(MediaBrowser);
+    const wikimediaPicker = NiceModal.useModal(WikimediaPhotoSelectModal);
+    const pickerOpen = mediaBrowser.visible || wikimediaPicker.visible;
+
     const { data: candidates, isFetching: candidatesLoading } = useQuery(
       synonymCandidatesQueryOptions(
         traitValue.id,
@@ -126,9 +140,12 @@ export const EditTraitValueModal = NiceModal.create<Props>(
       setError,
       register,
       reset,
+      setValue,
+      getValues,
       handleSubmit,
     } = methods;
     const membership = useWatch({ control, name: "membership" });
+    const currentMedia = useWatch({ control, name: "media" });
 
     /** Options keyed by set, since 'head' trait (label/id) may change, but set is selectable identity */
     const candidateOptions: ComboboxOption[] = useMemo(
@@ -147,7 +164,11 @@ export const EditTraitValueModal = NiceModal.create<Props>(
       label: membership.labels.join(", "),
     };
 
-    const mutation = useMutation({
+    const {
+      isPending: mutationPending,
+      mutateAsync: mutationSubmit,
+      reset: mutationReset,
+    } = useMutation({
       mutationFn: serverUpdate,
       onSuccess: async (res) => {
         await invalidate();
@@ -165,15 +186,33 @@ export const EditTraitValueModal = NiceModal.create<Props>(
       },
     });
 
+    /** Wikimedia seeds its search with the label as currently edited. */
+    const handleWikimediaPick = async () => {
+      const picked = await selectWikimediaPhotos(getValues("label"));
+      const media = picked?.[0];
+      if (!media) return;
+
+      setValue("media", media, { shouldDirty: true });
+    };
+
+    const handleBrowserPick = () =>
+      NiceModal.show(MediaBrowser, {
+        mode: "single",
+        onSelect: (media) => {
+          setValue("media", media, { shouldDirty: true });
+        },
+      });
+
     // Metadata and membership are one payload, so one transaction commits both
     const onSubmit: SubmitHandler<FormValues> = async (data) => {
-      await mutation.mutateAsync({
+      await mutationSubmit({
         data: {
           id: traitValue.id,
           characterId: traitValue.characterId,
           label: data.label,
           description: data.description,
           hexCode: data.hexCode === "" ? null : data.hexCode,
+          mediaId: data.media?.id ?? null,
           synonymTargetTraitId: synonymTargetFor(data.membership, traitValue),
         },
       });
@@ -185,8 +224,8 @@ export const EditTraitValueModal = NiceModal.create<Props>(
       reset(seedFormValues(traitValue));
       // eslint-disable-next-line @eslint-react/set-state-in-effect
       setSynonymQuery("");
-      mutation.reset();
-    }, [visible, traitValue, reset]);
+      mutationReset();
+    }, [visible, traitValue, reset, mutationReset]);
 
     return (
       <Dialog.Root
@@ -197,7 +236,11 @@ export const EditTraitValueModal = NiceModal.create<Props>(
           }
         }}
       >
-        <Dialog.Content maxWidth="450px">
+        <Dialog.Content
+          maxWidth="450px"
+          className="glossary-trait-dialog"
+          data-picker-open={pickerOpen ? "true" : undefined}
+        >
           <Dialog.Title>Edit {traitValue.label}</Dialog.Title>
           <Dialog.Description size="2" mb="4">
             Edit the details of the trait value.
@@ -233,29 +276,6 @@ export const EditTraitValueModal = NiceModal.create<Props>(
                 </Box>
 
                 <Box>
-                  <ClearableColorField
-                    name="hexCode"
-                    label="Color"
-                    disabled={mutation.isPending}
-                  />
-                </Box>
-
-                <Box>
-                  <Flex justify="between" align="baseline" mb="1">
-                    <Label.Root htmlFor="description">Description</Label.Root>
-                    <ConditionalAlert
-                      id="description-error"
-                      message={errors.description?.message}
-                    />
-                  </Flex>
-                  <TextArea
-                    id="description"
-                    {...register("description")}
-                    {...a11yProps("description-error", !!errors.description)}
-                  />
-                </Box>
-
-                <Box>
                   <Box mb="1">
                     <Label.Root htmlFor="synonyms">Synonyms</Label.Root>
                   </Box>
@@ -287,7 +307,7 @@ export const EditTraitValueModal = NiceModal.create<Props>(
                         onQueryChange={setSynonymQuery}
                         options={candidateOptions}
                         loading={candidatesLoading}
-                        disabled={mutation.isPending}
+                        disabled={mutationPending}
                       >
                         <SelectCombobox.Trigger placeholder="Stands on its own" />
                         <SelectCombobox.Content
@@ -309,13 +329,89 @@ export const EditTraitValueModal = NiceModal.create<Props>(
                     )}
                   />
                 </Box>
+
+                <Box>
+                  <Flex justify="between" align="baseline" mb="1">
+                    <Label.Root htmlFor="description">Description</Label.Root>
+                    <ConditionalAlert
+                      id="description-error"
+                      message={errors.description?.message}
+                    />
+                  </Flex>
+                  <TextArea
+                    id="description"
+                    {...register("description")}
+                    {...a11yProps("description-error", !!errors.description)}
+                  />
+                </Box>
+
+                <Box>
+                  <ClearableColorField
+                    name="hexCode"
+                    label="Color"
+                    disabled={mutationPending}
+                  />
+                </Box>
+
+                <Box>
+                  <Flex justify="between" align="baseline" mb="1">
+                    <Label.Root>Media</Label.Root>
+                    <Flex gap="2">
+                      <Button
+                        type="button"
+                        radius="full"
+                        size="1"
+                        color="cyan"
+                        disabled={mutationPending}
+                        onClick={handleWikimediaPick}
+                      >
+                        Wikimedia
+                      </Button>
+                      <Button
+                        type="button"
+                        radius="full"
+                        size="1"
+                        disabled={mutationPending}
+                        onClick={handleBrowserPick}
+                      >
+                        Browser
+                      </Button>
+                      {currentMedia && (
+                        <Button
+                          type="button"
+                          radius="full"
+                          size="1"
+                          color="tomato"
+                          disabled={mutationPending}
+                          onClick={() =>
+                            setValue("media", null, { shouldDirty: true })
+                          }
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </Flex>
+                  </Flex>
+                  {currentMedia && (
+                    <img
+                      src={getMediaUrl(currentMedia.storageKey)}
+                      alt={currentMedia.title}
+                      style={{
+                        width: "96px",
+                        height: "96px",
+                        objectFit: "cover",
+                        borderRadius: "var(--radius-2)",
+                      }}
+                    />
+                  )}
+                </Box>
               </Flex>
               <Flex justify="end" gap="3">
                 <Dialog.Close>
                   <Button
                     type="button"
-                    disabled={mutation.isPending}
-                    loading={mutation.isPending}
+                    disabled={mutationPending}
+                    loading={mutationPending}
                     variant="soft"
                     color="gray"
                   >
@@ -324,8 +420,8 @@ export const EditTraitValueModal = NiceModal.create<Props>(
                 </Dialog.Close>
                 <Button
                   type="submit"
-                  disabled={mutation.isPending}
-                  loading={mutation.isPending}
+                  disabled={mutationPending}
+                  loading={mutationPending}
                 >
                   Save
                 </Button>

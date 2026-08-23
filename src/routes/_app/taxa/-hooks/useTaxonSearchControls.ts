@@ -18,7 +18,12 @@ export function useTaxonSearchControls() {
   const search: TaxonSearchParams = Route.useSearch();
   const navigate = Route.useNavigate();
 
-  const setSearch = useCallback(
+  /**
+   * Replaces the current history entry: debounced typing would otherwise flood
+   * the back stack with an entry per keystroke. Touching a filter resets to the
+   * first page, since the old offset no longer means anything.
+   */
+  const replaceSearch = useCallback(
     (partial: Partial<TaxonSearchParams>) => {
       const touchesFilter = FILTER_KEYS.some((key) => key in partial);
 
@@ -34,5 +39,13 @@ export function useTaxonSearchControls() {
     [navigate],
   );
 
-  return { search, setSearch };
+  /** Pushes an entry, so Back returns to the previous page of results. */
+  const goToPage = useCallback(
+    (page: number) => {
+      navigate({ search: (prev) => ({ ...prev, page }), replace: false });
+    },
+    [navigate],
+  );
+
+  return { search, replaceSearch, goToPage };
 }
