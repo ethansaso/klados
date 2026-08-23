@@ -44,7 +44,7 @@ export const GuideTable = ({ items }: { items: GuideDTO[] }) => {
       <Table.Header>
         <Table.Row>
           <Table.ColumnHeaderCell>Guide Name</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Creator Username</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Creator</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Last Updated</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Votes</Table.ColumnHeaderCell>
         </Table.Row>

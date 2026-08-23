@@ -1,10 +1,18 @@
-import { Button, Container, Flex, Heading, TextField } from "@radix-ui/themes";
+import {
+  Box,
+  Button,
+  Container,
+  Flex,
+  Heading,
+  TextField,
+} from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PiFunnel, PiMagnifyingGlass } from "react-icons/pi";
 import { useDebounce } from "use-debounce";
 import { ContentContainer } from "../../../components/ContentContainer";
+import { PaginationFooter } from "../../../components/PaginationFooter";
 import {
   DEFAULT_TAXON_STATUSES,
   type TaxonSearchParams,
@@ -64,8 +72,10 @@ export const Route = createFileRoute("/_app/taxa/")({
 });
 
 function TaxaListPage() {
-  const { search, setSearch } = useTaxonSearchControls();
-  const { data: paginatedResult } = useSuspenseQuery(
+  const { search, replaceSearch, goToPage } = useTaxonSearchControls();
+  const {
+    data: { items, page, pageSize, total },
+  } = useSuspenseQuery(
     taxaQueryOptions(search.page, search.pageSize, {
       q: search.q,
       status: search.status,
@@ -94,8 +104,8 @@ function TaxaListPage() {
     setLocalQ((prev) => (prev === next ? prev : next));
   }, [search.q, cancel]);
   useEffect(() => {
-    setSearch({ q: debouncedInput || undefined });
-  }, [debouncedInput, setSearch]);
+    replaceSearch({ q: debouncedInput || undefined });
+  }, [debouncedInput, replaceSearch]);
 
   return (
     <>
@@ -132,10 +142,22 @@ function TaxaListPage() {
           aria-hidden={!filtersOpen}
         >
           <div>
-            <TaxonFilters search={search} setSearch={setSearch} />
+            <TaxonFilters search={search} setSearch={replaceSearch} />
           </div>
         </div>
-        <TaxonGrid results={paginatedResult} />
+        <TaxonGrid taxa={items} />
+        {total > 0 && (
+          <Box width="100%">
+            <PaginationFooter
+              size="2"
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              onPrev={() => goToPage(page - 1)}
+              onNext={() => goToPage(page + 1)}
+            />
+          </Box>
+        )}
       </ContentContainer>
     </>
   );
