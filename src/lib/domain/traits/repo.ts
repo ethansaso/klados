@@ -114,25 +114,6 @@ export async function countTraitsInSet(
   return row?.n ?? 0;
 }
 
-/** Sizes of several sets at once, keyed by set id. Absent = empty. */
-export async function selectSynonymSetSizes(
-  tx: Transaction,
-  setIds: number[],
-): Promise<Map<number, number>> {
-  if (!setIds.length) return new Map();
-
-  const rows = await tx
-    .select({
-      setId: valsTbl.synonymSetId,
-      size: sql<number>`CAST(COUNT(*) AS INT)`,
-    })
-    .from(valsTbl)
-    .where(inArray(valsTbl.synonymSetId, setIds))
-    .groupBy(valsTbl.synonymSetId);
-
-  return new Map(rows.map((r) => [r.setId, r.size]));
-}
-
 /**
  * Delete a synonym set, but only if it has no members. Returns whether it
  * was deleted.
@@ -157,21 +138,6 @@ export async function deleteSynonymSetIfEmpty(
     .returning({ id: setsTbl.id });
 
   return deleted.length > 0;
-}
-
-/**
- * Merges two sets, using `toSetId` as the destination set.
- * Is not responsible for deleting the 'from' set afterwards!
- */
-export async function moveTraitsBetweenSets(
-  tx: Transaction,
-  fromSetId: number,
-  toSetId: number,
-): Promise<void> {
-  await tx
-    .update(valsTbl)
-    .set({ synonymSetId: toSetId })
-    .where(eq(valsTbl.synonymSetId, fromSetId));
 }
 
 /**

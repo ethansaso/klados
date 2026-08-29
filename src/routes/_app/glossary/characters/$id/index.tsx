@@ -1,13 +1,5 @@
 import NiceModal from "@ebay/nice-modal-react";
-import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  IconButton,
-  Text,
-  TextField,
-} from "@radix-ui/themes";
+import { Box, Button, Flex, Heading, Text, TextField } from "@radix-ui/themes";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
@@ -15,31 +7,31 @@ import {
   stripSearchParams,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
-import { PiPencil, PiPlus, PiTrash } from "react-icons/pi";
+import { PiMagnifyingGlass, PiPencil, PiPlus, PiTrash } from "react-icons/pi";
 import z from "zod";
 import CategoricalTraitTable from "../-CategoricalTraitTable";
+import { AddTraitValueModal } from "../-modal/AddTraitValueModal";
 import { DeleteTraitValueModal } from "../-modal/DeleteTraitValueModal";
-import { EditTraitValueModal } from "../-modal/EditTraitSetValueModal";
+import { EditTraitValueModal } from "../-modal/EditTraitValueModal";
 import { AnnotationBubbleWrap } from "../../../../../components/annotations/AnnotationBubbleWrap";
 import { CuratorOnly } from "../../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
 import { CharacterIcon } from "../../../../../components/icons/modular/CharacterIcon";
+import { DebouncedTextField } from "../../../../../components/inputs/DebouncedTextField";
 import { PaginationFooter } from "../../../../../components/PaginationFooter";
 import { roleHasCuratorRights } from "../../../../../lib/auth/utils";
 import type { CharacterDetailDTO } from "../../../../../lib/domain/characters/types";
 import { characterQueryOptions } from "../../../../../lib/queries/characters";
 import { traitValuesQueryOptions } from "../../../../../lib/queries/traits";
 import { deleteCharacterFn } from "../../../../../lib/server-fns/characters/deleteCharacterFn";
-import { createTraitValueFn } from "../../../../../lib/server-fns/traits/createTraitValueFn";
 import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 import { capitalizeFirstLetter } from "../../../../../lib/utils/formatting/casing";
-import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../../lib/utils/toast";
 import { Route as CharactersLayoutRoute } from "../route";
 
 const SearchSchema = z.object({
   valuePage: z.coerce.number().int().positive().default(1).catch(1),
+  valueQ: z.string().default("").catch(""),
 });
 
 const TRAIT_PAGE_SIZE = 10;
@@ -50,20 +42,25 @@ export const Route = createFileRoute("/_app/glossary/characters/$id/")({
     middlewares: [
       stripSearchParams({
         valuePage: 1,
+        valueQ: "",
       }),
     ],
   },
   loaderDeps: ({ search }) => ({
     traitPage: search.valuePage,
+    traitQ: search.valueQ,
   }),
-  loader: async ({ context, params, deps: { traitPage } }) => {
+  loader: async ({ context, params, deps: { traitPage, traitQ } }) => {
     await context.queryClient.ensureQueryData(
-      traitValuesQueryOptions(params.id, traitPage, TRAIT_PAGE_SIZE),
+      traitValuesQueryOptions(params.id, traitPage, TRAIT_PAGE_SIZE, {
+        q: traitQ || undefined,
+      }),
     );
     return {
       id: params.id,
       isCurator: roleHasCuratorRights(context.user?.role),
       traitPage,
+      traitQ,
     };
   },
   component: RouteComponent,
@@ -71,40 +68,25 @@ export const Route = createFileRoute("/_app/glossary/characters/$id/")({
 
 function RouteComponent() {
   const search = CharactersLayoutRoute.useSearch();
-  const { id, isCurator, traitPage } = Route.useLoaderData();
+  const { id, isCurator, traitPage, traitQ } = Route.useLoaderData();
   const serverDelete = useServerFn(deleteCharacterFn);
-  const serverCreateTrait = useServerFn(createTraitValueFn);
   const navigate = Route.useNavigate();
   const qc = useQueryClient();
-  const [newTraitLabel, setNewTraitLabel] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-
-  const handleAddTrait = async () => {
-    const label = newTraitLabel.trim();
-    if (!label || isCreating) return;
-    setIsCreating(true);
-    try {
-      const created = await serverCreateTrait({
-        data: { characterId: id, label },
-      });
-      qc.invalidateQueries({ queryKey: ["traitValues"] });
-      setNewTraitLabel("");
-      toast({
-        variant: "success",
-        description: `Trait "${created.label}" added.`,
-      });
-    } catch (e: unknown) {
-      const message = getErrorMessage(e);
-      toast({ variant: "error", description: message });
-    } finally {
-      setIsCreating(false);
-    }
-  };
 
   const { data: character } = useSuspenseQuery(characterQueryOptions(id));
   const { data: traitValuesPage } = useSuspenseQuery(
-    traitValuesQueryOptions(id, traitPage, TRAIT_PAGE_SIZE),
+    traitValuesQueryOptions(id, traitPage, TRAIT_PAGE_SIZE, {
+      q: traitQ || undefined,
+    }),
   );
+
+  const invalidateTraitValues = () =>
+    qc.invalidateQueries({ queryKey: ["traitValues"] });
+
+  // A new query invalidates the current page number along with the results
+  const setTraitQ = (value: string) => {
+    navigate({ search: { valuePage: 1, valueQ: value } });
+  };
 
   const handleCharacterDeleteClick = (character: CharacterDetailDTO) => {
     NiceModal.show(ConfirmDeleteModal, {
@@ -146,6 +128,7 @@ function RouteComponent() {
     navigate({
       search: {
         valuePage: nextPage,
+        valueQ: traitQ,
       },
     });
   };
@@ -209,32 +192,36 @@ function RouteComponent() {
         <Box>
           <Flex align="center" justify="between" mb="2">
             <Heading size="4">Possible Traits</Heading>
-            {isCurator && (
-              <TextField.Root
-                size="2"
-                placeholder="Add a new trait..."
-                value={newTraitLabel}
-                onChange={(e) => setNewTraitLabel(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddTrait();
+            <Flex align="center" gap="2">
+              <CuratorOnly>
+                <Button
+                  size="2"
+                  variant="surface"
+                  onClick={() =>
+                    NiceModal.show(AddTraitValueModal, {
+                      characterId: id,
+                      // A fruitless search flows straight into creating it
+                      initialLabel: traitQ,
+                      invalidate: invalidateTraitValues,
+                    })
                   }
-                }}
+                >
+                  <PiPlus />
+                  Add new
+                </Button>
+              </CuratorOnly>
+              <DebouncedTextField
+                size="2"
+                placeholder="Search traits..."
+                initialValue={traitQ}
+                onDebouncedChange={setTraitQ}
+                radius="large"
               >
-                <TextField.Slot side="right">
-                  <IconButton
-                    size="1"
-                    variant="ghost"
-                    onClick={handleAddTrait}
-                    disabled={!newTraitLabel.trim() || isCreating}
-                    loading={isCreating}
-                  >
-                    <PiPlus />
-                  </IconButton>
+                <TextField.Slot>
+                  <PiMagnifyingGlass size="16" />
                 </TextField.Slot>
-              </TextField.Root>
-            )}
+              </DebouncedTextField>
+            </Flex>
           </Flex>
           <CategoricalTraitTable
             values={traitValuesPage.items}
@@ -242,19 +229,13 @@ function RouteComponent() {
             onEditClick={(value) =>
               NiceModal.show(EditTraitValueModal, {
                 traitValue: value,
-                invalidate: () =>
-                  qc.invalidateQueries({
-                    queryKey: ["traitValues"],
-                  }),
+                invalidate: invalidateTraitValues,
               })
             }
             onDeleteClick={(value) =>
               NiceModal.show(DeleteTraitValueModal, {
                 value,
-                invalidate: () =>
-                  qc.invalidateQueries({
-                    queryKey: ["traitValues"],
-                  }),
+                invalidate: invalidateTraitValues,
               })
             }
           />
