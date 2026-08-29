@@ -41,10 +41,6 @@ export const updateTraitValueSchema = z.object({
   synonymOfTraitId: traitId.nullable().optional(),
 });
 
-export const unlinkTraitFromSynonymsSchema = z.object({
-  traitId,
-});
-
 /**
  * Candidates are scoped to a character, not to a trait: a trait being created
  * has no id yet but does know its character. `excludeTraitId` drops the trait
@@ -59,9 +55,6 @@ export const listSynonymCandidatesSchema = z.object({
 
 export type CreateTraitValueInput = z.infer<typeof createTraitValueSchema>;
 export type UpdateTraitValueInput = z.infer<typeof updateTraitValueSchema>;
-export type UnlinkTraitFromSynonymsInput = z.infer<
-  typeof unlinkTraitFromSynonymsSchema
->;
 export type ListSynonymCandidatesInput = z.infer<
   typeof listSynonymCandidatesSchema
 >;

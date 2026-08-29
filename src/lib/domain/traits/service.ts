@@ -24,7 +24,6 @@ import type {
 import type {
   CreateTraitValueInput,
   ListSynonymCandidatesInput,
-  UnlinkTraitFromSynonymsInput,
   UpdateTraitValueInput,
 } from "./validation";
 
@@ -217,12 +216,6 @@ async function unlinkTraitFromSynonymsTx(
   await deleteSynonymSetIfEmpty(tx, trait.synonymSetId);
 
   return { synonymSetId: set.id };
-}
-
-export async function unlinkTraitFromSynonyms(
-  args: UnlinkTraitFromSynonymsInput,
-): Promise<{ synonymSetId: number }> {
-  return db.transaction((tx) => unlinkTraitFromSynonymsTx(tx, args.traitId));
 }
 
 /** List trait values for a character, paginated. */

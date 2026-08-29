@@ -96,7 +96,7 @@ function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
   return (
     <Table.Row>
       <Table.Cell>
-        <Text>{value.label}</Text>
+        <Text weight="medium">{value.label}</Text>
         {value.hexCode && (
           <Box ml="1" asChild>
             <ColorBubble hexColor={value.hexCode} />
