@@ -146,7 +146,7 @@ export const WikimediaPhotoSelectModal = NiceModal.create<Props>(
         <Dialog.Content maxWidth="400px" aria-describedby={undefined}>
           <Dialog.Title>Import Wikimedia Photos</Dialog.Title>
           <DebouncedTextField
-            value={initialQuery}
+            initialValue={initialQuery}
             onDebouncedChange={setQuery}
             placeholder="Search Wikimedia Commons…"
             mb="3"

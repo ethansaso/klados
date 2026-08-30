@@ -88,13 +88,6 @@ function RouteComponent() {
     navigate({ search: { valuePage: 1, valueQ: value } });
   };
 
-  // Clearing the search reveals what was just made, which a filtered list would
-  // otherwise hide -- looking, to the curator, like the create silently failed.
-  const handleTraitCreated = async () => {
-    await invalidateTraitValues();
-    setTraitQ("");
-  };
-
   const handleCharacterDeleteClick = (character: CharacterDetailDTO) => {
     NiceModal.show(ConfirmDeleteModal, {
       label: character.label,
@@ -209,7 +202,7 @@ function RouteComponent() {
                       characterId: id,
                       // A fruitless search flows straight into creating it
                       initialLabel: traitQ,
-                      invalidate: handleTraitCreated,
+                      invalidate: invalidateTraitValues,
                     })
                   }
                 >
@@ -220,7 +213,7 @@ function RouteComponent() {
               <DebouncedTextField
                 size="2"
                 placeholder="Search traits..."
-                value={traitQ}
+                initialValue={traitQ}
                 onDebouncedChange={setTraitQ}
                 radius="large"
               >
