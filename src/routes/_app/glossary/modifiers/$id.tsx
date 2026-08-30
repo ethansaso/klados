@@ -170,7 +170,7 @@ function RouteComponent() {
           <DebouncedTextField
             size="2"
             placeholder="Search values..."
-            initialValue={q}
+            value={q}
             onDebouncedChange={setQ}
             radius="large"
           >

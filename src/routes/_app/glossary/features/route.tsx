@@ -50,7 +50,7 @@ function RouteComponent() {
       <GlossarySidebarLayout.Sidebar>
         <Box p="3">
           <DebouncedTextField
-            initialValue={search.q}
+            value={search.q}
             onDebouncedChange={(value) => setQ(value)}
             radius="large"
           >

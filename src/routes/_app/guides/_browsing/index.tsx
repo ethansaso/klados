@@ -55,7 +55,7 @@ function RouteComponent() {
         <DebouncedTextField
           placeholder="Search guides..."
           id="guides-search"
-          initialValue={search.q}
+          value={search.q}
           onDebouncedChange={(value) => setQ(value)}
         >
           <TextField.Slot>

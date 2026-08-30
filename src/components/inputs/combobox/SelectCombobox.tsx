@@ -259,7 +259,9 @@ function Content({
   );
 }
 
-function Input(props: React.ComponentProps<typeof TextField.Root>) {
+function Input(
+  props: Omit<React.ComponentProps<typeof TextField.Root>, "value">,
+) {
   const {
     id,
     open,
@@ -302,7 +304,7 @@ function Input(props: React.ComponentProps<typeof TextField.Root>) {
       mb="2"
       id={`${id}-input`}
       variant="surface"
-      initialValue={query}
+      value={query}
       onDebouncedChange={(str) => setQuery(str)}
       onKeyDown={onKeyDown}
       role="combobox"

@@ -114,7 +114,7 @@ export const MediaBrowserView: React.FC<Props> = ({
         <SurfaceDialog.Col flexGrow="1">
           <SurfaceDialog.Row overflow="auto" flexShrink="0" p="0">
             <DebouncedTextField
-              initialValue={search.q}
+              value={search.q}
               className="search-input"
               variant="soft"
               color="gray"

@@ -161,7 +161,7 @@ export function ModifierPopoverContent({
         ref={filterInputRef}
         size="1"
         placeholder="Search modifiers…"
-        initialValue=""
+        value=""
         onDebouncedChange={setQ}
         onKeyDown={handleInputKeyDown}
         mb="2"
