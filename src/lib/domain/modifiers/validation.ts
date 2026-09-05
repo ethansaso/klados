@@ -14,9 +14,9 @@ export const createModifierGroupSchema = z.object({
 
 export const createModifierSchema = z.object({
   groupId: z.number().int().positive(),
-  value: z
+  label: z
     .string("Must be a string")
-    .min(1, "Please provide a value.")
+    .min(1, "Please provide a label.")
     .max(200, "Max 200 characters"),
   description: z
     .string("Must be a string")
@@ -26,11 +26,12 @@ export const createModifierSchema = z.object({
     AFFIX_TYPES,
     `Invalid affix type; must be one of ${Object.values(AFFIX_TYPES).join(", ")}`,
   ),
+  mediaId: z.coerce.number().int().positive().nullable().optional(),
 });
 
 export const updateModifierSchema = z.object({
   id: z.number().int().positive(),
-  value: z
+  label: z
     .string("Must be a string")
     .min(1, "Please provide a value.")
     .max(200, "Max 200 characters")
@@ -45,7 +46,7 @@ export const updateModifierSchema = z.object({
       `Invalid affix type; must be one of ${Object.values(AFFIX_TYPES).join(", ")}`,
     )
     .optional(),
-  aliasTargetId: z.coerce.number().int().positive().nullable().optional(),
+  mediaId: z.coerce.number().int().positive().nullable().optional(),
 });
 
 export type CreateModifierGroupInput = z.infer<

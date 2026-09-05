@@ -52,8 +52,8 @@ export type TraitSuggestion =
  */
 export type ModifierSuggestion = {
   kind: "modifier";
-  modifierId: number;
-  modifierValue: string; // e.g. "at apex"
+  id: number;
+  label: string; // e.g. "at apex"
   affixType: "prefix" | "suffix";
   groupId: number;
   groupLabel: string; // e.g. "Position"

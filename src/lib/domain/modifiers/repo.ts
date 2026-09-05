@@ -1,5 +1,4 @@
-import { and, asc, count, eq, ilike, isNull, sql } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
+import { and, asc, count, eq, ilike, ne, sql } from "drizzle-orm";
 import { db } from "../../../../db/client";
 import {
   modifierGroup as modifierGroupTbl,
@@ -10,6 +9,7 @@ import {
 } from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/sql/likeAnywhere";
 import type { Transaction } from "../../utils/types/transactionType";
+import { hydrateMedia } from "../media/repo";
 import { modCatUsageSel, modNumUsageSel, modRangeUsageSel } from "./selectors";
 import type {
   ModifierDTO,
@@ -87,7 +87,7 @@ export async function listModifiersQuery(args: {
   page: number;
   pageSize: number;
   q?: string;
-  canonicalOnly?: boolean;
+  excludeId?: number;
 }): Promise<ModifierPaginatedResult> {
   const { groupId, q, page, pageSize } = args;
   const offset = (page - 1) * pageSize;
@@ -96,33 +96,19 @@ export async function listModifiersQuery(args: {
 
   const filters = and(
     groupId ? eq(modifierValueTbl.groupId, groupId) : undefined,
-    like ? ilike(modifierValueTbl.value, like) : undefined,
-    args.canonicalOnly ? isNull(modifierValueTbl.canonicalValueId) : undefined,
+    like ? ilike(modifierValueTbl.label, like) : undefined,
+    // Dropped before the page is sliced, so a full page still comes back
+    args.excludeId ? ne(modifierValueTbl.id, args.excludeId) : undefined,
   );
-
-  const canonAlias = alias(modifierValueTbl, "canon");
-
-  const aliasAgg = db
-    .select({
-      targetId: modifierValueTbl.canonicalValueId,
-      aliasCount: sql<number>`CAST(COUNT(${modifierValueTbl.id}) AS INT)`.as(
-        "alias_count",
-      ),
-    })
-    .from(modifierValueTbl)
-    .groupBy(modifierValueTbl.canonicalValueId)
-    .as("alias_agg");
 
   const rawItems = await db
     .select({
       id: modifierValueTbl.id,
       groupId: modifierValueTbl.groupId,
-      value: modifierValueTbl.value,
+      label: modifierValueTbl.label,
       description: modifierValueTbl.description,
       affixType: modifierValueTbl.affixType,
-      canonId: canonAlias.id,
-      canonValue: canonAlias.value,
-      aliasCount: sql<number>`COALESCE(${aliasAgg.aliasCount}, 0)`,
+      mediaId: modifierValueTbl.mediaId,
       usageCount: sql<number>`
         COALESCE(${modCatUsageSel.catUsageCount}, 0) +
         COALESCE(${modNumUsageSel.numUsageCount}, 0) +
@@ -130,8 +116,6 @@ export async function listModifiersQuery(args: {
       `.mapWith(Number),
     })
     .from(modifierValueTbl)
-    .leftJoin(canonAlias, eq(modifierValueTbl.canonicalValueId, canonAlias.id))
-    .leftJoin(aliasAgg, eq(aliasAgg.targetId, modifierValueTbl.id))
     .leftJoin(
       modCatUsageSel,
       eq(modCatUsageSel.modifierId, modifierValueTbl.id),
@@ -145,20 +129,11 @@ export async function listModifiersQuery(args: {
       eq(modRangeUsageSel.modifierId, modifierValueTbl.id),
     )
     .where(filters)
-    .orderBy(asc(modifierValueTbl.value))
+    .orderBy(asc(modifierValueTbl.label))
     .limit(pageSize)
     .offset(offset);
 
-  const items: ModifierDTO[] = rawItems.map((v) => ({
-    id: v.id,
-    groupId: v.groupId,
-    value: v.value,
-    description: v.description,
-    affixType: v.affixType,
-    aliasOf: v.canonId ? { id: v.canonId, value: v.canonValue! } : null,
-    usageCount: v.usageCount,
-    aliasCount: v.aliasCount,
-  }));
+  const items = await hydrateMedia(db, rawItems);
 
   const totals = await db
     .select({ total: count() })
@@ -200,44 +175,36 @@ export async function insertModifier(
   tx: Transaction,
   args: {
     groupId: number;
-    value: string;
+    label: string;
     description: string;
     affixType: "prefix" | "suffix";
-    canonicalValueId: number | null;
+    mediaId: number | null;
   },
 ): Promise<ModifierDTO | null> {
-  const canonicalValueId = args.canonicalValueId;
-
   const [modifier] = await tx
     .insert(modifierValueTbl)
     .values({
       groupId: args.groupId,
-      value: args.value,
+      label: args.label,
       description: args.description ?? "",
       affixType: args.affixType,
-      canonicalValueId,
+      mediaId: args.mediaId,
     })
     .returning({
       id: modifierValueTbl.id,
       groupId: modifierValueTbl.groupId,
-      value: modifierValueTbl.value,
+      label: modifierValueTbl.label,
       description: modifierValueTbl.description,
       affixType: modifierValueTbl.affixType,
+      mediaId: modifierValueTbl.mediaId,
     });
 
   if (!modifier) return null;
 
-  let aliasOf: { id: number; value: string } | null = null;
-  if (canonicalValueId) {
-    const [canon] = await tx
-      .select({ id: modifierValueTbl.id, value: modifierValueTbl.value })
-      .from(modifierValueTbl)
-      .where(eq(modifierValueTbl.id, canonicalValueId))
-      .limit(1);
-    if (canon) aliasOf = { id: canon.id, value: canon.value };
-  }
+  const raw = { ...modifier, usageCount: 0 };
+  const [dto] = await hydrateMedia(tx, [raw]);
 
-  return { ...modifier, aliasOf, usageCount: 0, aliasCount: 0 };
+  return dto ?? null;
 }
 
 export async function countModifierUsages(
@@ -326,40 +293,12 @@ export async function deleteModifierGroupById(
 }
 
 /**
- * Fetch minimal modifier row for validation (e.g., alias target checks).
- */
-export async function selectMinimalModifierRowById(
-  tx: Transaction,
-  id: number,
-): Promise<{
-  id: number;
-  groupId: number;
-  canonicalValueId: number | null;
-  value: string;
-} | null> {
-  const [row] = await tx
-    .select({
-      id: modifierValueTbl.id,
-      groupId: modifierValueTbl.groupId,
-      canonicalValueId: modifierValueTbl.canonicalValueId,
-      value: modifierValueTbl.value,
-    })
-    .from(modifierValueTbl)
-    .where(eq(modifierValueTbl.id, id))
-    .limit(1);
-
-  return row ?? null;
-}
-
-/**
  * Fetch a full ModifierDTO by id within a transaction (for post-update re-fetch).
  */
 export async function selectModifierDtoById(
   tx: Transaction,
   id: number,
 ): Promise<ModifierDTO | null> {
-  const canonAlias = alias(modifierValueTbl, "canon");
-
   const catTbl = taxonCharacterStateModifierCategorical;
   const numTbl = taxonCharacterStateModifierNumber;
   const rangeTbl = taxonCharacterStateModifierRange;
@@ -391,30 +330,16 @@ export async function selectModifierDtoById(
     .groupBy(rangeTbl.modifierId)
     .as("range_usage");
 
-  const aliasAgg = tx
-    .select({
-      targetId: modifierValueTbl.canonicalValueId,
-      aliasCount: sql<number>`CAST(COUNT(${modifierValueTbl.id}) AS INT)`.as(
-        "alias_count",
-      ),
-    })
-    .from(modifierValueTbl)
-    .where(eq(modifierValueTbl.canonicalValueId, id))
-    .groupBy(modifierValueTbl.canonicalValueId)
-    .as("alias_agg");
-
   const v = modifierValueTbl;
 
   const [row] = await tx
     .select({
       id: v.id,
       groupId: v.groupId,
-      value: v.value,
+      label: v.label,
       description: v.description,
       affixType: v.affixType,
-      canonId: canonAlias.id,
-      canonValue: canonAlias.value,
-      aliasCount: sql<number>`COALESCE(${aliasAgg.aliasCount}, 0)`,
+      mediaId: v.mediaId,
       usageCount: sql<number>`
         COALESCE(${catUsage.n}, 0) +
         COALESCE(${numUsage.n}, 0) +
@@ -422,8 +347,6 @@ export async function selectModifierDtoById(
       `.mapWith(Number),
     })
     .from(v)
-    .leftJoin(canonAlias, eq(v.canonicalValueId, canonAlias.id))
-    .leftJoin(aliasAgg, eq(aliasAgg.targetId, v.id))
     .leftJoin(catUsage, eq(catUsage.modifierId, v.id))
     .leftJoin(numUsage, eq(numUsage.modifierId, v.id))
     .leftJoin(rangeUsage, eq(rangeUsage.modifierId, v.id))
@@ -432,16 +355,9 @@ export async function selectModifierDtoById(
 
   if (!row) return null;
 
-  return {
-    id: row.id,
-    groupId: row.groupId,
-    value: row.value,
-    description: row.description,
-    affixType: row.affixType,
-    aliasOf: row.canonId ? { id: row.canonId, value: row.canonValue! } : null,
-    usageCount: row.usageCount,
-    aliasCount: row.aliasCount,
-  };
+  const [dto] = await hydrateMedia(tx, [row]);
+
+  return dto ?? null;
 }
 
 /**
@@ -453,18 +369,10 @@ export async function updateModifierRow(
 ): Promise<{ id: number } | null> {
   const patch: Record<string, unknown> = {};
 
-  if (args.value !== undefined) patch.value = args.value;
+  if (args.label !== undefined) patch.value = args.label;
   if (args.description !== undefined) patch.description = args.description;
   if (args.affixType !== undefined) patch.affixType = args.affixType;
-
-  if (args.aliasTargetId !== undefined) {
-    if (args.aliasTargetId === null) {
-      patch.canonicalValueId = null;
-    } else {
-      patch.canonicalValueId = args.aliasTargetId;
-      patch.description = "";
-    }
-  }
+  if (args.mediaId !== undefined) patch.mediaId = args.mediaId;
 
   const [updated] = await tx
     .update(modifierValueTbl)
@@ -476,17 +384,17 @@ export async function updateModifierRow(
 }
 
 /**
- * Select all canonical modifiers with their group labels (unpaginated).
+ * Select all modifiers with their group labels (unpaginated).
  */
 export async function selectAllModifiersWithGroups(tx: Transaction): Promise<
-  (Pick<ModifierDTO, "id" | "value" | "affixType" | "groupId"> & {
+  (Pick<ModifierDTO, "id" | "label" | "affixType" | "groupId"> & {
     groupLabel: string;
   })[]
 > {
   return tx
     .select({
       id: modifierValueTbl.id,
-      value: modifierValueTbl.value,
+      label: modifierValueTbl.label,
       affixType: modifierValueTbl.affixType,
       groupId: modifierValueTbl.groupId,
       groupLabel: modifierGroupTbl.label,
@@ -496,6 +404,5 @@ export async function selectAllModifiersWithGroups(tx: Transaction): Promise<
       modifierGroupTbl,
       eq(modifierValueTbl.groupId, modifierGroupTbl.id),
     )
-    .where(isNull(modifierValueTbl.canonicalValueId))
-    .orderBy(asc(modifierGroupTbl.label), asc(modifierValueTbl.value));
+    .orderBy(asc(modifierGroupTbl.label), asc(modifierValueTbl.label));
 }

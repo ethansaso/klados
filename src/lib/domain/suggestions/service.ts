@@ -77,14 +77,13 @@ export async function searchCategoricalSuggestions(opts: {
     label: (row) => row.traitValueLabel,
     similarity: (row) => row.similarityScore,
     // Small bump if the character label also matches the query
-    bonus: (row) =>
-      row.characterLabel.toLowerCase().includes(fq.qLower) ? 5 : 0,
+    bonus: (row) => (row.label.toLowerCase().includes(fq.qLower) ? 5 : 0),
   })
     .slice(0, limit)
     .map((row) => ({
       kind: "categorical-value" as const,
-      characterId: row.characterId,
-      characterLabel: row.characterLabel,
+      characterId: row.id,
+      characterLabel: row.label,
       traitValueId: row.traitValueId,
       traitValueLabel: row.traitValueLabel,
       traitValueDescription: row.traitValueDescription,
@@ -133,8 +132,8 @@ export async function buildNumericSingleSuggestions(opts: {
 
     const base = {
       kind: "numeric-single" as const,
-      characterId: row.characterId,
-      characterLabel: row.characterLabel,
+      characterId: row.id,
+      characterLabel: row.label,
       value,
       unitFamilyId: row.unitFamilyId,
     };
@@ -230,8 +229,8 @@ export async function buildNumericRangeSuggestions(opts: {
 
     const base = {
       kind: "numeric-range" as const,
-      characterId: row.characterId,
-      characterLabel: row.characterLabel,
+      characterId: row.id,
+      characterLabel: row.label,
       min,
       max,
       unitFamilyId: row.unitFamilyId,
@@ -328,8 +327,8 @@ export async function searchModifierSuggestions(opts: {
     const rows = await queryAllModifiersByUsage(limit);
     return rows.map((row) => ({
       kind: "modifier" as const,
-      modifierId: row.modifierId,
-      modifierValue: row.modifierValue,
+      id: row.id,
+      label: row.label,
       affixType: row.affixType,
       groupId: row.groupId,
       groupLabel: row.groupLabel,
@@ -344,7 +343,7 @@ export async function searchModifierSuggestions(opts: {
   });
 
   return rankByFuzzyScore(rows, fq, {
-    label: (row) => row.modifierValue,
+    label: (row) => row.label,
     similarity: (row) => row.similarityScore,
     // Small bump if the group label also matches the query
     bonus: (row) => (row.groupLabel.toLowerCase().includes(fq.qLower) ? 5 : 0),
@@ -352,8 +351,8 @@ export async function searchModifierSuggestions(opts: {
     .slice(0, limit)
     .map((row) => ({
       kind: "modifier",
-      modifierId: row.modifierId,
-      modifierValue: row.modifierValue,
+      id: row.id,
+      label: row.label,
       affixType: row.affixType,
       groupId: row.groupId,
       groupLabel: row.groupLabel,
@@ -391,12 +390,11 @@ export async function searchCharacterStateFilterSuggestions(opts: {
   const categorical = rankByFuzzyScore(rows, fq, {
     label: (row) => row.traitValueLabel,
     similarity: (row) => row.similarityScore,
-    bonus: (row) =>
-      row.characterLabel.toLowerCase().includes(fq.qLower) ? 5 : 0,
+    bonus: (row) => (row.label.toLowerCase().includes(fq.qLower) ? 5 : 0),
   }).map((row): CategoricalValueSuggestion => ({
     kind: "categorical-value",
-    characterId: row.characterId,
-    characterLabel: row.characterLabel,
+    characterId: row.id,
+    characterLabel: row.label,
     traitValueId: row.traitValueId,
     traitValueLabel: row.traitValueLabel,
     traitValueDescription: row.traitValueDescription,

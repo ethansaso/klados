@@ -1,4 +1,4 @@
-import { and, desc, eq, exists, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, exists, inArray, or, sql } from "drizzle-orm";
 import { db } from "../../../../db/client";
 import {
   modifierGroup,
@@ -27,8 +27,8 @@ import type { UnitDTO } from "../units/types";
 
 /** Includes trigram similarity. */
 export type CategoricalSuggestionRow = {
-  characterId: number;
-  characterLabel: string;
+  id: number;
+  label: string;
   traitValueId: number;
   traitValueLabel: string;
   traitValueDescription: string;
@@ -37,15 +37,15 @@ export type CategoricalSuggestionRow = {
 };
 
 export type NumericCharacterMetaRow = {
-  characterId: number;
-  characterLabel: string;
+  id: number;
+  label: string;
   unitFamilyId: number;
   kind: "single" | "range";
 };
 
 export type ModifierSuggestionRow = {
-  modifierId: number;
-  modifierValue: string;
+  id: number;
+  label: string;
   affixType: "prefix" | "suffix";
   groupId: number;
   groupLabel: string;
@@ -158,8 +158,8 @@ export async function queryCategoricalSuggestionRows(opts: {
   return withFuzzyThreshold((tx) =>
     tx
       .select({
-        characterId: character.id,
-        characterLabel: character.label,
+        id: character.id,
+        label: character.label,
         traitValueId: categoricalTraitValue.id,
         traitValueLabel: categoricalTraitValue.label,
         traitValueHexCode: categoricalTraitValue.hexCode,
@@ -202,13 +202,13 @@ export async function queryModifierSuggestionRows(opts: {
   sqlLimit: number;
 }): Promise<ModifierSuggestionRow[]> {
   const { fq, sqlLimit } = opts;
-  const similarity = fuzzySimilarity(modifierValue.value, fq);
+  const similarity = fuzzySimilarity(modifierValue.label, fq);
 
   return withFuzzyThreshold((tx) =>
     tx
       .select({
-        modifierId: modifierValue.id,
-        modifierValue: modifierValue.value,
+        id: modifierValue.id,
+        label: modifierValue.label,
         affixType: modifierValue.affixType,
         groupId: modifierGroup.id,
         groupLabel: modifierGroup.label,
@@ -216,21 +216,15 @@ export async function queryModifierSuggestionRows(opts: {
       })
       .from(modifierValue)
       .innerJoin(modifierGroup, eq(modifierGroup.id, modifierValue.groupId))
-      .where(
-        and(
-          // Only canonical values (no aliases)
-          isNull(modifierValue.canonicalValueId),
-          fuzzyLabelPredicate(modifierValue.value, fq),
-        ),
-      )
-      .orderBy(desc(similarity), modifierValue.value)
+      .where(fuzzyLabelPredicate(modifierValue.label, fq))
+      .orderBy(desc(similarity), modifierValue.label)
       .limit(sqlLimit),
   );
 }
 
 /**
- * Fetch all canonical modifier values, ordered by
- * total usage count (desc) then group label and value alphabetically.
+ * Fetch all modifier values, ordered by total usage count (desc)
+ * then group label and value alphabetically.
  */
 export async function queryAllModifiersByUsage(
   sqlLimit: number,
@@ -243,8 +237,8 @@ export async function queryAllModifiersByUsage(
 
   return db
     .select({
-      modifierId: modifierValue.id,
-      modifierValue: modifierValue.value,
+      id: modifierValue.id,
+      label: modifierValue.label,
       affixType: modifierValue.affixType,
       groupId: modifierGroup.id,
       groupLabel: modifierGroup.label,
@@ -258,8 +252,7 @@ export async function queryAllModifiersByUsage(
       modRangeUsageSel,
       eq(modRangeUsageSel.modifierId, modifierValue.id),
     )
-    .where(isNull(modifierValue.canonicalValueId))
-    .orderBy(desc(usageExpr), modifierValue.value)
+    .orderBy(desc(usageExpr), modifierValue.label)
     .limit(sqlLimit);
 }
 
@@ -281,8 +274,8 @@ export async function queryNumericCharacterMetas(opts: {
 
   return db
     .select({
-      characterId: character.id,
-      characterLabel: character.label,
+      id: character.id,
+      label: character.label,
       unitFamilyId: numericCharacterMeta.unitFamilyId,
       kind: numericCharacterMeta.kind,
     })

@@ -41,16 +41,14 @@ export function ModifierPopoverContent({
   // Map to ModifierTokenFormValue shape and filter out already-applied IDs.
   const usedIds = new Set(modifiers.map((m) => m.id));
   const available = suggestions
-    .filter((s) => !usedIds.has(s.modifierId))
-    .map(
-      (s): ModifierTokenFormValue => ({
-        id: s.modifierId,
-        value: s.modifierValue,
-        affixType: s.affixType,
-        groupId: s.groupId,
-        groupLabel: s.groupLabel,
-      }),
-    );
+    .filter((s) => !usedIds.has(s.id))
+    .map((s): ModifierTokenFormValue => ({
+      id: s.id,
+      label: s.label,
+      affixType: s.affixType,
+      groupId: s.groupId,
+      groupLabel: s.groupLabel,
+    }));
 
   const listRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -141,7 +139,7 @@ export function ModifierPopoverContent({
             className="modifier-tag__applied-pill"
           >
             <Flex align="center" gap="1">
-              <Text size="1">{m.value}</Text>
+              <Text size="1">{m.label}</Text>
               <IconButton
                 size="1"
                 type="button"
@@ -203,7 +201,7 @@ export function ModifierPopoverContent({
                     <PiPlus size={9} />
                   </Box>
                   <Text size="1" align="left">
-                    {m.value}
+                    {m.label}
                   </Text>
                 </Flex>
                 <Text size="1" color="gray" align="right">

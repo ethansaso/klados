@@ -37,12 +37,21 @@ export const traitValueQueryOptions = (id: number) =>
   });
 
 export const synonymCandidatesQueryOptions = (
-  traitId: number,
+  characterId: number,
   q: string,
-  limit = 20,
-) =>
-  queryOptions<SynonymCandidateDTO[]>({
-    queryKey: ["synonymCandidates", { traitId, q, limit }] as const,
+  opts?: { excludeTraitId?: number; limit?: number },
+) => {
+  const limit = opts?.limit ?? 20;
+  const excludeTraitId = opts?.excludeTraitId;
+
+  return queryOptions<SynonymCandidateDTO[]>({
+    queryKey: [
+      "synonymCandidates",
+      { characterId, excludeTraitId: excludeTraitId ?? null, q, limit },
+    ] as const,
     queryFn: () =>
-      listSynonymCandidatesFn({ data: { traitId, q: q || undefined, limit } }),
+      listSynonymCandidatesFn({
+        data: { characterId, excludeTraitId, q: q || undefined, limit },
+      }),
   });
+};

@@ -15,7 +15,6 @@ import {
   characterFeature as characterFeatureTbl,
   character as charsTbl,
   feature as featuresTbl,
-  media as mediaTbl,
   numericCharacterMeta as numMetaTbl,
   taxonCharacterStateCategorical as tcsCatTbl,
   taxonCharacterStateNumber as tcsNumTbl,
@@ -25,6 +24,7 @@ import {
 } from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/sql/likeAnywhere";
 import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
+import { hydrateMedia, selectMediaById } from "../media/repo";
 import type { MediaDTO } from "../media/types";
 import {
   catTraitCountSel,
@@ -54,10 +54,12 @@ type RawCharacterRow = {
   unitFamilyId: number | null;
   mediaId: number | null;
 };
+type HydratedCharacterRow = Omit<RawCharacterRow, "mediaId"> & {
+  media: MediaDTO | null;
+};
 
 function groupRowsToCharacterDTOs(
-  rows: RawCharacterRow[],
-  mediaMap: Map<number, MediaDTO>,
+  rows: HydratedCharacterRow[],
 ): CharacterDTO[] {
   const byId = new Map<number, CharacterDTO>();
 
@@ -73,7 +75,7 @@ function groupRowsToCharacterDTOs(
         showInProse: row.showInProse,
         features: row.feature ? [row.feature] : [],
         usageCount: row.usageCount,
-        media: row.mediaId != null ? (mediaMap.get(row.mediaId) ?? null) : null,
+        media: row.media,
       };
 
       if (row.type === "categorical") {
@@ -139,14 +141,8 @@ export async function fetchCharacterDetailById(
 
   if (!base) return null;
 
-  const media: MediaDTO | null =
-    base.mediaId != null
-      ? await tx
-          .select()
-          .from(mediaTbl)
-          .where(eq(mediaTbl.id, base.mediaId))
-          .then((rows) => rows[0] ?? null)
-      : null;
+  const media =
+    base.mediaId != null ? await selectMediaById(tx, base.mediaId) : null;
 
   // Fetch features for character
   const features = await tx
@@ -298,21 +294,7 @@ export async function selectCharactersByIds(
       asc(charsTbl.id),
     )) as RawCharacterRow[];
 
-  const mediaIds = [
-    ...new Set(
-      rows.map((r) => r.mediaId).filter((id): id is number => id != null),
-    ),
-  ];
-  const mediaByIds = new Map<number, MediaDTO>();
-  if (mediaIds.length) {
-    const mediaRows = await tx
-      .select()
-      .from(mediaTbl)
-      .where(inArray(mediaTbl.id, mediaIds));
-    for (const m of mediaRows) mediaByIds.set(m.id, m);
-  }
-
-  return groupRowsToCharacterDTOs(rows, mediaByIds);
+  return groupRowsToCharacterDTOs(await hydrateMedia(tx, rows));
 }
 
 /**
@@ -397,20 +379,7 @@ export async function listCharactersQuery(args: {
         asc(charsTbl.id),
       )) as RawCharacterRow[];
 
-    const mediaIds = [
-      ...new Set(
-        rows.map((r) => r.mediaId).filter((id): id is number => id != null),
-      ),
-    ];
-    const mediaByIds = new Map<number, MediaDTO>();
-    if (mediaIds.length) {
-      const mediaRows = await db
-        .select()
-        .from(mediaTbl)
-        .where(inArray(mediaTbl.id, mediaIds));
-      for (const m of mediaRows) mediaByIds.set(m.id, m);
-    }
-    items = groupRowsToCharacterDTOs(rows, mediaByIds);
+    items = groupRowsToCharacterDTOs(await hydrateMedia(db, rows));
   }
 
   // STEP 2: total character count

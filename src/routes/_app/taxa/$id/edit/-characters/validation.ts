@@ -12,7 +12,7 @@ function modifierSetSignature(modifierIds: number[]): string {
 
 const modifierTokenSchema = z.object({
   id: z.number().int(),
-  value: z.string(),
+  label: z.string(),
   affixType: z.enum(["prefix", "suffix"]),
   groupId: z.number().int(),
   groupLabel: z.string(),

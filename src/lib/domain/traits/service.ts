@@ -7,11 +7,9 @@ import {
   deleteTraitValueById,
   insertSynonymSet,
   insertTraitValueRow,
-  moveTraitsBetweenSets,
   moveTraitToSet,
   selectAllTraitValuesByCharacters,
   selectSynonymCandidateRows,
-  selectSynonymSetSizes,
   selectTraitIdentityById,
   selectTraitValueDtoById,
   selectTraitValueDtosByIds,
@@ -25,27 +23,11 @@ import type {
 } from "./types";
 import type {
   CreateTraitValueInput,
-  LinkTraitsAsSynonymsInput,
   ListSynonymCandidatesInput,
-  UnlinkTraitFromSynonymsInput,
   UpdateTraitValueInput,
 } from "./validation";
 
 /** Deterministically chooses the larger of two sets to 'survive' a merge to reduce move operations. */
-function pickKeepAndDrop(
-  setA: number,
-  sizeA: number,
-  setB: number,
-  sizeB: number,
-): { keep: number; drop: number } {
-  if (sizeA !== sizeB) {
-    return sizeA > sizeB
-      ? { keep: setA, drop: setB }
-      : { keep: setB, drop: setA };
-  }
-  return setA < setB ? { keep: setA, drop: setB } : { keep: setB, drop: setA };
-}
-
 /**
  * Delete a trait value by id.
  * Returns { id } if deleted, null if the value does not exist.
@@ -149,7 +131,7 @@ export async function createTraitValue(
 
 /**
  * Patch a trait value's fields and, optionally, its synonym membership.
- * Setting `null` for `synonymTargetTraitId` separates the trait into a set of its own.
+ * Setting `null` for `synonymOfTraitId` separates the trait into a set of its own.
  */
 export async function updateTraitValue(
   args: UpdateTraitValueInput,
@@ -171,11 +153,11 @@ export async function updateTraitValue(
     });
     if (!updated) throw new Error("Update failed.");
 
-    if (args.synonymTargetTraitId !== undefined) {
-      if (args.synonymTargetTraitId === null) {
+    if (args.synonymOfTraitId !== undefined) {
+      if (args.synonymOfTraitId === null) {
         await unlinkTraitFromSynonymsTx(tx, args.id);
       } else {
-        await linkTraitsAsSynonymsTx(tx, args.id, args.synonymTargetTraitId);
+        await moveTraitIntoSetOfTx(tx, args.id, args.synonymOfTraitId);
       }
     }
 
@@ -187,41 +169,32 @@ export async function updateTraitValue(
 }
 
 /**
- * Merge two traits into one synonym set.
- * Order does not matter -- see {@link pickKeepAndDrop}.
+ * Move one trait into the set that `targetTraitId` belongs to.
+ * Does not merge sets.
  */
-async function linkTraitsAsSynonymsTx(
+async function moveTraitIntoSetOfTx(
   tx: Transaction,
-  traitIdA: number,
-  traitIdB: number,
+  traitId: number,
+  targetTraitId: number,
 ): Promise<{ synonymSetId: number }> {
-  const a = await selectTraitIdentityById(tx, traitIdA);
-  const b = await selectTraitIdentityById(tx, traitIdB);
+  const trait = await selectTraitIdentityById(tx, traitId);
+  const target = await selectTraitIdentityById(tx, targetTraitId);
 
-  if (!a || !b) throw new Error("Trait value not found.");
-  if (a.characterId !== b.characterId) {
+  if (!trait || !target) throw new Error("Trait value not found.");
+  if (trait.characterId !== target.characterId) {
     throw new Error("Traits belong to different characters.");
   }
-  // Cover linking a trait to itself
-  if (a.synonymSetId === b.synonymSetId) {
-    return { synonymSetId: a.synonymSetId };
+  // Covers naming the trait itself, or any of its existing synonyms
+  if (trait.synonymSetId === target.synonymSetId) {
+    return { synonymSetId: trait.synonymSetId };
   }
 
-  const sizes = await selectSynonymSetSizes(tx, [
-    a.synonymSetId,
-    b.synonymSetId,
-  ]);
-  const { keep, drop } = pickKeepAndDrop(
-    a.synonymSetId,
-    sizes.get(a.synonymSetId) ?? 0,
-    b.synonymSetId,
-    sizes.get(b.synonymSetId) ?? 0,
-  );
+  const vacated = trait.synonymSetId;
+  await moveTraitToSet(tx, traitId, target.synonymSetId);
+  // The trait may have been the only member of the set it left
+  await deleteSynonymSetIfEmpty(tx, vacated);
 
-  await moveTraitsBetweenSets(tx, drop, keep);
-  await deleteSynonymSetIfEmpty(tx, drop);
-
-  return { synonymSetId: keep };
+  return { synonymSetId: target.synonymSetId };
 }
 
 /** Detach a trait from its synonyms by moving it into a fresh set of its own. */
@@ -243,20 +216,6 @@ async function unlinkTraitFromSynonymsTx(
   await deleteSynonymSetIfEmpty(tx, trait.synonymSetId);
 
   return { synonymSetId: set.id };
-}
-
-export async function linkTraitsAsSynonyms(
-  args: LinkTraitsAsSynonymsInput,
-): Promise<{ synonymSetId: number }> {
-  return db.transaction((tx) =>
-    linkTraitsAsSynonymsTx(tx, args.traitIdA, args.traitIdB),
-  );
-}
-
-export async function unlinkTraitFromSynonyms(
-  args: UnlinkTraitFromSynonymsInput,
-): Promise<{ synonymSetId: number }> {
-  return db.transaction((tx) => unlinkTraitFromSynonymsTx(tx, args.traitId));
 }
 
 /** List trait values for a character, paginated. */
@@ -299,17 +258,14 @@ export async function listAllTraitValuesByCharacters(
 export async function listSynonymCandidates(
   args: ListSynonymCandidatesInput,
 ): Promise<SynonymCandidateDTO[]> {
-  const { traitId, q, limit } = args;
+  const { characterId, excludeTraitId, q, limit } = args;
 
   return db.transaction(async (tx) => {
-    const trait = await selectTraitIdentityById(tx, traitId);
-    if (!trait) throw new Error(`Trait value ${traitId} not found.`);
-
     const fq = q?.trim() ? buildFuzzyQuery(q) : null;
 
     const rows = await selectSynonymCandidateRows(tx, {
-      characterId: trait.characterId,
-      excludeTraitId: traitId,
+      characterId,
+      excludeTraitId,
       fq,
     });
 

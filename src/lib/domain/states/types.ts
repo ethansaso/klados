@@ -3,8 +3,9 @@ import { type UnitDTO } from "../units/types";
 
 export type ModifierStateDTO = {
   id: number;
-  value: string;
+  label: string;
   affixType: "prefix" | "suffix";
+  hasInfo: boolean;
   groupId: number;
   groupLabel: string;
 };

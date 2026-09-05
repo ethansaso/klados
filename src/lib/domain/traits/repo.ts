@@ -10,7 +10,6 @@ import {
   sql,
 } from "drizzle-orm";
 import {
-  media as mediaTbl,
   traitSynonymSet as setsTbl,
   taxonCharacterStateCategorical as tcsTbl,
   categoricalTraitValue as valsTbl,
@@ -22,18 +21,13 @@ import {
   fuzzySimilarity,
 } from "../../utils/sql/fuzzyLabel";
 import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
-import type { MediaDTO } from "../media/types";
+import { hydrateMedia } from "../media/repo";
 import type {
   TraitSynonymDTO,
   TraitValueDTO,
   TraitValuePaginatedResult,
   TraitValueRow,
 } from "./types";
-
-/** Helper type for un-media-hydrated traits */
-type TraitValueRawRow = Omit<TraitValueDTO, "media"> & {
-  mediaId: number | null;
-};
 
 /** Aggregate of a trait's synonyms, ordered by label. */
 const synonymsAgg = sql<TraitSynonymDTO[]>`
@@ -59,32 +53,6 @@ function usageAggFor(tx: Transaction, filter: ReturnType<typeof eq>) {
     .where(filter)
     .groupBy(tcsTbl.traitValueId)
     .as("usage_agg");
-}
-
-/** Resolve trait rows' `mediaId` references into full media objects. */
-async function hydrateTraitValueMedia(
-  tx: Transaction,
-  rows: TraitValueRawRow[],
-): Promise<TraitValueDTO[]> {
-  const mediaIds = Array.from(
-    new Set(
-      rows.map((r) => r.mediaId).filter((id): id is number => id != null),
-    ),
-  );
-
-  const mediaByIds = new Map<number, MediaDTO>();
-  if (mediaIds.length) {
-    const mediaRows = await tx
-      .select()
-      .from(mediaTbl)
-      .where(inArray(mediaTbl.id, mediaIds));
-    for (const m of mediaRows) mediaByIds.set(m.id, m);
-  }
-
-  return rows.map(({ mediaId, ...rest }) => ({
-    ...rest,
-    media: mediaId != null ? (mediaByIds.get(mediaId) ?? null) : null,
-  }));
 }
 
 /** Allocate a new, empty synonym set for a character. */
@@ -114,25 +82,6 @@ export async function countTraitsInSet(
   return row?.n ?? 0;
 }
 
-/** Sizes of several sets at once, keyed by set id. Absent = empty. */
-export async function selectSynonymSetSizes(
-  tx: Transaction,
-  setIds: number[],
-): Promise<Map<number, number>> {
-  if (!setIds.length) return new Map();
-
-  const rows = await tx
-    .select({
-      setId: valsTbl.synonymSetId,
-      size: sql<number>`CAST(COUNT(*) AS INT)`,
-    })
-    .from(valsTbl)
-    .where(inArray(valsTbl.synonymSetId, setIds))
-    .groupBy(valsTbl.synonymSetId);
-
-  return new Map(rows.map((r) => [r.setId, r.size]));
-}
-
 /**
  * Delete a synonym set, but only if it has no members. Returns whether it
  * was deleted.
@@ -157,21 +106,6 @@ export async function deleteSynonymSetIfEmpty(
     .returning({ id: setsTbl.id });
 
   return deleted.length > 0;
-}
-
-/**
- * Merges two sets, using `toSetId` as the destination set.
- * Is not responsible for deleting the 'from' set afterwards!
- */
-export async function moveTraitsBetweenSets(
-  tx: Transaction,
-  fromSetId: number,
-  toSetId: number,
-): Promise<void> {
-  await tx
-    .update(valsTbl)
-    .set({ synonymSetId: toSetId })
-    .where(eq(valsTbl.synonymSetId, fromSetId));
 }
 
 /**
@@ -361,7 +295,7 @@ export async function selectTraitValueDtoById(
 
   if (!row) return null;
 
-  const [dto] = await hydrateTraitValueMedia(tx, [row]);
+  const [dto] = await hydrateMedia(tx, [row]);
   return dto ?? null;
 }
 
@@ -393,7 +327,7 @@ export async function selectTraitValueDtosByIds(
     .where(inArray(valsTbl.id, ids))
     .orderBy(asc(valsTbl.id));
 
-  return hydrateTraitValueMedia(tx, rows);
+  return hydrateMedia(tx, rows);
 }
 
 /**
@@ -481,7 +415,7 @@ export async function selectTraitValuesByCharacterPaginated(
     .limit(pageSize)
     .offset(offset);
 
-  const items = await hydrateTraitValueMedia(tx, rawItems);
+  const items = await hydrateMedia(tx, rawItems);
 
   const [totals] = await tx
     .select({ total: count() })
