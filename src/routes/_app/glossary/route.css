@@ -1,5 +1,6 @@
-/* Hide trait editor while media picker modals are open */
-.rt-DialogOverlay:has(.glossary-trait-dialog[data-picker-open]) {
+/* Hide trait/modifier editors while media picker modals are open */
+.rt-DialogOverlay:has(.glossary-trait-dialog[data-picker-open]),
+.rt-DialogOverlay:has(.glossary-modifier-dialog[data-picker-open]) {
   visibility: hidden;
 }
 

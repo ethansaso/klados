@@ -9,6 +9,7 @@ export const listModifiersFn = createServerFn({ method: "GET" })
     PaginationSchema.extend({
       groupId: z.number().int().positive().optional(),
       q: z.string().optional(),
+      excludeId: z.number().int().positive().optional(),
     }),
   )
   .handler(async ({ data }): Promise<ModifierPaginatedResult> => {

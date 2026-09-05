@@ -1,6 +1,7 @@
 import { Text } from "@radix-ui/themes";
-import { memo, type ReactNode } from "react";
-import { formatModifierValue, groupConsecutive } from "../formatting";
+import { Fragment, memo, type ReactNode } from "react";
+import { ModifierDisplay } from "../displays/ModifierDisplay";
+import { formatModifierLabel, groupConsecutive } from "../formatting";
 import type { UIModifier } from "../types";
 import { ColorBubble } from "./ColorBubble";
 
@@ -64,14 +65,18 @@ export const AffixedValue = memo(
             weight={weight}
             color={highlightAffixes ? "crimson" : undefined}
           >
-            {group
-              .map((m, mi) =>
-                formatModifierValue(
-                  m.value,
-                  !lowercaseFirst && gi === 0 && mi === 0,
-                ),
-              )
-              .join("/")}{" "}
+            {group.map((m, mi) => (
+              <Fragment key={m.id}>
+                {mi > 0 && "/"}
+                <ModifierDisplay
+                  modifier={m}
+                  text={formatModifierLabel(
+                    m.label,
+                    !lowercaseFirst && gi === 0 && mi === 0,
+                  )}
+                />
+              </Fragment>
+            ))}{" "}
           </Text>
         ))}
         <Text as="span" weight={weight}>
@@ -98,7 +103,15 @@ export const AffixedValue = memo(
             color={highlightAffixes ? "cyan" : undefined}
           >
             {" "}
-            {group.map((m) => formatModifierValue(m.value)).join("/")}
+            {group.map((m, mi) => (
+              <Fragment key={m.id}>
+                {mi > 0 && "/"}
+                <ModifierDisplay
+                  modifier={m}
+                  text={formatModifierLabel(m.label)}
+                />
+              </Fragment>
+            ))}
             {!isLast && gi === suffixGroups.length - 1 && ","}
           </Text>
         ))}

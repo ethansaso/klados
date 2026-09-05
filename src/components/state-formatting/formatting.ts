@@ -9,7 +9,7 @@ function shouldPreserveWord(word: string): boolean {
 }
 
 /** Apply word-by-word case normalization to a modifier value (e.g. "with FeSO₄"). */
-export function formatModifierValue(
+export function formatModifierLabel(
   value: string,
   capitalizeFirst = false,
 ): string {

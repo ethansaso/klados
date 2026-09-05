@@ -17,13 +17,12 @@ import {
   characterFeature as characterFeatureTbl,
   character as charsTbl,
   feature as featuresTbl,
-  media as mediaTbl,
   numericCharacterMeta as numMetaTbl,
   taxonFeatureState as tfsTbl,
 } from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/sql/likeAnywhere";
 import { type Transaction } from "../../utils/types/transactionType";
-import type { MediaDTO } from "../media/types";
+import { hydrateMedia, selectMediaById } from "../media/repo";
 import type {
   CharacterInFeatureDTO,
   FeatureDetailDTO,
@@ -60,22 +59,7 @@ export async function selectFeaturesByIds(
     .groupBy(featuresTbl.id, featuresTbl.label, featuresTbl.description)
     .orderBy(asc(featuresTbl.label), asc(featuresTbl.id));
 
-  const mediaIds = rawItems
-    .map((r) => r.mediaId)
-    .filter((id): id is number => id != null);
-  const mediaByIds = new Map<number, MediaDTO>();
-  if (mediaIds.length) {
-    const mediaRows = await tx
-      .select()
-      .from(mediaTbl)
-      .where(inArray(mediaTbl.id, mediaIds));
-    for (const m of mediaRows) mediaByIds.set(m.id, m);
-  }
-
-  return rawItems.map(({ mediaId, ...r }) => ({
-    ...r,
-    media: mediaId != null ? (mediaByIds.get(mediaId) ?? null) : null,
-  }));
+  return hydrateMedia(tx, rawItems);
 }
 
 /**
@@ -119,22 +103,7 @@ export async function listFeaturesQuery(args: {
     .limit(pageSize)
     .offset(offset);
 
-  const mediaIds = rawItems
-    .map((r) => r.mediaId)
-    .filter((id): id is number => id != null);
-  const mediaByIds = new Map<number, MediaDTO>();
-  if (mediaIds.length) {
-    const mediaRows = await db
-      .select()
-      .from(mediaTbl)
-      .where(inArray(mediaTbl.id, mediaIds));
-    for (const m of mediaRows) mediaByIds.set(m.id, m);
-  }
-
-  const items: FeatureDTO[] = rawItems.map(({ mediaId, ...r }) => ({
-    ...r,
-    media: mediaId != null ? (mediaByIds.get(mediaId) ?? null) : null,
-  }));
+  const items: FeatureDTO[] = await hydrateMedia(db, rawItems);
 
   const totals = await db
     .select({ total: count() })
@@ -171,13 +140,9 @@ export async function fetchFeatureDetailById(
 
   if (!featureRow) return null;
 
-  const media: MediaDTO | null =
+  const media =
     featureRow.mediaId != null
-      ? await tx
-          .select()
-          .from(mediaTbl)
-          .where(eq(mediaTbl.id, featureRow.mediaId))
-          .then((rows) => rows[0] ?? null)
+      ? await selectMediaById(tx, featureRow.mediaId)
       : null;
 
   // Sub-features (indexed on parent_id)

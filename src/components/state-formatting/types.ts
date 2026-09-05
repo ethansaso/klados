@@ -22,8 +22,9 @@ export type UIUnit = Pick<UnitDTO, "symbol" | "scale">;
  */
 export type UIModifier = {
   id: number;
-  value: string;
+  label: string;
   affixType: "prefix" | "suffix";
+  hasInfo?: boolean;
   groupId: number;
 };
 

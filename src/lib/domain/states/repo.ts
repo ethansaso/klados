@@ -118,8 +118,10 @@ export async function selectTaxonStatesByTaxonIds(
     ? await tx
         .select({
           stateId: modCatJunctionTbl.taxonCharacterStateCategoricalId,
-          modifierId: modValTbl.id,
-          modifierValue: modValTbl.value,
+          id: modValTbl.id,
+          label: modValTbl.label,
+          description: modValTbl.description,
+          mediaId: modValTbl.mediaId,
           affixType: modValTbl.affixType,
           groupId: modGroupTbl.id,
           groupLabel: modGroupTbl.label,
@@ -138,9 +140,10 @@ export async function selectTaxonStatesByTaxonIds(
   for (const m of rawCatModRows) {
     const arr = modifiersByCatStateId.get(m.stateId) ?? [];
     arr.push({
-      id: m.modifierId,
-      value: m.modifierValue,
+      id: m.id,
+      label: m.label,
       affixType: m.affixType,
+      hasInfo: hasText(m.description) || m.mediaId !== null,
       groupId: m.groupId,
       groupLabel: m.groupLabel,
     });
@@ -208,8 +211,10 @@ export async function selectTaxonStatesByTaxonIds(
     ? await tx
         .select({
           stateId: modNumJunctionTbl.taxonCharacterStateNumberId,
-          modifierId: modValTbl.id,
-          modifierValue: modValTbl.value,
+          id: modValTbl.id,
+          label: modValTbl.label,
+          description: modValTbl.description,
+          mediaId: modValTbl.mediaId,
           affixType: modValTbl.affixType,
           groupId: modGroupTbl.id,
           groupLabel: modGroupTbl.label,
@@ -225,9 +230,10 @@ export async function selectTaxonStatesByTaxonIds(
   for (const m of rawNumModRows) {
     const arr = modifiersByNumStateId.get(m.stateId) ?? [];
     arr.push({
-      id: m.modifierId,
-      value: m.modifierValue,
+      id: m.id,
+      label: m.label,
       affixType: m.affixType,
+      hasInfo: hasText(m.description) || m.mediaId !== null,
       groupId: m.groupId,
       groupLabel: m.groupLabel,
     });
@@ -300,8 +306,10 @@ export async function selectTaxonStatesByTaxonIds(
     ? await tx
         .select({
           stateId: modRangeJunctionTbl.taxonCharacterStateRangeId,
-          modifierId: modValTbl.id,
-          modifierValue: modValTbl.value,
+          id: modValTbl.id,
+          label: modValTbl.label,
+          description: modValTbl.description,
+          mediaId: modValTbl.mediaId,
           affixType: modValTbl.affixType,
           groupId: modGroupTbl.id,
           groupLabel: modGroupTbl.label,
@@ -320,9 +328,10 @@ export async function selectTaxonStatesByTaxonIds(
   for (const m of rawRangeModRows) {
     const arr = modifiersByRangeStateId.get(m.stateId) ?? [];
     arr.push({
-      id: m.modifierId,
-      value: m.modifierValue,
+      id: m.id,
+      label: m.label,
       affixType: m.affixType,
+      hasInfo: hasText(m.description) || m.mediaId !== null,
       groupId: m.groupId,
       groupLabel: m.groupLabel,
     });

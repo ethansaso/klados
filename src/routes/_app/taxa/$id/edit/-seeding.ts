@@ -25,7 +25,7 @@ const seedSources = (rows: TaxonSourceDTO[]): TaxonSourceUpsertItem[] =>
 function seedModifier(m: CategoricalStateDTO["modifiers"][number]) {
   return {
     id: m.id,
-    value: m.value,
+    label: m.label,
     affixType: m.affixType,
     groupId: m.groupId,
     groupLabel: m.groupLabel,

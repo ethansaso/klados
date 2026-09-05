@@ -1,22 +1,13 @@
 import NiceModal from "@ebay/nice-modal-react";
-import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  IconButton,
-  Text,
-  TextField,
-} from "@radix-ui/themes";
+import { Box, Button, Flex, Heading, Text, TextField } from "@radix-ui/themes";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
-import { PiPlus, PiTrash } from "react-icons/pi";
+import { PiMagnifyingGlass, PiPlus, PiTrash } from "react-icons/pi";
 import z from "zod";
-import { type AffixType } from "../../../../../db/schema/schema";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../components/dialogs/ConfirmDeleteModal";
+import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { roleHasCuratorRights } from "../../../../lib/auth/utils";
 import type { ModifierDTO } from "../../../../lib/domain/modifiers/types";
@@ -24,14 +15,16 @@ import {
   modifierGroupQueryOptions,
   modifiersQueryOptions,
 } from "../../../../lib/queries/modifiers";
-import { createModifierFn } from "../../../../lib/server-fns/modifiers/createModifierFn";
 import { deleteModifierFn } from "../../../../lib/server-fns/modifiers/deleteModifierFn";
 import { deleteModifierGroupFn } from "../../../../lib/server-fns/modifiers/deleteModifierGroupFn";
 import { toast } from "../../../../lib/utils/toast";
+import { AddModifierModal } from "./-AddModifierModal";
+import { EditModifierModal } from "./-EditModifierModal";
 import ModifierTable from "./-ModifierTable";
 
 const SearchSchema = z.object({
   valuePage: z.coerce.number().int().positive().default(1).catch(1),
+  valueQ: z.string().default("").catch(""),
 });
 
 const PAGE_SIZE = 10;
@@ -45,73 +38,55 @@ export const Route = createFileRoute("/_app/glossary/modifiers/$id")({
     middlewares: [
       stripSearchParams({
         valuePage: 1,
+        valueQ: "",
       }),
     ],
   },
   loaderDeps: ({ search }) => ({
     page: search.valuePage,
+    q: search.valueQ,
   }),
-  loader: async ({ context, params, deps: { page } }) => {
+  loader: async ({ context, params, deps: { page, q } }) => {
     const { id } = params;
     await Promise.all([
       context.queryClient.ensureQueryData(modifierGroupQueryOptions(id)),
       context.queryClient.ensureQueryData(
-        modifiersQueryOptions(id, page, PAGE_SIZE),
+        modifiersQueryOptions(id, page, PAGE_SIZE, { q: q || undefined }),
       ),
     ]);
-    return { id, page, isCurator: roleHasCuratorRights(context.user?.role) };
+    return { id, page, q, isCurator: roleHasCuratorRights(context.user?.role) };
   },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { id, page, isCurator } = Route.useLoaderData();
+  const { id, page, q, isCurator } = Route.useLoaderData();
   const navigate = Route.useNavigate();
   const qc = useQueryClient();
   const search = Route.useSearch();
-  const serverCreateModifier = useServerFn(createModifierFn);
   const serverDeleteModifier = useServerFn(deleteModifierFn);
   const serverDeleteGroup = useServerFn(deleteModifierGroupFn);
-  const [newValue, setNewValue] = useState("");
-  const [newAffixType, setNewAffixType] = useState<AffixType>("prefix");
-  const [isCreating, setIsCreating] = useState(false);
 
   const { data: modifierGroup } = useSuspenseQuery(
     modifierGroupQueryOptions(id),
   );
   const { data: modifiersPage } = useSuspenseQuery(
-    modifiersQueryOptions(id, page, PAGE_SIZE),
+    modifiersQueryOptions(id, page, PAGE_SIZE, { q: q || undefined }),
   );
 
-  const handleSwitchAffix = () => {
-    setNewAffixType((prev) => (prev === "prefix" ? "suffix" : "prefix"));
-  };
+  const invalidateModifiers = () =>
+    qc.invalidateQueries({ queryKey: ["modifiers"] });
 
-  const handleAddModifier = async () => {
-    const value = newValue.trim();
-    if (!value || isCreating) return;
-    setIsCreating(true);
-    try {
-      const created = await serverCreateModifier({
-        data: { groupId: id, value, affixType: newAffixType },
-      });
-      qc.invalidateQueries({ queryKey: ["modifiers"] });
-      setNewValue("");
-      toast({
-        variant: "success",
-        description: `Modifier "${created.value}" added.`,
-      });
-    } catch {
-      toast({ variant: "error", description: "Failed to add modifier." });
-    } finally {
-      setIsCreating(false);
-    }
+  // A new query invalidates the current page number along with the results
+  const setQ = (value: string) => {
+    navigate({ search: { valuePage: 1, valueQ: value } });
   };
 
   const goToPage = (nextPage: number) => {
     navigate({
       search: {
         valuePage: nextPage,
+        valueQ: q,
       },
     });
   };
@@ -147,7 +122,7 @@ function RouteComponent() {
 
   const handleDeleteModifierClick = (modifier: ModifierDTO) => {
     NiceModal.show(ConfirmDeleteModal, {
-      label: modifier.value,
+      label: modifier.label,
       itemType: "modifier",
       onConfirm: async () => {
         try {
@@ -155,12 +130,12 @@ function RouteComponent() {
           qc.invalidateQueries({ queryKey: ["modifiers"] });
           toast({
             variant: "success",
-            description: `Modifier "${modifier.value}" deleted successfully.`,
+            description: `Modifier "${modifier.label}" deleted successfully.`,
           });
         } catch {
           toast({
             variant: "error",
-            description: `Failed to delete modifier "${modifier.value}".`,
+            description: `Failed to delete modifier "${modifier.label}".`,
           });
         }
       },
@@ -190,56 +165,46 @@ function RouteComponent() {
       <Box>
         <Flex align="center" justify="between" mb="2">
           <Heading size="4">Possible Values</Heading>
-          <CuratorOnly>
-            <TextField.Root
-              size="2"
-              placeholder="Add a new value..."
-              value={newValue}
-              onChange={(e) => setNewValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddModifier();
+          <Flex align="center" gap="2">
+            <CuratorOnly>
+              <Button
+                size="2"
+                variant="surface"
+                onClick={() =>
+                  NiceModal.show(AddModifierModal, {
+                    groupId: id,
+                    // Forward search into creation
+                    initialValue: q,
+                    invalidate: invalidateModifiers,
+                  })
                 }
-              }}
+              >
+                <PiPlus />
+                Add new
+              </Button>
+            </CuratorOnly>
+            <DebouncedTextField
+              size="2"
+              placeholder="Search values..."
+              initialValue={q}
+              onDebouncedChange={setQ}
+              radius="large"
             >
-              <TextField.Slot side="right">
-                <IconButton
-                  size="1"
-                  variant="ghost"
-                  color={newAffixType === "prefix" ? "crimson" : "cyan"}
-                  onClick={handleSwitchAffix}
-                  disabled={isCreating}
-                  loading={isCreating}
-                >
-                  <Flex
-                    width="1rem"
-                    height="1rem"
-                    align="center"
-                    justify="center"
-                  >
-                    {newAffixType === "prefix" ? "P" : "S"}
-                  </Flex>
-                </IconButton>
+              <TextField.Slot>
+                <PiMagnifyingGlass size="16" />
               </TextField.Slot>
-              <TextField.Slot side="right">
-                <IconButton
-                  size="1"
-                  variant="ghost"
-                  onClick={handleAddModifier}
-                  disabled={!newValue.trim() || isCreating}
-                  loading={isCreating}
-                >
-                  <PiPlus />
-                </IconButton>
-              </TextField.Slot>
-            </TextField.Root>
-          </CuratorOnly>
+            </DebouncedTextField>
+          </Flex>
         </Flex>
         <ModifierTable
           values={modifiersPage.items}
           showActions={isCurator}
-          onEditClick={() => {}}
+          onEditClick={(modifier) =>
+            NiceModal.show(EditModifierModal, {
+              modifier,
+              invalidate: invalidateModifiers,
+            })
+          }
           onDeleteClick={handleDeleteModifierClick}
         />
         <Box mt="4">

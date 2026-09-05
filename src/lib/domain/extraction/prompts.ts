@@ -6,7 +6,7 @@ import type { StructuredObservations } from "./schemas";
 
 type ModifierGlossaryEntry = Pick<
   ModifierDTO,
-  "id" | "value" | "affixType" | "groupId"
+  "id" | "label" | "affixType" | "groupId"
 > & { groupLabel: string };
 
 export type ExtractionGlossary = {
@@ -350,7 +350,7 @@ export function buildModifierAssignmentSystemPrompt(
   const lines: string[] = [];
   for (const group of modifierGroups) {
     const vals = group.values
-      .map((v) => `"${v.value}" (id: ${v.id}, ${v.affixType})`)
+      .map((v) => `"${v.label}" (id: ${v.id}, ${v.affixType})`)
       .join(", ");
     lines.push(`Group "${group.label}" (id: ${group.id}): ${vals}`);
   }
