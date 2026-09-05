@@ -105,9 +105,7 @@ function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
       </Table.Cell>
 
       <Table.Cell>
-        <Text color={value.synonyms.length === 0 ? "gray" : undefined}>
-          {value.synonyms.length}
-        </Text>
+        <Text>{value.synonyms.length}</Text>
       </Table.Cell>
 
       <Table.Cell>

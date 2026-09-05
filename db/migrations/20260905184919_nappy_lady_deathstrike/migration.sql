@@ -1,0 +1,1 @@
+ALTER TABLE "modifier_value" RENAME COLUMN "value" TO "label";

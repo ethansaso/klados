@@ -200,7 +200,7 @@ function RouteComponent() {
                   onClick={() =>
                     NiceModal.show(AddTraitValueModal, {
                       characterId: id,
-                      // A fruitless search flows straight into creating it
+                      // Forward search into creation
                       initialLabel: traitQ,
                       invalidate: invalidateTraitValues,
                     })

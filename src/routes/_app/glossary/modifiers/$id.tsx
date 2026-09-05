@@ -1,16 +1,9 @@
 import NiceModal from "@ebay/nice-modal-react";
-import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  Text,
-  TextField,
-} from "@radix-ui/themes";
+import { Box, Button, Flex, Heading, Text, TextField } from "@radix-ui/themes";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { PiMagnifyingGlass, PiTrash } from "react-icons/pi";
+import { PiMagnifyingGlass, PiPlus, PiTrash } from "react-icons/pi";
 import z from "zod";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../components/dialogs/ConfirmDeleteModal";
@@ -25,6 +18,8 @@ import {
 import { deleteModifierFn } from "../../../../lib/server-fns/modifiers/deleteModifierFn";
 import { deleteModifierGroupFn } from "../../../../lib/server-fns/modifiers/deleteModifierGroupFn";
 import { toast } from "../../../../lib/utils/toast";
+import { AddModifierModal } from "./-AddModifierModal";
+import { EditModifierModal } from "./-EditModifierModal";
 import ModifierTable from "./-ModifierTable";
 
 const SearchSchema = z.object({
@@ -79,6 +74,9 @@ function RouteComponent() {
     modifiersQueryOptions(id, page, PAGE_SIZE, { q: q || undefined }),
   );
 
+  const invalidateModifiers = () =>
+    qc.invalidateQueries({ queryKey: ["modifiers"] });
+
   // A new query invalidates the current page number along with the results
   const setQ = (value: string) => {
     navigate({ search: { valuePage: 1, valueQ: value } });
@@ -124,7 +122,7 @@ function RouteComponent() {
 
   const handleDeleteModifierClick = (modifier: ModifierDTO) => {
     NiceModal.show(ConfirmDeleteModal, {
-      label: modifier.value,
+      label: modifier.label,
       itemType: "modifier",
       onConfirm: async () => {
         try {
@@ -132,12 +130,12 @@ function RouteComponent() {
           qc.invalidateQueries({ queryKey: ["modifiers"] });
           toast({
             variant: "success",
-            description: `Modifier "${modifier.value}" deleted successfully.`,
+            description: `Modifier "${modifier.label}" deleted successfully.`,
           });
         } catch {
           toast({
             variant: "error",
-            description: `Failed to delete modifier "${modifier.value}".`,
+            description: `Failed to delete modifier "${modifier.label}".`,
           });
         }
       },
@@ -167,22 +165,46 @@ function RouteComponent() {
       <Box>
         <Flex align="center" justify="between" mb="2">
           <Heading size="4">Possible Values</Heading>
-          <DebouncedTextField
-            size="2"
-            placeholder="Search values..."
-            initialValue={q}
-            onDebouncedChange={setQ}
-            radius="large"
-          >
-            <TextField.Slot>
-              <PiMagnifyingGlass size="16" />
-            </TextField.Slot>
-          </DebouncedTextField>
+          <Flex align="center" gap="2">
+            <CuratorOnly>
+              <Button
+                size="2"
+                variant="surface"
+                onClick={() =>
+                  NiceModal.show(AddModifierModal, {
+                    groupId: id,
+                    // Forward search into creation
+                    initialValue: q,
+                    invalidate: invalidateModifiers,
+                  })
+                }
+              >
+                <PiPlus />
+                Add new
+              </Button>
+            </CuratorOnly>
+            <DebouncedTextField
+              size="2"
+              placeholder="Search values..."
+              initialValue={q}
+              onDebouncedChange={setQ}
+              radius="large"
+            >
+              <TextField.Slot>
+                <PiMagnifyingGlass size="16" />
+              </TextField.Slot>
+            </DebouncedTextField>
+          </Flex>
         </Flex>
         <ModifierTable
           values={modifiersPage.items}
           showActions={isCurator}
-          onEditClick={() => {}}
+          onEditClick={(modifier) =>
+            NiceModal.show(EditModifierModal, {
+              modifier,
+              invalidate: invalidateModifiers,
+            })
+          }
           onDeleteClick={handleDeleteModifierClick}
         />
         <Box mt="4">

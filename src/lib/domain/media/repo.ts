@@ -3,11 +3,11 @@ import { db } from "../../../../db/client";
 import { media as mediaTbl } from "../../../../db/schema/media/media";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
 import { likeAnywhere } from "../../utils/sql/likeAnywhere";
-import type { Transaction } from "../../utils/types/transactionType";
+import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
 import type { InsertMediaArgs, MediaDTO, MediaPaginatedResult } from "./types";
 
 export async function selectMediaById(
-  tx: Transaction,
+  tx: TxOrDb,
   id: number,
 ): Promise<MediaDTO | null> {
   const [row] = await tx
@@ -17,6 +17,27 @@ export async function selectMediaById(
     .limit(1);
 
   return row ?? null;
+}
+
+/** Batch-fetches, skipping duplicate or nullish `id`s. */
+export async function selectMediaByIds(
+  tx: TxOrDb,
+  ids: (number | null | undefined)[],
+): Promise<Map<number, MediaDTO>> {
+  const unique = Array.from(
+    new Set(ids.filter((id): id is number => id != null)),
+  );
+
+  const map = new Map<number, MediaDTO>();
+  if (!unique.length) return map;
+
+  const rows = await tx
+    .select()
+    .from(mediaTbl)
+    .where(inArray(mediaTbl.id, unique));
+  for (const row of rows) map.set(row.id, row);
+
+  return map;
 }
 
 export async function selectMediaByStorageKey(
@@ -156,4 +177,20 @@ export async function listMediaQuery(args: {
   const total = totalRow?.total ?? 0;
 
   return { items, page, pageSize, total };
+}
+
+/** Helper that 'hydrates' by swapping `mediaId` for {@link MediaDTO} itself. */
+export async function hydrateMedia<T extends { mediaId: number | null }>(
+  tx: TxOrDb,
+  rows: T[],
+): Promise<(Omit<T, "mediaId"> & { media: MediaDTO | null })[]> {
+  const mediaByIds = await selectMediaByIds(
+    tx,
+    rows.map((r) => r.mediaId),
+  );
+
+  return rows.map(({ mediaId, ...rest }) => ({
+    ...rest,
+    media: mediaId != null ? (mediaByIds.get(mediaId) ?? null) : null,
+  }));
 }

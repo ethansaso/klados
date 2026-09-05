@@ -10,9 +10,10 @@ export const createModifierFn = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<ModifierDTO> => {
     const dto = await createModifier({
       groupId: data.groupId,
-      value: data.value,
+      label: data.label,
       description: data.description,
       affixType: data.affixType,
+      mediaId: data.mediaId,
     });
 
     if (!dto) {

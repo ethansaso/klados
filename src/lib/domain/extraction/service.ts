@@ -1061,7 +1061,7 @@ function recoverUnmatchedModifiers(
   // Build a normalized lookup for all modifier values
   const modifiersByNormalized = new Map<string, ModifierEntry>();
   for (const m of allModifiers) {
-    modifiersByNormalized.set(normalizeModifierText(m.value), m);
+    modifiersByNormalized.set(normalizeModifierText(m.label), m);
   }
 
   for (const assignment of assignments) {
@@ -1369,7 +1369,7 @@ function buildExtractedSummary(states: GroupedCharacterFormValue): string {
         case "categorical": {
           const mods =
             char.modifiers.length > 0
-              ? ` (${char.modifiers.map((m) => m.value).join(", ")})`
+              ? ` (${char.modifiers.map((m) => m.label).join(", ")})`
               : "";
           lines.push(`  ${char.characterLabel}: ${char.trait.label}${mods}`);
           break;
@@ -1378,7 +1378,7 @@ function buildExtractedSummary(states: GroupedCharacterFormValue): string {
           const unit = char.unit?.symbol ?? "";
           const mods =
             char.modifiers.length > 0
-              ? ` (${char.modifiers.map((m) => m.value).join(", ")})`
+              ? ` (${char.modifiers.map((m) => m.label).join(", ")})`
               : "";
           lines.push(
             `  ${char.characterLabel}: ${char.siBaseValue} ${unit}${mods}`,
@@ -1391,7 +1391,7 @@ function buildExtractedSummary(states: GroupedCharacterFormValue): string {
           const max = char.siBaseMax ?? "?";
           const mods =
             char.modifiers.length > 0
-              ? ` (${char.modifiers.map((m) => m.value).join(", ")})`
+              ? ` (${char.modifiers.map((m) => m.label).join(", ")})`
               : "";
           lines.push(`  ${char.characterLabel}: ${min}–${max} ${unit}${mods}`);
           break;
@@ -1451,7 +1451,7 @@ function hydrateModifiers(
     if (!mod) continue;
     result.push({
       id: mod.id,
-      value: mod.value,
+      label: mod.label,
       affixType: mod.affixType,
       groupId: mod.groupId,
       groupLabel: mod.groupLabel,
