@@ -47,7 +47,7 @@ const DESCRIPTION: Feature[] = [
       },
       {
         states: [
-          { label: "striate", info: "Having stripes or grooves" },
+          { label: "striate", info: "Having stripes or grooves." },
           { prefix: "conspicuously", label: "grooved" },
         ],
       },

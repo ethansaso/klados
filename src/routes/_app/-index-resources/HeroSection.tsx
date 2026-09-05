@@ -61,7 +61,7 @@ export const HeroSection = () => {
               info={{
                 title: "Structured data",
                 description:
-                  "Data in a standardized, rule-defined format, in contrast to unstructured data like raw prose.",
+                  "Data in a standardized, rule-defined format, in contrast to unstructured data like plain text.",
                 media: null,
               }}
             >
