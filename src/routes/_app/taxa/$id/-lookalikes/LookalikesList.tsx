@@ -6,6 +6,7 @@ import { LookalikeDialog } from "../../../../../components/dialogs/LookalikeDial
 import { LookalikePercentBadge } from "../../../../../components/LookalikeBadge";
 import { TaxonCard } from "../../../../../components/TaxonCard";
 import type { TaxonLookalikeDTO } from "../../../../../lib/domain/lookalikes/types";
+import "./LookalikesList.css";
 
 interface LookalikesListProps {
   taxonId: number;
@@ -13,7 +14,7 @@ interface LookalikesListProps {
   lookalikes: TaxonLookalikeDTO[];
 }
 
-/** Fraction of the visible width a button press travels. */
+/** Fraction of visible width a button press travels. */
 const PAGE_FRACTION = 0.8;
 
 // TODO: consider confidence differential heuristic for when % matched and Jaccard diverge greatly
@@ -33,8 +34,7 @@ export const LookalikesList = ({
     setScrollable({ prev: el.scrollLeft > 1, next: el.scrollLeft < max - 1 });
   }, []);
 
-  // ResizeObserver fires on observe, so this covers the first measurement too.
-  // Re-runs on length so a different taxon's list is measured again.
+  // Observe changes to scroll list, handle scrollability recompute
   useEffect(() => {
     const el = scrollerRef.current;
     if (!el) return;
@@ -65,7 +65,7 @@ export const LookalikesList = ({
           Similar Taxa
         </Heading>
         {lookalikes.length > 0 && (
-          <Flex gap="2" style={{ margin: "0 0 var(--space-1) 0" }}>
+          <Flex gap="2" mb="2">
             <IconButton
               size="1"
               variant="ghost"
