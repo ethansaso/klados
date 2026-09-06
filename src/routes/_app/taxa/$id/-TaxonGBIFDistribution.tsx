@@ -37,6 +37,7 @@ export function TaxonGBIFDistribution({ gbifId, taxonName }: Props) {
 
   return (
     <Box
+      key={gbifId}
       role="img"
       aria-label={`World map of recorded occurrences of ${taxonName}`}
       style={{
