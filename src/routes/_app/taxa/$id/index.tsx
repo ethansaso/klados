@@ -127,7 +127,7 @@ function TaxonPage() {
       <Flex
         gap={{ initial: "6", sm: "8" }}
         direction={{ initial: "column", sm: "row" }}
-        align="start"
+        align={{ initial: "stretch", sm: "start" }}
       >
         {/* Left panel */}
         <Box width={{ initial: "unset", sm: "304px" }} flexShrink="0" asChild>
@@ -137,7 +137,12 @@ function TaxonPage() {
         </Box>
 
         {/* Right panel */}
-        <Flex direction="column" flexGrow="1" gap={{ initial: "4", sm: "6" }}>
+        <Flex
+          direction="column"
+          flexGrow="1"
+          minWidth="0"
+          gap={{ initial: "4", sm: "6" }}
+        >
           {/* Morphology */}
           <Box>
             <Box>
@@ -209,28 +214,11 @@ function TaxonPage() {
           </Box>
 
           {/* Lookalikes */}
-          <Box>
-            <Heading
-              size={{ initial: "3", sm: "4" }}
-              mb="1"
-              weight="medium"
-              style={{ borderBottom: "1px solid var(--gray-a7)" }}
-            >
-              Similar Taxa
-            </Heading>
-            {lookalikes.length ? (
-              <Text as="p" color="gray" size="1" mb="3">
-                These taxa share similar characteristics with{" "}
-                {taxon.acceptedName}. Click on any taxon to compare
-                side-by-side.
-              </Text>
-            ) : (
-              <Text size={{ initial: "2", sm: "3" }}>
-                We couldn't determine any lookalikes for this taxon.
-              </Text>
-            )}
-            <LookalikesList taxonId={id} lookalikes={lookalikes} />
-          </Box>
+          <LookalikesList
+            taxonId={id}
+            taxonName={taxon.acceptedName}
+            lookalikes={lookalikes}
+          />
 
           {/* Distribution */}
           <Box>
