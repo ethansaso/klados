@@ -14,7 +14,7 @@ const requestInit = (): RequestInit => ({
   signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
 });
 
-function densityTileUrl(gbifId: number, column: number): string {
+export function densityTileUrl(gbifId: number, column: number): string {
   return (
     `${DENSITY_BASE}/${column}/0@2x.png?taxonKey=${gbifId}` +
     `&style=classic.poly&bin=hex&hexPerTile=${HEX_PER_TILE}&srs=EPSG:4326`

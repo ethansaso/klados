@@ -31,7 +31,7 @@ export function needsRegeneration(
   gbifId: number,
   now: Date = new Date(),
 ): boolean {
-  // Never built / doesn't match a changed gbif ID
+  // Never built / doesn't match a changed GBIF ID
   if (row === null || row.gbifId !== gbifId) return true;
 
   const age = now.getTime() - row.generatedAt.getTime();
