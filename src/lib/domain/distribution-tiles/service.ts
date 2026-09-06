@@ -34,7 +34,11 @@ async function getDistributionTileState(
 
   return {
     source: canServeCached(row, gbifId)
-      ? { kind: "cached", storageKeys: distributionTileKeys(taxonId) }
+      ? {
+          kind: "cached",
+          storageKeys: distributionTileKeys(taxonId),
+          version: row.generatedAt.getTime(),
+        }
       : { kind: "live", gbifId },
     needsRegeneration: needsRegeneration(row, gbifId),
   };
@@ -81,7 +85,7 @@ export async function getDistributionTiles(
   const { source, needsRegeneration: shouldRegenerate } =
     await getDistributionTileState(taxonId);
 
-  // Unawaited -- just return whatever was cached and lazily refresh
+  // Unawaited -- just return whatever was cached and lazily regenerate
   if (shouldRegenerate) {
     void regenerateDistributionTiles(taxonId).catch((err: unknown) => {
       console.error(`[tiles] regeneration failed for taxon ${taxonId}:`, err);
@@ -92,7 +96,10 @@ export async function getDistributionTiles(
     case "unlinked":
       return null;
     case "cached":
-      return source.storageKeys.map((key) => storage.getUrl(key));
+      // Uses ?v={} to force cache invalidation when regenerated.
+      return source.storageKeys.map(
+        (key) => `${storage.getUrl(key)}?v=${source.version}`,
+      );
     case "live":
       return TILE_COLUMNS.map((column) =>
         densityTileUrl(source.gbifId, column),
