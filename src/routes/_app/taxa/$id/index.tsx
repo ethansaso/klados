@@ -21,6 +21,7 @@ import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { LookalikesList } from "./-lookalikes/LookalikesList";
 import { TaxonStateSection } from "./-states/TaxonStatesSection";
 import { StatusCallout } from "./-StatusCallout";
+import { TaxonGBIFDistribution } from "./-TaxonGBIFDistribution";
 import { TaxonMainSection } from "./-TaxonMainSection";
 
 const ParamsSchema = z.object({
@@ -224,6 +225,26 @@ function TaxonPage() {
               </Text>
             )}
             <LookalikesList taxonId={id} lookalikes={lookalikes} />
+          </Box>
+
+          {/* Distribution */}
+          <Box>
+            <Heading
+              size={{ initial: "3", sm: "4" }}
+              mb="1"
+              weight="medium"
+              style={{ borderBottom: "1px solid var(--gray-a7)" }}
+            >
+              Distribution
+            </Heading>
+            {taxon.sourceGbifId !== null ? (
+              <TaxonGBIFDistribution
+                gbifId={taxon.sourceGbifId}
+                taxonName={taxon.acceptedName}
+              />
+            ) : (
+              <Text>This taxon is not linked to GBIF.</Text>
+            )}
           </Box>
 
           {/* Sources */}
