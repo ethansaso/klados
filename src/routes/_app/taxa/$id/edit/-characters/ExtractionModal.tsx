@@ -13,13 +13,16 @@ type Props = {
   onConfirm: (result: ExtractionOutput) => void;
 };
 
-function formValueToUIStates(char: CharacterStateFormValue): UICharacterState[] {
+function formValueToUIStates(
+  char: CharacterStateFormValue,
+): UICharacterState[] {
   if (char.kind === "categorical") {
-    return [{ kind: "categorical", trait: char.trait, modifiers: char.modifiers }];
+    return [
+      { kind: "categorical", trait: char.trait, modifiers: char.modifiers },
+    ];
   }
   return [{ ...char, unit: char.unit ?? null }];
 }
-
 
 const ExtractionModal = NiceModal.create<Props>(({ onConfirm }) => {
   const { visible, hide } = NiceModal.useModal();
@@ -98,7 +101,10 @@ const ExtractionModal = NiceModal.create<Props>(({ onConfirm }) => {
                         <Text size="1" color="gray" style={{ minWidth: 100 }}>
                           {char.characterLabel}
                         </Text>
-                        <CharacterStateDisplay states={formValueToUIStates(char)} highlightAffixes />
+                        <CharacterStateDisplay
+                          states={formValueToUIStates(char)}
+                          highlightAffixes
+                        />
                       </Flex>
                     ))}
                   </Flex>

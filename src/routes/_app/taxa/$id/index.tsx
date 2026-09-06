@@ -11,6 +11,7 @@ import {
   Breadcrumbs,
 } from "../../../../components/Breadcrumbs";
 import { ContentContainer } from "../../../../components/ContentContainer";
+import { distributionTilesQueryOptions } from "../../../../lib/queries/distributionTiles";
 import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 import { taxonCharacterStatesQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
       context.queryClient.ensureQueryData(taxonCharacterStatesQueryOptions(id)),
       context.queryClient.ensureQueryData(lookalikesQueryOptions(id)),
       context.queryClient.ensureQueryData(sourcesForTaxonQueryOptions(id)),
+      context.queryClient.ensureQueryData(distributionTilesQueryOptions(id)),
     ]);
 
     return { id, taxon };
@@ -59,6 +61,9 @@ function TaxonPage() {
   );
   const { data: lookalikes } = useSuspenseQuery(lookalikesQueryOptions(id));
   const { data: sources } = useSuspenseQuery(sourcesForTaxonQueryOptions(id));
+  const { data: densityUrls } = useSuspenseQuery(
+    distributionTilesQueryOptions(id),
+  );
 
   const [indentDescription, setIndentDescription] = useState(false);
 
@@ -237,8 +242,9 @@ function TaxonPage() {
             >
               Distribution
             </Heading>
-            {taxon.sourceGbifId !== null ? (
+            {densityUrls && taxon.sourceGbifId !== null ? (
               <TaxonGBIFDistribution
+                densityUrls={densityUrls}
                 gbifId={taxon.sourceGbifId}
                 taxonName={taxon.acceptedName}
               />
