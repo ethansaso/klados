@@ -87,5 +87,10 @@
     "better-auth": {
       "drizzle-orm": "$drizzle-orm"
     }
+  },
+  "allowScripts": {
+    "@sentry/cli@2.58.6": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.1": true
   }
 }
