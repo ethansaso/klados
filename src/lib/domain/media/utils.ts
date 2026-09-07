@@ -1,4 +1,4 @@
-import { SUPPORTED_IMAGE_TYPES } from "./validation";
+import type { SUPPORTED_IMAGE_TYPES } from "../../storage/utils";
 
 /* Map of content type to extension */
 const extMap: Record<(typeof SUPPORTED_IMAGE_TYPES)[number], string> = {

@@ -10,8 +10,8 @@ import type {
   MediaDTO,
   UploadedMediaResult,
 } from "../../lib/domain/media/types";
-import { SUPPORTED_IMAGE_TYPES } from "../../lib/domain/media/validation";
 import { uploadMediaFn } from "../../lib/server-fns/media/uploadMediaFn";
+import { SUPPORTED_IMAGE_TYPES } from "../../lib/storage/utils";
 import SurfaceDialog from "../dialogs/SurfaceDialog";
 import { FileUpload } from "../FileUpload";
 import {
@@ -95,7 +95,10 @@ export const MediaBrowserUpload: React.FC<Props> = (props) => {
 
   const onSubmit: SubmitHandler<MediaMetaFormValues> = async (values) => {
     if (!file) {
-      setError("root", { type: "validate", message: "Please select an image." });
+      setError("root", {
+        type: "validate",
+        message: "Please select an image.",
+      });
       return;
     }
     await mutateAsync(values);
