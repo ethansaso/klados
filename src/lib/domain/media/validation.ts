@@ -1,5 +1,6 @@
 import z from "zod";
 import { MEDIA_LICENSES } from "../../../../db/utils/mediaLicense";
+import { trimmed, trimmedNonEmpty } from "../../validation/trimmedOptional";
 
 export const SUPPORTED_IMAGE_TYPES = [
   "image/jpeg",
@@ -10,11 +11,13 @@ export const SUPPORTED_IMAGE_TYPES = [
   "image/svg+xml",
 ] as const;
 
-const mediaMetaSchema = z.object({
+export const mediaMetaSchema = z.object({
   license: z.enum(MEDIA_LICENSES),
-  owner: z.string(),
-  source: z.string(),
-  title: z.string().min(1),
+  owner: trimmed("Must be a string").max(200, "Max 200 characters"),
+  source: trimmed("Must be a string").max(2000, "Max 2000 characters"),
+  title: trimmedNonEmpty("Please provide a title.", {
+    max: { value: 200, message: "Max 200 characters" },
+  }),
 });
 
 export const uploadMediaWireItemSchema = z.discriminatedUnion("type", [
@@ -32,6 +35,11 @@ export const uploadMediaWireItemSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
+export const updateMediaSchema = mediaMetaSchema.partial().extend({
+  id: z.int("Must be an integer").positive("Must be positive"),
+});
+
 export type SupportedImageType = (typeof SUPPORTED_IMAGE_TYPES)[number];
 export type MediaMeta = z.infer<typeof mediaMetaSchema>;
 export type UploadMediaWireItem = z.infer<typeof uploadMediaWireItemSchema>;
+export type UpdateMediaInput = z.infer<typeof updateMediaSchema>;

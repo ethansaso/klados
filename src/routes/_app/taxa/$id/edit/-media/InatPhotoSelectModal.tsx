@@ -154,7 +154,7 @@ const InatPhotoSelectModal = NiceModal.create<Props>(
         }));
 
         const uploaded = await uploadMediaFn({ data: { items } });
-        onConfirm(uploaded);
+        onConfirm(uploaded.map((u) => u.media));
         qc.invalidateQueries({ queryKey: ["media"] });
         handleExit();
       } catch (e) {

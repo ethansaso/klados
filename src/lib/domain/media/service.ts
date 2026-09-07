@@ -8,16 +8,43 @@ import {
   listMediaQuery,
   selectMediaByContentHashes,
   selectMediaById,
+  updateMediaById,
 } from "./repo";
-import type { InsertMediaArgs, MediaDTO, MediaPaginatedResult } from "./types";
+import type {
+  InsertMediaArgs,
+  MediaDTO,
+  MediaPaginatedResult,
+  MediaPatch,
+  UploadedMediaResult,
+} from "./types";
 import { extFromContentType } from "./utils";
-import type { MediaMeta, SupportedImageType } from "./validation";
+import type {
+  MediaMeta,
+  SupportedImageType,
+  UpdateMediaInput,
+} from "./validation";
 
 export type UploadMediaInput = MediaMeta & {
   body: Buffer;
   contentType: SupportedImageType;
   uploadedBy?: string;
 };
+
+export async function updateMedia({
+  id,
+  ...fields
+}: UpdateMediaInput): Promise<MediaDTO | null> {
+  const patch: MediaPatch = {};
+  if (fields.title !== undefined) patch.title = fields.title;
+  if (fields.license !== undefined) patch.license = fields.license;
+  if (fields.owner !== undefined) patch.owner = fields.owner;
+  if (fields.source !== undefined) patch.source = fields.source;
+
+  // Skip if nothing to write
+  if (Object.keys(patch).length === 0) return selectMediaById(db, id);
+
+  return db.transaction((tx) => updateMediaById(tx, id, patch));
+}
 
 /**
  * Deletes a media item by ID. Removes the DB row first inside a transaction,
@@ -51,14 +78,14 @@ export async function listMedia(args: {
  * Uploads one or more media files, deduplicating by content hash. Process for each input item:
  *
  * 1) Computes a SHA-256 hash of the body
- * 2) If a media row with that hash already exists, return w/o insert
+ * 2) If a media row with that hash already exists, return w/o insert, and flag `alreadyExisted`. Submitted metadata is NOT applied in this case.
  * 3) Otherwise, upload to storage under UUID-based key and insert a new media row
  *
  * Guarantees order of items.
  */
 export async function uploadMedia(
   inputs: UploadMediaInput[],
-): Promise<MediaDTO[]> {
+): Promise<UploadedMediaResult[]> {
   if (inputs.length === 0) return [];
 
   const hashes = inputs.map((item) =>
@@ -115,11 +142,12 @@ export async function uploadMedia(
     inserted.map((row) => [row.contentHash!, row]),
   );
 
-  // Merge: return one MediaDTO per original input, in order.
+  // Merge: return one result per original input, in order.
   return hashes.map((hash) => {
-    const row = existing.get(hash) ?? insertedByHash.get(hash);
+    const existingRow = existing.get(hash);
+    const row = existingRow ?? insertedByHash.get(hash);
     if (!row)
       throw new Error(`Media row missing for hash ${hash} after upload`);
-    return row;
+    return { media: row, alreadyExisted: Boolean(existingRow) };
   });
 }
