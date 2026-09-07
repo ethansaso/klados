@@ -1,16 +1,29 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Box, Button, Flex, Text, TextArea, TextField } from "@radix-ui/themes";
+import {
+  Avatar,
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Text,
+  TextArea,
+  TextField,
+} from "@radix-ui/themes";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
-import { type SubmitHandler, useForm } from "react-hook-form";
+import { useRef } from "react";
+import { type SubmitHandler, useForm, useWatch } from "react-hook-form";
+import z from "zod";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
 import NavSidebar from "../../../../components/nav/NavSidebar";
 import {
+  AVATAR_IMAGE_TYPES,
+  MAX_AVATAR_BYTES,
   type UserPatch,
   userPatchSchema,
 } from "../../../../lib/domain/users/validation";
@@ -19,6 +32,9 @@ import {
   userQueryOptions,
 } from "../../../../lib/queries/users";
 import { editUserFn } from "../../../../lib/server-fns/users/editUserFn";
+import { getAvatarUrl } from "../../../../lib/storage/getAvatarUrl";
+import { fileToBase64 } from "../../../../lib/utils/fileToBase64";
+import { getInitials } from "../../../../lib/utils/formatting/getInitials";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { toast } from "../../../../lib/utils/toast";
 
@@ -44,12 +60,19 @@ function RouteComponent() {
   );
   const { data: me } = useSuspenseQuery(meQueryOptions());
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
     handleSubmit,
+    control,
+    setValue,
+    setError,
+    clearErrors,
     formState: { errors, isSubmitting },
-  } = useForm({
+  } = useForm<UserPatch>({
     resolver: zodResolver(userPatchSchema),
     defaultValues: {
       userId: user.id,
@@ -58,10 +81,48 @@ function RouteComponent() {
     },
   });
 
+  // Undefined leaves the stored avatar alone, null clears it, an object replaces it.
+  const avatar = useWatch({ control, name: "avatar" });
+  const avatarSrc = avatar
+    ? `data:${avatar.contentType};base64,${avatar.base64}`
+    : avatar === null
+      ? undefined
+      : getAvatarUrl(user.image);
+
+  const handleAvatarPick = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = ""; // so re-picking the same file still fires onChange
+    if (!file) return;
+
+    const contentType = z.enum(AVATAR_IMAGE_TYPES).safeParse(file.type);
+    if (!contentType.success) {
+      setError("avatar", { message: "Use a JPEG, PNG, or WebP image." });
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      setError("avatar", { message: "Image is too large (max 2MB)." });
+      return;
+    }
+
+    clearErrors("avatar");
+    setValue(
+      "avatar",
+      { base64: await fileToBase64(file), contentType: contentType.data },
+      { shouldDirty: true },
+    );
+  };
+
+  const onCancel = () => {
+    navigate({ to: "/users/$username", params: { username: user.username } });
+  };
+
   const onSubmit: SubmitHandler<UserPatch> = async ({
     userId,
     name,
     description,
+    avatar: pendingAvatar,
   }) => {
     try {
       await serverEditUser({
@@ -69,8 +130,12 @@ function RouteComponent() {
           userId,
           name,
           description,
+          avatar: pendingAvatar,
         },
       });
+
+      // Drop the local preview so the freshly stored avatar takes over.
+      setValue("avatar", undefined);
 
       await queryClient.invalidateQueries({
         queryKey: meQueryOptions().queryKey,
@@ -101,59 +166,116 @@ function RouteComponent() {
       );
     }
   }
+
   return (
-    <Flex gap="3">
-      <NavSidebar.Root>
-        <NavSidebar.Item to={``} active>
-          Profile
-        </NavSidebar.Item>
-      </NavSidebar.Root>
-      <Box asChild width="100%">
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Box>
-            <Flex justify="between" align="baseline" mb="1">
-              <Label.Root htmlFor="name">Display Name</Label.Root>
-              <ConditionalAlert
-                id="name-error"
-                message={errors.name?.message}
-              />
-            </Flex>
-            <TextField.Root
-              id="name"
-              type="text"
-              {...register("name")}
-              {...a11yProps("name-error", !!errors.name)}
-            />
-          </Box>
-          <Box>
-            <Flex justify="between" align="baseline" mb="1" mt="4">
-              <Label.Root htmlFor="description">Description</Label.Root>
-              <ConditionalAlert
-                id="description-error"
-                message={errors.description?.message}
-              />
-            </Flex>
-            <TextArea
-              id="description"
-              {...register("description")}
-              {...a11yProps("description-error", !!errors.description)}
-              rows={4}
-              placeholder="Tell us about yourself..."
-            />
-          </Box>
-          <Flex>
+    <Box asChild>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Flex
+          justify="between"
+          pb="5"
+          style={{ borderBottom: "1px solid var(--gray-5)" }}
+        >
+          <Heading size="7">Edit profile</Heading>
+          <Flex gap="2">
+            <Button type="button" onClick={onCancel} variant="outline">
+              Cancel
+            </Button>
             <Button
               type="submit"
-              mt="6"
-              color="grass"
               disabled={isSubmitting}
               loading={isSubmitting}
             >
               Save
             </Button>
           </Flex>
-        </form>
-      </Box>
-    </Flex>
+        </Flex>
+        <Flex>
+          <NavSidebar.Root>
+            <NavSidebar.Item to={``} active>
+              Profile
+            </NavSidebar.Item>
+          </NavSidebar.Root>
+          <Box width="100%" p="5">
+            <Box mb="4">
+              <Text as="div" size="2" mb="1">
+                Avatar
+              </Text>
+              <Flex gap="4" align="center">
+                <Avatar
+                  src={avatarSrc}
+                  fallback={getInitials(user.name)}
+                  alt=""
+                  radius="none"
+                  size="8"
+                  style={{ width: "128px", height: "128px" }}
+                />
+                <Flex direction="column" align="start" gap="2">
+                  <Button
+                    type="button"
+                    variant="soft"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Upload avatar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="soft"
+                    color="gray"
+                    disabled={!avatarSrc}
+                    onClick={() =>
+                      setValue("avatar", null, { shouldDirty: true })
+                    }
+                  >
+                    Remove avatar
+                  </Button>
+                  <ConditionalAlert
+                    id="avatar-error"
+                    message={errors.avatar?.message}
+                  />
+                </Flex>
+              </Flex>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={AVATAR_IMAGE_TYPES.join(",")}
+                style={{ display: "none" }}
+                onChange={handleAvatarPick}
+              />
+            </Box>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="name">Display Name</Label.Root>
+                <ConditionalAlert
+                  id="name-error"
+                  message={errors.name?.message}
+                />
+              </Flex>
+              <TextField.Root
+                id="name"
+                type="text"
+                {...register("name")}
+                {...a11yProps("name-error", !!errors.name)}
+              />
+            </Box>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1" mt="4">
+                <Label.Root htmlFor="description">Description</Label.Root>
+                <ConditionalAlert
+                  id="description-error"
+                  message={errors.description?.message}
+                />
+              </Flex>
+              <TextArea
+                id="description"
+                {...register("description")}
+                {...a11yProps("description-error", !!errors.description)}
+                rows={4}
+                placeholder="Tell us about yourself..."
+              />
+            </Box>
+          </Box>
+        </Flex>
+      </form>
+    </Box>
   );
 }

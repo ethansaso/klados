@@ -1,15 +1,7 @@
 import z from "zod";
 import { MEDIA_LICENSES } from "../../../../db/utils/mediaLicense";
+import { SUPPORTED_IMAGE_TYPES } from "../../storage/utils";
 import { trimmed, trimmedNonEmpty } from "../../validation/trimmedOptional";
-
-export const SUPPORTED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-  "image/avif",
-  "image/svg+xml",
-] as const;
 
 export const mediaMetaSchema = z.object({
   license: z.enum(MEDIA_LICENSES),
@@ -39,7 +31,6 @@ export const updateMediaSchema = mediaMetaSchema.partial().extend({
   id: z.int("Must be an integer").positive("Must be positive"),
 });
 
-export type SupportedImageType = (typeof SUPPORTED_IMAGE_TYPES)[number];
 export type MediaMeta = z.infer<typeof mediaMetaSchema>;
 export type UploadMediaWireItem = z.infer<typeof uploadMediaWireItemSchema>;
 export type UpdateMediaInput = z.infer<typeof updateMediaSchema>;

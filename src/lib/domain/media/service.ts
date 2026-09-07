@@ -3,6 +3,10 @@ import { v4 as uuidv4 } from "uuid";
 import { db } from "../../../../db/client";
 import { storage } from "../../storage";
 import {
+  extFromContentType,
+  type SupportedImageType,
+} from "../../storage/utils";
+import {
   bulkInsertMedia,
   deleteMediaById,
   listMediaQuery,
@@ -17,12 +21,7 @@ import type {
   MediaPatch,
   UploadedMediaResult,
 } from "./types";
-import { extFromContentType } from "./utils";
-import type {
-  MediaMeta,
-  SupportedImageType,
-  UpdateMediaInput,
-} from "./validation";
+import type { MediaMeta, UpdateMediaInput } from "./validation";
 
 export type UploadMediaInput = MediaMeta & {
   body: Buffer;
