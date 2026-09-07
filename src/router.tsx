@@ -26,6 +26,8 @@ export function getRouter() {
       queryClient,
     },
     scrollRestoration: true,
+    // ? Exceptions to sitewide 'restore scroll' rule.
+    scrollToTopSelectors: [".lookalikes-list"],
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
     defaultPendingComponent: PendingSpinner,
