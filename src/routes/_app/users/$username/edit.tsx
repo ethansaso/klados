@@ -1,7 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Box, Button, Flex, Text, TextArea, TextField } from "@radix-ui/themes";
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Text,
+  TextArea,
+  TextField,
+} from "@radix-ui/themes";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
 import { type SubmitHandler, useForm } from "react-hook-form";
@@ -44,6 +52,7 @@ function RouteComponent() {
   );
   const { data: me } = useSuspenseQuery(meQueryOptions());
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -57,6 +66,10 @@ function RouteComponent() {
       description: user.description ?? "",
     },
   });
+
+  const onCancel = () => {
+    navigate({ to: "/users/$username", params: { username: user.username } });
+  };
 
   const onSubmit: SubmitHandler<UserPatch> = async ({
     userId,
@@ -101,59 +114,70 @@ function RouteComponent() {
       );
     }
   }
+
   return (
-    <Flex gap="3">
-      <NavSidebar.Root>
-        <NavSidebar.Item to={``} active>
-          Profile
-        </NavSidebar.Item>
-      </NavSidebar.Root>
-      <Box asChild width="100%">
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Box>
-            <Flex justify="between" align="baseline" mb="1">
-              <Label.Root htmlFor="name">Display Name</Label.Root>
-              <ConditionalAlert
-                id="name-error"
-                message={errors.name?.message}
-              />
-            </Flex>
-            <TextField.Root
-              id="name"
-              type="text"
-              {...register("name")}
-              {...a11yProps("name-error", !!errors.name)}
-            />
-          </Box>
-          <Box>
-            <Flex justify="between" align="baseline" mb="1" mt="4">
-              <Label.Root htmlFor="description">Description</Label.Root>
-              <ConditionalAlert
-                id="description-error"
-                message={errors.description?.message}
-              />
-            </Flex>
-            <TextArea
-              id="description"
-              {...register("description")}
-              {...a11yProps("description-error", !!errors.description)}
-              rows={4}
-              placeholder="Tell us about yourself..."
-            />
-          </Box>
-          <Flex>
+    <Box asChild>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Flex
+          justify="between"
+          pb="5"
+          style={{ borderBottom: "1px solid var(--gray-5)" }}
+        >
+          <Heading size="7">Edit profile</Heading>
+          <Flex gap="2">
+            <Button type="button" onClick={onCancel} variant="outline">
+              Cancel
+            </Button>
             <Button
               type="submit"
-              mt="6"
-              color="grass"
               disabled={isSubmitting}
               loading={isSubmitting}
             >
               Save
             </Button>
           </Flex>
-        </form>
-      </Box>
-    </Flex>
+        </Flex>
+        <Flex>
+          <NavSidebar.Root>
+            <NavSidebar.Item to={``} active>
+              Profile
+            </NavSidebar.Item>
+          </NavSidebar.Root>
+          <Box width="100%" p="5">
+            <Box>
+              <Flex justify="between" align="baseline" mb="1">
+                <Label.Root htmlFor="name">Display Name</Label.Root>
+                <ConditionalAlert
+                  id="name-error"
+                  message={errors.name?.message}
+                />
+              </Flex>
+              <TextField.Root
+                id="name"
+                type="text"
+                {...register("name")}
+                {...a11yProps("name-error", !!errors.name)}
+              />
+            </Box>
+            <Box>
+              <Flex justify="between" align="baseline" mb="1" mt="4">
+                <Label.Root htmlFor="description">Description</Label.Root>
+                <ConditionalAlert
+                  id="description-error"
+                  message={errors.description?.message}
+                />
+              </Flex>
+              <TextArea
+                id="description"
+                {...register("description")}
+                {...a11yProps("description-error", !!errors.description)}
+                rows={4}
+                placeholder="Tell us about yourself..."
+              />
+            </Box>
+          </Box>
+        </Flex>
+      </form>
+    </Box>
   );
 }

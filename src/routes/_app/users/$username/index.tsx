@@ -1,6 +1,7 @@
 import { Avatar, Button, Flex, Heading, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { PiPencil } from "react-icons/pi";
 import { RoleBadge } from "../../../../components/UserBadge";
 import { generateLoginRedirectFromLocation } from "../../../../lib/auth/utils";
 import type { UserDTO } from "../../../../lib/domain/users/types";
@@ -55,26 +56,38 @@ function UserProfilePage() {
   return (
     <div>
       <header>
-        <Flex align="start" gap="4">
-          <Avatar
-            src={user.image ?? undefined}
-            fallback={getInitials(user.name)}
-            alt={`${preferredDisplay(user)}`}
-            size="7"
-            radius="none"
-          />
-          <Flex direction="column" gap="0">
-            <Heading size="7">{preferredDisplay(user)}</Heading>
-            <Flex align="center">
+        <Flex
+          justify="between"
+          pb="5"
+          style={{ borderBottom: "1px solid var(--gray-5)" }}
+        >
+          <Flex align="end" gap="4">
+            <Avatar
+              src={user.image ?? undefined}
+              fallback={getInitials(user.name)}
+              alt={`${preferredDisplay(user)}`}
+              size="7"
+              radius="none"
+            />
+            <Flex direction="column" gap="0">
+              <Heading size="7">{preferredDisplay(user)}</Heading>
+              <Flex align="center">
+                <Text as="div" color="gray">
+                  @{user.username}
+                </Text>
+                <RoleBadge role={user.role} banned={user.banned} ml="2" />
+              </Flex>
               <Text as="div" color="gray">
-                @{user.username}
+                Joined {joined}
               </Text>
-              <RoleBadge role={user.role} banned={user.banned} ml="2" />
             </Flex>
-            <Text as="div" color="gray">
-              Joined {joined}
-            </Text>
           </Flex>
+          {isMe && (
+            <Button onClick={() => navigate({ to: "edit" })}>
+              <PiPencil />
+              Edit
+            </Button>
+          )}
         </Flex>
       </header>
 
@@ -88,8 +101,6 @@ function UserProfilePage() {
           </p>
         </div>
       </section>
-
-      {isMe && <Button onClick={() => navigate({ to: "edit" })}>Edit</Button>}
     </div>
   );
 }

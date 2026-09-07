@@ -287,7 +287,7 @@ export const EditingFeatureCard = memo(
           align="center"
           justify="between"
           style={{
-            background: "var(--gray-a3)",
+            background: "var(--gray-3)",
             borderBottom: "1px solid var(--gray-a5)",
           }}
         >
