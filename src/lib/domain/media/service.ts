@@ -2,7 +2,10 @@ import crypto from "node:crypto";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "../../../../db/client";
 import { storage } from "../../storage";
-import type { SupportedImageType } from "../../storage/utils";
+import {
+  extFromContentType,
+  type SupportedImageType,
+} from "../../storage/utils";
 import {
   bulkInsertMedia,
   deleteMediaById,
@@ -18,7 +21,6 @@ import type {
   MediaPatch,
   UploadedMediaResult,
 } from "./types";
-import { extFromContentType } from "./utils";
 import type { MediaMeta, UpdateMediaInput } from "./validation";
 
 export type UploadMediaInput = MediaMeta & {

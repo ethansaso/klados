@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuthenticationMiddleware } from "../../auth/serverFnMiddleware";
+import { canEditUser } from "../../auth/utils";
 import { editUser } from "../../domain/users/service";
 import { userPatchSchema } from "../../domain/users/validation";
 
@@ -7,20 +8,21 @@ export const editUserFn = createServerFn({ method: "POST" })
   .middleware([requireAuthenticationMiddleware])
   .validator(userPatchSchema)
   .handler(async ({ data, context }) => {
-    const { userId, name, description } = data;
+    const { userId, name, description, avatar } = data;
 
-    // Reject if 1) not logged in or 2) not editing own profile and not admin
-    const currentUser = context.user;
-    if (!currentUser) {
-      throw new Error("Not authenticated.");
-    }
-    if (currentUser.id !== userId && currentUser.role !== "admin") {
+    if (!canEditUser(context.user, userId)) {
       throw new Error("Unauthorized to edit this user.");
     }
 
-    // Update user in DB
     await editUser(userId, {
       name,
       description,
+      avatar:
+        avatar == null
+          ? avatar
+          : {
+              body: Buffer.from(avatar.base64, "base64"),
+              contentType: avatar.contentType,
+            },
     });
   });
