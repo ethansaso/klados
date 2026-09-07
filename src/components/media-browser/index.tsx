@@ -6,6 +6,7 @@ import type { MediaDTO } from "../../lib/domain/media/types";
 import { toast } from "../../lib/utils/toast";
 import SurfaceDialog from "../dialogs/SurfaceDialog";
 import "./MediaBrowser.css";
+import { MediaBrowserEdit } from "./MediaBrowserEdit";
 import { MediaBrowserUpload } from "./MediaBrowserUpload";
 import { MediaBrowserView } from "./MediaBrowserView";
 
@@ -21,22 +22,47 @@ export type MediaBrowserMultiProps = {
 };
 
 export type MediaBrowserProps =
-  | MediaBrowserSingleProps
-  | MediaBrowserMultiProps;
+  MediaBrowserSingleProps | MediaBrowserMultiProps;
+
+type PaneMode = "select" | "upload" | "edit";
+
+const PANE_TITLES: Record<PaneMode, string> = {
+  select: "Browse Media",
+  upload: "Upload Media",
+  edit: "Edit Media",
+};
 
 const MediaBrowser = NiceModal.create<MediaBrowserProps>((props) => {
   const { visible, remove } = NiceModal.useModal();
   const [selected, setSelected] = useState<MediaDTO[]>([]);
-  const [mode, setMode] = useState<"select" | "upload">("select");
+  const [mode, setMode] = useState<PaneMode>("select");
 
-  const handleUpload = (media: MediaDTO) => {
+  /** The item shown in the details column, and the one edit acts on. */
+  const viewing = selected[selected.length - 1];
+
+  const handleUpload = (media: MediaDTO, alreadyExisted: boolean) => {
     if (props.mode === "single") {
       setSelected([media]);
     } else {
-      setSelected((prev) => [...prev, media]);
+      setSelected((prev) =>
+        prev.some((m) => m.id === media.id) ? prev : [...prev, media],
+      );
     }
 
-    toast({ variant: "success", description: "Media uploaded successfully" });
+    toast(
+      alreadyExisted
+        ? {
+            variant: "default",
+            description: "This image is already in the library.",
+          }
+        : { variant: "success", description: "Media uploaded successfully" },
+    );
+    setMode("select");
+  };
+
+  const handleSaved = (media: MediaDTO) => {
+    setSelected((prev) => prev.map((m) => (m.id === media.id ? media : m)));
+    toast({ variant: "success", description: "Media details updated" });
     setMode("select");
   };
 
@@ -51,7 +77,7 @@ const MediaBrowser = NiceModal.create<MediaBrowserProps>((props) => {
       >
         <SurfaceDialog.Header>
           <SurfaceDialog.Title trim="normal">
-            {mode === "select" ? "Browse Media" : "Upload Media"}
+            {PANE_TITLES[mode]}
           </SurfaceDialog.Title>
           {mode === "select" && (
             <Button size="1" onClick={() => setMode("upload")}>
@@ -65,6 +91,7 @@ const MediaBrowser = NiceModal.create<MediaBrowserProps>((props) => {
           selected={selected}
           setSelected={setSelected}
           onClose={remove}
+          onEdit={() => setMode("edit")}
           enabled={mode === "select"}
         />
         <MediaBrowserUpload
@@ -74,6 +101,15 @@ const MediaBrowser = NiceModal.create<MediaBrowserProps>((props) => {
           onUpload={handleUpload}
           enabled={mode === "upload"}
         />
+        {viewing && (
+          <MediaBrowserEdit
+            key={`edit-${mode}-${viewing.id}`} // refill form when target changes
+            media={viewing}
+            onCancel={() => setMode("select")}
+            onSaved={handleSaved}
+            enabled={mode === "edit"}
+          />
+        )}
       </SurfaceDialog.Content>
     </Dialog.Root>
   );

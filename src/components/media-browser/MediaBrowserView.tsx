@@ -10,7 +10,6 @@ import {
   Spinner,
   Text,
   TextField,
-  Tooltip,
 } from "@radix-ui/themes";
 import {
   keepPreviousData,
@@ -42,6 +41,7 @@ type Props = MediaBrowserProps & {
   setSelected: React.Dispatch<React.SetStateAction<MediaDTO[]>>;
   enabled: boolean;
   onClose: () => void;
+  onEdit: () => void;
 };
 
 export const MediaBrowserView: React.FC<Props> = ({
@@ -51,6 +51,7 @@ export const MediaBrowserView: React.FC<Props> = ({
   onSelect: finishSelecting,
   enabled,
   onClose,
+  onEdit,
 }) => {
   const qc = useQueryClient();
   const serverDelete = useServerFn(deleteMediaFn);
@@ -223,11 +224,14 @@ export const MediaBrowserView: React.FC<Props> = ({
         <SurfaceDialog.Col width="320px" flexShrink="0" flexGrow="0">
           <SurfaceDialog.Row p="2" flexShrink="0">
             <Flex gap="2" justify="center">
-              <Tooltip content="Coming soon!">
-                <IconButton variant="ghost" size="1" disabled>
-                  <PiPencil />
-                </IconButton>
-              </Tooltip>
+              <IconButton
+                variant="ghost"
+                size="1"
+                disabled={!viewing}
+                onClick={onEdit}
+              >
+                <PiPencil />
+              </IconButton>
               <IconButton
                 variant="ghost"
                 size="1"
@@ -342,7 +346,7 @@ export const MediaBrowserView: React.FC<Props> = ({
           )}
           {selected.length > 0 && (
             <Button size="1" variant="ghost" onClick={() => setSelected([])}>
-              Clear Selection
+              Clear
             </Button>
           )}
           <Flex gap="2" ml="auto" align="center">

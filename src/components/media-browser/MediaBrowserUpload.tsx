@@ -1,143 +1,140 @@
-import { Button, Flex, Select, TextField } from "@radix-ui/themes";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Box, Button, Flex, Text } from "@radix-ui/themes";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Label } from "radix-ui";
 import type React from "react";
 import { useState } from "react";
-import {
-  HUMAN_CASED_MEDIA_LICENSES,
-  MEDIA_LICENSES,
-  type MediaLicense,
-} from "../../../db/utils/mediaLicense";
-import type { MediaDTO } from "../../lib/domain/media/types";
+import { FormProvider, type SubmitHandler, useForm } from "react-hook-form";
+import z from "zod";
+import type {
+  MediaDTO,
+  UploadedMediaResult,
+} from "../../lib/domain/media/types";
+import { SUPPORTED_IMAGE_TYPES } from "../../lib/domain/media/validation";
 import { uploadMediaFn } from "../../lib/server-fns/media/uploadMediaFn";
-import { toast } from "../../lib/utils/toast";
 import SurfaceDialog from "../dialogs/SurfaceDialog";
 import { FileUpload } from "../FileUpload";
+import {
+  emptyMediaMeta,
+  MediaMetaFields,
+  mediaMetaFormSchema,
+  type MediaMetaFormValues,
+} from "./MediaMetaFields";
 
 interface Props {
   enabled: boolean;
   onCancel: () => void;
-  onUpload: (media: MediaDTO) => void;
+  onUpload: (media: MediaDTO, alreadyExisted: boolean) => void;
 }
 
-// TODO: use RHF w/ errors
+/** Reads a File as base64, without the `data:<type>;base64,` prefix. */
+const toBase64 = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      resolve(dataUrl.split(",")[1] ?? "");
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
 export const MediaBrowserUpload: React.FC<Props> = (props) => {
   const uploadFn = useServerFn(uploadMediaFn);
   const [file, setFile] = useState<File | null>(null);
-  const [title, setTitle] = useState<string>("");
-  const [owner, setOwner] = useState<string>("");
-  const [source, setSource] = useState<string>("");
-  const [license, setLicense] = useState<MediaLicense>("unknown");
 
-  const { mutate } = useMutation({
-    mutationFn: async (): Promise<MediaDTO> => {
+  const methods = useForm<MediaMetaFormValues>({
+    resolver: zodResolver(mediaMetaFormSchema),
+    defaultValues: emptyMediaMeta,
+  });
+  const {
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = methods;
+
+  const { isPending, mutateAsync } = useMutation({
+    mutationFn: async (
+      values: MediaMetaFormValues,
+    ): Promise<UploadedMediaResult> => {
       if (!file) throw new Error("No file selected");
 
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const dataUrl = reader.result as string;
-          // readAsDataURL produces "data:<type>;base64,<data>" — strip the prefix
-          resolve(dataUrl.split(",")[1] ?? "");
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-      const contentType = file.type as
-        | "image/avif"
-        | "image/gif"
-        | "image/jpeg"
-        | "image/png"
-        | "image/svg+xml"
-        | "image/webp";
+      const contentType = z.enum(SUPPORTED_IMAGE_TYPES).safeParse(file.type);
+      if (!contentType.success) {
+        throw new Error(`Unsupported image type: ${file.type || "unknown"}`);
+      }
 
-      const mediaRes = await uploadFn({
+      const res = await uploadFn({
         data: {
           items: [
             {
               type: "file",
-              base64,
-              contentType,
-              title,
-              owner,
-              source,
-              license,
+              base64: await toBase64(file),
+              contentType: contentType.data,
+              ...values,
             },
           ],
         },
       });
 
-      const media = mediaRes[0];
-      if (!media) throw new Error("No media returned from upload");
-      return media;
+      const uploaded = res[0];
+      if (!uploaded) throw new Error("No media returned from upload");
+      return uploaded;
     },
     onError: (error) => {
-      toast({ variant: "error", description: "Failed to upload media" });
       console.error("Upload error:", error);
+      setError("root", {
+        type: "server",
+        message: error.message || "Failed to upload media.",
+      });
     },
-    onSuccess: (media: MediaDTO) => {
-      props.onUpload(media);
+    onSuccess: ({ media, alreadyExisted }) => {
+      props.onUpload(media, alreadyExisted);
     },
   });
+
+  const onSubmit: SubmitHandler<MediaMetaFormValues> = async (values) => {
+    if (!file) {
+      setError("root", { type: "validate", message: "Please select an image." });
+      return;
+    }
+    await mutateAsync(values);
+  };
 
   if (!props.enabled) return null;
 
   return (
-    <>
-      <SurfaceDialog.Body>
-        <SurfaceDialog.Col gap="4" p="5" width="100%">
-          <FileUpload file={file} onChange={setFile} />
-          <Flex direction="column" gap="1">
-            <Label.Root htmlFor="title-input">Title</Label.Root>
-            <TextField.Root
-              id="title-input"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </Flex>
-          <Flex direction="column" gap="1">
-            <Label.Root htmlFor="owner-input">Owner</Label.Root>
-            <TextField.Root
-              id="owner-input"
-              value={owner}
-              onChange={(e) => setOwner(e.target.value)}
-            />
-          </Flex>
-          <Flex direction="column" gap="1">
-            <Label.Root htmlFor="source-input">Source</Label.Root>
-            <TextField.Root
-              id="source-input"
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-            />
-          </Flex>
-          <Flex direction="column" gap="1">
-            <Label.Root htmlFor="license-input">License</Label.Root>
-            <Select.Root
-              value={license}
-              onValueChange={(v) => setLicense(v as MediaLicense)}
+    <FormProvider {...methods}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <SurfaceDialog.Body>
+          <SurfaceDialog.Col gap="4" p="5" width="100%">
+            {errors.root?.message ? (
+              <Box>
+                <Text size="2" color="tomato" role="alert">
+                  {errors.root.message}
+                </Text>
+              </Box>
+            ) : null}
+            <FileUpload file={file} onChange={setFile} />
+            <MediaMetaFields disabled={isPending} />
+          </SurfaceDialog.Col>
+        </SurfaceDialog.Body>
+        <SurfaceDialog.Footer>
+          <Flex justify="end" gap="2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isPending}
+              onClick={props.onCancel}
             >
-              <Select.Trigger id="license-input" />
-              <Select.Content>
-                {MEDIA_LICENSES.map((lic) => (
-                  <Select.Item key={lic} value={lic}>
-                    {HUMAN_CASED_MEDIA_LICENSES[lic]}
-                  </Select.Item>
-                ))}
-              </Select.Content>
-            </Select.Root>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isPending} loading={isPending}>
+              Upload
+            </Button>
           </Flex>
-        </SurfaceDialog.Col>
-      </SurfaceDialog.Body>
-      <SurfaceDialog.Footer>
-        <Flex justify="end" gap="2">
-          <Button variant="outline" onClick={props.onCancel}>
-            Cancel
-          </Button>
-          <Button onClick={() => mutate()}>Upload</Button>
-        </Flex>
-      </SurfaceDialog.Footer>
-    </>
+        </SurfaceDialog.Footer>
+      </form>
+    </FormProvider>
   );
 };

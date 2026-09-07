@@ -4,7 +4,12 @@ import { media as mediaTbl } from "../../../../db/schema/media/media";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
 import { likeAnywhere } from "../../utils/sql/likeAnywhere";
 import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
-import type { InsertMediaArgs, MediaDTO, MediaPaginatedResult } from "./types";
+import type {
+  InsertMediaArgs,
+  MediaDTO,
+  MediaPaginatedResult,
+  MediaPatch,
+} from "./types";
 
 export async function selectMediaById(
   tx: TxOrDb,
@@ -52,12 +57,10 @@ export async function selectMediaByStorageKey(
   return row ?? null;
 }
 
-export async function updateMedia(
+export async function updateMediaById(
   tx: Transaction,
   id: number,
-  patch: Partial<
-    Pick<MediaDTO, "license" | "owner" | "source" | "contentType">
-  >,
+  patch: MediaPatch,
 ): Promise<MediaDTO | null> {
   const [row] = await tx
     .update(mediaTbl)
