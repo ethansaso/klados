@@ -9,6 +9,7 @@ import {
   meQueryOptions,
   userQueryOptions,
 } from "../../../../lib/queries/users";
+import { getAvatarUrl } from "../../../../lib/storage/getAvatarUrl";
 import { getInitials } from "../../../../lib/utils/formatting/getInitials";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 
@@ -63,7 +64,7 @@ function UserProfilePage() {
         >
           <Flex align="end" gap="4">
             <Avatar
-              src={user.image ?? undefined}
+              src={getAvatarUrl(user.image)}
               fallback={getInitials(user.name)}
               alt={`${preferredDisplay(user)}`}
               size="7"

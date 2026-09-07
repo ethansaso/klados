@@ -11,6 +11,7 @@ import type {
   UploadedMediaResult,
 } from "../../lib/domain/media/types";
 import { uploadMediaFn } from "../../lib/server-fns/media/uploadMediaFn";
+import { fileToBase64 } from "../../lib/utils/fileToBase64";
 import { SUPPORTED_IMAGE_TYPES } from "../../lib/storage/utils";
 import SurfaceDialog from "../dialogs/SurfaceDialog";
 import { FileUpload } from "../FileUpload";
@@ -26,18 +27,6 @@ interface Props {
   onCancel: () => void;
   onUpload: (media: MediaDTO, alreadyExisted: boolean) => void;
 }
-
-/** Reads a File as base64, without the `data:<type>;base64,` prefix. */
-const toBase64 = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      resolve(dataUrl.split(",")[1] ?? "");
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 
 export const MediaBrowserUpload: React.FC<Props> = (props) => {
   const uploadFn = useServerFn(uploadMediaFn);
@@ -69,7 +58,7 @@ export const MediaBrowserUpload: React.FC<Props> = (props) => {
           items: [
             {
               type: "file",
-              base64: await toBase64(file),
+              base64: await fileToBase64(file),
               contentType: contentType.data,
               ...values,
             },

@@ -6,6 +6,7 @@ import { roleHasCuratorRights } from "../../lib/auth/utils";
 import { useIsActive } from "../../lib/hooks/useIsActive";
 import { useMediaQuery } from "../../lib/hooks/useMediaQuery";
 import { getMeFn } from "../../lib/server-fns/users/getMeFn";
+import { getAvatarUrl } from "../../lib/storage/getAvatarUrl";
 import { ThemeToggle } from "../ThemeToggle";
 import { NavBarBrand } from "./NavBarBrand";
 import { NavDropdown } from "./NavDropdown";
@@ -59,7 +60,7 @@ export function NavBar({ user }: NavBarProps) {
   }, [user, taxaActive]);
 
   return (
-    <TabNav.Root className="navbar">
+    <TabNav.Root className="navbar" size="2">
       <NavBarBrand />
       <Flex
         className="navbar__navlinks"
@@ -103,7 +104,7 @@ export function NavBar({ user }: NavBarProps) {
             name={user.name}
             email={user.email}
             username={user.username}
-            imageUrl={user.image ?? undefined}
+            imageUrl={getAvatarUrl(user.image)}
           />
         ) : (
           <Flex gap={"5"} align="center" mr="3">
