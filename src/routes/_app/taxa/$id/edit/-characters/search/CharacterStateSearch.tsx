@@ -1,9 +1,11 @@
-import { Badge, Box, Flex, Text } from "@radix-ui/themes";
+import { Badge, Box, Button, Flex, Link, Text } from "@radix-ui/themes";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useId, useRef, useState } from "react";
+import { PiPencil } from "react-icons/pi";
 import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
 import type { TraitSuggestion } from "../../../../../../../lib/domain/suggestions/types";
 import { listCharacterStateSuggestionsFn } from "../../../../../../../lib/server-fns/suggestions/listCharacterStateSuggestionsFn";
+import "./CharacterStateSearch.css";
 
 type FeatureStateSearchProps = {
   featureId: number;
@@ -150,6 +152,18 @@ export function CharacterStateSearch({
               </InputCombobox.Item>
             ))}
           </InputCombobox.List>
+          <Box m="-2" p="2" mt="0" className="character-search__feature-footer">
+            <Button asChild size="1" variant="ghost">
+              <Link
+                href={`/glossary/features/${featureId}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <PiPencil size={12} />
+                <Text as="p">Edit feature in glossary</Text>
+              </Link>
+            </Button>
+          </Box>
         </InputCombobox.Popover>
       </InputCombobox.Root>
     </Box>

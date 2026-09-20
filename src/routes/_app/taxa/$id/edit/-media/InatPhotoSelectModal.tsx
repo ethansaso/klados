@@ -2,6 +2,7 @@ import NiceModal from "@ebay/nice-modal-react";
 import {
   Box,
   Button,
+  Checkbox,
   CheckboxCards,
   Dialog,
   Flex,
@@ -57,6 +58,8 @@ const ALLOWED_LICENSES = MEDIA_LICENSES.filter(
 ) as readonly Exclude<MediaLicense, "all-rights-reserved">[];
 
 const AllowedLicenseSchema = z.enum(ALLOWED_LICENSES);
+
+const SELECT_ALL_ID = "inat-select-all";
 
 const InatPhotoSelectModal = NiceModal.create<Props>(
   ({ inatId, onConfirm }) => {
@@ -181,26 +184,40 @@ const InatPhotoSelectModal = NiceModal.create<Props>(
               <Text color="red">{error}</Text>
             ) : allMedia ? (
               <Box>
-                <Flex>
-                  <Button
-                    variant="soft"
-                    size="2"
-                    onClick={() =>
-                      setSelectedIds(
-                        new Set(allMedia?.map((_, idx) => idx) ?? []),
-                      )
-                    }
-                  >
-                    Select all
-                  </Button>
-                  <Button
-                    variant="soft"
-                    size="2"
-                    onClick={() => setSelectedIds(new Set())}
-                  >
-                    Deselect all
-                  </Button>
-                </Flex>
+                {allMedia.length !== 0 && (
+                  <Flex align="center" justify="between" mb="2">
+                    <Flex align="center" gap="2">
+                      <Checkbox
+                        id={SELECT_ALL_ID}
+                        checked={
+                          selectedIds.size === 0
+                            ? false
+                            : selectedIds.size === allMedia.length
+                              ? true
+                              : "indeterminate"
+                        }
+                        onCheckedChange={(checked) =>
+                          setSelectedIds(
+                            checked
+                              ? new Set(allMedia.map((_, idx) => idx))
+                              : new Set(),
+                          )
+                        }
+                      />
+                      <Text
+                        as="label"
+                        htmlFor={SELECT_ALL_ID}
+                        size="2"
+                        style={{ userSelect: "none" }}
+                      >
+                        All
+                      </Text>
+                    </Flex>
+                    <Text size="2" color="gray">
+                      {selectedIds.size} of {allMedia.length} selected
+                    </Text>
+                  </Flex>
+                )}
                 <CheckboxCards.Root
                   columns="3"
                   gap="1"
