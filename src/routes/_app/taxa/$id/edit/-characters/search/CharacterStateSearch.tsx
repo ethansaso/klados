@@ -1,7 +1,6 @@
 import { Badge, Box, Button, Flex, Link, Text } from "@radix-ui/themes";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useId, useRef, useState } from "react";
-import { PiPencil } from "react-icons/pi";
 import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
 import type { TraitSuggestion } from "../../../../../../../lib/domain/suggestions/types";
 import { listCharacterStateSuggestionsFn } from "../../../../../../../lib/server-fns/suggestions/listCharacterStateSuggestionsFn";
