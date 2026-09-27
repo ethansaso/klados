@@ -11,13 +11,13 @@ export const HeroSection = () => {
       className="hero-section"
       align="center"
       justify="center"
-      py="7"
-      px="6"
+      py={{ initial: "8", md: "9" }}
+      px={{ initial: "6", md: "8" }}
       minHeight={{ initial: "60svh", sm: "528px" }}
       width="100%"
     >
       <Flex
-        direction={{ initial: "column", xl: "row" }}
+        direction={{ initial: "column", lg: "row" }}
         align="center"
         justify="center"
         gap={{ initial: "7", xl: "8" }}
@@ -26,15 +26,15 @@ export const HeroSection = () => {
       >
         <Flex
           direction="column"
-          align={{ initial: "start", xs: "center", xl: "start" }}
-          maxWidth={{ initial: "600px", xl: "544px" }}
+          align={{ initial: "start", xs: "center", lg: "start" }}
+          maxWidth={{ initial: "600px", lg: "512px", xl: "544px" }}
           style={{
             color: "white",
           }}
         >
           <Heading
             size={{ initial: "8", sm: "9" }}
-            align={{ initial: "left", xs: "center", xl: "left" }}
+            align={{ initial: "left", xs: "center", lg: "left" }}
             mb="3"
             className="hero-text"
           >
@@ -42,7 +42,7 @@ export const HeroSection = () => {
           </Heading>
           <Text
             size={{ initial: "5", sm: "6" }}
-            align={{ initial: "left", xs: "center", xl: "left" }}
+            align={{ initial: "left", xs: "center", lg: "left" }}
             mb="5"
             className="hero-text"
           >

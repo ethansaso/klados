@@ -2,15 +2,19 @@ import { Box, Card, Em, Flex, Inset, Strong, Text } from "@radix-ui/themes";
 import { GlossaryCard } from "../../../components/glossary-cards/GlossaryCard";
 
 /**
- * Leader lines are drawn against a fixed 640x300 design space (see home.css),
- * so the endpoints below are plain pixel coordinates in that space. Each
- * connector runs flat from its label to the card edge, then angles into the
- * photo toward the structure it names.
+ * Leader lines are drawn in a fixed design space (see home.css): 168px labels
+ * either side of a 224px card with 16px gaps, 592px wide. The svg covers the
+ * photo band (224 x 4/5), so the endpoints below are plain pixel coordinates
+ * in it. Each connector runs flat from its label to the card edge, then angles
+ * into the photo toward the structure it names.
  */
+const LINES_WIDTH = 592;
+const LINES_HEIGHT = 179;
+
 const CONNECTORS = [
-  { outer: "180,30 192,30", inner: "192,30 262,31", dot: [262, 31] },
-  { outer: "460,64 448,64", inner: "448,64 385,37", dot: [385, 37] },
-  { outer: "180,150 192,150", inner: "192,150 250,103", dot: [250, 103] },
+  { outer: "172,26 184,26", inner: "184,26 245,27", dot: [245, 27] },
+  { outer: "420,56 408,56", inner: "408,56 353,32", dot: [353, 32] },
+  { outer: "172,131 184,131", inner: "184,131 235,90", dot: [235, 90] },
 ] as const;
 
 const MorphologyLine = ({
@@ -65,9 +69,9 @@ export const AnnotatedSpeciesCard: React.FC<Props> = ({ framed }) => {
 
         <svg
           className="description-demo__lines"
-          viewBox="0 0 640 300"
-          width="640"
-          height="300"
+          viewBox={`0 0 ${LINES_WIDTH} ${LINES_HEIGHT}`}
+          width={LINES_WIDTH}
+          height={LINES_HEIGHT}
           aria-hidden="true"
           focusable="false"
         >
@@ -92,7 +96,6 @@ export const AnnotatedSpeciesCard: React.FC<Props> = ({ framed }) => {
         </svg>
 
         <Box
-          className="description-demo__annotations"
           style={{
             color: "white",
           }}
@@ -132,7 +135,7 @@ export const AnnotatedSpeciesCard: React.FC<Props> = ({ framed }) => {
                 <GlossaryCard
                   info={{
                     title: "Stipe",
-                    description: "Another term for 'stem'.",
+                    description: "Technical term for 'stem'.",
                     media: null,
                   }}
                 >

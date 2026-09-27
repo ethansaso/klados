@@ -1,20 +1,12 @@
 import "./SpeciesDescription.css";
 
-import {
-  Box,
-  Card,
-  Container,
-  Em,
-  Flex,
-  Heading,
-  Strong,
-  Text,
-} from "@radix-ui/themes";
+import { Box, Card, Em, Flex, Heading, Strong, Text } from "@radix-ui/themes";
 import { Fragment, type ReactNode } from "react";
 import { AnnotationBubbleWrap } from "../../../components/annotations/AnnotationBubbleWrap";
 import { GlossaryCard } from "../../../components/glossary-cards/GlossaryCard";
 import { ColorBubble } from "../../../components/state-formatting/helpers/ColorBubble";
 import { capitalizeFirstLetter } from "../../../lib/utils/formatting/casing";
+import { HomeSection } from "./HomeSection";
 
 type State = {
   prefix?: string;
@@ -187,8 +179,8 @@ const FeatureText = ({ label, info, characters }: Feature) => (
 );
 
 export const SpeciesDescription = () => (
-  <Box width="100%" px="6">
-    <Container pt="8" pb="7" size={{ sm: "2", md: "3" }} width="100%">
+  <HomeSection>
+    <Box maxWidth="880px" mx="auto">
       <Flex direction="column" align="center" mb="6">
         <Heading as="h2" size={{ initial: "7", sm: "8" }} align="center">
           Descriptions that teach themselves
@@ -243,6 +235,6 @@ export const SpeciesDescription = () => (
           </Box>
         </Card>
       </Box>
-    </Container>
-  </Box>
+    </Box>
+  </HomeSection>
 );

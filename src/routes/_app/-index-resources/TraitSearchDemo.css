@@ -1,0 +1,41 @@
+.trait-demo {
+  /* Fills the column when stacked; beside the text it's capped, and shrinkable
+     so it never pushes the row past the section. */
+  width: 100%;
+  min-width: 0;
+
+  @media (min-width: 1024px) {
+    max-width: 680px;
+    flex: 0 1 680px;
+  }
+
+  .trait-demo__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-content: start;
+    gap: var(--space-4) var(--space-2);
+  }
+
+  /* Non-matches fade in place rather than reflowing, so the grid stays put
+     while filters are toggled. */
+  .trait-demo__result {
+    transition:
+      opacity 200ms ease,
+      filter 200ms ease,
+      transform 200ms ease;
+
+    &[data-match="false"] {
+      opacity: 0.25;
+      filter: grayscale(1);
+      transform: scale(0.96);
+    }
+  }
+
+  .trait-demo__photo {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: var(--radius-3);
+  }
+}
