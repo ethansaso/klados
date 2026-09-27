@@ -32,6 +32,7 @@ export function ThemeToggle({ className, style }: ThemeToggleProps) {
         color="gray"
         size="2"
         onClick={toggleTheme}
+        mr="2"
       >
         {theme === "dark" ? <PiMoon /> : <PiSun />}
       </IconButton>

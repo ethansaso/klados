@@ -1,0 +1,8 @@
+.closing-section {
+  color: var(--gray-12);
+  background-image: url(/about/forest-bg.webp);
+  background-size: cover;
+  background-position: 0 90%;
+  background-blend-mode: darken;
+  background-color: rgba(0, 0, 0, 0.6);
+}

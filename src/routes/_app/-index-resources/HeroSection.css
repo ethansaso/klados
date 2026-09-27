@@ -1,0 +1,8 @@
+.hero-section {
+  background-image: url(/about/forest-bg.webp);
+  background-size: cover;
+  background-position: 0 50%;
+  /* darken 50% */
+  background-blend-mode: darken;
+  background-color: rgba(0, 0, 0, 0.6);
+}

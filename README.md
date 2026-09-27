@@ -65,6 +65,9 @@ npm run db:seed
 npm run dev
 ```
 
+### DB Dumping (wip)
+npm run db:dump
+npm run db:load < {filename}.sql
 </details>
 
 ## Acknowledgements

@@ -17,6 +17,8 @@
     "db:seed:colors": "tsx scripts/seeding/colors/seedColors.ts",
     "db:seed:units": "tsx scripts/seeding/units/seedUnits.ts",
     "db:seed": "npm run db:seed:colors && npm run db:seed:units",
+    "db:dump": "docker exec taxokeys-db-1 pg_dump -U app -d taxokeys --clean --if-exists > .backups/dev-$(date +%F).sql",
+    "db:load": "docker exec -i taxokeys-db-1 psql -U app -d taxokeys",
     "test:colors": "tsx scripts/seeding/colors/testColors.ts",
     "test:keygen": "tsx scripts/runKeygen.ts",
     "test": "vitest run",

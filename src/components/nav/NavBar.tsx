@@ -1,11 +1,12 @@
 import { Button, Dialog, Flex, IconButton, TabNav } from "@radix-ui/themes";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link as RouterLink } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PiCaretDown, PiList } from "react-icons/pi";
 import { roleHasCuratorRights } from "../../lib/auth/utils";
 import { useIsActive } from "../../lib/hooks/useIsActive";
 import { useMediaQuery } from "../../lib/hooks/useMediaQuery";
-import { getMeFn } from "../../lib/server-fns/users/getMeFn";
+import { meQueryOptions } from "../../lib/queries/users";
 import { getAvatarUrl } from "../../lib/storage/getAvatarUrl";
 import { ThemeToggle } from "../ThemeToggle";
 import { NavBarBrand } from "./NavBarBrand";
@@ -13,11 +14,8 @@ import { NavDropdown } from "./NavDropdown";
 import { NavSheet } from "./NavSheet";
 import { UserMenu } from "./UserMenu";
 
-interface NavBarProps {
-  user: Awaited<ReturnType<typeof getMeFn>> | undefined;
-}
-
-export function NavBar({ user }: NavBarProps) {
+export function NavBar() {
+  const { data: user } = useSuspenseQuery(meQueryOptions());
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [expanded, setExpanded] = useState(false);
 

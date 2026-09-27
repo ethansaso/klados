@@ -1,16 +1,17 @@
 import "../../assets/styles/pages/home.css";
 import "../../assets/styles/react-flow/demo.css";
 
-import { Flex, Separator } from "@radix-ui/themes";
+import { Flex } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { summaryStatsQueryOptions } from "../../lib/queries/stats";
 import { routeSeo } from "../../lib/utils/head/routeSeo";
-import { FinalCTA } from "./-index-resources/FinalCTA";
+import { ClosingSection } from "./-index-resources/ClosingSection";
+import { FeatureStrip } from "./-index-resources/FeatureStrip";
 import { GuideDemo } from "./-index-resources/GuideDemo";
 import { HeroSection } from "./-index-resources/HeroSection";
-import { PurposeSection } from "./-index-resources/PurposeSection";
-import { StatsFeatureGrid } from "./-index-resources/StatsFeatureGrid";
+import { SpeciesDescription } from "./-index-resources/SpeciesDescription";
+import { TraitSearchDemo } from "./-index-resources/TraitSearchDemo";
 
 export const Route = createFileRoute("/_app/")({
   beforeLoad: async ({ context }) => {
@@ -32,12 +33,11 @@ function Home() {
   return (
     <Flex direction="column" align="center">
       <HeroSection />
-      <GuideDemo />
-      <Separator size="4" />
-      <PurposeSection />
-      <Separator size="4" />
-      <StatsFeatureGrid summaryStats={summaryStats} />
-      <FinalCTA />
+      <SpeciesDescription />
+      <FeatureStrip />
+      <GuideDemo guidesCount={summaryStats.guidesCount} />
+      <TraitSearchDemo taxaCount={summaryStats.taxaCount} />
+      <ClosingSection />
     </Flex>
   );
 }
