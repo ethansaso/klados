@@ -76,7 +76,7 @@ export function CharacterEditingForm({
     <Box width="100%">
       <Flex mb="2" gap="8" width="100%" justify="between" align="center">
         <Box>
-          <Heading size="3">Characters</Heading>
+          <Heading size="3">Morphology</Heading>
           <Text color="gray" size="2">
             Add features and character states using the input boxes. Click on
             any character state to attach modifiers.
