@@ -9,6 +9,15 @@ export function roleHasCuratorRights(role: string | null | undefined) {
   return roleIsAdmin(role) || role === "curator";
 }
 
+/** Users may edit their own record; admins may edit anyone's. */
+export function canEditUser(
+  currentUser: { id: string; role?: string | null } | null | undefined,
+  targetUserId: string,
+): boolean {
+  if (!currentUser) return false;
+  return currentUser.id === targetUserId || roleIsAdmin(currentUser.role);
+}
+
 export function forceLoginRedirectFromRequest(request: Request) {
   const url = new URL(request.url);
   throw redirect({

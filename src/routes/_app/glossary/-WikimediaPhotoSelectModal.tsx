@@ -128,7 +128,7 @@ export const WikimediaPhotoSelectModal = NiceModal.create<Props>(
         ];
 
         const uploaded = await upload({ data: { items } });
-        onConfirm(uploaded);
+        onConfirm(uploaded.map((u) => u.media));
         qc.invalidateQueries({ queryKey: ["media"] });
         handleExit();
       } catch (e) {

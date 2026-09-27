@@ -1,4 +1,13 @@
-import { SUPPORTED_IMAGE_TYPES } from "./validation";
+export type SupportedImageType = (typeof SUPPORTED_IMAGE_TYPES)[number];
+
+export const SUPPORTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/avif",
+  "image/svg+xml",
+] as const;
 
 /* Map of content type to extension */
 const extMap: Record<(typeof SUPPORTED_IMAGE_TYPES)[number], string> = {

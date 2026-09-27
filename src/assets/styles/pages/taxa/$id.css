@@ -92,37 +92,6 @@
   }
 }
 
-.lookalikes-list .lookalikes-entry {
-  .taxon-card,
-  .taxon-card::before,
-  .taxon-card::after {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-  }
-
-  .taxon-card::after {
-    inset: 0;
-    box-shadow: none;
-    border-radius: inherit;
-    border-top: 1px solid var(--gray-a5);
-    border-left: 1px solid var(--gray-a5);
-    border-right: 1px solid var(--gray-a5);
-    border-bottom: 0;
-  }
-
-  .taxon-card img {
-    border: 0;
-    border-bottom: 1px solid var(--gray-a5);
-  }
-
-  button {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-bottom-left-radius: var(--space-2);
-    border-bottom-right-radius: var(--space-2);
-  }
-}
-
 .taxon-sources-list {
   margin: var(--space-2) 0 0;
   padding-left: var(--space-5);

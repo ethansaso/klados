@@ -2,10 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
 import { requireCuratorMiddleware } from "../../auth/serverFnMiddleware";
 import { uploadMedia } from "../../domain/media/service";
-import {
-  SUPPORTED_IMAGE_TYPES,
-  uploadMediaWireItemSchema,
-} from "../../domain/media/validation";
+import { uploadMediaWireItemSchema } from "../../domain/media/validation";
+import { SUPPORTED_IMAGE_TYPES } from "../../storage/utils";
 
 export const uploadMediaFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])

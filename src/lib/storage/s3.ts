@@ -23,10 +23,12 @@ export class S3Storage implements StorageAdapter {
     this.bucketName = s3Env.S3_BUCKET_NAME;
     this.publicBaseUrl = s3Env.S3_PUBLIC_BASE_URL;
   }
+
   async upload({
     key,
     body,
     contentType,
+    cacheControl,
   }: UploadArgs): Promise<{ url: string }> {
     await this.client.send(
       new PutObjectCommand({
@@ -34,6 +36,7 @@ export class S3Storage implements StorageAdapter {
         Key: key,
         Body: body,
         ContentType: contentType,
+        CacheControl: cacheControl,
       }),
     );
 

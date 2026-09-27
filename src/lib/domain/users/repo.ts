@@ -102,7 +102,7 @@ export async function findUserByIdOrUsername(
 
 export async function modifyUserRecord(
   userId: string,
-  updates: Partial<Pick<UserDTO, "name" | "description">>,
+  updates: Partial<Pick<UserDTO, "name" | "description" | "image">>,
 ): Promise<void> {
   await db.update(userTbl).set(updates).where(eq(userTbl.id, userId));
 }

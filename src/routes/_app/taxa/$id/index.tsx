@@ -11,6 +11,7 @@ import {
   Breadcrumbs,
 } from "../../../../components/Breadcrumbs";
 import { ContentContainer } from "../../../../components/ContentContainer";
+import { distributionTilesQueryOptions } from "../../../../lib/queries/distributionTiles";
 import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 import { taxonCharacterStatesQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
@@ -21,6 +22,7 @@ import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { LookalikesList } from "./-lookalikes/LookalikesList";
 import { TaxonStateSection } from "./-states/TaxonStatesSection";
 import { StatusCallout } from "./-StatusCallout";
+import { TaxonGBIFDistribution } from "./-TaxonGBIFDistribution";
 import { TaxonMainSection } from "./-TaxonMainSection";
 
 const ParamsSchema = z.object({
@@ -35,6 +37,7 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
       context.queryClient.ensureQueryData(taxonCharacterStatesQueryOptions(id)),
       context.queryClient.ensureQueryData(lookalikesQueryOptions(id)),
       context.queryClient.ensureQueryData(sourcesForTaxonQueryOptions(id)),
+      context.queryClient.ensureQueryData(distributionTilesQueryOptions(id)),
     ]);
 
     return { id, taxon };
@@ -58,6 +61,9 @@ function TaxonPage() {
   );
   const { data: lookalikes } = useSuspenseQuery(lookalikesQueryOptions(id));
   const { data: sources } = useSuspenseQuery(sourcesForTaxonQueryOptions(id));
+  const { data: densityUrls } = useSuspenseQuery(
+    distributionTilesQueryOptions(id),
+  );
 
   const [indentDescription, setIndentDescription] = useState(false);
 
@@ -121,7 +127,7 @@ function TaxonPage() {
       <Flex
         gap={{ initial: "6", sm: "8" }}
         direction={{ initial: "column", sm: "row" }}
-        align="start"
+        align={{ initial: "stretch", sm: "start" }}
       >
         {/* Left panel */}
         <Box width={{ initial: "unset", sm: "304px" }} flexShrink="0" asChild>
@@ -131,7 +137,12 @@ function TaxonPage() {
         </Box>
 
         {/* Right panel */}
-        <Flex direction="column" flexGrow="1" gap={{ initial: "4", sm: "6" }}>
+        <Flex
+          direction="column"
+          flexGrow="1"
+          minWidth="0"
+          gap={{ initial: "4", sm: "6" }}
+        >
           {/* Morphology */}
           <Box>
             <Box>
@@ -203,6 +214,13 @@ function TaxonPage() {
           </Box>
 
           {/* Lookalikes */}
+          <LookalikesList
+            taxonId={id}
+            taxonName={taxon.acceptedName}
+            lookalikes={lookalikes}
+          />
+
+          {/* Distribution */}
           <Box>
             <Heading
               size={{ initial: "3", sm: "4" }}
@@ -210,20 +228,17 @@ function TaxonPage() {
               weight="medium"
               style={{ borderBottom: "1px solid var(--gray-a7)" }}
             >
-              Similar Taxa
+              Distribution
             </Heading>
-            {lookalikes.length ? (
-              <Text as="p" color="gray" size="1" mb="3">
-                These taxa share similar characteristics with{" "}
-                {taxon.acceptedName}. Click on any taxon to compare
-                side-by-side.
-              </Text>
+            {densityUrls && taxon.sourceGbifId !== null ? (
+              <TaxonGBIFDistribution
+                densityUrls={densityUrls}
+                gbifId={taxon.sourceGbifId}
+                taxonName={taxon.acceptedName}
+              />
             ) : (
-              <Text size={{ initial: "2", sm: "3" }}>
-                We couldn't determine any lookalikes for this taxon.
-              </Text>
+              <Text>This taxon is not linked to GBIF.</Text>
             )}
-            <LookalikesList taxonId={id} lookalikes={lookalikes} />
           </Box>
 
           {/* Sources */}

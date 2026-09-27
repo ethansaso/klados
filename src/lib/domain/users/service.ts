@@ -1,3 +1,4 @@
+import { storage } from "../../storage";
 import {
   findUserByIdOrUsername,
   listUsersAdminViewPage,
@@ -12,6 +13,8 @@ import type {
   UserDTO,
   UserPaginatedResult,
 } from "./types";
+import { AVATAR_KEY_PREFIX, createAvatarKey } from "./utils";
+import type { AvatarImageType, EditUserUpdates } from "./validation";
 
 export async function getUsersPage(
   params: ListUsersParams,
@@ -33,9 +36,22 @@ export async function getUserByIdOrUsername(
 
 export async function editUser(
   userId: string,
-  updates: Partial<Pick<UserDTO, "displayUsername" | "name" | "description">>,
+  updates: EditUserUpdates,
 ): Promise<void> {
-  await modifyUserRecord(userId, updates);
+  const { avatar, ...fields } = updates;
+
+  if (avatar === undefined) {
+    await modifyUserRecord(userId, fields);
+    return;
+  }
+
+  const current = await findUserByIdOrUsername(userId);
+  if (!current) throw new Error("User not found.");
+
+  const image = avatar ? await uploadAvatarObject(userId, avatar) : null;
+
+  await modifyUserRecord(userId, { ...fields, image });
+  await discardAvatarObject(current.image);
 }
 
 export async function banUser(
@@ -53,4 +69,32 @@ export async function banUser(
 
 export async function unbanUser(userId: string): Promise<void> {
   await setUserUnbanned(userId);
+}
+
+/** Ignores failures. Has no effect on non-stored avatars (e.g. OAuth). */
+async function discardAvatarObject(image: string | null): Promise<void> {
+  if (!image?.startsWith(AVATAR_KEY_PREFIX)) return;
+
+  try {
+    await storage.delete(image);
+  } catch (err: unknown) {
+    console.error(`[avatar] failed to delete ${image}:`, err);
+  }
+}
+
+/** Writes the object and returns its key; the caller persists it. */
+async function uploadAvatarObject(
+  userId: string,
+  avatar: { body: Buffer; contentType: AvatarImageType },
+): Promise<string> {
+  const key = createAvatarKey(userId, avatar.contentType);
+
+  await storage.upload({
+    key,
+    body: avatar.body,
+    contentType: avatar.contentType,
+    cacheControl: "public, max-age=31536000, immutable",
+  });
+
+  return key;
 }

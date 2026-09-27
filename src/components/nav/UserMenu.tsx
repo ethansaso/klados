@@ -1,6 +1,6 @@
 import { Avatar, Box, DropdownMenu, Flex, Text } from "@radix-ui/themes";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties } from "react";
 import { getInitials } from "../../lib/utils/formatting/getInitials";
 
 type UserMenuProps = {
@@ -20,23 +20,12 @@ export function UserMenu({
   className,
   style,
 }: UserMenuProps) {
-  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Hover opens/closes instantly; click toggles
   return (
-    <Flex
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-      className={className}
-      style={style}
-    >
-      <DropdownMenu.Root open={open} onOpenChange={setOpen} modal={false}>
-        <DropdownMenu.Trigger
-          onClick={() =>
-            navigate({ to: "/users/$username", params: { username } })
-          }
-        >
+    <Flex className={className} style={style}>
+      <DropdownMenu.Root modal={false}>
+        <DropdownMenu.Trigger>
           <button
             type="button"
             aria-label="Account menu"
@@ -57,11 +46,7 @@ export function UserMenu({
           </button>
         </DropdownMenu.Trigger>
 
-        <DropdownMenu.Content
-          align="end"
-          sideOffset={0}
-          onCloseAutoFocus={(e) => e.preventDefault()}
-        >
+        <DropdownMenu.Content align="end" sideOffset={8}>
           <DropdownMenu.Label>
             <Box>
               <Text weight="bold">{name}</Text>

@@ -13,6 +13,7 @@ export * from "./sources/source";
 export * from "./sources/taxonSource";
 export * from "./taxa/characterStateModifiers";
 export * from "./taxa/characterStates";
+export * from "./taxa/distributionTiles";
 export * from "./taxa/featureStates";
 export * from "./taxa/name";
 export * from "./taxa/taxon";

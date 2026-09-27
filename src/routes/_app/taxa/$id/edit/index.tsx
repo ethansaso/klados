@@ -62,7 +62,7 @@ export const taxonEditFormSchema = z.object({
 });
 
 const convertToServerCharacterValues = (
-  values: TaxonEditFormValues["states"],
+  values: TaxonEditFormValues["states"]
 ): CharacterByFeatureUpdate => {
   return values.map((feature) => ({
     featureId: feature.featureId,
@@ -157,7 +157,7 @@ function RouteComponent() {
     defaultValues: seedTaxonEditState(
       initialTaxon,
       initialCharacterValues,
-      initialSources,
+      initialSources
     ),
   });
   const { control, handleSubmit, reset } = methods;
@@ -224,7 +224,7 @@ function RouteComponent() {
       seedTaxonEditState(initialTaxon, initialCharacterValues, initialSources),
       {
         keepDirty: false,
-      },
+      }
     );
   };
 
@@ -281,7 +281,7 @@ function RouteComponent() {
     if (!isDraft || isDeleting || liveFormStateRef.current.isSubmitting) return;
 
     const ok = window.confirm(
-      "Delete this taxon draft? This cannot be undone.",
+      "Delete this taxon draft? This cannot be undone."
     );
     if (!ok) return;
 
@@ -404,7 +404,7 @@ function RouteComponent() {
                 )}
               />
             </Box>
-            <Box flexGrow="1" flexShrink="1" overflow="auto">
+            <Box flexGrow="1" flexShrink="1" overflow="auto" asChild>
               <ContentContainer align="start" gray>
                 {/* Characters */}
                 <Controller

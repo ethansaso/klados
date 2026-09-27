@@ -6,5 +6,5 @@ export const Route = createFileRoute("/_app/users")({
 });
 
 function RouteComponent() {
-  return <ContentOutlet />;
+  return <ContentOutlet align="stretch" />;
 }
