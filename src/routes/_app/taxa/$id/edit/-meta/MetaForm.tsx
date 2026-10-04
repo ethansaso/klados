@@ -20,6 +20,7 @@ import {
   ConditionalAlert,
 } from "../../../../../../components/inputs/ConditionalAlert";
 import { ResponsiveTooltip } from "../../../../../../components/ResponsiveTooltip";
+import { formatTaxonName } from "../../../../../../lib/utils/formatting/formatTaxonName";
 import { taxaQueryOptions } from "../../../../../../lib/queries/taxa";
 import { pickGBIFTaxon } from "./GbifIdModal";
 import { pickInatTaxon } from "./InatIdModal";
@@ -49,7 +50,7 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
       if (i.id === id) return acc; // skip self
       acc.push({
         id: i.id,
-        label: i.acceptedName,
+        label: formatTaxonName(i.rank, i.acceptedName, "never"),
         hint: i.rank,
       });
       return acc;

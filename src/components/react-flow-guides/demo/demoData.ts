@@ -7,6 +7,7 @@ export const demoNodes: DemoNode[] = [
     position: { x: 100, y: 465 },
     data: {
       sciName: "Amanitaceae",
+      rank: "family",
       commonName: "Amanita and allies",
       primaryMedia: {
         url: "/demo-img/amanitaceae.webp",
@@ -22,6 +23,7 @@ export const demoNodes: DemoNode[] = [
     position: { x: 480, y: 310 },
     data: {
       sciName: "Amanita",
+      rank: "genus",
       commonName: "Amanita mushrooms",
       primaryMedia: {
         url: "/demo-img/amanita.webp",
@@ -37,6 +39,7 @@ export const demoNodes: DemoNode[] = [
     position: { x: 480, y: 620 },
     data: {
       sciName: "Limacella",
+      rank: "genus",
       commonName: "Slimecaps",
       primaryMedia: {
         url: "/demo-img/limacella.webp",
@@ -52,6 +55,7 @@ export const demoNodes: DemoNode[] = [
     position: { x: 960, y: 310 },
     data: {
       sciName: "Amanita muscaria",
+      rank: "species",
       commonName: "Fly Agaric",
       primaryMedia: {
         url: "/demo-img/amuscaria.webp",
@@ -67,6 +71,7 @@ export const demoNodes: DemoNode[] = [
     position: { x: 960, y: 620 },
     data: {
       sciName: "Amanita phalloides",
+      rank: "species",
       commonName: "Death Cap",
       primaryMedia: {
         url: "/demo-img/aphalloides.webp",

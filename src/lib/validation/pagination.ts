@@ -15,13 +15,13 @@ export const paginationDefaults = {
 };
 
 export const PaginationSchema = z.object({
-  page: z
+  page: z.coerce
     .number()
     .int()
     .min(1)
     .default(paginationDefaults.page)
     .catch(paginationDefaults.page),
-  pageSize: z
+  pageSize: z.coerce
     .number()
     .int()
     .min(1)

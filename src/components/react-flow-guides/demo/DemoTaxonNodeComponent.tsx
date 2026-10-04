@@ -1,18 +1,20 @@
 import { Box, Card, Flex, Text } from "@radix-ui/themes";
 import { Handle, type NodeProps, Position } from "@xyflow/react";
+import { formatTaxonName } from "../../../lib/utils/formatting/formatTaxonName";
 import { AnnotationBubbleWrap } from "../../annotations/AnnotationBubbleWrap";
+import { TaxonName } from "../../TaxonName";
 import type { DemoTaxonNode } from "./demoTypes";
 
 export const DemoTaxonNodeComponent = ({ data }: NodeProps<DemoTaxonNode>) => {
   const n = data;
-  const { primaryMedia, commonName, sciName } = n;
+  const { primaryMedia, commonName, sciName, rank } = n;
 
   return (
     <AnnotationBubbleWrap media={primaryMedia} spacing="2">
       <Card className="demo-taxon-node">
         <img
           src={primaryMedia?.url ?? "/logos/LogoDotted.svg"}
-          alt={commonName ?? sciName}
+          alt={commonName ?? formatTaxonName(rank, sciName)}
           loading="lazy"
           style={{ border: "1px solid var(--gray-5)" }}
           onError={(e) => {
@@ -24,7 +26,7 @@ export const DemoTaxonNodeComponent = ({ data }: NodeProps<DemoTaxonNode>) => {
         <Flex direction="column" flexGrow="1" justify="between">
           <Box>
             <Text as="div" weight="bold" truncate size="2">
-              {sciName}
+              <TaxonName rank={rank} name={sciName} />
             </Text>
             {commonName && (
               <Text as="div" size="1" color="gray" truncate>

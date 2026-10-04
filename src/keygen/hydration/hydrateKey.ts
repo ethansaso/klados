@@ -1,3 +1,4 @@
+import type { TaxonRank } from "../../../db/schema/schema";
 import { getCharactersByIds } from "../../lib/domain/characters/service";
 import { getFeaturesByIds } from "../../lib/domain/features/service";
 import type { MediaDTO } from "../../lib/domain/media/types";
@@ -30,6 +31,7 @@ type IdCollections = {
 type TaxonMeta = {
   id: number;
   sciName: string;
+  rank: TaxonRank;
   commonName?: string;
   primaryMedia?: MediaDTO;
 };
@@ -124,6 +126,7 @@ async function loadHydrationMeta(ids: IdCollections): Promise<HydrationMeta> {
     taxonById.set(t.id, {
       id: t.id,
       sciName: t.acceptedName,
+      rank: t.rank,
       commonName: t.preferredCommonName ?? undefined,
       primaryMedia: t.media.length > 0 ? t.media[0] : undefined,
     });
@@ -235,6 +238,7 @@ function hydrateNode(node: KeyNode, meta: HydrationMeta): HydratedKeyNode {
     const tMeta = meta.taxonById.get(numericId);
 
     const sciName = tMeta?.sciName ?? `Taxon ${node.id}`;
+    const rank = tMeta?.rank ?? null;
     const commonName = tMeta?.commonName;
     const primaryMedia = tMeta?.primaryMedia;
 
@@ -242,6 +246,7 @@ function hydrateNode(node: KeyNode, meta: HydrationMeta): HydratedKeyNode {
       kind: "taxon",
       id: node.id, // stays string
       sciName,
+      rank,
       commonName,
       primaryMedia,
     };

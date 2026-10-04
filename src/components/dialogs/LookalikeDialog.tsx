@@ -18,6 +18,8 @@ import type {
 import type { TaxonDTO } from "../../lib/domain/taxa/types";
 import { lookalikeDetailsQueryOptions } from "../../lib/queries/lookalikes";
 import { getMediaUrl } from "../../lib/storage/getMediaUrl";
+import { formatTaxonName } from "../../lib/utils/formatting/formatTaxonName";
+import { TaxonName } from "../TaxonName";
 import { GlossaryFeatureCard } from "../glossary-cards/GlossaryFeatureCard";
 import { CharacterStateDisplay } from "../state-formatting/CharacterStateDisplay";
 import type { UICharacterState } from "../state-formatting/types";
@@ -167,7 +169,7 @@ const TaxonColumnHeader = ({ taxon }: { taxon: TaxonDTO }) => {
   return (
     <Box>
       <Heading size="4" mb="2">
-        {taxon.acceptedName}
+        <TaxonName rank={taxon.rank} name={taxon.acceptedName} />
       </Heading>
       <AspectRatio ratio={1}>
         <img
@@ -176,7 +178,7 @@ const TaxonColumnHeader = ({ taxon }: { taxon: TaxonDTO }) => {
               ? getMediaUrl(primaryMedia.storageKey)
               : "/logos/LogoDotted.svg"
           }
-          alt={taxon.acceptedName}
+          alt={formatTaxonName(taxon.rank, taxon.acceptedName)}
           loading="lazy"
           onError={(e) => {
             e.currentTarget.onerror = null;

@@ -20,7 +20,9 @@ import { ExGbif } from "../../../../components/icons/individual/ExGbif";
 import { ExInat } from "../../../../components/icons/individual/ExInat";
 import { ResponsiveTooltip } from "../../../../components/ResponsiveTooltip";
 import { RouterRadixLink } from "../../../../components/RouterRadixLink";
+import { TaxonName } from "../../../../components/TaxonName";
 import type { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
+import { formatTaxonName } from "../../../../lib/utils/formatting/formatTaxonName";
 import { NamesDataList } from "./-NamesDataList";
 import { TaxonImageBrowser } from "./-TaxonImageBrowser";
 
@@ -32,11 +34,12 @@ export const TaxonMainSection = ({
   navigate: UseNavigateResult<"string">;
 }) => {
   const [openSections, setOpenSections] = useState<string[]>([]);
+  const parent = taxon.ancestors.at(-1);
 
   return (
     <Flex direction="column" gap={{ xs: "3" }}>
       <TaxonImageBrowser
-        taxonName={taxon.acceptedName}
+        taxonName={formatTaxonName(taxon.rank, taxon.acceptedName)}
         media={taxon.media}
         key={taxon.id}
       />
@@ -103,7 +106,9 @@ export const TaxonMainSection = ({
               <DataList.Label>Parent</DataList.Label>
               <DataList.Value>
                 <RouterRadixLink to="/taxa/$id" params={{ id: taxon.parentId }}>
-                  {taxon.ancestors.at(-1)?.acceptedName}
+                  {parent && (
+                    <TaxonName rank={parent.rank} name={parent.acceptedName} />
+                  )}
                 </RouterRadixLink>
               </DataList.Value>
             </DataList.Item>
@@ -119,7 +124,9 @@ export const TaxonMainSection = ({
                     <Flex key={st.id} display="inline-flex" align="center">
                       <RadixLink asChild>
                         <Link to="/taxa/$id" params={{ id: st.id }}>
-                          <Text as="span">{st.acceptedName}</Text>
+                          <Text as="span">
+                            <TaxonName rank={st.rank} name={st.acceptedName} />
+                          </Text>
                         </Link>
                       </RadixLink>
                       {i !== arr.length - 1 && <Text as="span">,</Text>}
@@ -204,7 +211,7 @@ export const TaxonMainSection = ({
                 <Accordion.Content>
                   <DataList.Value>
                     <Box mt="2">
-                      <NamesDataList names={taxon.names} />
+                      <NamesDataList rank={taxon.rank} names={taxon.names} />
                     </Box>
                   </DataList.Value>
                 </Accordion.Content>

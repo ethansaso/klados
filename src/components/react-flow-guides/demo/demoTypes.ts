@@ -1,4 +1,5 @@
 import type { Node, NodeTypes } from "@xyflow/react";
+import type { TaxonRank } from "../../../../db/schema/schema";
 import { type MediaLicense } from "../../../../db/utils/mediaLicense";
 import type { AssertedEdge } from "../util/assertedEdge";
 import DemoDiffNodeComponent from "./DemoDiffNodeComponent";
@@ -14,6 +15,7 @@ export type DemoMediaItem = {
 
 export type DemoTaxonNodeData = {
   sciName: string;
+  rank: TaxonRank;
   commonName?: string;
   primaryMedia?: DemoMediaItem;
 };

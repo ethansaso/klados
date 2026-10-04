@@ -5,11 +5,14 @@ import { PiCaretLeft, PiCaretRight, PiSubtractSquare } from "react-icons/pi";
 import { LookalikeDialog } from "../../../../../components/dialogs/LookalikeDialog";
 import { LookalikePercentBadge } from "../../../../../components/LookalikeBadge";
 import { TaxonCard } from "../../../../../components/TaxonCard";
+import { TaxonName } from "../../../../../components/TaxonName";
 import type { TaxonLookalikeDTO } from "../../../../../lib/domain/lookalikes/types";
+import type { TaxonRank } from "../../../../../../db/schema/schema";
 import "./LookalikesList.css";
 
 interface LookalikesListProps {
   taxonId: number;
+  taxonRank: TaxonRank;
   taxonName: string;
   lookalikes: TaxonLookalikeDTO[];
 }
@@ -20,6 +23,7 @@ const PAGE_FRACTION = 0.8;
 // TODO: consider confidence differential heuristic for when % matched and Jaccard diverge greatly
 export const LookalikesList = ({
   taxonId,
+  taxonRank,
   taxonName,
   lookalikes,
 }: LookalikesListProps) => {
@@ -90,7 +94,8 @@ export const LookalikesList = ({
 
       {lookalikes.length ? (
         <Text as="p" color="gray" size="1" mb="3">
-          These taxa share similar characteristics with {taxonName}. Click on
+          These taxa share similar characteristics with{" "}
+          <TaxonName rank={taxonRank} name={taxonName} />. Click on
           any taxon to compare side-by-side.
         </Text>
       ) : (

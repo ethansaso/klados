@@ -8,6 +8,7 @@ import { selectFeatureIdsByCharacterIds } from "../characters/repo";
 import { getFeatureDescendantIds } from "../features/repo";
 import { replaceGroupedCharacterStatesForTaxon } from "../states/repo";
 import { replaceNamesForTaxon } from "../taxon-names/repo";
+import { normalizeScientificName } from "../taxon-names/scientificName";
 import type { NameItem } from "../taxon-names/validation";
 import { setSourcesForTaxon } from "../taxon-sources/repo";
 import { selectSynonymSetIdsByTraitValueIds } from "../traits/repo";
@@ -38,6 +39,7 @@ import type {
   TaxonRow,
 } from "./types";
 import {
+  assertAcceptedNameConvention,
   assertAcceptedNameUniqueAmongSiblings,
   assertExactlyOneAcceptedScientificName,
   getChildCount,
@@ -66,10 +68,11 @@ export async function createTaxonDraft(args: {
 
     await insertAcceptedSciName(tx, {
       taxonId: id,
-      value: acceptedName,
+      value: normalizeScientificName(acceptedName, rank),
     });
 
     await assertExactlyOneAcceptedScientificName(tx, id);
+    await assertAcceptedNameConvention(tx, id);
     await assertAcceptedNameUniqueAmongSiblings(tx, id);
 
     const dto = await selectTaxonDtoById(tx, id);
@@ -443,8 +446,17 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
     // 2) names replace (if provided)
     if (updates.names) {
       assertNamesPayloadInvariant(updates.names);
-      await replaceNamesForTaxon(tx, id, updates.names);
+      const names = updates.names.map((n) =>
+        n.locale === "sci" && n.isPreferred
+          ? { ...n, value: normalizeScientificName(n.value, nextRank) }
+          : n,
+      );
+      await replaceNamesForTaxon(tx, id, names);
       await assertExactlyOneAcceptedScientificName(tx, id);
+    }
+
+    if ("parentId" in updates || "rank" in updates || updates.names) {
+      await assertAcceptedNameConvention(tx, id);
     }
 
     if ("parentId" in updates || updates.names) {

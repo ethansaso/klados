@@ -1,9 +1,12 @@
+import type { TaxonRank } from "../../../db/schema/schema";
 import type { MediaDTO } from "../../lib/domain/media/types";
 import type { Trait } from "../../lib/domain/states/types";
 import type { KeyDiffNode, KeyTaxonNode } from "../key-building/types";
 
 export type HydratedTaxonNode = Omit<KeyTaxonNode, "branches"> & {
   sciName: string;
+  /** Null when the taxon could not be loaded. */
+  rank: TaxonRank | null;
   commonName?: string;
   primaryMedia?: MediaDTO;
 };

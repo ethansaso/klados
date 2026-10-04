@@ -6,6 +6,11 @@ import {
   type TaxonRank,
 } from "../../../../db/schema/taxa/taxon";
 import type { Transaction } from "../../utils/types/transactionType";
+import {
+  RANK_NAME_SHAPE,
+  sciNameWords,
+  validateScientificName,
+} from "../taxon-names/scientificName";
 import type { TaxonFilterToken } from "./search";
 import { sci, sciJoinPred } from "./sqlAdapters";
 import type { TaxonRow } from "./types";
@@ -88,6 +93,81 @@ export async function assertAcceptedNameUniqueAmongSiblings(
       self.parentId === null ? "at the top level" : "under this parent";
     throw new Error(
       `"${duplicate.acceptedName}" (taxon ${duplicate.id}) already exists ${where}.`,
+    );
+  }
+}
+
+/**
+ * Accepted scientific name must match rank's naming convention. For ancestry:
+ *  - complex/species: first word is the nearest genus ancestor's name.
+ *  - infraspecific: all but the last word is the nearest species ancestor's name,
+ *    else the first word is the nearest genus ancestor's name.
+ * Missing ancestors (e.g. incertae sedis placements) skip the check.
+ */
+export async function assertAcceptedNameConvention(
+  tx: Transaction,
+  taxonId: number,
+): Promise<void> {
+  const [self] = await tx
+    .select({
+      parentId: taxaTbl.parentId,
+      rank: taxaTbl.rank,
+      acceptedName: sci.value,
+    })
+    .from(taxaTbl)
+    .innerJoin(sci, sciJoinPred)
+    .where(eq(taxaTbl.id, taxonId))
+    .limit(1);
+
+  if (!self) return;
+
+  const shapeError = validateScientificName(self.acceptedName, self.rank);
+  if (shapeError) throw new Error(shapeError);
+
+  const shape = RANK_NAME_SHAPE[self.rank];
+  if (shape === "uninomial" || self.parentId === null) return;
+
+  const ancestors = await tx.execute<{ rank: TaxonRank; acceptedName: string }>(sql`
+    WITH RECURSIVE chain AS (
+      SELECT t.id, t.parent_id, t.rank, 1 AS depth
+      FROM ${taxaTbl} t
+      WHERE t.id = ${self.parentId}
+      UNION ALL
+      SELECT p.id, p.parent_id, p.rank, chain.depth + 1
+      FROM ${taxaTbl} p
+      JOIN chain ON p.id = chain.parent_id
+      WHERE chain.depth < 256
+    )
+    SELECT chain.rank, n.value AS "acceptedName"
+    FROM chain
+    JOIN ${namesTbl} n
+      ON n.taxon_id = chain.id
+     AND n.locale = 'sci'
+     AND n.is_preferred = true
+    WHERE chain.rank IN ('genus', 'species')
+    ORDER BY chain.depth
+  `);
+
+  const nearest = (rank: TaxonRank) =>
+    ancestors.rows.find((a) => a.rank === rank)?.acceptedName;
+  const genus = nearest("genus");
+  const species = shape === "trinomial" ? nearest("species") : undefined;
+
+  const words = sciNameWords(self.acceptedName).map((w) => w.toLowerCase());
+  const startsWith = (prefix: string) => {
+    const prefixWords = sciNameWords(prefix).map((w) => w.toLowerCase());
+    return prefixWords.every((w, i) => words[i] === w);
+  };
+
+  if (species !== undefined) {
+    if (!startsWith(species) || words.length !== sciNameWords(species).length + 1) {
+      throw new Error(
+        `"${self.acceptedName}" must be its species "${species}" plus one epithet.`,
+      );
+    }
+  } else if (genus !== undefined && !startsWith(genus)) {
+    throw new Error(
+      `"${self.acceptedName}" must begin with its genus "${genus}".`,
     );
   }
 }
