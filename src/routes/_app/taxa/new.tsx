@@ -24,6 +24,7 @@ import { TAXON_RANKS_DESCENDING } from "../../../../db/schema/schema";
 import { ContentContainer } from "../../../components/ContentContainer";
 import { SelectCombobox } from "../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../components/inputs/combobox/types";
+import { formatTaxonName } from "../../../lib/utils/formatting/formatTaxonName";
 import {
   a11yProps,
   ConditionalAlert,
@@ -89,7 +90,8 @@ function RouteComponent() {
     () =>
       parentPaginatedResults?.items.map((taxon) => ({
         id: taxon.id,
-        label: taxon.acceptedName,
+        label: formatTaxonName(taxon.rank, taxon.acceptedName, "never"),
+        hint: taxon.rank,
       })) ?? [],
     [parentPaginatedResults],
   );
@@ -115,7 +117,7 @@ function RouteComponent() {
 
       navigate({ to: `/taxa/${res.id}/edit` });
       toast({
-        description: `Successfully created draft for taxon ${res.acceptedName}`,
+        description: `Successfully created draft for taxon ${formatTaxonName(res.rank, res.acceptedName)}`,
         variant: "success",
       });
     } catch (error) {

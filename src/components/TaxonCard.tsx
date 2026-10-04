@@ -2,15 +2,18 @@ import { Box, Card, Flex, Inset, Text } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import classNames from "classnames";
 import { memo, type PropsWithChildren } from "react";
+import type { TaxonRank } from "../../db/schema/schema";
 import type { MediaDTO } from "../lib/domain/media/types";
 import { getMediaUrl } from "../lib/storage/getMediaUrl";
 import { capitalizeFirstLetter } from "../lib/utils/formatting/casing";
+import { formatTaxonName } from "../lib/utils/formatting/formatTaxonName";
 import { AnnotationBubbleWrap } from "./annotations/AnnotationBubbleWrap";
 import "./TaxonCard.css";
+import { TaxonName } from "./TaxonName";
 
 interface TaxonCardProps {
   id: number;
-  rank: string;
+  rank: TaxonRank;
   acceptedName: string;
   preferredCommonName?: string | null;
   thumbnail?: MediaDTO | null;
@@ -42,7 +45,7 @@ export const TaxonCard = memo(
                 ? getMediaUrl(thumbnail.storageKey)
                 : "/logos/LogoDotted.svg"
             }
-            alt={acceptedName}
+            alt={formatTaxonName(rank, acceptedName)}
             loading="lazy"
             onError={(e) => {
               e.currentTarget.onerror = null;
@@ -56,12 +59,12 @@ export const TaxonCard = memo(
               {capitalizeFirstLetter(rank)}
             </Text>
             <Text
+              className="taxon-name"
               as="div"
-              weight="bold"
               size={size === "2" ? { initial: "1", xs: "2" } : { initial: "1" }}
               truncate
             >
-              {acceptedName}
+              <TaxonName rank={rank} name={acceptedName} prefixMode="never" />
             </Text>
             {preferredCommonName && (
               <Text as="div" size="1" color="gray" truncate>

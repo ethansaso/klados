@@ -16,6 +16,7 @@ import { PiArrowCounterClockwise, PiArrowRightBold } from "react-icons/pi";
 import { AnnotationBubbleWrap } from "../../../components/annotations/AnnotationBubbleWrap";
 import { GlossaryCard } from "../../../components/glossary-cards/GlossaryCard";
 import { ColorBubble } from "../../../components/state-formatting/helpers/ColorBubble";
+import { TaxonName } from "../../../components/TaxonName";
 import { formatCount, HomeSection } from "./HomeSection";
 import {
   CAP_DIAMETER_BOUNDS,
@@ -236,7 +237,7 @@ const ResultTile = ({
       {commonName}
     </Text>
     <Text as="div" size="1" color="gray">
-      <em>{sciName}</em>
+      <TaxonName rank="species" name={sciName} />
     </Text>
   </Box>
 );

@@ -1,13 +1,16 @@
 import { DataList, Flex, Text } from "@radix-ui/themes";
 import { useMemo } from "react";
+import type { TaxonRank } from "../../../../../db/schema/schema";
+import { TaxonName } from "../../../../components/TaxonName";
 import type { NameItem } from "../../../../lib/domain/taxon-names/validation";
 import { localeDisplayValues } from "../../../../lib/utils/localeDisplayValues";
 
 type NamesDataListProps = {
+  rank: TaxonRank;
   names: NameItem[];
 };
 
-export const NamesDataList = ({ names }: NamesDataListProps) => {
+export const NamesDataList = ({ rank, names }: NamesDataListProps) => {
   const localeEntries = useMemo(() => {
     // group by locale
     const grouped: Record<string, NameItem[]> = {};
@@ -61,7 +64,11 @@ export const NamesDataList = ({ names }: NamesDataListProps) => {
                       : undefined
                   }
                 >
-                  {item.value}
+                  {item.locale === "sci" && item.isPreferred ? (
+                    <TaxonName rank={rank} name={item.value} prefixMode="never" />
+                  ) : (
+                    item.value
+                  )}
                 </Text>
               ))}
             </Flex>

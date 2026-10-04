@@ -1,10 +1,12 @@
 import { Flex, Link, Popover, Text } from "@radix-ui/themes";
+import type { ReactNode } from "react";
 import { PiCaretRight } from "react-icons/pi";
 import type { ResponsiveSize, Size } from "../lib/utils/types/responsiveSize";
 import { RouterRadixLink } from "./RouterRadixLink";
 
 export interface Breadcrumb {
-  label: string;
+  key: string;
+  label: ReactNode;
   to?: string;
   params?: Record<string, string>;
   hiddenItems?: Breadcrumb[];
@@ -19,7 +21,7 @@ export const Breadcrumbs = ({ items, size = "3" }: BreadcrumbsProps) => {
   return (
     <ul className="breadcrumbs">
       {items.map((item, index) => (
-        <Text asChild size={size} key={item.label}>
+        <Text asChild size={size} key={item.key}>
           <li className="breadcrumbs__item">
             {item.hiddenItems?.length ? (
               <Popover.Root>
@@ -42,7 +44,7 @@ export const Breadcrumbs = ({ items, size = "3" }: BreadcrumbsProps) => {
                     {item.hiddenItems.map((hiddenItem) =>
                       hiddenItem.to ? (
                         <RouterRadixLink
-                          key={`${hiddenItem.label}-${hiddenItem.params?.id ?? "current"}`}
+                          key={hiddenItem.key}
                           to={hiddenItem.to}
                           params={hiddenItem.params}
                           size={size}
@@ -52,7 +54,7 @@ export const Breadcrumbs = ({ items, size = "3" }: BreadcrumbsProps) => {
                         </RouterRadixLink>
                       ) : (
                         <span
-                          key={`${hiddenItem.label}-${hiddenItem.params?.id ?? "current"}`}
+                          key={hiddenItem.key}
                           className="breadcrumbs__current"
                         >
                           {hiddenItem.label}

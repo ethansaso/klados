@@ -30,24 +30,32 @@ const INTERNAL_RANK_TO_GBIF_MAPPING: Record<
   (typeof TAXON_RANKS_DESCENDING)[number],
   string | null
 > = {
-  domain: "DOMAIN",
   kingdom: "KINGDOM",
   phylum: "PHYLUM",
   subphylum: "SUBPHYLUM",
+  superclass: "SUPERCLASS",
   class: "CLASS",
   subclass: "SUBCLASS",
+  infraclass: "INFRACLASS",
   superorder: "SUPERORDER",
   order: "ORDER",
+  suborder: "SUBORDER",
+  infraorder: "INFRAORDER",
+  superfamily: "SUPERFAMILY",
   family: "FAMILY",
   subfamily: "SUBFAMILY",
+  supertribe: "SUPERTRIBE",
   tribe: "TRIBE",
+  subtribe: "SUBTRIBE",
   genus: "GENUS",
   subgenus: "SUBGENUS",
   section: null,
+  subsection: null,
   complex: "SPECIES_AGGREGATE",
   species: "SPECIES",
   subspecies: "SUBSPECIES",
   variety: "VARIETY",
+  form: "FORM",
 };
 
 const SUGGEST_LIMIT = 5;

@@ -26,6 +26,7 @@ import {
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
 import { useGuideEditorStore } from "../../../../components/react-flow-guides/editor/data/useGuideEditorStore";
+import { formatTaxonName } from "../../../../lib/utils/formatting/formatTaxonName";
 import {
   type KeyGenerationInput,
   KeyGenerationInputSchema,
@@ -78,7 +79,7 @@ export const GuideEditorSidebar = () => {
     return items.reduce<ComboboxOption[]>((acc, i) => {
       acc.push({
         id: i.id,
-        label: i.acceptedName,
+        label: formatTaxonName(i.rank, i.acceptedName, "never"),
         hint: i.rank,
       });
       return acc;

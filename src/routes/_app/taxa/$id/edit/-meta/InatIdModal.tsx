@@ -23,24 +23,32 @@ const INTERNAL_RANK_TO_INAT_MAPPING: Record<
   (typeof TAXON_RANKS_DESCENDING)[number],
   string | null
 > = {
-  domain: null,
   kingdom: "kingdom",
   phylum: "phylum",
   subphylum: "subphylum",
+  superclass: "superclass",
   class: "class",
   subclass: "subclass",
+  infraclass: "infraclass",
   superorder: "superorder",
   order: "order",
+  suborder: "suborder",
+  infraorder: "infraorder",
+  superfamily: "superfamily",
   family: "family",
   subfamily: "subfamily",
+  supertribe: "supertribe",
   tribe: "tribe",
+  subtribe: "subtribe",
   genus: "genus",
   subgenus: "subgenus",
   section: "section",
+  subsection: "subsection",
   complex: "complex",
   species: "species",
   subspecies: "subspecies",
   variety: "variety",
+  form: "form",
 };
 
 const SUGGEST_LIMIT = 5;

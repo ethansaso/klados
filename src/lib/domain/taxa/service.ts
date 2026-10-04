@@ -3,11 +3,12 @@ import { and, count, eq } from "drizzle-orm";
 import { db } from "../../../../db/client";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
-import { assertHierarchyInvariant } from "../../utils/assertHierarchyInvariant";
+import { assertHierarchyInvariant } from "../../utils/sql/assertHierarchyInvariant";
 import { selectFeatureIdsByCharacterIds } from "../characters/repo";
 import { getFeatureDescendantIds } from "../features/repo";
 import { replaceGroupedCharacterStatesForTaxon } from "../states/repo";
 import { replaceNamesForTaxon } from "../taxon-names/repo";
+import { normalizeScientificName } from "../taxon-names/scientificName";
 import type { NameItem } from "../taxon-names/validation";
 import { setSourcesForTaxon } from "../taxon-sources/repo";
 import { selectSynonymSetIdsByTraitValueIds } from "../traits/repo";
@@ -38,6 +39,8 @@ import type {
   TaxonRow,
 } from "./types";
 import {
+  assertAcceptedNameConvention,
+  assertAcceptedNameUniqueAmongSiblings,
   assertExactlyOneAcceptedScientificName,
   getChildCount,
   getCurrentTaxonMinimal,
@@ -55,20 +58,22 @@ export async function createTaxonDraft(args: {
   const { acceptedName, parentId, rank } = args;
 
   return db.transaction(async (tx) => {
-    await assertHierarchyInvariant({
+    await assertHierarchyInvariant(
       tx,
-      nextParentId: parentId,
-      nextRank: rank,
-    });
+      parentId,
+      rank,
+    );
 
     const { id } = await insertDraftTaxon(tx, { parentId, rank });
 
     await insertAcceptedSciName(tx, {
       taxonId: id,
-      value: acceptedName,
+      value: normalizeScientificName(acceptedName, rank),
     });
 
     await assertExactlyOneAcceptedScientificName(tx, id);
+    await assertAcceptedNameConvention(tx, id);
+    await assertAcceptedNameUniqueAmongSiblings(tx, id);
 
     const dto = await selectTaxonDtoById(tx, id);
     return dto;
@@ -352,11 +357,11 @@ export async function publishTaxon(args: {
     }
 
     // Ensure structure is valid at publish time and a scientific name exists.
-    await assertHierarchyInvariant({
+    await assertHierarchyInvariant(
       tx,
-      nextParentId: current.parentId ?? null,
-      nextRank: current.rank,
-    });
+      current.parentId ?? null,
+      current.rank,
+    );
 
     await assertExactlyOneAcceptedScientificName(tx, id);
 
@@ -409,7 +414,12 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
       "rank" in updates ? (updates.rank ?? current.rank) : current.rank;
 
     if ("parentId" in updates || "rank" in updates) {
-      await assertHierarchyInvariant({ tx, nextParentId, nextRank });
+      await assertHierarchyInvariant(
+        tx,
+        nextParentId,
+        nextRank,
+        id,
+      );
     }
 
     if (nextParentId === id) {
@@ -436,8 +446,21 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
     // 2) names replace (if provided)
     if (updates.names) {
       assertNamesPayloadInvariant(updates.names);
-      await replaceNamesForTaxon(tx, id, updates.names);
+      const names = updates.names.map((n) =>
+        n.locale === "sci" && n.isPreferred
+          ? { ...n, value: normalizeScientificName(n.value, nextRank) }
+          : n,
+      );
+      await replaceNamesForTaxon(tx, id, names);
       await assertExactlyOneAcceptedScientificName(tx, id);
+    }
+
+    if ("parentId" in updates || "rank" in updates || updates.names) {
+      await assertAcceptedNameConvention(tx, id);
+    }
+
+    if ("parentId" in updates || updates.names) {
+      await assertAcceptedNameUniqueAmongSiblings(tx, id);
     }
 
     // 3) character states replace (if provided)

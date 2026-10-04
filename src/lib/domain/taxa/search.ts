@@ -71,14 +71,21 @@ export const TaxonFilterTokensSchema = z
   .default([])
   .catch([]);
 
+/**
+ * Router search params arrive as booleans (JSON-decoded), raw query strings
+ * (e.g. /api/taxa) as "true"/"false". Avoid z.coerce.boolean: it maps "false" to true.
+ */
+const BooleanParam = z.union([z.boolean(), z.stringbool()]).optional();
+
 export const TaxonFilterSchema = z.object({
-  q: z.string().optional(),
+  // Coerced since search params are JSON-decoded: "?q=123" arrives as a number
+  q: z.coerce.string().optional(),
   status: TaxonStatusFilter,
   highRank: z.enum(TAXON_RANKS_DESCENDING).optional(),
   lowRank: z.enum(TAXON_RANKS_DESCENDING).optional(),
-  hasMedia: z.boolean().optional(),
-  hasMorphology: z.boolean().optional(),
-  hasEcology: z.boolean().optional(),
+  hasMedia: BooleanParam,
+  hasMorphology: BooleanParam,
+  hasEcology: BooleanParam,
   filters: TaxonFilterTokensSchema,
 });
 

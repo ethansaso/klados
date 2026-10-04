@@ -21,6 +21,8 @@ import { PiArrowLeft } from "react-icons/pi";
 import z from "zod";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
 import { ContentContainer } from "../../../../../components/ContentContainer";
+import { TaxonName } from "../../../../../components/TaxonName";
+import { formatTaxonName } from "../../../../../lib/utils/formatting/formatTaxonName";
 import type { SourceDTO } from "../../../../../lib/domain/sources/types";
 import type { CharacterByFeatureUpdate } from "../../../../../lib/domain/states/validation";
 import { setTaxonSourcesSchema } from "../../../../../lib/domain/taxon-sources/validation";
@@ -133,7 +135,7 @@ export const Route = createFileRoute("/_app/taxa/$id/edit/")({
   head: ({ loaderData, match }) =>
     routeSeo({
       title: loaderData
-        ? `Editing ${loaderData.initialTaxon.acceptedName} | Klados`
+        ? `Editing ${formatTaxonName(loaderData.initialTaxon.rank, loaderData.initialTaxon.acceptedName)} | Klados`
         : "Klados",
       canonicalUrl: match.pathname,
     }),
@@ -331,7 +333,12 @@ function RouteComponent() {
                 </TanStackLink>
               </Button>
             </Flex>
-            <Heading>{initialTaxon.acceptedName}</Heading>
+            <Heading>
+              <TaxonName
+                rank={initialTaxon.rank}
+                name={initialTaxon.acceptedName}
+              />
+            </Heading>
             <Badge color={statusBadgeColor} size="2">
               {initialTaxon.status}
             </Badge>

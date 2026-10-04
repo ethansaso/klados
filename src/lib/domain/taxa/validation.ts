@@ -1,6 +1,10 @@
 import z from "zod";
 import { TAXON_RANKS_DESCENDING } from "../../../../db/schema/schema";
 import { groupedCharacterUpdateSchema } from "../states/validation";
+import {
+  normalizeScientificName,
+  validateScientificName,
+} from "../taxon-names/scientificName";
 import { nameItemSchema } from "../taxon-names/validation";
 import { setTaxonSourcesSchema } from "../taxon-sources/validation";
 
@@ -45,13 +49,22 @@ export const updateTaxonInputSchema = taxonPatchSchema
     }
   });
 
-export const createTaxonSchema = z.object({
-  acceptedName: z
-    .string("Accepted name must be a string.")
-    .nonempty("Accepted name is required"),
-  parentId: z.int("Must be an integer").nullable(),
-  rank: z.enum(TAXON_RANKS_DESCENDING),
-});
+export const createTaxonSchema = z
+  .object({
+    acceptedName: z
+      .string("Accepted name must be a string.")
+      .nonempty("Accepted name is required"),
+    parentId: z.int("Must be an integer").nullable(),
+    rank: z.enum(TAXON_RANKS_DESCENDING),
+  })
+  .superRefine(({ acceptedName, rank }, ctx) => {
+    // Validates the cleaned form, since the server cleans before saving
+    const normalized = normalizeScientificName(acceptedName, rank);
+    const error = normalized && validateScientificName(normalized, rank);
+    if (error) {
+      ctx.addIssue({ code: "custom", message: error, path: ["acceptedName"] });
+    }
+  });
 
 export type TaxonPatch = z.infer<typeof taxonPatchSchema>;
 export type CreateTaxonInput = z.infer<typeof createTaxonSchema>;

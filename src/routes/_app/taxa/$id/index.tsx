@@ -11,13 +11,14 @@ import {
   Breadcrumbs,
 } from "../../../../components/Breadcrumbs";
 import { ContentContainer } from "../../../../components/ContentContainer";
+import { TaxonName } from "../../../../components/TaxonName";
 import { distributionTilesQueryOptions } from "../../../../lib/queries/distributionTiles";
 import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 import { taxonCharacterStatesQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
 import { sourcesForTaxonQueryOptions } from "../../../../lib/queries/taxonSources";
 import { formatPublicationUsage } from "../../../../lib/utils/formatting/formatPublication";
-import { prefixWithRank } from "../../../../lib/utils/formatting/prefixWithRank";
+import { formatTaxonName } from "../../../../lib/utils/formatting/formatTaxonName";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { LookalikesList } from "./-lookalikes/LookalikesList";
 import { TaxonStateSection } from "./-states/TaxonStatesSection";
@@ -45,7 +46,7 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
   head: ({ loaderData, match }) =>
     routeSeo({
       title: loaderData
-        ? `${loaderData.taxon.acceptedName} | Klados`
+        ? `${formatTaxonName(loaderData.taxon.rank, loaderData.taxon.acceptedName)} | Klados`
         : "Klados",
       canonicalUrl: match.pathname,
     }),
@@ -69,13 +70,25 @@ function TaxonPage() {
 
   const breadcrumbItems: Breadcrumb[] = useMemo(() => {
     const lineageItems: Breadcrumb[] = taxon.ancestors.map((ancestor) => ({
-      label: prefixWithRank(ancestor.rank, ancestor.acceptedName),
+      key: String(ancestor.id),
+      label: (
+        <TaxonName
+          rank={ancestor.rank}
+          name={ancestor.acceptedName}
+        />
+      ),
       to: "/taxa/$id",
       params: { id: String(ancestor.id) },
     }));
 
     lineageItems.push({
-      label: prefixWithRank(taxon.rank, taxon.acceptedName),
+      key: String(taxon.id),
+      label: (
+        <TaxonName
+          rank={taxon.rank}
+          name={taxon.acceptedName}
+        />
+      ),
     });
 
     if (lineageItems.length <= 4) {
@@ -89,6 +102,7 @@ function TaxonPage() {
     return [
       rootItem,
       {
+        key: "hidden",
         label: "...",
         hiddenItems: lineageItems.slice(1, -2),
       },
@@ -110,7 +124,7 @@ function TaxonPage() {
           mt={{ initial: "1", xs: "0" }}
         >
           <Heading size={{ initial: "4", xs: "7" }} weight="medium">
-            {taxon.acceptedName}
+            <TaxonName rank={taxon.rank} name={taxon.acceptedName} />
           </Heading>
           {taxon.preferredCommonName && (
             <Text
@@ -216,6 +230,7 @@ function TaxonPage() {
           {/* Lookalikes */}
           <LookalikesList
             taxonId={id}
+            taxonRank={taxon.rank}
             taxonName={taxon.acceptedName}
             lookalikes={lookalikes}
           />
@@ -234,7 +249,7 @@ function TaxonPage() {
               <TaxonGBIFDistribution
                 densityUrls={densityUrls}
                 gbifId={taxon.sourceGbifId}
-                taxonName={taxon.acceptedName}
+                taxonName={formatTaxonName(taxon.rank, taxon.acceptedName)}
               />
             ) : (
               <Text>This taxon is not linked to GBIF.</Text>
