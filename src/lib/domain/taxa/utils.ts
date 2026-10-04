@@ -1,4 +1,4 @@
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, isNull, ne, sql } from "drizzle-orm";
 import { taxonName as namesTbl } from "../../../../db/schema/schema";
 import {
   taxon as taxaTbl,
@@ -7,7 +7,10 @@ import {
 } from "../../../../db/schema/taxa/taxon";
 import type { Transaction } from "../../utils/types/transactionType";
 import type { TaxonFilterToken } from "./search";
+import { sci, sciJoinPred } from "./sqlAdapters";
 import type { TaxonRow } from "./types";
+
+const SIBLING_NAMES_LOCK_NS = 1006;
 
 /** Precomputed rank: index map to avoid repeated indexOf calls. */
 const RANK_INDEX: Record<TaxonRank, number> = TAXON_RANKS_DESCENDING.reduce(
@@ -38,6 +41,53 @@ export async function assertExactlyOneAcceptedScientificName(
   if (countVal !== 1) {
     throw new Error(
       `Taxon ${taxonId} must have exactly one accepted scientific name, found ${countVal}.`,
+    );
+  }
+}
+
+/**
+ * Accepted scientific names must be unique (case-insensitive, trimmed) among
+ * non-archived siblings. Parentless taxa count as siblings of each other.
+ */
+export async function assertAcceptedNameUniqueAmongSiblings(
+  tx: Transaction,
+  taxonId: number,
+): Promise<void> {
+  const [self] = await tx
+    .select({ parentId: taxaTbl.parentId, acceptedName: sci.value })
+    .from(taxaTbl)
+    .innerJoin(sci, sciJoinPred)
+    .where(eq(taxaTbl.id, taxonId))
+    .limit(1);
+
+  if (!self) return;
+
+  // Lock for race condition
+  await tx.execute(
+    sql`SELECT pg_advisory_xact_lock(${SIBLING_NAMES_LOCK_NS}, ${self.parentId ?? 0})`,
+  );
+
+  const [duplicate] = await tx
+    .select({ id: taxaTbl.id, acceptedName: sci.value })
+    .from(taxaTbl)
+    .innerJoin(sci, sciJoinPred)
+    .where(
+      and(
+        self.parentId === null
+          ? isNull(taxaTbl.parentId)
+          : eq(taxaTbl.parentId, self.parentId),
+        ne(taxaTbl.id, taxonId),
+        ne(taxaTbl.status, "archived"),
+        sql`lower(btrim(${sci.value})) = lower(btrim(${self.acceptedName}))`,
+      ),
+    )
+    .limit(1);
+
+  if (duplicate) {
+    const where =
+      self.parentId === null ? "at the top level" : "under this parent";
+    throw new Error(
+      `"${duplicate.acceptedName}" (taxon ${duplicate.id}) already exists ${where}.`,
     );
   }
 }

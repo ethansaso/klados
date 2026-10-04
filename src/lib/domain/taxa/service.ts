@@ -38,6 +38,7 @@ import type {
   TaxonRow,
 } from "./types";
 import {
+  assertAcceptedNameUniqueAmongSiblings,
   assertExactlyOneAcceptedScientificName,
   getChildCount,
   getCurrentTaxonMinimal,
@@ -69,6 +70,7 @@ export async function createTaxonDraft(args: {
     });
 
     await assertExactlyOneAcceptedScientificName(tx, id);
+    await assertAcceptedNameUniqueAmongSiblings(tx, id);
 
     const dto = await selectTaxonDtoById(tx, id);
     return dto;
@@ -443,6 +445,10 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
       assertNamesPayloadInvariant(updates.names);
       await replaceNamesForTaxon(tx, id, updates.names);
       await assertExactlyOneAcceptedScientificName(tx, id);
+    }
+
+    if ("parentId" in updates || updates.names) {
+      await assertAcceptedNameUniqueAmongSiblings(tx, id);
     }
 
     // 3) character states replace (if provided)
