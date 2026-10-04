@@ -13,24 +13,32 @@ import {
 import { withTimestamps } from "../../utils/timestamps";
 
 export const TAXON_RANKS_DESCENDING = [
-  "domain",
   "kingdom",
   "phylum",
   "subphylum",
+  "superclass",
   "class",
   "subclass",
+  "infraclass",
   "superorder",
   "order",
+  "suborder",
+  "infraorder",
+  "superfamily",
   "family",
   "subfamily",
+  "supertribe",
   "tribe",
+  "subtribe",
   "genus",
   "subgenus",
   "section",
+  "subsection",
   "complex",
   "species",
   "subspecies",
   "variety",
+  "form",
 ] as const;
 
 export type TaxonRank = (typeof TAXON_RANKS_DESCENDING)[number];
