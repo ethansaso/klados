@@ -46,7 +46,7 @@ const RANK_MARKERS: Partial<Record<TaxonRank, readonly string[]>> = {
   section: ["sect.", "section"],
   subsection: ["subsect.", "subsection"],
   complex: ["complex", "agg."],
-  subspecies: ["subsp.", "ssp.", "subspecies"],
+  subspecies: ["ssp.", "subsp.", "subspecies"],
   variety: ["var.", "variety"],
   form: ["f.", "fo.", "forma"],
 };
