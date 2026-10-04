@@ -1,5 +1,6 @@
-import { Box, Card, Em, Flex, Inset, Strong, Text } from "@radix-ui/themes";
+import { Box, Card, Flex, Inset, Strong, Text } from "@radix-ui/themes";
 import { GlossaryCard } from "../../../components/glossary-cards/GlossaryCard";
+import { TaxonName } from "../../../components/TaxonName";
 
 /**
  * Leader lines are drawn in a fixed design space (see home.css): 168px labels
@@ -62,7 +63,7 @@ export const AnnotatedSpeciesCard: React.FC<Props> = ({ framed }) => {
               <Strong>Rosy Navel</Strong>
             </Text>
             <Text as="p" color="gray">
-              <Em>Contumyces rosellus</Em>
+              <TaxonName rank="species" name="Contumyces rosellus" />
             </Text>
           </Card>
         </Box>

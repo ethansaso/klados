@@ -1,10 +1,11 @@
 import "./SpeciesDescription.css";
 
-import { Box, Card, Em, Flex, Heading, Strong, Text } from "@radix-ui/themes";
+import { Box, Card, Flex, Heading, Strong, Text } from "@radix-ui/themes";
 import { Fragment, type ReactNode } from "react";
 import { AnnotationBubbleWrap } from "../../../components/annotations/AnnotationBubbleWrap";
 import { GlossaryCard } from "../../../components/glossary-cards/GlossaryCard";
 import { ColorBubble } from "../../../components/state-formatting/helpers/ColorBubble";
+import { TaxonName } from "../../../components/TaxonName";
 import { capitalizeFirstLetter } from "../../../lib/utils/formatting/casing";
 import { HomeSection } from "./HomeSection";
 
@@ -223,7 +224,7 @@ export const SpeciesDescription = () => (
                   <Strong>Springtime Amanita</Strong>
                 </Text>
                 <Text as="p" size="2" color="gray">
-                  <Em>Amanita velosa</Em>
+                  <TaxonName rank="species" name="Amanita velosa" />
                 </Text>
               </Box>
               <Text as="p" size="2">
