@@ -3,7 +3,7 @@ import { and, count, eq } from "drizzle-orm";
 import { db } from "../../../../db/client";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
-import { assertHierarchyInvariant } from "../../utils/assertHierarchyInvariant";
+import { assertHierarchyInvariant } from "../../utils/sql/assertHierarchyInvariant";
 import { selectFeatureIdsByCharacterIds } from "../characters/repo";
 import { getFeatureDescendantIds } from "../features/repo";
 import { replaceGroupedCharacterStatesForTaxon } from "../states/repo";
@@ -55,11 +55,11 @@ export async function createTaxonDraft(args: {
   const { acceptedName, parentId, rank } = args;
 
   return db.transaction(async (tx) => {
-    await assertHierarchyInvariant({
+    await assertHierarchyInvariant(
       tx,
-      nextParentId: parentId,
-      nextRank: rank,
-    });
+      parentId,
+      rank,
+    );
 
     const { id } = await insertDraftTaxon(tx, { parentId, rank });
 
@@ -352,11 +352,11 @@ export async function publishTaxon(args: {
     }
 
     // Ensure structure is valid at publish time and a scientific name exists.
-    await assertHierarchyInvariant({
+    await assertHierarchyInvariant(
       tx,
-      nextParentId: current.parentId ?? null,
-      nextRank: current.rank,
-    });
+      current.parentId ?? null,
+      current.rank,
+    );
 
     await assertExactlyOneAcceptedScientificName(tx, id);
 
@@ -409,7 +409,12 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
       "rank" in updates ? (updates.rank ?? current.rank) : current.rank;
 
     if ("parentId" in updates || "rank" in updates) {
-      await assertHierarchyInvariant({ tx, nextParentId, nextRank });
+      await assertHierarchyInvariant(
+        tx,
+        nextParentId,
+        nextRank,
+        id,
+      );
     }
 
     if (nextParentId === id) {
