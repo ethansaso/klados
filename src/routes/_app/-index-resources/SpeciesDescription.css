@@ -1,0 +1,53 @@
+/* Base rules are kept at the same specificity as the @container block below,
+   so the query can actually override them. */
+.species-demo {
+  /* Whether the photo can sit beside the prose depends on the card's width,
+     not the viewport's. */
+  width: 100%;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.species-demo__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.species-demo__figure {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius-2);
+  overflow: hidden;
+}
+
+.species-demo__figure .annotation-bubble__wrapper {
+  height: 100%;
+}
+
+.species-demo__figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.species-demo__swatch {
+  display: inline-block;
+  margin-right: 4px;
+}
+
+@container (min-width: 520px) {
+  .species-demo__body {
+    flex-direction: row;
+  }
+
+  .species-demo__figure {
+    flex-shrink: 0;
+    width: 300px;
+  }
+}
+
+.species-demo__state {
+  white-space: nowrap;
+}

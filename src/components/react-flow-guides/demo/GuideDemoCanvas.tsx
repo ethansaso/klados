@@ -1,11 +1,6 @@
 import { Flex, Text } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Controls,
-  ReactFlow,
-  useEdgesState,
-  useNodesState,
-} from "@xyflow/react";
+import { ReactFlow, useEdgesState, useNodesState } from "@xyflow/react";
 import { themeQueryOptions } from "../../../lib/queries/theme";
 import { DEFAULT_THEME } from "../../../lib/utils/theme";
 import LogoBackground from "../bg/LogoBackground";
@@ -37,12 +32,17 @@ export const GuideDemoCanvas = () => {
         nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable={false}
+        panOnDrag={false}
+        panOnScroll={false}
+        zoomOnPinch={false}
+        zoomOnDoubleClick={false}
+        zoomOnScroll={false}
+        preventScrolling={false}
         fitView
         minZoom={0.2}
         proOptions={{ hideAttribution: true }}
       >
         <LogoBackground />
-        <Controls orientation="horizontal" />
       </ReactFlow>
       <Text color="gray" size="1" align="right" mt="2">
         * simplified data for illustrative purposes only

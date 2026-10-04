@@ -1,7 +1,30 @@
 .rf-demo__wrapper {
   .rf-demo__canvas {
+    /* React Flow is transparent in light mode and its own grey in dark; use the
+       card surface in both so it reads as a panel on the tinted band. */
+    --xy-background-color: var(--color-panel-solid);
     border-radius: var(--radius-3);
     border: 1px solid var(--gray-6);
+  }
+
+  .react-flow__node .annotation-bubble__wrapper {
+    pointer-events: auto !important;
+  }
+}
+
+/* The figure needs a definite width: a content-derived one feeds back into its
+   own container query and collapses the flex item. */
+.hero-figure {
+  width: 100%;
+  max-width: 624px;
+  min-width: 0;
+}
+
+/* Radix `lg`, where the hero goes side by side. */
+@media (min-width: 1280px) {
+  .hero-figure {
+    flex: none;
+    width: 624px;
   }
 }
 
@@ -12,74 +35,94 @@
     0px 4px 8px rgb(0 0 0 / 0.1);
 }
 
-.purpose-section {
+/* Annotated species card on the home page. The hero only shows it where it
+   has room for the fixed 592px design space the leader lines are drawn in
+   (see AnnotatedSpeciesCard.tsx). Its height comes from the card. */
+.description-demo__figure {
   width: 100%;
+  max-width: 624px;
+  margin-inline: auto;
+  padding: var(--space-4);
+}
+
+.description-demo__figure--framed {
+  border: 1px solid var(--gray-6);
+  border-radius: var(--radius-3);
+  background-color: var(--gray-a2);
+}
+
+.description-demo {
+  position: relative;
+  width: 592px;
+  margin-inline: auto;
+
+  .description-demo__card {
+    width: 224px;
+    margin-inline: auto;
+  }
+
+  .description-demo__lines {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .description-demo__lead--outer,
+  .description-demo__lead--inner {
+    fill: none;
+    stroke: rgb(255 255 255 / 0.9);
+    stroke-width: 1;
+    stroke-linecap: round;
+  }
+
+  .description-demo__lead-dot {
+    stroke: none;
+    fill: rgb(255 255 255 / 0.9);
+  }
+
+  .description-demo__label {
+    position: absolute;
+    width: 168px;
+  }
+
+  .description-demo__label--cap {
+    left: 0;
+    top: 16px;
+    text-align: right;
+  }
+
+  .description-demo__label--gills {
+    right: 0;
+    top: 46px;
+    text-align: left;
+  }
+
+  .description-demo__label--stipe {
+    left: 0;
+    top: 121px;
+    text-align: right;
+  }
+}
+
+.home-section {
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--space-8) var(--space-6);
+
+  @media (min-width: 768px) {
+    padding-block: var(--space-9);
+  }
+}
+
+.home-section--tinted {
   background-color: var(--accent-a2);
-
-  .purpose-list {
-    list-style: none;
-    padding: 0;
-
-    li {
-      display: flex;
-      gap: var(--space-4);
-
-      svg {
-        color: var(--accent-11);
-        font-size: 5rem;
-        flex-shrink: 0;
-      }
-    }
-  }
 }
 
-.feature-grid {
-  display: grid;
-  gap: var(--space-2);
-  max-width: 100%;
-  align-items: center;
-  justify-items: center;
-  justify-content: center;
-  grid-template-columns: repeat(auto-fit, 196px);
-
-  .feature-grid__item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: var(--space-4);
-  }
-
-  .feature-icon__container {
-    position: relative;
-    padding: var(--space-1);
-    border-radius: 50%;
-    margin-bottom: var(--space-1);
-
-    &::after {
-      content: "";
-      position: absolute;
-      width: 65%;
-      height: 65%;
-
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-
-      border-radius: 50%;
-      background-color: var(--accent-a3);
-      z-index: -100;
-    }
-
-    .feature-icon {
-      width: 5rem;
-      height: 5rem;
-      display: block;
-    }
-  }
-}
-
-.final-cta {
+.home-section__inner {
   width: 100%;
-  background-color: var(--gray-12);
-  color: var(--gray-1);
+  max-width: 1080px;
+  margin-inline: auto;
 }

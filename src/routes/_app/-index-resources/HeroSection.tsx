@@ -1,54 +1,109 @@
-import { Box, Button, Flex, Heading, Text } from "@radix-ui/themes";
+import { Box, Button, Flex, Heading, Text, Theme } from "@radix-ui/themes";
 import { Link } from "@tanstack/react-router";
 import { PiArrowRight } from "react-icons/pi";
+import { GlossaryCard } from "../../../components/glossary-cards/GlossaryCard";
+import { AnnotatedSpeciesCard } from "./AnnotatedSpeciesCard";
+import "./HeroSection.css";
 
 export const HeroSection = () => {
   return (
     <Flex
+      className="hero-section"
       align="center"
       justify="center"
-      py="6"
-      px="6"
-      minHeight={{ initial: "60svh", sm: "496px" }}
+      py={{ initial: "8", md: "9" }}
+      px={{ initial: "6", md: "8" }}
+      minHeight={{ initial: "60svh", sm: "528px" }}
       width="100%"
-      style={{
-        backgroundImage: "url(/about/forest-bg.webp)",
-        backgroundSize: "cover",
-        backgroundPosition: "0 50%",
-        // darken by 50%
-        backgroundBlendMode: "darken",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        color: "white",
-      }}
     >
       <Flex
-        direction="column"
-        align={{ initial: "start", xs: "center" }}
-        gap="4"
-        maxWidth="600px"
+        direction={{ initial: "column", lg: "row" }}
+        align="center"
+        justify="center"
+        gap={{ initial: "7", xl: "8" }}
+        width="100%"
+        maxWidth="1264px"
       >
-        <Heading
-          size={{ initial: "8", sm: "9" }}
-          align={{ initial: "left", xs: "center" }}
-          className="hero-text"
+        <Flex
+          direction="column"
+          align={{ initial: "start", xs: "center", lg: "start" }}
+          maxWidth={{ initial: "600px", lg: "512px", xl: "544px" }}
+          style={{
+            color: "white",
+          }}
         >
-          Visual tools to identify organisms.
-        </Heading>
-        <Text
-          size={{ initial: "5", sm: "6" }}
-          align={{ initial: "left", xs: "center" }}
-          className="hero-text"
-        >
-          Browse thousands of species and explore interactive,
-          community-maintained guides built from real biological data.
-        </Text>
-        <Box asChild width={{ initial: "100%", xs: "auto" }}>
-          <Button size={{ initial: "3", sm: "4" }} asChild radius="full">
-            <Link to="/taxa">
-              Browse Species
-              <PiArrowRight />
-            </Link>
-          </Button>
+          <Heading
+            size={{ initial: "8", sm: "9" }}
+            align={{ initial: "left", xs: "center", lg: "left" }}
+            mb="3"
+            className="hero-text"
+          >
+            A shared language for identification.
+          </Heading>
+          <Text
+            size={{ initial: "5", sm: "6" }}
+            align={{ initial: "left", xs: "center", lg: "left" }}
+            mb="5"
+            className="hero-text"
+          >
+            Explore{" "}
+            <GlossaryCard
+              info={{
+                title: "Biodiversity",
+                description: "The variety of life on Earth.",
+                media: null,
+              }}
+            >
+              <span className="has-information">biodiversity</span>
+            </GlossaryCard>{" "}
+            using interactive resources grounded in{" "}
+            <GlossaryCard
+              info={{
+                title: "Structured data",
+                description:
+                  "Data in a standardized, rule-defined format, in contrast to unstructured data like plain text.",
+                media: null,
+              }}
+            >
+              <span className="has-information">structured data</span>
+            </GlossaryCard>
+            .
+          </Text>
+          <Flex
+            gap="3"
+            direction={{ initial: "column", xs: "row" }}
+            width={{ initial: "100%", xs: "auto" }}
+          >
+            <Box asChild width={{ initial: "100%", xs: "auto" }}>
+              <Button size={{ initial: "3", sm: "4" }} asChild radius="full">
+                <Link to="/taxa">
+                  Browse species
+                  <PiArrowRight />
+                </Link>
+              </Button>
+            </Box>
+            <Theme appearance="dark" hasBackground={false}>
+              <Box asChild width={{ initial: "100%", xs: "auto" }}>
+                <Button
+                  size={{ initial: "3", sm: "4" }}
+                  asChild
+                  radius="full"
+                  highContrast
+                  variant="solid"
+                  color="gray"
+                >
+                  <Link to="/guides">
+                    Explore guides
+                    <PiArrowRight />
+                  </Link>
+                </Button>
+              </Box>
+            </Theme>
+          </Flex>
+        </Flex>
+
+        <Box className="hero-figure" display={{ initial: "none", md: "block" }}>
+          <AnnotatedSpeciesCard />
         </Box>
       </Flex>
     </Flex>

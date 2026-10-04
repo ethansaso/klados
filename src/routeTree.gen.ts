@@ -31,6 +31,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminSourcesRouteRouteImport } from './routes/admin/sources/route'
 import { Route as AdminUsersRouteRouteImport } from './routes/admin/users/route'
 import { Route as ApiUnauthenticatedRouteRouteImport } from './routes/api/_unauthenticated/route'
+import { Route as AppCuratorsNewRouteImport } from './routes/_app/curators/new'
 import { Route as AppGlossaryIndexRouteImport } from './routes/_app/glossary/index'
 import { Route as AppGlossaryCharactersRouteRouteImport } from './routes/_app/glossary/characters/route'
 import { Route as AppGlossaryFeaturesRouteRouteImport } from './routes/_app/glossary/features/route'
@@ -172,6 +173,11 @@ const ApiUnauthenticatedRouteRoute = ApiUnauthenticatedRouteRouteImport.update({
   id: '/api/_unauthenticated',
   path: '/api',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppCuratorsNewRoute = AppCuratorsNewRouteImport.update({
+  id: '/curators/new',
+  path: '/curators/new',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppGlossaryIndexRoute = AppGlossaryIndexRouteImport.update({
   id: '/',
@@ -366,6 +372,7 @@ export interface FileRoutesByFullPath {
   '/glossary/characters': typeof AppGlossaryCharactersRouteRouteWithChildren
   '/glossary/features': typeof AppGlossaryFeaturesRouteRouteWithChildren
   '/glossary/modifiers': typeof AppGlossaryModifiersRouteRouteWithChildren
+  '/curators/new': typeof AppCuratorsNewRoute
   '/taxa/new': typeof AppTaxaNewRoute
   '/api/extraction': typeof ApiUnauthenticatedExtractionRoute
   '/api/taxa': typeof ApiUnauthenticatedTaxaRoute
@@ -411,6 +418,7 @@ export interface FileRoutesByTo {
   '/sitemap-taxa.xml': typeof SitemapsSitemapTaxaDotxmlRoute
   '/': typeof AppIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/curators/new': typeof AppCuratorsNewRoute
   '/taxa/new': typeof AppTaxaNewRoute
   '/api/extraction': typeof ApiUnauthenticatedExtractionRoute
   '/api/taxa': typeof ApiUnauthenticatedTaxaRoute
@@ -463,6 +471,7 @@ export interface FileRoutesById {
   '/_app/glossary/features': typeof AppGlossaryFeaturesRouteRouteWithChildren
   '/_app/glossary/modifiers': typeof AppGlossaryModifiersRouteRouteWithChildren
   '/_app/guides/_browsing': typeof AppGuidesBrowsingRouteRouteWithChildren
+  '/_app/curators/new': typeof AppCuratorsNewRoute
   '/_app/taxa/new': typeof AppTaxaNewRoute
   '/api/_unauthenticated/extraction': typeof ApiUnauthenticatedExtractionRoute
   '/api/_unauthenticated/taxa': typeof ApiUnauthenticatedTaxaRoute
@@ -518,6 +527,7 @@ export interface FileRouteTypes {
     | '/glossary/characters'
     | '/glossary/features'
     | '/glossary/modifiers'
+    | '/curators/new'
     | '/taxa/new'
     | '/api/extraction'
     | '/api/taxa'
@@ -563,6 +573,7 @@ export interface FileRouteTypes {
     | '/sitemap-taxa.xml'
     | '/'
     | '/admin'
+    | '/curators/new'
     | '/taxa/new'
     | '/api/extraction'
     | '/api/taxa'
@@ -614,6 +625,7 @@ export interface FileRouteTypes {
     | '/_app/glossary/features'
     | '/_app/glossary/modifiers'
     | '/_app/guides/_browsing'
+    | '/_app/curators/new'
     | '/_app/taxa/new'
     | '/api/_unauthenticated/extraction'
     | '/api/_unauthenticated/taxa'
@@ -806,6 +818,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api'
       preLoaderRoute: typeof ApiUnauthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/curators/new': {
+      id: '/_app/curators/new'
+      path: '/curators/new'
+      fullPath: '/curators/new'
+      preLoaderRoute: typeof AppCuratorsNewRouteImport
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/glossary/': {
       id: '/_app/glossary/'
@@ -1199,6 +1218,7 @@ interface AppRouteRouteChildren {
   AppTosRoute: typeof AppTosRoute
   AppVerifyEmailRoute: typeof AppVerifyEmailRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppCuratorsNewRoute: typeof AppCuratorsNewRoute
   AppTaxaNewRoute: typeof AppTaxaNewRoute
   AppTaxaIndexRoute: typeof AppTaxaIndexRoute
   AppTaxaIdEditRouteRoute: typeof AppTaxaIdEditRouteRouteWithChildren
@@ -1221,6 +1241,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppTosRoute: AppTosRoute,
   AppVerifyEmailRoute: AppVerifyEmailRoute,
   AppIndexRoute: AppIndexRoute,
+  AppCuratorsNewRoute: AppCuratorsNewRoute,
   AppTaxaNewRoute: AppTaxaNewRoute,
   AppTaxaIndexRoute: AppTaxaIndexRoute,
   AppTaxaIdEditRouteRoute: AppTaxaIdEditRouteRouteWithChildren,
