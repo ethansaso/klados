@@ -13,7 +13,7 @@ export const Footer = () => {
           width="100%"
           px={{ initial: "2", sm: "0" }}
         >
-          <Text color="gray">© 2025 Klados. All rights reserved.</Text>
+          <Text color="gray">© 2026 Klados. All rights reserved.</Text>
           <Text color="gray">
             Built with <Text highContrast>❤️</Text> by{" "}
             <Link

@@ -4,6 +4,7 @@ import { db } from "../../../../db/client";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import { assertHierarchyInvariant } from "../../utils/sql/assertHierarchyInvariant";
+import type { Transaction } from "../../utils/types/transactionType";
 import { selectFeatureIdsByCharacterIds } from "../characters/repo";
 import { getFeatureDescendantIds } from "../features/repo";
 import { replaceGroupedCharacterStatesForTaxon } from "../states/repo";
@@ -20,7 +21,6 @@ import { convertToSI, unitFitsCharacter } from "../units/utils";
 import {
   deleteTaxonById,
   fetchTaxonDetailById,
-  insertAcceptedSciName,
   insertDraftTaxon,
   listTaxaQuery,
   markTaxonActive,
@@ -48,36 +48,113 @@ import {
 import type { UpdateTaxonInput } from "./validation";
 
 /**
- * Create a new draft taxon with an accepted scientific name.
+ * Create a new draft taxon with an accepted scientific name, optionally seeded
+ * with external source IDs, additional names, and media.
  */
 export async function createTaxonDraft(args: {
   acceptedName: string;
   parentId: number | null;
   rank: TaxonRow["rank"];
+  sourceGbifId?: number | null;
+  sourceInatId?: number | null;
+  names?: NameItem[];
+  mediaIds?: number[];
 }): Promise<TaxonDTO | null> {
-  const { acceptedName, parentId, rank } = args;
+  const {
+    acceptedName,
+    parentId,
+    rank,
+    sourceGbifId,
+    sourceInatId,
+    names = [],
+    mediaIds = [],
+  } = args;
 
   return db.transaction(async (tx) => {
-    await assertHierarchyInvariant(
-      tx,
+    await assertHierarchyInvariant(tx, parentId, rank);
+
+    const { id } = await insertDraftTaxon(tx, {
       parentId,
       rank,
-    );
-
-    const { id } = await insertDraftTaxon(tx, { parentId, rank });
-
-    await insertAcceptedSciName(tx, {
-      taxonId: id,
-      value: normalizeScientificName(acceptedName, rank),
+      sourceGbifId,
+      sourceInatId,
     });
 
-    await assertExactlyOneAcceptedScientificName(tx, id);
+    // The accepted name is authoritative, so other scientific names are synonyms
+    await replaceTaxonNames(tx, id, rank, [
+      { value: acceptedName, locale: "sci", isPreferred: true },
+      ...names.map((n) =>
+        n.locale === "sci" ? { ...n, isPreferred: false } : n,
+      ),
+    ]);
     await assertAcceptedNameConvention(tx, id);
     await assertAcceptedNameUniqueAmongSiblings(tx, id);
+
+    await insertTaxonMedia(tx, id, mediaIds);
 
     const dto = await selectTaxonDtoById(tx, id);
     return dto;
   });
+}
+
+/**
+ * Replace a taxon's names. Exactly one preferred scientific name (the accepted
+ * name) is required and gets normalized; other scientific names are synonyms.
+ * Repeated names are dropped rather than left to fail the unique index.
+ */
+async function replaceTaxonNames(
+  tx: Transaction,
+  taxonId: number,
+  rank: TaxonRow["rank"],
+  input: NameItem[],
+) {
+  const names = dropRepeatedNames(input, rank);
+  assertNamesPayloadInvariant(names);
+  await replaceNamesForTaxon(
+    tx,
+    taxonId,
+    names.map((n) =>
+      n.locale === "sci" && n.isPreferred
+        ? { ...n, value: normalizeScientificName(n.value, rank) }
+        : n,
+    ),
+  );
+  await assertExactlyOneAcceptedScientificName(tx, taxonId);
+}
+
+/**
+ * Collapse names that match within a locale (case- and whitespace-insensitive,
+ * as the names table compares them; scientific names compared normalized).
+ * A preferred copy wins over a non-preferred one; otherwise the first is kept.
+ */
+function dropRepeatedNames(
+  names: NameItem[],
+  rank: TaxonRow["rank"],
+): NameItem[] {
+  const byKey = new Map<string, NameItem>();
+  for (const n of names) {
+    const value =
+      n.locale === "sci" ? normalizeScientificName(n.value, rank) : n.value;
+    const key = `${n.locale.trim().toLowerCase()}:${value.trim().toLowerCase()}`;
+    const kept = byKey.get(key);
+    if (!kept || (n.isPreferred && !kept.isPreferred)) byKey.set(key, n);
+  }
+  return [...byKey.values()];
+}
+
+async function insertTaxonMedia(
+  tx: Transaction,
+  taxonId: number,
+  mediaIds: number[],
+) {
+  // Deduping happens during upload stage, but taxon record also needs it here
+  const unique = [...new Set(mediaIds)];
+  if (unique.length === 0) return;
+  await tx
+    .insert(taxonMediaTbl)
+    .values(
+      unique.map((mediaId, position) => ({ taxonId, mediaId, position })),
+    );
 }
 
 /**
@@ -357,11 +434,7 @@ export async function publishTaxon(args: {
     }
 
     // Ensure structure is valid at publish time and a scientific name exists.
-    await assertHierarchyInvariant(
-      tx,
-      current.parentId ?? null,
-      current.rank,
-    );
+    await assertHierarchyInvariant(tx, current.parentId ?? null, current.rank);
 
     await assertExactlyOneAcceptedScientificName(tx, id);
 
@@ -414,12 +487,7 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
       "rank" in updates ? (updates.rank ?? current.rank) : current.rank;
 
     if ("parentId" in updates || "rank" in updates) {
-      await assertHierarchyInvariant(
-        tx,
-        nextParentId,
-        nextRank,
-        id,
-      );
+      await assertHierarchyInvariant(tx, nextParentId, nextRank, id);
     }
 
     if (nextParentId === id) {
@@ -445,14 +513,7 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
 
     // 2) names replace (if provided)
     if (updates.names) {
-      assertNamesPayloadInvariant(updates.names);
-      const names = updates.names.map((n) =>
-        n.locale === "sci" && n.isPreferred
-          ? { ...n, value: normalizeScientificName(n.value, nextRank) }
-          : n,
-      );
-      await replaceNamesForTaxon(tx, id, names);
-      await assertExactlyOneAcceptedScientificName(tx, id);
+      await replaceTaxonNames(tx, id, nextRank, updates.names);
     }
 
     if ("parentId" in updates || "rank" in updates || updates.names) {
@@ -476,15 +537,7 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
     // 5) taxon_media replace (if provided)
     if (mediaIds !== undefined) {
       await tx.delete(taxonMediaTbl).where(eq(taxonMediaTbl.taxonId, id));
-      if (mediaIds.length > 0) {
-        await tx.insert(taxonMediaTbl).values(
-          mediaIds.map((mediaId, position) => ({
-            taxonId: id,
-            mediaId,
-            position,
-          })),
-        );
-      }
+      await insertTaxonMedia(tx, id, mediaIds);
     }
 
     const dto = await selectTaxonDtoById(tx, id);

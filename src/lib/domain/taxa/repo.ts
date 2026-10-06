@@ -51,11 +51,17 @@ import type { TaxonPatch } from "./validation";
  */
 export async function insertDraftTaxon(
   tx: Transaction,
-  args: { parentId: number | null; rank: TaxonRow["rank"] },
+  args: Pick<TaxonRow, "parentId" | "rank"> &
+    Partial<Pick<TaxonRow, "sourceGbifId" | "sourceInatId">>,
 ): Promise<{ id: number }> {
   const [row] = await tx
     .insert(taxaTbl)
-    .values({ parentId: args.parentId, rank: args.rank })
+    .values({
+      parentId: args.parentId,
+      rank: args.rank,
+      sourceGbifId: args.sourceGbifId,
+      sourceInatId: args.sourceInatId,
+    })
     .returning({ id: taxaTbl.id });
 
   if (!row) {
@@ -63,21 +69,6 @@ export async function insertDraftTaxon(
   }
 
   return row;
-}
-
-/**
- * Insert the accepted scientific name for a taxon.
- */
-export async function insertAcceptedSciName(
-  tx: Transaction,
-  args: { taxonId: number; value: string },
-): Promise<void> {
-  await tx.insert(namesTbl).values({
-    value: args.value,
-    taxonId: args.taxonId,
-    locale: "sci",
-    isPreferred: true,
-  });
 }
 
 /**

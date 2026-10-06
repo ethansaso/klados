@@ -97,10 +97,7 @@ export const WikimediaPhotoSelectModal = NiceModal.create<Props>(
       data: allMedia,
       isPending: loading,
       error: searchError,
-    } = useQuery({
-      ...wikimediaPhotosQueryOptions(query),
-      enabled: visible,
-    });
+    } = useQuery(wikimediaPhotosQueryOptions(query));
 
     const error = uploadError ?? searchError?.message ?? null;
 

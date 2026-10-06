@@ -6,10 +6,11 @@ import {
   Flex,
   Heading,
   Select,
+  Spinner,
   Text,
   TextField,
 } from "@radix-ui/themes";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
@@ -22,9 +23,8 @@ import {
 } from "react-hook-form";
 import { TAXON_RANKS_DESCENDING } from "../../../../db/schema/schema";
 import { ContentContainer } from "../../../components/ContentContainer";
-import { SelectCombobox } from "../../../components/inputs/combobox/SelectCombobox";
-import type { ComboboxOption } from "../../../components/inputs/combobox/types";
-import { formatTaxonName } from "../../../lib/utils/formatting/formatTaxonName";
+import { ExGbif } from "../../../components/icons/individual/ExGbif";
+import { ExInat } from "../../../components/icons/individual/ExInat";
 import {
   a11yProps,
   ConditionalAlert,
@@ -37,11 +37,25 @@ import {
   type CreateTaxonInput,
   createTaxonSchema,
 } from "../../../lib/domain/taxa/validation";
-import { taxaQueryOptions } from "../../../lib/queries/taxa";
+import {
+  gbifCandidatesQueryOptions,
+  inatCandidatesQueryOptions,
+} from "../../../lib/queries/externalTaxa";
+import { taxonQueryOptions } from "../../../lib/queries/taxa";
 import { createTaxonDraftFn } from "../../../lib/server-fns/taxa/createTaxonDraftFn";
+import { formatTaxonName } from "../../../lib/utils/formatting/formatTaxonName";
 import { getErrorMessage } from "../../../lib/utils/getErrorMessage";
 import { routeSeo } from "../../../lib/utils/head/routeSeo";
 import { toast } from "../../../lib/utils/toast";
+import { ExternalMatchRow } from "./-components/ExternalMatchRow";
+import { ParentTaxonCombobox } from "./-components/ParentTaxonCombobox";
+import { importFromInat, type InatImport } from "./-external/importFromInat";
+import { useExternalMatch } from "./-hooks/useExternalMatch";
+
+const SUBMIT_LABELS = {
+  importing: "Importing from iNaturalist…",
+  creating: "Creating draft…",
+} as const;
 
 export const Route = createFileRoute("/_app/taxa/new")({
   beforeLoad: async ({ context, location }) => {
@@ -59,16 +73,10 @@ export const Route = createFileRoute("/_app/taxa/new")({
 });
 
 function RouteComponent() {
-  const [parentQ, setParentQ] = useState("");
   const serverCreate = useServerFn(createTaxonDraftFn);
   const navigate = useNavigate();
-
-  const { data: parentPaginatedResults } = useQuery(
-    taxaQueryOptions(1, 10, {
-      q: parentQ,
-      status: "active",
-    }),
-  );
+  const qc = useQueryClient();
+  const [phase, setPhase] = useState<keyof typeof SUBMIT_LABELS | null>(null);
 
   const {
     register,
@@ -84,47 +92,97 @@ function RouteComponent() {
     },
   });
 
-  const parentIdVal = useWatch({ control, name: "parentId" });
+  const [acceptedName, rank, parentId] = useWatch({
+    control,
+    name: ["acceptedName", "rank", "parentId"],
+  });
 
-  const comboboxOptions: ComboboxOption[] = useMemo(
+  // Ranks external matches, separating homonyms
+  const { data: parent } = useQuery({
+    ...taxonQueryOptions(parentId ?? 0),
+    enabled: parentId !== null,
+  });
+  const lineage = useMemo(
     () =>
-      parentPaginatedResults?.items.map((taxon) => ({
-        id: taxon.id,
-        label: formatTaxonName(taxon.rank, taxon.acceptedName, "never"),
-        hint: taxon.rank,
-      })) ?? [],
-    [parentPaginatedResults],
+      parent && parentId !== null
+        ? [...parent.ancestors, parent].map((t) => t.acceptedName)
+        : [],
+    [parent, parentId],
   );
 
-  const parentSelected = useMemo<ComboboxOption | null>(() => {
-    if (!parentIdVal) return null;
-    return comboboxOptions.find((o) => o.id === Number(parentIdVal)) ?? null;
-  }, [parentIdVal, comboboxOptions]);
+  const gbif = useExternalMatch(
+    gbifCandidatesQueryOptions,
+    acceptedName,
+    rank,
+    lineage,
+  );
+  const inat = useExternalMatch(
+    inatCandidatesQueryOptions,
+    acceptedName,
+    rank,
+    lineage,
+  );
+  const matchesSettled = gbif.isSettled && inat.isSettled;
 
   const onSubmit: SubmitHandler<CreateTaxonInput> = async ({
     acceptedName,
     rank,
     parentId,
   }) => {
+    const sourceGbifId = gbif.selected?.id ?? null;
+    const sourceInatId = inat.selected?.id ?? null;
+
     try {
+      // A failed import still creates the draft, just without names/media
+      let imported: InatImport | null = null;
+      let importError: string | null = null;
+      if (sourceInatId !== null) {
+        setPhase("importing");
+        try {
+          imported = await importFromInat(sourceInatId);
+          qc.invalidateQueries({ queryKey: ["media"] });
+        } catch (error) {
+          importError = getErrorMessage(error);
+        }
+      }
+
+      setPhase("creating");
       const res = await serverCreate({
         data: {
           acceptedName,
           rank,
           parentId,
+          sourceGbifId,
+          sourceInatId,
+          names: imported?.names,
+          mediaIds: imported?.mediaIds,
         },
       });
 
       navigate({ to: `/taxa/${res.id}/edit` });
       toast({
-        description: `Successfully created draft for taxon ${formatTaxonName(res.rank, res.acceptedName)}`,
+        description: `Successfully created draft for ${formatTaxonName(res.rank, res.acceptedName)}${
+          imported
+            ? `. Imported ${imported.names.length} names and ${imported.mediaIds.length} photos from iNaturalist.`
+            : ""
+        }`,
         variant: "success",
       });
+      if (importError || imported?.failedPhotoCount) {
+        toast({
+          description: importError
+            ? `Couldn't import from iNaturalist: ${importError}`
+            : `${imported!.failedPhotoCount} iNaturalist photo(s) couldn't be uploaded.`,
+          variant: "error",
+        });
+      }
     } catch (error) {
       toast({
         description: getErrorMessage(error),
         variant: "error",
       });
+    } finally {
+      setPhase(null);
     }
   };
 
@@ -197,38 +255,53 @@ function RouteComponent() {
                 <Box>
                   <Flex justify="between" align="baseline" mb="1">
                     <Label.Root htmlFor="parent-id">Parent taxon</Label.Root>
+                    <ConditionalAlert
+                      id="parent-id-error"
+                      message={errors.parentId?.message}
+                    />
                   </Flex>
                   <Controller
                     name="parentId"
                     control={control}
                     render={({ field }) => (
-                      <SelectCombobox.Root
+                      <ParentTaxonCombobox
                         id="parent-id"
-                        value={parentSelected}
-                        onValueChange={(opt) =>
-                          field.onChange(opt ? Number(opt.id) : null)
-                        }
-                        options={comboboxOptions}
-                        onQueryChange={setParentQ}
-                      >
-                        <SelectCombobox.Trigger placeholder="Search for a parent taxon..." />
-                        <SelectCombobox.Content>
-                          <SelectCombobox.Input placeholder="Search taxa..." />
-                          <SelectCombobox.List>
-                            {comboboxOptions.map((option, index) => (
-                              <SelectCombobox.Item
-                                key={option.id}
-                                index={index}
-                                option={option}
-                              />
-                            ))}
-                          </SelectCombobox.List>
-                        </SelectCombobox.Content>
-                      </SelectCombobox.Root>
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Search for a parent taxon..."
+                        invalid={!!errors.parentId}
+                      />
                     )}
                   />
                   <Text as="p" size="1" color="gray" mt="2">
                     Leave blank to assign the parent later.
+                  </Text>
+                </Box>
+
+                <Box>
+                  <Text as="div" mb="1">
+                    External sources
+                  </Text>
+                  <Box
+                    style={{
+                      border: "1px solid var(--gray-a6)",
+                      borderRadius: "var(--radius-2)",
+                    }}
+                  >
+                    <ExternalMatchRow
+                      label="GBIF"
+                      icon={<ExGbif size={24} color="green" />}
+                      match={gbif}
+                    />
+                    <ExternalMatchRow
+                      label="iNaturalist"
+                      icon={<ExInat size={16} color="green" />}
+                      match={inat}
+                    />
+                  </Box>
+                  <Text as="p" size="1" color="gray" mt="2">
+                    Names and photos are imported from the iNaturalist match
+                    when the draft is created.
                   </Text>
                 </Box>
 
@@ -238,12 +311,13 @@ function RouteComponent() {
                       Cancel
                     </Link>
                   </Button>
+                  {/* Not `loading`, which would hide the phase label */}
                   <Button
                     type="submit"
-                    disabled={isSubmitting}
-                    loading={isSubmitting}
+                    disabled={isSubmitting || !matchesSettled}
                   >
-                    Create draft and continue
+                    {phase && <Spinner />}
+                    {phase ? SUBMIT_LABELS[phase] : "Create draft and continue"}
                   </Button>
                 </Flex>
               </Flex>
