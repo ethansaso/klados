@@ -372,7 +372,11 @@ function RouteComponent() {
               }}
             >
               {/* Basic meta (rank, parent, source IDs) */}
-              <MetaForm id={id} acceptedName={initialTaxon.acceptedName} />
+              <MetaForm
+                id={id}
+                acceptedName={initialTaxon.acceptedName}
+                initialParent={initialTaxon.ancestors.at(-1) ?? null}
+              />
 
               <Separator size="4" my="5" />
 

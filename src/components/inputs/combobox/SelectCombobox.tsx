@@ -170,7 +170,18 @@ function Root({
   );
 }
 
-function Trigger({ placeholder }: { placeholder?: React.ReactNode }) {
+type TriggerProps = {
+  placeholder?: ReactNode;
+} & Pick<
+  ComponentProps<"button">,
+  | "aria-invalid"
+  | "aria-describedby"
+  | "aria-label"
+  | "aria-labelledby"
+  | "aria-required"
+>;
+
+function Trigger({ placeholder, ...ariaProps }: TriggerProps) {
   const { open, disabled, value, id, setOpen, clear } = useCb();
   const triggerLabel = value ? value.label : (placeholder ?? "Select...");
 
@@ -184,6 +195,7 @@ function Trigger({ placeholder }: { placeholder?: React.ReactNode }) {
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-controls={id ? `${id}-listbox` : undefined}
+          {...ariaProps}
           onClick={() => setOpen(!open)}
           onKeyDown={(e) => {
             if (e.key === "ArrowDown" || e.key === "ArrowUp") {

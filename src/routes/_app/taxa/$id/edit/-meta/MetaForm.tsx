@@ -6,62 +6,38 @@ import {
   Select,
   TextField,
 } from "@radix-ui/themes";
-import { useQuery } from "@tanstack/react-query";
 import { Label } from "radix-ui";
-import { useMemo, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { FaDove, FaLeaf } from "react-icons/fa";
 import type { TaxonEditFormValues } from "..";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../../db/schema/schema";
-import { SelectCombobox } from "../../../../../../components/inputs/combobox/SelectCombobox";
-import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../../../components/inputs/ConditionalAlert";
 import { ResponsiveTooltip } from "../../../../../../components/ResponsiveTooltip";
-import { formatTaxonName } from "../../../../../../lib/utils/formatting/formatTaxonName";
-import { taxaQueryOptions } from "../../../../../../lib/queries/taxa";
+import type { LeanTaxonDTO } from "../../../../../../lib/domain/taxa/types";
+import { ParentTaxonCombobox } from "../../../-components/ParentTaxonCombobox";
 import { pickGBIFTaxon } from "./GbifIdModal";
 import { pickInatTaxon } from "./InatIdModal";
 
 interface MetaFormProps {
   id: number;
   acceptedName: string;
+  initialParent: LeanTaxonDTO | null;
 }
 
-export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
+export const MetaForm = ({
+  id,
+  acceptedName,
+  initialParent,
+}: MetaFormProps) => {
   const {
     control,
     formState: { errors },
   } = useFormContext<TaxonEditFormValues>();
 
   const rank = useWatch({ control, name: "rank" });
-  const parentIdVal = useWatch({ control, name: "parentId" });
-
-  // Parent combobox setup
-  const [parentQ, setParentQ] = useState("");
-  const { data: parentResp, isFetching: parentIsFetching } = useQuery(
-    taxaQueryOptions(1, 10, { q: parentQ, status: "active" }),
-  );
-  const parentOptions = useMemo<ComboboxOption[]>(() => {
-    const items = parentResp?.items ?? [];
-    return items.reduce<ComboboxOption[]>((acc, i) => {
-      if (i.id === id) return acc; // skip self
-      acc.push({
-        id: i.id,
-        label: formatTaxonName(i.rank, i.acceptedName, "never"),
-        hint: i.rank,
-      });
-      return acc;
-    }, []);
-  }, [parentResp, id]);
-
-  // Selected parent option
-  const parentSelected = useMemo<ComboboxOption | null>(() => {
-    if (!parentIdVal) return null;
-    return parentOptions.find((o) => o.id === Number(parentIdVal)) ?? null;
-  }, [parentIdVal, parentOptions]);
 
   return (
     <Box>
@@ -116,33 +92,14 @@ export const MetaForm = ({ id, acceptedName }: MetaFormProps) => {
               control={control}
               name="parentId"
               render={({ field }) => (
-                <SelectCombobox.Root
+                <ParentTaxonCombobox
                   id="parent-id"
-                  value={parentSelected}
-                  onValueChange={(opt) => {
-                    field.onChange(opt ? Number(opt.id) : null);
-                  }}
-                  options={parentOptions}
-                  onQueryChange={setParentQ}
-                  loading={parentIsFetching}
-                >
-                  <SelectCombobox.Trigger
-                    placeholder="Select parent taxon"
-                    {...a11yProps("parent-id-error", !!errors.parentId)}
-                  />
-                  <SelectCombobox.Content>
-                    <SelectCombobox.Input />
-                    <SelectCombobox.List>
-                      {parentOptions.map((option, index) => (
-                        <SelectCombobox.Item
-                          key={option.id}
-                          index={index}
-                          option={option}
-                        />
-                      ))}
-                    </SelectCombobox.List>
-                  </SelectCombobox.Content>
-                </SelectCombobox.Root>
+                  value={field.value}
+                  onChange={field.onChange}
+                  excludeId={id}
+                  initialParent={initialParent}
+                  invalid={!!errors.parentId}
+                />
               )}
             />
           </Box>

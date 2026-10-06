@@ -24,6 +24,12 @@ type Props = {
   onConfirm: (source: SourceDTO) => void;
 };
 
+const toOption = (s: SourceDTO): ComboboxOption => ({
+  id: s.id,
+  label: s.name,
+  hint: [s.authors, s.publisher, s.publicationYear].filter(Boolean).join(" • "),
+});
+
 const SourcePickerModal = NiceModal.create<Props>(({ onConfirm }) => {
   const modal = useModal();
   const qc = useQueryClient();
@@ -33,7 +39,7 @@ const SourcePickerModal = NiceModal.create<Props>(({ onConfirm }) => {
 
   // Existing source search
   const [q, setQ] = useState("");
-  const [selected, setSelected] = useState<ComboboxOption | null>(null);
+  const [selectedSource, setSelectedSource] = useState<SourceDTO | null>(null);
 
   const { data: searchResp, isFetching } = useQuery(
     sourcesQueryOptions({ page: 1, pageSize: 10, filters: { q } }),
@@ -41,23 +47,8 @@ const SourcePickerModal = NiceModal.create<Props>(({ onConfirm }) => {
 
   const options = useMemo<ComboboxOption[]>(() => {
     const items: SourceDTO[] = searchResp?.items ?? [];
-    return items.map((s) => ({
-      id: s.id,
-      label: s.name,
-      hint: [s.authors, s.publisher, s.publicationYear]
-        .filter(Boolean)
-        .join(" • "),
-    }));
+    return items.map(toOption);
   }, [searchResp]);
-
-  const selectedSource = useMemo(() => {
-    if (!selected) return null;
-    return (
-      (searchResp?.items ?? []).find(
-        (s: SourceDTO) => s.id === Number(selected.id),
-      ) ?? null
-    );
-  }, [selected, searchResp]);
 
   // Create new
   const [newName, setNewName] = useState("");
@@ -117,8 +108,15 @@ const SourcePickerModal = NiceModal.create<Props>(({ onConfirm }) => {
         {activeTab === "existing" ? (
           <Flex direction="column" gap="3" mt="4">
             <SelectCombobox.Root
-              value={selected}
-              onValueChange={setSelected}
+              value={selectedSource && toOption(selectedSource)}
+              onValueChange={(opt) =>
+                setSelectedSource(
+                  opt
+                    ? ((searchResp?.items ?? []).find((s) => s.id === opt.id) ??
+                        null)
+                    : null,
+                )
+              }
               options={options}
               onQueryChange={setQ}
             >

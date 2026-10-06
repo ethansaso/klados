@@ -9,21 +9,12 @@ import {
   Text,
   TextField,
 } from "@radix-ui/themes";
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
-import { useMemo, useState } from "react";
-import {
-  Controller,
-  type SubmitHandler,
-  useForm,
-  useWatch,
-} from "react-hook-form";
+import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 import { TAXON_RANKS_DESCENDING } from "../../../../db/schema/schema";
 import { ContentContainer } from "../../../components/ContentContainer";
-import { SelectCombobox } from "../../../components/inputs/combobox/SelectCombobox";
-import type { ComboboxOption } from "../../../components/inputs/combobox/types";
 import { formatTaxonName } from "../../../lib/utils/formatting/formatTaxonName";
 import {
   a11yProps,
@@ -37,11 +28,11 @@ import {
   type CreateTaxonInput,
   createTaxonSchema,
 } from "../../../lib/domain/taxa/validation";
-import { taxaQueryOptions } from "../../../lib/queries/taxa";
 import { createTaxonDraftFn } from "../../../lib/server-fns/taxa/createTaxonDraftFn";
 import { getErrorMessage } from "../../../lib/utils/getErrorMessage";
 import { routeSeo } from "../../../lib/utils/head/routeSeo";
 import { toast } from "../../../lib/utils/toast";
+import { ParentTaxonCombobox } from "./-components/ParentTaxonCombobox";
 
 export const Route = createFileRoute("/_app/taxa/new")({
   beforeLoad: async ({ context, location }) => {
@@ -59,16 +50,8 @@ export const Route = createFileRoute("/_app/taxa/new")({
 });
 
 function RouteComponent() {
-  const [parentQ, setParentQ] = useState("");
   const serverCreate = useServerFn(createTaxonDraftFn);
   const navigate = useNavigate();
-
-  const { data: parentPaginatedResults } = useQuery(
-    taxaQueryOptions(1, 10, {
-      q: parentQ,
-      status: "active",
-    }),
-  );
 
   const {
     register,
@@ -83,23 +66,6 @@ function RouteComponent() {
       rank: "species",
     },
   });
-
-  const parentIdVal = useWatch({ control, name: "parentId" });
-
-  const comboboxOptions: ComboboxOption[] = useMemo(
-    () =>
-      parentPaginatedResults?.items.map((taxon) => ({
-        id: taxon.id,
-        label: formatTaxonName(taxon.rank, taxon.acceptedName, "never"),
-        hint: taxon.rank,
-      })) ?? [],
-    [parentPaginatedResults],
-  );
-
-  const parentSelected = useMemo<ComboboxOption | null>(() => {
-    if (!parentIdVal) return null;
-    return comboboxOptions.find((o) => o.id === Number(parentIdVal)) ?? null;
-  }, [parentIdVal, comboboxOptions]);
 
   const onSubmit: SubmitHandler<CreateTaxonInput> = async ({
     acceptedName,
@@ -117,7 +83,7 @@ function RouteComponent() {
 
       navigate({ to: `/taxa/${res.id}/edit` });
       toast({
-        description: `Successfully created draft for taxon ${formatTaxonName(res.rank, res.acceptedName)}`,
+        description: `Successfully created draft for ${formatTaxonName(res.rank, res.acceptedName)}`,
         variant: "success",
       });
     } catch (error) {
@@ -197,34 +163,22 @@ function RouteComponent() {
                 <Box>
                   <Flex justify="between" align="baseline" mb="1">
                     <Label.Root htmlFor="parent-id">Parent taxon</Label.Root>
+                    <ConditionalAlert
+                      id="parent-id-error"
+                      message={errors.parentId?.message}
+                    />
                   </Flex>
                   <Controller
                     name="parentId"
                     control={control}
                     render={({ field }) => (
-                      <SelectCombobox.Root
+                      <ParentTaxonCombobox
                         id="parent-id"
-                        value={parentSelected}
-                        onValueChange={(opt) =>
-                          field.onChange(opt ? Number(opt.id) : null)
-                        }
-                        options={comboboxOptions}
-                        onQueryChange={setParentQ}
-                      >
-                        <SelectCombobox.Trigger placeholder="Search for a parent taxon..." />
-                        <SelectCombobox.Content>
-                          <SelectCombobox.Input placeholder="Search taxa..." />
-                          <SelectCombobox.List>
-                            {comboboxOptions.map((option, index) => (
-                              <SelectCombobox.Item
-                                key={option.id}
-                                index={index}
-                                option={option}
-                              />
-                            ))}
-                          </SelectCombobox.List>
-                        </SelectCombobox.Content>
-                      </SelectCombobox.Root>
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Search for a parent taxon..."
+                        invalid={!!errors.parentId}
+                      />
                     )}
                   />
                   <Text as="p" size="1" color="gray" mt="2">
