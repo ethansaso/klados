@@ -84,15 +84,13 @@ export async function createTaxonDraft(args: {
       sourceInatId,
     });
 
-    const allNames = withAcceptedName(
-      normalizeScientificName(acceptedName, rank),
-      rank,
-      names,
-    );
-    assertNamesPayloadInvariant(allNames);
-    await replaceNamesForTaxon(tx, id, allNames);
-
-    await assertExactlyOneAcceptedScientificName(tx, id);
+    // The accepted name is authoritative, so other scientific names are synonyms
+    await replaceTaxonNames(tx, id, rank, [
+      { value: acceptedName, locale: "sci", isPreferred: true },
+      ...names.map((n) =>
+        n.locale === "sci" ? { ...n, isPreferred: false } : n,
+      ),
+    ]);
     await assertAcceptedNameConvention(tx, id);
     await assertAcceptedNameUniqueAmongSiblings(tx, id);
 
@@ -104,38 +102,48 @@ export async function createTaxonDraft(args: {
 }
 
 /**
- * Put the accepted name first as the sole preferred scientific name. Extra
- * scientific names become synonyms, and repeats (which the names table
- * rejects case-insensitively) are dropped.
+ * Replace a taxon's names. Exactly one preferred scientific name (the accepted
+ * name) is required and gets normalized; other scientific names are synonyms.
+ * Repeated names are dropped rather than left to fail the unique index.
  */
-function withAcceptedName(
-  accepted: string,
+async function replaceTaxonNames(
+  tx: Transaction,
+  taxonId: number,
   rank: TaxonRow["rank"],
-  extras: NameItem[],
+  input: NameItem[],
+) {
+  const names = dropRepeatedNames(input, rank);
+  assertNamesPayloadInvariant(names);
+  await replaceNamesForTaxon(
+    tx,
+    taxonId,
+    names.map((n) =>
+      n.locale === "sci" && n.isPreferred
+        ? { ...n, value: normalizeScientificName(n.value, rank) }
+        : n,
+    ),
+  );
+  await assertExactlyOneAcceptedScientificName(tx, taxonId);
+}
+
+/**
+ * Collapse names that match within a locale (case- and whitespace-insensitive,
+ * as the names table compares them; scientific names compared normalized).
+ * A preferred copy wins over a non-preferred one; otherwise the first is kept.
+ */
+function dropRepeatedNames(
+  names: NameItem[],
+  rank: TaxonRow["rank"],
 ): NameItem[] {
-  const key = (n: NameItem) => {
+  const byKey = new Map<string, NameItem>();
+  for (const n of names) {
     const value =
       n.locale === "sci" ? normalizeScientificName(n.value, rank) : n.value;
-    return `${n.locale.trim().toLowerCase()}:${value.trim().toLowerCase()}`;
-  };
-
-  const acceptedItem: NameItem = {
-    value: accepted,
-    locale: "sci",
-    isPreferred: true,
-  };
-  const seen = new Set([key(acceptedItem)]);
-  const result = [acceptedItem];
-
-  for (const n of extras) {
-    const item = n.locale === "sci" ? { ...n, isPreferred: false } : n;
-    const k = key(item);
-    if (seen.has(k)) continue;
-    seen.add(k);
-    result.push(item);
+    const key = `${n.locale.trim().toLowerCase()}:${value.trim().toLowerCase()}`;
+    const kept = byKey.get(key);
+    if (!kept || (n.isPreferred && !kept.isPreferred)) byKey.set(key, n);
   }
-
-  return result;
+  return [...byKey.values()];
 }
 
 async function insertTaxonMedia(
@@ -516,14 +524,7 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
 
     // 2) names replace (if provided)
     if (updates.names) {
-      assertNamesPayloadInvariant(updates.names);
-      const names = updates.names.map((n) =>
-        n.locale === "sci" && n.isPreferred
-          ? { ...n, value: normalizeScientificName(n.value, nextRank) }
-          : n,
-      );
-      await replaceNamesForTaxon(tx, id, names);
-      await assertExactlyOneAcceptedScientificName(tx, id);
+      await replaceTaxonNames(tx, id, nextRank, updates.names);
     }
 
     if ("parentId" in updates || "rank" in updates || updates.names) {
