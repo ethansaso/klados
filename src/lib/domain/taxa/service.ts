@@ -71,11 +71,7 @@ export async function createTaxonDraft(args: {
   } = args;
 
   return db.transaction(async (tx) => {
-    await assertHierarchyInvariant(
-      tx,
-      parentId,
-      rank,
-    );
+    await assertHierarchyInvariant(tx, parentId, rank);
 
     const { id } = await insertDraftTaxon(tx, {
       parentId,
@@ -151,11 +147,13 @@ async function insertTaxonMedia(
   taxonId: number,
   mediaIds: number[],
 ) {
-  if (mediaIds.length === 0) return;
+  // Deduping happens during upload stage, but taxon record also needs it here
+  const unique = [...new Set(mediaIds)];
+  if (unique.length === 0) return;
   await tx
     .insert(taxonMediaTbl)
     .values(
-      mediaIds.map((mediaId, position) => ({ taxonId, mediaId, position })),
+      unique.map((mediaId, position) => ({ taxonId, mediaId, position })),
     );
 }
 
@@ -436,11 +434,7 @@ export async function publishTaxon(args: {
     }
 
     // Ensure structure is valid at publish time and a scientific name exists.
-    await assertHierarchyInvariant(
-      tx,
-      current.parentId ?? null,
-      current.rank,
-    );
+    await assertHierarchyInvariant(tx, current.parentId ?? null, current.rank);
 
     await assertExactlyOneAcceptedScientificName(tx, id);
 
@@ -493,12 +487,7 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
       "rank" in updates ? (updates.rank ?? current.rank) : current.rank;
 
     if ("parentId" in updates || "rank" in updates) {
-      await assertHierarchyInvariant(
-        tx,
-        nextParentId,
-        nextRank,
-        id,
-      );
+      await assertHierarchyInvariant(tx, nextParentId, nextRank, id);
     }
 
     if (nextParentId === id) {

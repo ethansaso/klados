@@ -18,8 +18,7 @@ import {
 import { ResponsiveTooltip } from "../../../../../../components/ResponsiveTooltip";
 import type { LeanTaxonDTO } from "../../../../../../lib/domain/taxa/types";
 import { ParentTaxonCombobox } from "../../../-components/ParentTaxonCombobox";
-import { pickGBIFTaxon } from "./GbifIdModal";
-import { pickInatTaxon } from "./InatIdModal";
+import { pickGBIFTaxon, pickInatTaxon } from "./ExternalIdModal";
 
 interface MetaFormProps {
   id: number;
