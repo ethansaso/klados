@@ -4,6 +4,7 @@ import { db } from "../../../../db/client";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import { assertHierarchyInvariant } from "../../utils/sql/assertHierarchyInvariant";
+import type { Transaction } from "../../utils/types/transactionType";
 import { selectFeatureIdsByCharacterIds } from "../characters/repo";
 import { getFeatureDescendantIds } from "../features/repo";
 import { replaceGroupedCharacterStatesForTaxon } from "../states/repo";
@@ -20,7 +21,6 @@ import { convertToSI, unitFitsCharacter } from "../units/utils";
 import {
   deleteTaxonById,
   fetchTaxonDetailById,
-  insertAcceptedSciName,
   insertDraftTaxon,
   listTaxaQuery,
   markTaxonActive,
@@ -48,14 +48,27 @@ import {
 import type { UpdateTaxonInput } from "./validation";
 
 /**
- * Create a new draft taxon with an accepted scientific name.
+ * Create a new draft taxon with an accepted scientific name, optionally seeded
+ * with external source IDs, additional names, and media.
  */
 export async function createTaxonDraft(args: {
   acceptedName: string;
   parentId: number | null;
   rank: TaxonRow["rank"];
+  sourceGbifId?: number | null;
+  sourceInatId?: number | null;
+  names?: NameItem[];
+  mediaIds?: number[];
 }): Promise<TaxonDTO | null> {
-  const { acceptedName, parentId, rank } = args;
+  const {
+    acceptedName,
+    parentId,
+    rank,
+    sourceGbifId,
+    sourceInatId,
+    names = [],
+    mediaIds = [],
+  } = args;
 
   return db.transaction(async (tx) => {
     await assertHierarchyInvariant(
@@ -64,20 +77,78 @@ export async function createTaxonDraft(args: {
       rank,
     );
 
-    const { id } = await insertDraftTaxon(tx, { parentId, rank });
-
-    await insertAcceptedSciName(tx, {
-      taxonId: id,
-      value: normalizeScientificName(acceptedName, rank),
+    const { id } = await insertDraftTaxon(tx, {
+      parentId,
+      rank,
+      sourceGbifId,
+      sourceInatId,
     });
+
+    const allNames = withAcceptedName(
+      normalizeScientificName(acceptedName, rank),
+      rank,
+      names,
+    );
+    assertNamesPayloadInvariant(allNames);
+    await replaceNamesForTaxon(tx, id, allNames);
 
     await assertExactlyOneAcceptedScientificName(tx, id);
     await assertAcceptedNameConvention(tx, id);
     await assertAcceptedNameUniqueAmongSiblings(tx, id);
 
+    await insertTaxonMedia(tx, id, mediaIds);
+
     const dto = await selectTaxonDtoById(tx, id);
     return dto;
   });
+}
+
+/**
+ * Put the accepted name first as the sole preferred scientific name. Extra
+ * scientific names become synonyms, and repeats (which the names table
+ * rejects case-insensitively) are dropped.
+ */
+function withAcceptedName(
+  accepted: string,
+  rank: TaxonRow["rank"],
+  extras: NameItem[],
+): NameItem[] {
+  const key = (n: NameItem) => {
+    const value =
+      n.locale === "sci" ? normalizeScientificName(n.value, rank) : n.value;
+    return `${n.locale.trim().toLowerCase()}:${value.trim().toLowerCase()}`;
+  };
+
+  const acceptedItem: NameItem = {
+    value: accepted,
+    locale: "sci",
+    isPreferred: true,
+  };
+  const seen = new Set([key(acceptedItem)]);
+  const result = [acceptedItem];
+
+  for (const n of extras) {
+    const item = n.locale === "sci" ? { ...n, isPreferred: false } : n;
+    const k = key(item);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    result.push(item);
+  }
+
+  return result;
+}
+
+async function insertTaxonMedia(
+  tx: Transaction,
+  taxonId: number,
+  mediaIds: number[],
+) {
+  if (mediaIds.length === 0) return;
+  await tx
+    .insert(taxonMediaTbl)
+    .values(
+      mediaIds.map((mediaId, position) => ({ taxonId, mediaId, position })),
+    );
 }
 
 /**
@@ -476,15 +547,7 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
     // 5) taxon_media replace (if provided)
     if (mediaIds !== undefined) {
       await tx.delete(taxonMediaTbl).where(eq(taxonMediaTbl.taxonId, id));
-      if (mediaIds.length > 0) {
-        await tx.insert(taxonMediaTbl).values(
-          mediaIds.map((mediaId, position) => ({
-            taxonId: id,
-            mediaId,
-            position,
-          })),
-        );
-      }
+      await insertTaxonMedia(tx, id, mediaIds);
     }
 
     const dto = await selectTaxonDtoById(tx, id);
