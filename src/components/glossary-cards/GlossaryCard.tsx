@@ -25,8 +25,8 @@ export const GlossaryCard: React.FC<Props> = ({
         {info ? (
           <>
             {info.media && (
-              <AnnotationBubbleWrap media={info.media} spacing="1">
-                <Inset mb="2" side="top">
+              <Inset side="top" pb="current">
+                <AnnotationBubbleWrap media={info.media} spacing="2">
                   <img
                     src={getMediaUrl(info.media.storageKey)}
                     alt={info.media.title}
@@ -36,8 +36,8 @@ export const GlossaryCard: React.FC<Props> = ({
                       objectFit: "cover",
                     }}
                   />
-                </Inset>
-              </AnnotationBubbleWrap>
+                </AnnotationBubbleWrap>
+              </Inset>
             )}
             {info.title && (
               <Text as="p" weight="bold" size="2">
