@@ -5,7 +5,6 @@ import {
   countDistinct,
   eq,
   exists,
-  ilike,
   inArray,
   ne,
   or,
@@ -25,6 +24,7 @@ import { taxonFeatureState as featureStatesTbl } from "../../../../db/schema/tax
 import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
 import { likeAnywhere } from "../../utils/sql/likeAnywhere";
+import { lowerLike } from "../../utils/sql/lowerLike";
 import type { Transaction } from "../../utils/types/transactionType";
 import { selectMediaByTaxonIds } from "../media/repo";
 import type { TaxonSearchParams } from "./search";
@@ -528,7 +528,7 @@ export async function listTaxaQuery(
   if (like) {
     const filters: (SQL | undefined)[] = [
       statusFilter,
-      ilike(searchNames.value, like),
+      lowerLike(searchNames.value, like),
       rankFilter,
       hasMediaFilter,
       hasMorphologyFilter,

@@ -7,11 +7,9 @@ import { resolveFilterChipsFn } from "../server-fns/filter-chips/resolveFilterCh
  * Labels for character filter chips.
  * Deliberately holds previous results to avoid flashing.
  */
-export const filterChipsQueryOptions = (
-  tokens: TaxonFilterToken[],
-) =>
+export const filterChipsQueryOptions = (tokens: TaxonFilterToken[]) =>
   queryOptions<FilterChip[]>({
-    queryKey: ["character-filter-chips", tokens],
+    queryKey: ["characterFilterChips", tokens],
     queryFn: () => resolveFilterChipsFn({ data: { tokens } }),
     enabled: tokens.length > 0,
     placeholderData: keepPreviousData,
