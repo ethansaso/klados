@@ -1,7 +1,8 @@
-import { and, asc, count, desc, eq, ilike, or, SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, or, SQL } from "drizzle-orm";
 import { db } from "../../../../db/client";
 import { source as sourceTbl } from "../../../../db/schema/sources/source";
 import { likeAnywhere } from "../../utils/sql/likeAnywhere";
+import { lowerLike } from "../../utils/sql/lowerLike";
 import type { Transaction } from "../../utils/types/transactionType";
 import type { SourceSearchParams } from "./search";
 import { sourceSelectDto, taxonSourceUsageAgg } from "./sqlAdapters";
@@ -114,9 +115,9 @@ export async function listSourcesQuery(
   if (like) {
     filters.push(
       or(
-        ilike(sourceTbl.name, like),
-        ilike(sourceTbl.authors, like),
-        ilike(sourceTbl.publisher, like),
+        lowerLike(sourceTbl.name, like),
+        lowerLike(sourceTbl.authors, like),
+        lowerLike(sourceTbl.publisher, like),
       ),
     );
   }

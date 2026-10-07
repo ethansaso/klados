@@ -2,10 +2,8 @@ import {
   and,
   asc,
   count,
-  countDistinct,
   eq,
   exists,
-  ilike,
   inArray,
   ne,
   or,
@@ -24,7 +22,8 @@ import {
 import { taxonFeatureState as featureStatesTbl } from "../../../../db/schema/taxa/featureStates";
 import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
-import { likeAnywhere } from "../../utils/sql/likeAnywhere";
+import { escapeLike } from "../../utils/sql/likeAnywhere";
+import { lowerLike } from "../../utils/sql/lowerLike";
 import type { Transaction } from "../../utils/types/transactionType";
 import { selectMediaByTaxonIds } from "../media/repo";
 import type { TaxonSearchParams } from "./search";
@@ -416,11 +415,7 @@ export async function listTaxaQuery(
 
   const offset = (page - 1) * pageSize;
 
-  // Escape %, _ and \ in the search string (no user wildcards)
-  const like = likeAnywhere(q);
-
-  // Aliases for filtering names when searching
-  const searchNames = alias(namesTbl, "search_names");
+  const term = q?.trim();
 
   // Common predicates. An empty status list means "any status".
   const statusFilter = status.length
@@ -524,11 +519,10 @@ export async function listTaxaQuery(
     return or(containsValue(rangeStatesTbl), containsValue(numStatesTbl))!;
   });
 
-  // When q is provided, filter on names.value (trigram index)
-  if (like) {
+  // When q is provided, rank taxa by their best-matching name
+  if (term) {
     const filters: (SQL | undefined)[] = [
       statusFilter,
-      ilike(searchNames.value, like),
       rankFilter,
       hasMediaFilter,
       hasMorphologyFilter,
@@ -537,31 +531,29 @@ export async function listTaxaQuery(
     ];
     const where = and(...(filters.filter(Boolean) as SQL[]));
 
+    const matches = bestNameMatches(term);
+
     const itemRows = await db
       .select(taxonSelector)
       .from(taxaTbl)
-      .innerJoin(searchNames, eq(searchNames.taxonId, taxaTbl.id))
+      .innerJoin(matches, eq(matches.taxonId, taxaTbl.id))
       .innerJoin(sci, sciJoinPred)
       .leftJoin(common, commonJoinPred)
       .where(where)
-      .groupBy(
-        taxaTbl.id,
-        taxaTbl.rank,
-        taxaTbl.sourceGbifId,
-        taxaTbl.sourceInatId,
-        taxaTbl.status,
-        sci.value,
-        common.value,
+      .orderBy(
+        asc(matches.tier),
+        asc(matches.namePriority),
+        asc(matches.nameLength),
+        asc(taxaTbl.rank),
+        asc(taxaTbl.id),
       )
-      .orderBy(asc(taxaTbl.rank), asc(taxaTbl.id))
       .limit(pageSize)
       .offset(offset);
 
-    // Total count with same predicate (distinct taxa)
     const totals = await db
-      .select({ total: countDistinct(taxaTbl.id) })
+      .select({ total: count() })
       .from(taxaTbl)
-      .innerJoin(searchNames, eq(searchNames.taxonId, taxaTbl.id))
+      .innerJoin(matches, eq(matches.taxonId, taxaTbl.id))
       .where(where);
     const total = totals[0]?.total ?? 0;
 
@@ -605,6 +597,46 @@ export async function listTaxaQuery(
   }));
 
   return { items, page, pageSize, total };
+}
+
+/**
+ * Each taxon whose names contain `term`, with its best-matching name scored by
+ * how it matched (tier), which kind of name it is, and its length (shorter is
+ * closer).
+ *
+ * Tiers: whole name > whole word > name prefix >  word prefix > anywhere.
+ */
+function bestNameMatches(term: string) {
+  const value = sql`lower(${namesTbl.value})`;
+  const escaped = escapeLike(term);
+  // Padding with spaces lets word boundaries at either end match too.
+  const padded = sql`' ' || ${value} || ' '`;
+
+  const tier = sql<number>`case
+    when ${value} = lower(${term}) then 0
+    when ${padded} like lower(${`% ${escaped} %`}) then 1
+    when ${value} like lower(${`${escaped}%`}) then 2
+    when ${padded} like lower(${`% ${escaped}%`}) then 3
+    else 4
+  end`;
+  const namePriority = sql<number>`case
+    when ${namesTbl.locale} = 'sci' and ${namesTbl.isPreferred} then 0
+    when ${namesTbl.locale} = 'en' and ${namesTbl.isPreferred} then 1
+    else 2
+  end`;
+  const nameLength = sql<number>`char_length(${namesTbl.value})`;
+
+  return db
+    .selectDistinctOn([namesTbl.taxonId], {
+      taxonId: namesTbl.taxonId,
+      tier: tier.as("tier"),
+      namePriority: namePriority.as("name_priority"),
+      nameLength: nameLength.as("name_length"),
+    })
+    .from(namesTbl)
+    .where(lowerLike(namesTbl.value, `%${escaped}%`))
+    .orderBy(namesTbl.taxonId, tier, namePriority, nameLength)
+    .as("name_matches");
 }
 
 export async function markTaxonActive(

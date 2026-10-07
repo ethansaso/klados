@@ -1,3 +1,4 @@
+import { deepEqual } from "@tanstack/react-router";
 import { useCallback } from "react";
 import { type TaxonSearchParams } from "../../../../lib/domain/taxa/search";
 import { Route } from "../index";
@@ -20,19 +21,24 @@ export function useTaxonSearchControls() {
 
   /**
    * Replaces the current history entry: debounced typing would otherwise flood
-   * the back stack with an entry per keystroke. Touching a filter resets to the
-   * first page, since the old offset no longer means anything.
+   * the back stack with an entry per keystroke. Changing a filter resets to the
+   * first page, since the old offset no longer means anything. Re-setting a
+   * filter to its current value (e.g. the search box syncing on mount) doesn't.
    */
   const replaceSearch = useCallback(
     (partial: Partial<TaxonSearchParams>) => {
-      const touchesFilter = FILTER_KEYS.some((key) => key in partial);
-
       navigate({
-        search: (prev) => ({
-          ...prev,
-          ...partial,
-          page: partial.page ?? (touchesFilter ? 1 : prev.page),
-        }),
+        search: (prev) => {
+          const changesFilter = FILTER_KEYS.some(
+            (key) => key in partial && !deepEqual(partial[key], prev[key]),
+          );
+
+          return {
+            ...prev,
+            ...partial,
+            page: partial.page ?? (changesFilter ? 1 : prev.page),
+          };
+        },
         replace: true,
       });
     },

@@ -1,0 +1,1 @@
+CREATE INDEX "source_publisher_trgm_lower_idx" ON "source" USING gin (lower("publisher") gin_trgm_ops);

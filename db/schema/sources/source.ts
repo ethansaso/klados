@@ -58,5 +58,10 @@ export const source = pgTable(
       "gin",
       sql`lower(${t.authors}) gin_trgm_ops`,
     ),
+    // Searched alongside name/authors; one unindexed OR arm forces a seq scan.
+    index("source_publisher_trgm_lower_idx").using(
+      "gin",
+      sql`lower(${t.publisher}) gin_trgm_ops`,
+    ),
   ],
 );
