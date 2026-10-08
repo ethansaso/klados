@@ -29,7 +29,7 @@ export const traitSynonymSet = pgTable(
       .references(() => categoricalCharacterMeta.characterId, {
         onDelete: "cascade",
       }),
-    /** Palette swatch shared by every label in the set. */
+    /** Hex code shared by every label in the set. */
     hexCode: text("hex_code"),
   }),
   (t) => [

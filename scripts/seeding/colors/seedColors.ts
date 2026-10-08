@@ -58,14 +58,18 @@ async function getOrCreateColorCharacterTx(tx: Transaction) {
     charRow = inserted;
   }
 
-  // Ensure categorical metadata exists
+  // Ensure categorical metadata exists, and that its sets are locked
   await tx
     .insert(categoricalCharacterMeta)
     .values({
       characterId: charRow.id,
       isMultiSelect: true,
+      hasLockedSets: true,
     })
-    .onConflictDoNothing();
+    .onConflictDoUpdate({
+      target: categoricalCharacterMeta.characterId,
+      set: { hasLockedSets: true },
+    });
 
   return charRow;
 }
