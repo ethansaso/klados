@@ -161,6 +161,31 @@ export async function selectTraitIdentityById(
   return row ?? null;
 }
 
+/**
+ * The character's trait value whose label matches, ignoring case (as the
+ * label uniqueness index does), or null. `excludeId` skips that value.
+ */
+export async function selectTraitByLabelIgnoringCase(
+  tx: Transaction,
+  args: { characterId: number; label: string; excludeId?: number },
+): Promise<Pick<TraitValueRow, "id" | "label"> | null> {
+  const [row] = await tx
+    .select({ id: valsTbl.id, label: valsTbl.label })
+    .from(valsTbl)
+    .where(
+      and(
+        eq(valsTbl.characterId, args.characterId),
+        sql`lower(${valsTbl.label}) = lower(${args.label})`,
+        args.excludeId === undefined
+          ? undefined
+          : ne(valsTbl.id, args.excludeId),
+      ),
+    )
+    .limit(1);
+
+  return row ?? null;
+}
+
 /** Resolve trait value IDs to the synonym set each belongs to. */
 export async function selectSynonymSetIdsByTraitValueIds(
   tx: TxOrDb,

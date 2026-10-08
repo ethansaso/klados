@@ -81,7 +81,11 @@ export const categoricalTraitValue = pgTable(
       foreignColumns: [traitSynonymSet.characterId, traitSynonymSet.id],
     }).onDelete("restrict"),
 
-    uniqueIndex("trait_values_character_label_uq").on(t.characterId, t.label),
+    // Case-insensitive
+    uniqueIndex("trait_values_character_label_lower_uq").on(
+      t.characterId,
+      sql`lower(${t.label})`,
+    ),
     index("trait_values_character_idx").on(t.characterId),
     index("trait_values_set_idx").on(t.synonymSetId),
   ],

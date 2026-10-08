@@ -75,9 +75,10 @@ async function getOrCreateColorCharacterTx(tx: Transaction) {
 }
 
 /**
- * Index the rows holding canonical labels by lowercased label. Other labels
- * are curators' and never looked at. Throws when canonical labels differ only
- * in case, or share a set: either way seeding can't tell which is right.
+ * Index the rows holding canonical labels by lowercased label (labels are
+ * unique ignoring case). Other labels are curators' and never looked at.
+ * Throws when canonical labels share a set, since seeding can't tell which
+ * one the set's synonyms belong to.
  */
 function indexCanonicalRows(
   rows: ExistingTrait[],
@@ -86,17 +87,11 @@ function indexCanonicalRows(
   const canonical = new Set(palette.map((color) => color.label));
   const byLabel = new Map<string, ExistingTrait>();
   const bySet = new Map<number, string[]>();
-  const problems: string[] = [];
 
   for (const row of rows) {
     const key = row.label.toLowerCase();
     if (!canonical.has(key)) continue;
 
-    const seen = byLabel.get(key);
-    if (seen) {
-      problems.push(`"${seen.label}" and "${row.label}" differ only by case`);
-      continue;
-    }
     byLabel.set(key, row);
 
     const sharing = bySet.get(row.synonymSetId) ?? [];
@@ -104,16 +99,11 @@ function indexCanonicalRows(
     bySet.set(row.synonymSetId, sharing);
   }
 
-  for (const labels of bySet.values()) {
-    if (labels.length > 1) {
-      problems.push(`${labels.map((l) => `"${l}"`).join(", ")} share a set`);
-    }
-  }
-
-  if (problems.length > 0) {
+  const shared = [...bySet.values()].filter((labels) => labels.length > 1);
+  if (shared.length > 0) {
     throw new Error(
-      `Canonical colors are in a state seeding can't resolve:\n${problems
-        .map((p) => `  - ${p}`)
+      `Canonical colors share a set, so seeding can't tell them apart:\n${shared
+        .map((labels) => `  - ${labels.map((l) => `"${l}"`).join(", ")}`)
         .join("\n")}\nFix them by hand, then re-run.`,
     );
   }

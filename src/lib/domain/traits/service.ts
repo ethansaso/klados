@@ -12,6 +12,7 @@ import {
   moveTraitToSet,
   selectAllTraitValuesByCharacters,
   selectSynonymCandidateRows,
+  selectTraitByLabelIgnoringCase,
   selectTraitIdentityById,
   selectTraitValueDtoById,
   selectTraitValueDtosByIds,
@@ -110,11 +111,28 @@ function isCanonicalLabel(
   return policy?.canonicalLabels.has(label.trim().toLowerCase()) ?? false;
 }
 
+/** Refuse a label another of the character's values has, ignoring case. */
+async function assertLabelFreeTx(
+  tx: Transaction,
+  characterId: number,
+  label: string,
+  excludeId?: number,
+): Promise<void> {
+  const existing = await selectTraitByLabelIgnoringCase(tx, {
+    characterId,
+    label,
+    excludeId,
+  });
+
+  if (existing) {
+    throw new Error(`A term named "${existing.label}" already exists.`);
+  }
+}
+
 /**
- * Refuse updates that would break locked sets: renaming, moving, or splitting
- * off a canonical label, naming any label after a canonical one, or splitting
- * any label into a new set. No-op membership changes (e.g. a form re-sending
- * the current set) are allowed.
+ * Refuse updates that would break locked sets: renaming or moving a canonical
+ * label, or splitting any label into a new set. No-op membership changes (e.g.
+ * a form re-sending the current set) are allowed.
  */
 async function assertLockedSetsUpdateTx(
   tx: Transaction,
@@ -125,15 +143,8 @@ async function assertLockedSetsUpdateTx(
   const canonical = isCanonicalLabel(policy, cur.label);
   const nextLabel = args.label?.trim();
 
-  if (nextLabel !== undefined && nextLabel !== cur.label) {
-    if (canonical) {
-      throw new Error(
-        `"${cur.label}" is a canonical term and can't be renamed.`,
-      );
-    }
-    if (isCanonicalLabel(policy, nextLabel)) {
-      throw new Error(`"${nextLabel}" is reserved as a canonical term.`);
-    }
+  if (canonical && nextLabel !== undefined && nextLabel !== cur.label) {
+    throw new Error(`"${cur.label}" is a canonical term and can't be renamed.`);
   }
 
   if (args.synonymOfTraitId === null) {
@@ -245,7 +256,7 @@ export async function getTraitValuesByIds(
 /**
  * Create a trait value.
  * Will also create a single-member synonym set, unless a `synonymOfTraitId` is passed.
- * For characters with locked sets, it must join a set and can't be canonical.
+ * For characters with locked sets, it must join an existing set.
  */
 export async function createTraitValue(
   args: CreateTraitValueInput,
@@ -255,16 +266,13 @@ export async function createTraitValue(
 
   return db.transaction(async (tx) => {
     const policy = await getLockedSetsPolicy(tx, characterId);
-    if (policy) {
-      if (args.synonymOfTraitId === undefined) {
-        throw new Error(
-          `"${policy.characterLabel}" is locked, so new terms must be synonyms of an existing one.`,
-        );
-      }
-      if (isCanonicalLabel(policy, label)) {
-        throw new Error(`"${label}" is reserved as a canonical term.`);
-      }
+    if (policy && args.synonymOfTraitId === undefined) {
+      throw new Error(
+        `"${policy.characterLabel}" is locked, so new terms must be synonyms of an existing one.`,
+      );
     }
+
+    await assertLabelFreeTx(tx, characterId, label);
 
     let synonymSetId: number;
 
@@ -319,6 +327,11 @@ export async function updateTraitValue(
 
     const policy = await getLockedSetsPolicy(tx, args.characterId);
     if (policy) await assertLockedSetsUpdateTx(tx, policy, cur, args);
+
+    const nextLabel = args.label?.trim();
+    if (nextLabel !== undefined && nextLabel !== cur.label) {
+      await assertLabelFreeTx(tx, args.characterId, nextLabel, args.id);
+    }
 
     const updated = await updateTraitValueRow(tx, {
       id: args.id,

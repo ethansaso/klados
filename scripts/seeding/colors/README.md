@@ -43,7 +43,8 @@ Every swatch is one synonym set, holding its canonical label plus any synonyms
 curators add. The hex code lives on the set itself to avoid drift between
 individual traits, and only the seeder writes it.
 
-Labels are stored lowercase, as everywhere else in the glossary. Display
+Labels are stored lowercase, as everywhere else in the glossary, and are
+unique per character ignoring case, so "Brown" can't sit beside "brown". Display
 code capitalizes where it needs to, e.g. `formatTraitLabel` takes the
 capital at the head of a prose fragment.
 
@@ -52,7 +53,7 @@ capital at the head of a prose fragment.
 The Color character has `hasLockedSets`, so the app enforces:
 
 - New labels must join an existing set; no new sets can be created or split off.
-- Canonical labels can't be created, renamed, moved, or deleted.
+- Canonical labels can't be renamed, moved, or deleted.
 - The character itself can't be renamed or deleted, since seeding finds it by
   label.
 
@@ -65,8 +66,8 @@ Seeding reconciles rather than replaces. It finds each set by its canonical
 label, creating the label and set if missing, writes each set's hex, and keeps
 the character locked. It never touches other labels, and reports any set that
 has no canonical label so its labels can be moved into a palette set. If
-canonical labels share a set or differ only by case, it refuses to run rather
-than guess. Running it twice is a no-op.
+canonical labels share a set, it refuses to run rather than guess. Running it
+twice is a no-op.
 
 Use `npm run test:colors` to print the full palette without touching the
 database.

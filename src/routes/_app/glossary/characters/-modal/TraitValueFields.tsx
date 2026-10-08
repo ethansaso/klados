@@ -158,7 +158,7 @@ export function TraitValueFields({
         />
         {isCanonical && (
           <Text as="p" size="1" color="gray" mt="1">
-            Canonical terms can't be renamed or given different synonyms.
+            Canonical terms can't be renamed or assigned to other synonym sets.
           </Text>
         )}
       </Box>
