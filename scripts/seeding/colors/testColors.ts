@@ -1,11 +1,12 @@
-import { ansiBlock, buildColorSeedPlan } from "./util";
+import { buildColorPalette } from "../../../src/lib/domain/traits/colorPalette";
+import { ansiBlock } from "./ansiBlock";
 
 function run() {
-  console.log("\n=== Full Color List (Synonym Sets) ===\n");
+  console.log("\n=== Canonical Colors ===\n");
 
-  const plan = buildColorSeedPlan();
+  const palette = buildColorPalette();
 
-  for (const color of plan) {
+  for (const color of palette) {
     if (color.hexCode) {
       console.log(
         `${color.label.padEnd(30)} ${ansiBlock(color.hexCode)}  ${color.hexCode}`,
@@ -13,15 +14,9 @@ function run() {
     } else {
       console.log(`${color.label.padEnd(30)} ⬚`);
     }
-
-    for (const synonym of color.synonyms) {
-      console.log(`    - ${synonym}`);
-    }
   }
 
-  console.log(
-    `\n${plan.length} colors, ${plan.reduce((n, c) => n + 1 + c.synonyms.length, 0)} labels\n`,
-  );
+  console.log(`\n${palette.length} colors\n`);
 }
 
 run();

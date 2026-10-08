@@ -10,6 +10,7 @@ import {
 } from "../../../../db/schema/schema";
 import { taxonName as namesTbl } from "../../../../db/schema/taxa/name";
 import { selectMediaByTaxonIds } from "../media/repo";
+import { supportsLookalikes } from "./util";
 import type { TaxonLookalikeDTO } from "./types";
 
 export async function computeTaxonLookalikesByCategoricalOverlap(args: {
@@ -26,7 +27,7 @@ export async function computeTaxonLookalikesByCategoricalOverlap(args: {
     .where(eq(taxaTbl.id, args.taxonId))
     .limit(1);
 
-  if (!targetTaxon) return [];
+  if (!targetTaxon || !supportsLookalikes(targetTaxon.rank)) return [];
 
   const sci = alias(namesTbl, "sci");
   const common = alias(namesTbl, "common");

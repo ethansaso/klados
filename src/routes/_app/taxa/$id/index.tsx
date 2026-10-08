@@ -12,6 +12,7 @@ import {
 } from "../../../../components/Breadcrumbs";
 import { ContentContainer } from "../../../../components/ContentContainer";
 import { TaxonName } from "../../../../components/TaxonName";
+import { supportsLookalikes } from "../../../../lib/domain/lookalikes/util";
 import { distributionTilesQueryOptions } from "../../../../lib/queries/distributionTiles";
 import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
@@ -60,7 +61,6 @@ function TaxonPage() {
   const { data: characterStates } = useSuspenseQuery(
     taxonCharacterStatesQueryOptions(id),
   );
-  const { data: lookalikes } = useSuspenseQuery(lookalikesQueryOptions(id));
   const { data: sources } = useSuspenseQuery(sourcesForTaxonQueryOptions(id));
   const { data: densityUrls } = useSuspenseQuery(
     distributionTilesQueryOptions(id),
@@ -71,24 +71,14 @@ function TaxonPage() {
   const breadcrumbItems: Breadcrumb[] = useMemo(() => {
     const lineageItems: Breadcrumb[] = taxon.ancestors.map((ancestor) => ({
       key: String(ancestor.id),
-      label: (
-        <TaxonName
-          rank={ancestor.rank}
-          name={ancestor.acceptedName}
-        />
-      ),
+      label: <TaxonName rank={ancestor.rank} name={ancestor.acceptedName} />,
       to: "/taxa/$id",
       params: { id: String(ancestor.id) },
     }));
 
     lineageItems.push({
       key: String(taxon.id),
-      label: (
-        <TaxonName
-          rank={taxon.rank}
-          name={taxon.acceptedName}
-        />
-      ),
+      label: <TaxonName rank={taxon.rank} name={taxon.acceptedName} />,
     });
 
     if (lineageItems.length <= 4) {
@@ -228,12 +218,16 @@ function TaxonPage() {
           </Box>
 
           {/* Lookalikes */}
-          <LookalikesList
-            taxonId={id}
-            taxonRank={taxon.rank}
-            taxonName={taxon.acceptedName}
-            lookalikes={lookalikes}
-          />
+          {/* Keyed so the scroller remounts at the start in the same commit as
+              new data; the router's scroll reset lands a frame later. */}
+          {supportsLookalikes(taxon.rank) && (
+            <LookalikesList
+              key={id}
+              taxonId={id}
+              taxonRank={taxon.rank}
+              taxonName={taxon.acceptedName}
+            />
+          )}
 
           {/* Distribution */}
           <Box>

@@ -11,6 +11,7 @@ import {
   characterFeature,
   feature,
   numericCharacterMeta,
+  traitSynonymSet,
 } from "../../../../db/schema/schema";
 import {
   type FuzzyQuery,
@@ -162,12 +163,16 @@ export async function queryCategoricalSuggestionRows(opts: {
         label: character.label,
         traitValueId: categoricalTraitValue.id,
         traitValueLabel: categoricalTraitValue.label,
-        traitValueHexCode: categoricalTraitValue.hexCode,
+        traitValueHexCode: traitSynonymSet.hexCode,
         traitValueDescription: categoricalTraitValue.description,
         similarityScore: similarity,
       })
       .from(categoricalTraitValue)
       .innerJoin(character, eq(character.id, categoricalTraitValue.characterId))
+      .innerJoin(
+        traitSynonymSet,
+        eq(traitSynonymSet.id, categoricalTraitValue.synonymSetId),
+      )
       .where(
         and(
           fuzzyLabelPredicate(categoricalTraitValue.label, fq),

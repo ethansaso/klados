@@ -4,7 +4,7 @@ import {
   createMiddleware,
   createStart,
 } from "@tanstack/react-start";
-import { dbErrorMiddleware } from "./lib/utils/dbErrorMiddleware";
+import { dbErrorMiddleware } from "./lib/utils/middleware/dbErrorMiddleware";
 
 const convertRedirectErrorToExceptionMiddleware = createMiddleware({
   type: "function",

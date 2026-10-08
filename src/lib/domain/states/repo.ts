@@ -14,6 +14,7 @@ import {
   taxonCharacterStateNumber as numStateTbl,
   taxonCharacterStateRange as rangeStateTbl,
   taxonFeatureState as tfsTbl,
+  traitSynonymSet as traitSetsTbl,
   unit as unitsTbl,
 } from "../../../../db/schema/schema";
 import type { Transaction } from "../../utils/types/transactionType";
@@ -103,7 +104,7 @@ export async function selectTaxonStatesByTaxonIds(
       traitValueLabel: catValTbl.label,
       traitValueDescription: catValTbl.description,
       traitValueMediaId: catValTbl.mediaId,
-      traitValueHexCode: catValTbl.hexCode,
+      traitValueHexCode: traitSetsTbl.hexCode,
       traitSynonymSetId: catValTbl.synonymSetId,
     })
     .from(catStateTbl)
@@ -111,6 +112,7 @@ export async function selectTaxonStatesByTaxonIds(
     .innerJoin(featuresTbl, eq(featuresTbl.id, tfsTbl.featureId))
     .innerJoin(charsTbl, eq(charsTbl.id, catStateTbl.characterId))
     .innerJoin(catValTbl, eq(catValTbl.id, catStateTbl.traitValueId))
+    .innerJoin(traitSetsTbl, eq(traitSetsTbl.id, catValTbl.synonymSetId))
     .where(inArray(tfsTbl.taxonId, taxonIds));
 
   const catStateIds = catRows.map((r) => r.stateId);

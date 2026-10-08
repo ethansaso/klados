@@ -1,9 +1,15 @@
+import {
+  TAXON_RANKS_DESCENDING,
+  type TaxonRank,
+} from "../../../../db/schema/taxa/taxon";
 import type { CharacterStateDTO, FeatureStateDTO } from "../states/types";
 import type {
   LookalikeComparisonAnnotatedState,
   LookalikeComparisonCharacter,
   LookalikeComparisonGroup,
 } from "./types";
+
+const GENUS_IDX = TAXON_RANKS_DESCENDING.indexOf("genus");
 
 function traitKey(s: CharacterStateDTO): string {
   // Keyed on synonym set as canonical identity
@@ -151,4 +157,9 @@ export function buildGroupedLookalikeStates(args: {
 
   result.sort((a, b) => a.groupLabel.localeCompare(b.groupLabel));
   return result;
+}
+
+/** Lookalikes are only meaningful at genus rank and below. */
+export function supportsLookalikes(rank: TaxonRank): boolean {
+  return TAXON_RANKS_DESCENDING.indexOf(rank) >= GENUS_IDX;
 }

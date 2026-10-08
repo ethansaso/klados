@@ -26,6 +26,7 @@ import {
   PiX,
 } from "react-icons/pi";
 import { DebouncedTextField } from "../DebouncedTextField";
+import "./combobox.css";
 import type { ComboboxOption } from "./types";
 
 /* =============================== Context =============================== */
@@ -190,6 +191,7 @@ function Trigger({ placeholder, ...ariaProps }: TriggerProps) {
       <Popover.Trigger>
         <Button
           id={id}
+          className="select-combobox__trigger"
           variant="surface"
           disabled={disabled}
           aria-haspopup="listbox"
@@ -206,9 +208,12 @@ function Trigger({ placeholder, ...ariaProps }: TriggerProps) {
           style={{ width: "100%" }}
         >
           <Flex align="center" justify="between" width="100%" gap="6">
-            <Text as="div" truncate>
-              {triggerLabel}
-            </Text>
+            <Flex align="center" gap="2" minWidth="0">
+              {value?.adornment}
+              <Text as="div" truncate>
+                {triggerLabel}
+              </Text>
+            </Flex>
             <PiCaretUpDownFill
               size="14"
               aria-hidden
@@ -452,6 +457,7 @@ function Item({
           className="combobox__item-content"
         >
           <Flex align="baseline" gap="2" flexShrink="1" overflow="hidden">
+            {option.adornment}
             <Text
               as="p"
               size="2"

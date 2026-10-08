@@ -1,12 +1,13 @@
 import NiceModal from "@ebay/nice-modal-react";
 import { Box, Button, Flex, Heading, IconButton, Text } from "@radix-ui/themes";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PiCaretLeft, PiCaretRight, PiSubtractSquare } from "react-icons/pi";
 import { LookalikeDialog } from "../../../../../components/dialogs/LookalikeDialog";
 import { LookalikePercentBadge } from "../../../../../components/LookalikeBadge";
 import { TaxonCard } from "../../../../../components/TaxonCard";
 import { TaxonName } from "../../../../../components/TaxonName";
-import type { TaxonLookalikeDTO } from "../../../../../lib/domain/lookalikes/types";
+import { lookalikesQueryOptions } from "../../../../../lib/queries/lookalikes";
 import type { TaxonRank } from "../../../../../../db/schema/schema";
 import "./LookalikesList.css";
 
@@ -14,7 +15,6 @@ interface LookalikesListProps {
   taxonId: number;
   taxonRank: TaxonRank;
   taxonName: string;
-  lookalikes: TaxonLookalikeDTO[];
 }
 
 /** Fraction of visible width a button press travels. */
@@ -25,8 +25,10 @@ export const LookalikesList = ({
   taxonId,
   taxonRank,
   taxonName,
-  lookalikes,
 }: LookalikesListProps) => {
+  const { data: lookalikes } = useSuspenseQuery(
+    lookalikesQueryOptions(taxonId),
+  );
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [scrollable, setScrollable] = useState({ prev: false, next: false });
 
@@ -95,8 +97,8 @@ export const LookalikesList = ({
       {lookalikes.length ? (
         <Text as="p" color="gray" size="1" mb="3">
           These taxa share similar characteristics with{" "}
-          <TaxonName rank={taxonRank} name={taxonName} />. Click on
-          any taxon to compare side-by-side.
+          <TaxonName rank={taxonRank} name={taxonName} />. Click on any taxon to
+          compare side-by-side.
         </Text>
       ) : (
         <Text size={{ initial: "2", sm: "3" }}>

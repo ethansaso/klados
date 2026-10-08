@@ -1,6 +1,8 @@
 import { db } from "../../../../db/client";
 import { buildFuzzyQuery, computeFuzzyScore } from "../../utils/sql/fuzzyLabel";
 import type { Transaction } from "../../utils/types/transactionType";
+import { selectCharacterLockInfo } from "../characters/repo";
+import { canonicalLabelsFor } from "./lockedSets";
 import {
   countTraitsInSet,
   deleteSynonymSetIfEmpty,
@@ -10,6 +12,7 @@ import {
   moveTraitToSet,
   selectAllTraitValuesByCharacters,
   selectSynonymCandidateRows,
+  selectTraitByLabelIgnoringCase,
   selectTraitIdentityById,
   selectTraitValueDtoById,
   selectTraitValueDtosByIds,
@@ -18,6 +21,7 @@ import {
 } from "./repo";
 import type {
   SynonymCandidateDTO,
+  TraitValueBaseDTO,
   TraitValueDTO,
   TraitValuePaginatedResult,
 } from "./types";
@@ -27,146 +31,11 @@ import type {
   UpdateTraitValueInput,
 } from "./validation";
 
-/** Deterministically chooses the larger of two sets to 'survive' a merge to reduce move operations. */
-/**
- * Delete a trait value by id.
- * Returns { id } if deleted, null if the value does not exist.
- */
-export async function deleteTraitValue(args: {
-  id: number;
-}): Promise<{ id: number } | null> {
-  const { id } = args;
-
-  return db.transaction(async (tx) => {
-    const dto = await selectTraitValueDtoById(tx, id);
-    if (!dto) return null;
-
-    // Block delete if referenced by a state(s)
-    if (dto.usageCount > 0) {
-      throw new Error(
-        `Cannot delete "${dto.label}" because it is used by ${dto.usageCount} taxon character state(s).`,
-      );
-    }
-
-    const deleted = await deleteTraitValueById(tx, id);
-    await deleteSynonymSetIfEmpty(tx, dto.synonymSetId);
-
-    return deleted;
-  });
-}
-
-/**
- * Fetch a single trait value by ID.
- * Returns null if not found.
- */
-export async function getTraitValue(args: {
-  id: number;
-}): Promise<TraitValueDTO | null> {
-  return db.transaction((tx) => selectTraitValueDtoById(tx, args.id));
-}
-
-/** Bulk fetch trait values by ID. */
-export async function getTraitValuesByIds(
-  ids: number[],
-): Promise<TraitValueDTO[]> {
-  if (!ids.length) {
-    return [];
-  }
-
-  const dtos = await db.transaction(async (tx) => {
-    return selectTraitValueDtosByIds(tx, ids);
-  });
-
-  return dtos;
-}
-
-/**
- * Create a trait value.
- * Will also create a single-member synonym set, unless a `synonymOfTraitId` is passed.
- */
-export async function createTraitValue(
-  args: CreateTraitValueInput,
-): Promise<TraitValueDTO> {
-  const characterId = args.characterId;
-  const label = args.label.trim();
-
-  return db.transaction(async (tx) => {
-    let synonymSetId: number;
-
-    if (args.synonymOfTraitId !== undefined) {
-      const sibling = await selectTraitIdentityById(tx, args.synonymOfTraitId);
-      if (!sibling) {
-        throw new Error("Synonym target not found.");
-      }
-      if (sibling.characterId !== characterId) {
-        throw new Error("Synonym target must belong to the same character.");
-      }
-      synonymSetId = sibling.synonymSetId;
-    } else {
-      const set = await insertSynonymSet(tx, characterId);
-      synonymSetId = set.id;
-    }
-
-    const inserted = await insertTraitValueRow(tx, {
-      characterId,
-      synonymSetId,
-      label,
-      description: args.description?.trim(),
-      hexCode: args.hexCode,
-      mediaId: args.mediaId,
-    });
-
-    if (!inserted) {
-      throw new Error("Insert failed.");
-    }
-
-    const dto = await selectTraitValueDtoById(tx, inserted.id);
-    if (!dto) {
-      throw new Error("Inserted row not found.");
-    }
-
-    return dto;
-  });
-}
-
-/**
- * Patch a trait value's fields and, optionally, its synonym membership.
- * Setting `null` for `synonymOfTraitId` separates the trait into a set of its own.
- */
-export async function updateTraitValue(
-  args: UpdateTraitValueInput,
-): Promise<TraitValueDTO> {
-  return db.transaction(async (tx) => {
-    const cur = await selectTraitIdentityById(tx, args.id);
-    if (!cur) throw new Error("Trait value not found.");
-    if (cur.characterId !== args.characterId)
-      throw new Error("Trait value character mismatch.");
-
-    const updated = await updateTraitValueRow(tx, {
-      id: args.id,
-      characterId: args.characterId,
-      label: args.label?.trim(),
-      hexCode: args.hexCode,
-      description:
-        args.description === undefined ? undefined : args.description.trim(),
-      mediaId: args.mediaId,
-    });
-    if (!updated) throw new Error("Update failed.");
-
-    if (args.synonymOfTraitId !== undefined) {
-      if (args.synonymOfTraitId === null) {
-        await unlinkTraitFromSynonymsTx(tx, args.id);
-      } else {
-        await moveTraitIntoSetOfTx(tx, args.id, args.synonymOfTraitId);
-      }
-    }
-
-    const dto = await selectTraitValueDtoById(tx, args.id);
-    if (!dto) throw new Error("Updated row not found.");
-
-    return dto;
-  });
-}
+type LockedSetsPolicy = {
+  characterLabel: string;
+  /** Lowercase. */
+  canonicalLabels: ReadonlySet<string>;
+};
 
 /**
  * Move one trait into the set that `targetTraitId` belongs to.
@@ -218,6 +87,277 @@ async function unlinkTraitFromSynonymsTx(
   return { synonymSetId: set.id };
 }
 
+/**
+ * Lock rules for a character, or null if its sets aren't locked.
+ * Throws if a locked character has no canonical labels defined.
+ */
+async function getLockedSetsPolicy(
+  tx: Transaction,
+  characterId: number,
+): Promise<LockedSetsPolicy | null> {
+  const info = await selectCharacterLockInfo(tx, characterId);
+  if (!info?.hasLockedSets) return null;
+
+  return {
+    characterLabel: info.label,
+    canonicalLabels: canonicalLabelsFor(info.label),
+  };
+}
+
+function isCanonicalLabel(
+  policy: LockedSetsPolicy | null,
+  label: string,
+): boolean {
+  return policy?.canonicalLabels.has(label.trim().toLowerCase()) ?? false;
+}
+
+/** Refuse a label another of the character's values has, ignoring case. */
+async function assertLabelFreeTx(
+  tx: Transaction,
+  characterId: number,
+  label: string,
+  excludeId?: number,
+): Promise<void> {
+  const existing = await selectTraitByLabelIgnoringCase(tx, {
+    characterId,
+    label,
+    excludeId,
+  });
+
+  if (existing) {
+    throw new Error(`A term named "${existing.label}" already exists.`);
+  }
+}
+
+/**
+ * Refuse updates that would break locked sets: renaming or moving a canonical
+ * label, or splitting any label into a new set. No-op membership changes (e.g.
+ * a form re-sending the current set) are allowed.
+ */
+async function assertLockedSetsUpdateTx(
+  tx: Transaction,
+  policy: LockedSetsPolicy,
+  cur: { label: string; synonymSetId: number },
+  args: UpdateTraitValueInput,
+): Promise<void> {
+  const canonical = isCanonicalLabel(policy, cur.label);
+  const nextLabel = args.label?.trim();
+
+  if (canonical && nextLabel !== undefined && nextLabel !== cur.label) {
+    throw new Error(`"${cur.label}" is a canonical term and can't be renamed.`);
+  }
+
+  if (args.synonymOfTraitId === null) {
+    if ((await countTraitsInSet(tx, cur.synonymSetId)) > 1) {
+      throw new Error(
+        `"${policy.characterLabel}" is locked, so terms must keep their synonyms.`,
+      );
+    }
+  } else if (args.synonymOfTraitId !== undefined && canonical) {
+    const target = await selectTraitIdentityById(tx, args.synonymOfTraitId);
+    if (target && target.synonymSetId !== cur.synonymSetId) {
+      throw new Error(
+        `"${cur.label}" is a canonical term, so its synonyms can't be changed.`,
+      );
+    }
+  }
+}
+
+/** Mark a value's `isCanonical`, per its character's lock rules. */
+async function withCanonicalFlag(
+  tx: Transaction,
+  value: TraitValueBaseDTO,
+): Promise<TraitValueDTO> {
+  const policy = await getLockedSetsPolicy(tx, value.characterId);
+  return { ...value, isCanonical: isCanonicalLabel(policy, value.label) };
+}
+
+/** As `withCanonicalFlag`, looking up each character's rules once. */
+async function withCanonicalFlags(
+  tx: Transaction,
+  values: TraitValueBaseDTO[],
+): Promise<TraitValueDTO[]> {
+  const policies = new Map<number, LockedSetsPolicy | null>();
+  for (const characterId of new Set(values.map((v) => v.characterId))) {
+    policies.set(characterId, await getLockedSetsPolicy(tx, characterId));
+  }
+
+  return values.map((value) => ({
+    ...value,
+    isCanonical: isCanonicalLabel(
+      policies.get(value.characterId) ?? null,
+      value.label,
+    ),
+  }));
+}
+
+/**
+ * Delete a trait value by id.
+ * Returns { id } if deleted, null if the value does not exist.
+ */
+export async function deleteTraitValue(args: {
+  id: number;
+}): Promise<{ id: number } | null> {
+  const { id } = args;
+
+  return db.transaction(async (tx) => {
+    const dto = await selectTraitValueDtoById(tx, id);
+    if (!dto) return null;
+
+    const policy = await getLockedSetsPolicy(tx, dto.characterId);
+    if (isCanonicalLabel(policy, dto.label)) {
+      throw new Error(
+        `"${dto.label}" is a canonical term and can't be deleted.`,
+      );
+    }
+
+    // Block delete if referenced by a state(s)
+    if (dto.usageCount > 0) {
+      throw new Error(
+        `Cannot delete "${dto.label}" because it is used by ${dto.usageCount} taxon character state(s).`,
+      );
+    }
+
+    const deleted = await deleteTraitValueById(tx, id);
+    await deleteSynonymSetIfEmpty(tx, dto.synonymSetId);
+
+    return deleted;
+  });
+}
+
+/**
+ * Fetch a single trait value by ID.
+ * Returns null if not found.
+ */
+export async function getTraitValue(args: {
+  id: number;
+}): Promise<TraitValueDTO | null> {
+  return db.transaction(async (tx) => {
+    const dto = await selectTraitValueDtoById(tx, args.id);
+    return dto ? withCanonicalFlag(tx, dto) : null;
+  });
+}
+
+/** Bulk fetch trait values by ID. */
+export async function getTraitValuesByIds(
+  ids: number[],
+): Promise<TraitValueDTO[]> {
+  if (!ids.length) {
+    return [];
+  }
+
+  const dtos = await db.transaction(async (tx) => {
+    return withCanonicalFlags(tx, await selectTraitValueDtosByIds(tx, ids));
+  });
+
+  return dtos;
+}
+
+/**
+ * Create a trait value.
+ * Will also create a single-member synonym set, unless a `synonymOfTraitId` is passed.
+ * For characters with locked sets, it must join an existing set.
+ */
+export async function createTraitValue(
+  args: CreateTraitValueInput,
+): Promise<TraitValueDTO> {
+  const characterId = args.characterId;
+  const label = args.label.trim();
+
+  return db.transaction(async (tx) => {
+    const policy = await getLockedSetsPolicy(tx, characterId);
+    if (policy && args.synonymOfTraitId === undefined) {
+      throw new Error(
+        `"${policy.characterLabel}" is locked, so new terms must be synonyms of an existing one.`,
+      );
+    }
+
+    await assertLabelFreeTx(tx, characterId, label);
+
+    let synonymSetId: number;
+
+    if (args.synonymOfTraitId !== undefined) {
+      const sibling = await selectTraitIdentityById(tx, args.synonymOfTraitId);
+      if (!sibling) {
+        throw new Error("Synonym target not found.");
+      }
+      if (sibling.characterId !== characterId) {
+        throw new Error("Synonym target must belong to the same character.");
+      }
+      synonymSetId = sibling.synonymSetId;
+    } else {
+      const set = await insertSynonymSet(tx, characterId);
+      synonymSetId = set.id;
+    }
+
+    const inserted = await insertTraitValueRow(tx, {
+      characterId,
+      synonymSetId,
+      label,
+      description: args.description?.trim(),
+      mediaId: args.mediaId,
+    });
+
+    if (!inserted) {
+      throw new Error("Insert failed.");
+    }
+
+    const dto = await selectTraitValueDtoById(tx, inserted.id);
+    if (!dto) {
+      throw new Error("Inserted row not found.");
+    }
+
+    return withCanonicalFlag(tx, dto);
+  });
+}
+
+/**
+ * Patch a trait value's fields and, optionally, its synonym membership.
+ * Setting `null` for `synonymOfTraitId` separates the trait into a set of its own.
+ * Characters with locked sets refuse changes that would break them.
+ */
+export async function updateTraitValue(
+  args: UpdateTraitValueInput,
+): Promise<TraitValueDTO> {
+  return db.transaction(async (tx) => {
+    const cur = await selectTraitIdentityById(tx, args.id);
+    if (!cur) throw new Error("Trait value not found.");
+    if (cur.characterId !== args.characterId)
+      throw new Error("Trait value character mismatch.");
+
+    const policy = await getLockedSetsPolicy(tx, args.characterId);
+    if (policy) await assertLockedSetsUpdateTx(tx, policy, cur, args);
+
+    const nextLabel = args.label?.trim();
+    if (nextLabel !== undefined && nextLabel !== cur.label) {
+      await assertLabelFreeTx(tx, args.characterId, nextLabel, args.id);
+    }
+
+    const updated = await updateTraitValueRow(tx, {
+      id: args.id,
+      characterId: args.characterId,
+      label: args.label?.trim(),
+      description:
+        args.description === undefined ? undefined : args.description.trim(),
+      mediaId: args.mediaId,
+    });
+    if (!updated) throw new Error("Update failed.");
+
+    if (args.synonymOfTraitId !== undefined) {
+      if (args.synonymOfTraitId === null) {
+        await unlinkTraitFromSynonymsTx(tx, args.id);
+      } else {
+        await moveTraitIntoSetOfTx(tx, args.id, args.synonymOfTraitId);
+      }
+    }
+
+    const dto = await selectTraitValueDtoById(tx, args.id);
+    if (!dto) throw new Error("Updated row not found.");
+
+    return withCanonicalFlag(tx, dto);
+  });
+}
+
 /** List trait values for a character, paginated. */
 export async function listTraitValuesByCharacter(args: {
   characterId: number;
@@ -226,13 +366,15 @@ export async function listTraitValuesByCharacter(args: {
   q?: string;
 }): Promise<TraitValuePaginatedResult> {
   return db.transaction(async (tx) => {
-    return selectTraitValuesByCharacterPaginated(
+    const result = await selectTraitValuesByCharacterPaginated(
       tx,
       args.characterId,
       args.page,
       args.pageSize,
       { q: args.q },
     );
+
+    return { ...result, items: await withCanonicalFlags(tx, result.items) };
   });
 }
 
@@ -271,20 +413,26 @@ export async function listSynonymCandidates(
 
     const bySet = new Map<
       number,
-      { labels: { id: number; label: string; score: number }[] }
+      {
+        hexCode: string | null;
+        labels: { id: number; label: string; score: number }[];
+      }
     >();
 
     for (const row of rows) {
       const score = fq
         ? computeFuzzyScore(row.label.toLowerCase(), fq, row.similarity ?? 0)
         : 0;
-      const entry = bySet.get(row.synonymSetId) ?? { labels: [] };
+      const entry = bySet.get(row.synonymSetId) ?? {
+        hexCode: row.hexCode,
+        labels: [],
+      };
       entry.labels.push({ id: row.id, label: row.label, score });
       bySet.set(row.synonymSetId, entry);
     }
 
     const candidates = [...bySet.entries()].flatMap(
-      ([synonymSetId, { labels }]) => {
+      ([synonymSetId, { hexCode, labels }]) => {
         // Best match heads the set; the rest stay alphabetical behind it
         labels.sort((a, b) =>
           b.score !== a.score
@@ -302,6 +450,7 @@ export async function listSynonymCandidates(
             headLabel: head.label,
             headScore: head.score,
             labels: [head.label, ...rest.map((l) => l.label)],
+            hexCode,
           },
         ];
       },
@@ -315,10 +464,11 @@ export async function listSynonymCandidates(
 
     return candidates
       .slice(0, limit)
-      .map(({ synonymSetId, headTraitId, labels }) => ({
+      .map(({ synonymSetId, headTraitId, labels, hexCode }) => ({
         synonymSetId,
         headTraitId,
         labels,
+        hexCode,
       }));
   });
 }

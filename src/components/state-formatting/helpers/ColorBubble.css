@@ -3,6 +3,11 @@
   box-sizing: content-box;
   border-radius: 50%;
   border: 1px solid var(--gray-a7);
+  flex-shrink: 0;
 
   vertical-align: baseline;
+}
+
+.select-combobox__trigger:disabled .color-bubble {
+  opacity: 0.25;
 }

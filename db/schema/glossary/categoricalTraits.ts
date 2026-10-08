@@ -17,7 +17,8 @@ import { categoricalCharacterMeta } from "./characters";
 /**
  * A set of interchangeable trait labels within one character.
  * All traits must belong to one, even if having only one member.
- * ! THIS TABLE OWNS NO METADATA (hexCode, description, etc.) AND MUST NEVER OWN ANY.
+ * ! Holds only properties that must be identical for every member by definition.
+ * ! Must never hold metadata with individual granularity, e.g. descriptions/media.
  */
 export const traitSynonymSet = pgTable(
   "trait_synonym_set",
@@ -28,11 +29,18 @@ export const traitSynonymSet = pgTable(
       .references(() => categoricalCharacterMeta.characterId, {
         onDelete: "cascade",
       }),
+    /** Hex code shared by every label in the set. */
+    hexCode: text("hex_code"),
   }),
   (t) => [
     // Composite target so trait values can prove same-character membership
     unique("trait_synonym_set_character_id_id_uq").on(t.characterId, t.id),
     index("trait_synonym_set_character_idx").on(t.characterId),
+
+    check(
+      "trait_synonym_set_hex_code_format_ck",
+      sql`${t.hexCode} IS NULL OR ${t.hexCode} ~ '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'`,
+    ),
   ],
 );
 
@@ -50,7 +58,6 @@ export const categoricalTraitValue = pgTable(
       }),
     synonymSetId: integer("synonym_set_id").notNull(),
     label: text("label").notNull(),
-    hexCode: text("hex_code"),
     description: text("description").notNull().default(""),
     mediaId: integer("media_id").references(() => media.id, {
       onDelete: "set null",
@@ -74,13 +81,12 @@ export const categoricalTraitValue = pgTable(
       foreignColumns: [traitSynonymSet.characterId, traitSynonymSet.id],
     }).onDelete("restrict"),
 
-    uniqueIndex("trait_values_character_label_uq").on(t.characterId, t.label),
+    // Case-insensitive
+    uniqueIndex("trait_values_character_label_lower_uq").on(
+      t.characterId,
+      sql`lower(${t.label})`,
+    ),
     index("trait_values_character_idx").on(t.characterId),
     index("trait_values_set_idx").on(t.synonymSetId),
-
-    check(
-      "trait_values_hex_code_format_ck",
-      sql`${t.hexCode} IS NULL OR ${t.hexCode} ~ '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'`,
-    ),
   ],
 );

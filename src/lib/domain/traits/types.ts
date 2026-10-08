@@ -1,22 +1,32 @@
-import { categoricalTraitValue } from "../../../../db/schema/schema";
+import {
+  categoricalTraitValue,
+  traitSynonymSet,
+} from "../../../../db/schema/schema";
 import type { PaginatedResult } from "../../validation/pagination";
 import type { MediaDTO } from "../media/types";
 
 export type TraitValueRow = typeof categoricalTraitValue.$inferSelect;
+export type TraitSynonymSetRow = typeof traitSynonymSet.$inferSelect;
 
 /** For use as siblings in a synonym set. */
 export type TraitSynonymDTO = Pick<TraitValueRow, "id" | "label">;
 
 export type TraitValueDTO = Pick<
   TraitValueRow,
-  "id" | "characterId" | "synonymSetId" | "label" | "hexCode" | "description"
-> & {
-  /** States referencing this trait */
-  usageCount: number;
-  /** Other labels in the same set. Excludes self. Sorted by label. */
-  synonyms: TraitSynonymDTO[];
-  media: MediaDTO | null;
-};
+  "id" | "characterId" | "synonymSetId" | "label" | "description"
+> &
+  Pick<TraitSynonymSetRow, "hexCode"> & {
+    /** Code-defined label of a locked set; can't be renamed, moved, or deleted. */
+    isCanonical: boolean;
+    /** States referencing this trait */
+    usageCount: number;
+    /** Other labels in the same set. Excludes self. Sorted by label. */
+    synonyms: TraitSynonymDTO[];
+    media: MediaDTO | null;
+  };
+
+/** A TraitValueDTO as the database knows it; canonical labels come from code. */
+export type TraitValueBaseDTO = Omit<TraitValueDTO, "isCanonical">;
 
 export type TraitValuePaginatedResult = PaginatedResult<TraitValueDTO>;
 
@@ -27,4 +37,10 @@ export type SynonymCandidateDTO = {
   headTraitId: number;
   /** Every label in the set, best match first. */
   labels: string[];
+} & Pick<TraitSynonymSetRow, "hexCode">;
+
+export type ExtractionTraitValue = {
+  id: number;
+  label: string;
+  hexCode: string | null;
 };

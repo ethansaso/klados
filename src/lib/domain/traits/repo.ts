@@ -21,11 +21,12 @@ import {
   fuzzySimilarity,
 } from "../../utils/sql/fuzzyLabel";
 import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
+import type { PaginatedResult } from "../../validation/pagination";
 import { hydrateMedia } from "../media/repo";
 import type {
+  ExtractionTraitValue,
   TraitSynonymDTO,
-  TraitValueDTO,
-  TraitValuePaginatedResult,
+  TraitValueBaseDTO,
   TraitValueRow,
 } from "./types";
 
@@ -161,6 +162,31 @@ export async function selectTraitIdentityById(
   return row ?? null;
 }
 
+/**
+ * The character's trait value whose label matches, ignoring case (as the
+ * label uniqueness index does), or null. `excludeId` skips that value.
+ */
+export async function selectTraitByLabelIgnoringCase(
+  tx: Transaction,
+  args: { characterId: number; label: string; excludeId?: number },
+): Promise<Pick<TraitValueRow, "id" | "label"> | null> {
+  const [row] = await tx
+    .select({ id: valsTbl.id, label: valsTbl.label })
+    .from(valsTbl)
+    .where(
+      and(
+        eq(valsTbl.characterId, args.characterId),
+        sql`lower(${valsTbl.label}) = lower(${args.label})`,
+        args.excludeId === undefined
+          ? undefined
+          : ne(valsTbl.id, args.excludeId),
+      ),
+    )
+    .limit(1);
+
+  return row ?? null;
+}
+
 /** Resolve trait value IDs to the synonym set each belongs to. */
 export async function selectSynonymSetIdsByTraitValueIds(
   tx: TxOrDb,
@@ -201,7 +227,13 @@ export async function selectSynonymCandidateRows(
     fq: FuzzyQuery | null;
   },
 ): Promise<
-  { id: number; label: string; synonymSetId: number; similarity: number }[]
+  {
+    id: number;
+    label: string;
+    synonymSetId: number;
+    hexCode: string | null;
+    similarity: number;
+  }[]
 > {
   const { characterId, excludeTraitId, fq } = args;
 
@@ -233,11 +265,13 @@ export async function selectSynonymCandidateRows(
       id: valsTbl.id,
       label: valsTbl.label,
       synonymSetId: valsTbl.synonymSetId,
+      hexCode: setsTbl.hexCode,
       similarity: fq
         ? fuzzySimilarity(valsTbl.label, fq)
         : sql<number>`0::real`,
     })
     .from(valsTbl)
+    .innerJoin(setsTbl, eq(setsTbl.id, valsTbl.synonymSetId))
     .where(and(...inScope, setFilter))
     .orderBy(asc(valsTbl.label));
 }
@@ -250,7 +284,6 @@ export async function insertTraitValueRow(
     synonymSetId: number;
     label: string;
     description?: string;
-    hexCode?: string | null;
     mediaId?: number | null;
   },
 ): Promise<TraitValueRow | null> {
@@ -261,7 +294,6 @@ export async function insertTraitValueRow(
       synonymSetId: args.synonymSetId,
       label: args.label,
       description: args.description ?? "",
-      hexCode: args.hexCode ?? null,
       mediaId: args.mediaId ?? null,
     })
     .returning();
@@ -273,7 +305,7 @@ export async function insertTraitValueRow(
 export async function selectTraitValueDtoById(
   tx: Transaction,
   id: number,
-): Promise<TraitValueDTO | null> {
+): Promise<TraitValueBaseDTO | null> {
   const usageAgg = usageAggFor(tx, eq(tcsTbl.traitValueId, id));
 
   const [row] = await tx
@@ -282,13 +314,14 @@ export async function selectTraitValueDtoById(
       characterId: valsTbl.characterId,
       synonymSetId: valsTbl.synonymSetId,
       label: valsTbl.label,
-      hexCode: valsTbl.hexCode,
+      hexCode: setsTbl.hexCode,
       description: valsTbl.description,
       usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
       synonyms: synonymsAgg,
       mediaId: valsTbl.mediaId,
     })
     .from(valsTbl)
+    .innerJoin(setsTbl, eq(setsTbl.id, valsTbl.synonymSetId))
     .leftJoin(usageAgg, eq(usageAgg.traitValueId, valsTbl.id))
     .where(eq(valsTbl.id, id))
     .limit(1);
@@ -303,7 +336,7 @@ export async function selectTraitValueDtoById(
 export async function selectTraitValueDtosByIds(
   tx: Transaction,
   ids: number[],
-): Promise<TraitValueDTO[]> {
+): Promise<TraitValueBaseDTO[]> {
   if (!ids.length) {
     return [];
   }
@@ -316,13 +349,14 @@ export async function selectTraitValueDtosByIds(
       characterId: valsTbl.characterId,
       synonymSetId: valsTbl.synonymSetId,
       label: valsTbl.label,
-      hexCode: valsTbl.hexCode,
+      hexCode: setsTbl.hexCode,
       description: valsTbl.description,
       usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
       synonyms: synonymsAgg,
       mediaId: valsTbl.mediaId,
     })
     .from(valsTbl)
+    .innerJoin(setsTbl, eq(setsTbl.id, valsTbl.synonymSetId))
     .leftJoin(usageAgg, eq(usageAgg.traitValueId, valsTbl.id))
     .where(inArray(valsTbl.id, ids))
     .orderBy(asc(valsTbl.id));
@@ -340,17 +374,15 @@ export async function updateTraitValueRow(
     id: number;
     characterId: number;
     label?: string;
-    hexCode?: string | null;
     description?: string;
     mediaId?: number | null;
   },
 ): Promise<{ id: number } | null> {
   const patch: Partial<
-    Pick<TraitValueRow, "label" | "hexCode" | "description" | "mediaId">
+    Pick<TraitValueRow, "label" | "description" | "mediaId">
   > = {};
 
   if (args.label !== undefined) patch.label = args.label;
-  if (args.hexCode !== undefined) patch.hexCode = args.hexCode;
   if (args.description !== undefined) patch.description = args.description;
   if (args.mediaId !== undefined) patch.mediaId = args.mediaId;
 
@@ -384,7 +416,7 @@ export async function selectTraitValuesByCharacterPaginated(
   page: number,
   pageSize: number,
   opts?: { q?: string },
-): Promise<TraitValuePaginatedResult> {
+): Promise<PaginatedResult<TraitValueBaseDTO>> {
   const offset = (page - 1) * pageSize;
 
   const filters: ReturnType<typeof eq>[] = [
@@ -402,13 +434,14 @@ export async function selectTraitValuesByCharacterPaginated(
       characterId: valsTbl.characterId,
       synonymSetId: valsTbl.synonymSetId,
       label: valsTbl.label,
-      hexCode: valsTbl.hexCode,
+      hexCode: setsTbl.hexCode,
       description: valsTbl.description,
       usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
       synonyms: synonymsAgg,
       mediaId: valsTbl.mediaId,
     })
     .from(valsTbl)
+    .innerJoin(setsTbl, eq(setsTbl.id, valsTbl.synonymSetId))
     .leftJoin(usageAgg, eq(usageAgg.traitValueId, valsTbl.id))
     .where(where)
     .orderBy(asc(valsTbl.label), asc(valsTbl.id))
@@ -439,9 +472,10 @@ export async function selectAllTraitValuesByCharacters(
       id: valsTbl.id,
       characterId: valsTbl.characterId,
       label: valsTbl.label,
-      hexCode: valsTbl.hexCode,
+      hexCode: setsTbl.hexCode,
     })
     .from(valsTbl)
+    .innerJoin(setsTbl, eq(setsTbl.id, valsTbl.synonymSetId))
     .where(inArray(valsTbl.characterId, characterIds))
     .orderBy(asc(valsTbl.characterId), asc(valsTbl.label));
 
@@ -460,9 +494,3 @@ export async function selectAllTraitValuesByCharacters(
   }
   return grouped;
 }
-
-export type ExtractionTraitValue = {
-  id: number;
-  label: string;
-  hexCode: string | null;
-};

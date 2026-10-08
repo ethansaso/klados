@@ -11,14 +11,6 @@ const description = trimmed("Must be a string")
   .max(1000, "Max 1000 characters")
   .optional();
 
-/* `null` clears the swatch. */
-const hexCode = z
-  .string("Must be a string")
-  .trim()
-  .regex(/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/, "Must be a valid hex color code")
-  .nullable()
-  .optional();
-
 /* `null` clears the image. */
 const mediaId = z.number().int().positive().nullable().optional();
 
@@ -26,7 +18,6 @@ export const createTraitValueSchema = z.object({
   characterId: z.number().int().positive(),
   label,
   description,
-  hexCode,
   mediaId,
   synonymOfTraitId: traitId.optional(),
 });
@@ -36,7 +27,6 @@ export const updateTraitValueSchema = z.object({
   characterId: z.number().int().positive(),
   label: label.optional(),
   description,
-  hexCode,
   mediaId,
   synonymOfTraitId: traitId.nullable().optional(),
 });

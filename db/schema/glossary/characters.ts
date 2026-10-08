@@ -38,6 +38,11 @@ export const categoricalCharacterMeta = pgTable(
       .primaryKey()
       .references(() => character.id, { onDelete: "cascade" }),
     isMultiSelect: boolean("is_multi_select").notNull(),
+    /**
+     * Indicates that synonym set existence is fixed.
+     * Synonym add/move/delete operations are still allowed on non-'canonical' terms.
+     */
+    hasLockedSets: boolean("has_locked_sets").notNull().default(false),
   }),
 );
 

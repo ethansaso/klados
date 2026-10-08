@@ -1,5 +1,5 @@
 import NiceModal from "@ebay/nice-modal-react";
-import { Box, Button, Flex, TextArea, TextField } from "@radix-ui/themes";
+import { Box, Button, Flex, Text, TextArea, TextField } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
@@ -9,7 +9,6 @@ import {
   selectWikimediaPhotos,
   WikimediaPhotoSelectModal,
 } from "../../-WikimediaPhotoSelectModal";
-import { ClearableColorField } from "../../../../../components/inputs/ClearableColorField";
 import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../../../components/inputs/combobox/types";
 import {
@@ -17,6 +16,7 @@ import {
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
 import MediaBrowser from "../../../../../components/media-browser";
+import { ColorBubble } from "../../../../../components/state-formatting/helpers/ColorBubble";
 import type { MediaDTO } from "../../../../../lib/domain/media/types";
 import { synonymCandidatesQueryOptions } from "../../../../../lib/queries/traits";
 import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
@@ -38,6 +38,8 @@ export const membershipSchema = z
     traitId: z.int().positive(),
     /** Labels of other members, a display concern riding w/ the trait in the form */
     labels: z.array(z.string()),
+    /** The set's swatch, likewise for display */
+    hexCode: z.string().nullable(),
   })
   .nullable();
 
@@ -46,15 +48,18 @@ export const traitValueFormSchema = z.object({
     max: { value: 200, message: "Max 200 characters" },
   }),
   description: trimmed("Must be a string").max(1000, "Max 1000 characters"),
-  hexCode: trimmed("Must be a string").refine(
-    (v) => v === "" || /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(v),
-    {
-      message: "Must be a valid hex color code",
-    },
-  ),
   media: z.custom<MediaDTO>().nullable(),
   membership: membershipSchema,
 });
+
+/** Locked sets admit no new sets, so a label must join (or stay in) one. */
+export const lockedTraitValueFormSchema = traitValueFormSchema.refine(
+  (values) => values.membership !== null,
+  {
+    path: ["membership"],
+    message: "Required for locked characters.",
+  },
+);
 
 /** Signals whether to hide modal for visuals/ARIA. */
 export function useMediaPickerOpen(): boolean {
@@ -67,12 +72,15 @@ type Props = {
   characterId: number;
   /** Keeps trait from appearing in own synonyms list (i.e. for editing extant trait) */
   excludeTraitId?: number;
+  /** Canonical labels of locked sets keep their label and set. */
+  isCanonical?: boolean;
   disabled?: boolean;
 };
 
 export function TraitValueFields({
   characterId,
   excludeTraitId,
+  isCanonical = false,
   disabled = false,
 }: Props) {
   const {
@@ -101,6 +109,7 @@ export function TraitValueFields({
         id: c.synonymSetId,
         label: c.labels[0] ?? "",
         hint: c.labels.length > 1 ? `+ ${c.labels.slice(1).join(", ")}` : "",
+        adornment: swatch(c.hexCode),
       })),
     [candidates],
   );
@@ -109,6 +118,7 @@ export function TraitValueFields({
   const selectedOption: ComboboxOption | null = membership && {
     id: membership.synonymSetId,
     label: membership.labels.join(", "),
+    adornment: swatch(membership.hexCode),
   };
 
   /** Wikimedia seeds its search with the label as currently edited. */
@@ -146,15 +156,26 @@ export function TraitValueFields({
           id="label"
           placeholder="e.g. red, convex, farinaceous"
           disabled={disabled}
+          // Read-only rather than disabled, so the label still submits
+          readOnly={isCanonical}
           {...register("label")}
           {...a11yProps("label-error", !!errors.label)}
         />
+        {isCanonical && (
+          <Text as="p" size="1" color="gray" mt="1">
+            Canonical terms can't be renamed or assigned to other synonym sets.
+          </Text>
+        )}
       </Box>
 
       <Box>
-        <Box mb="1">
+        <Flex justify="between" align="baseline" mb="1">
           <Label.Root htmlFor="synonyms">Synonyms</Label.Root>
-        </Box>
+          <ConditionalAlert
+            id="synonyms-error"
+            message={isSubmitted ? errors.membership?.message : undefined}
+          />
+        </Flex>
         <Controller
           control={control}
           name="membership"
@@ -173,6 +194,7 @@ export function TraitValueFields({
                         synonymSetId: set.synonymSetId,
                         traitId: set.headTraitId,
                         labels: set.labels,
+                        hexCode: set.hexCode,
                       }
                     : null,
                 );
@@ -181,7 +203,7 @@ export function TraitValueFields({
               onQueryChange={setSynonymQuery}
               options={candidateOptions}
               loading={candidatesLoading}
-              disabled={disabled}
+              disabled={disabled || isCanonical}
             >
               <SelectCombobox.Trigger placeholder="(none)" />
               <SelectCombobox.Content behavior="input" matchTriggerWidth>
@@ -215,10 +237,6 @@ export function TraitValueFields({
           {...register("description")}
           {...a11yProps("description-error", !!errors.description)}
         />
-      </Box>
-
-      <Box>
-        <ClearableColorField name="hexCode" label="Color" disabled={disabled} />
       </Box>
 
       <Box>
@@ -273,4 +291,8 @@ export function TraitValueFields({
       </Box>
     </>
   );
+}
+
+function swatch(hexCode: string | null) {
+  return hexCode ? <ColorBubble hexColor={hexCode} /> : undefined;
 }

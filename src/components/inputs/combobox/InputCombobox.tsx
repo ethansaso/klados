@@ -21,6 +21,7 @@ import {
   useRef,
   useState,
 } from "react";
+import "./combobox.css";
 
 type RootProps = {
   id?: string;

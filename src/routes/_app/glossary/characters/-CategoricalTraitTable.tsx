@@ -66,10 +66,10 @@ export default function CategoricalTraitTable({
 }
 
 function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
-  const noDeletionReason: string | null = useMemo(
-    () => (value.usageCount > 0 ? "Value in use" : null),
-    [value],
-  );
+  const noDeletionReason: string | null = useMemo(() => {
+    if (value.isCanonical) return "Canonical terms can't be deleted";
+    return value.usageCount > 0 ? "Value in use" : null;
+  }, [value]);
 
   const deleteButton = useMemo(() => {
     if (noDeletionReason) {
@@ -96,12 +96,12 @@ function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
   return (
     <Table.Row>
       <Table.Cell>
-        <Text weight="medium">{value.label}</Text>
         {value.hexCode && (
-          <Box ml="1" asChild>
+          <Box mr="2" asChild>
             <ColorBubble hexColor={value.hexCode} />
           </Box>
         )}
+        <Text weight="medium">{value.label}</Text>
       </Table.Cell>
 
       <Table.Cell>
