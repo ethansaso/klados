@@ -1,6 +1,6 @@
 import type { FeatureDetailDTO, FeatureDTO } from "../features/types";
 import type { ModifierDTO } from "../modifiers/types";
-import type { ExtractionTraitValue } from "../traits/repo";
+import type { ExtractionTraitValue } from "../traits/types";
 import type { UnitFamilyDTO } from "../units/types";
 import type { StructuredObservations } from "./schemas";
 

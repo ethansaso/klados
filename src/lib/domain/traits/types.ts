@@ -37,4 +37,10 @@ export type SynonymCandidateDTO = {
   headTraitId: number;
   /** Every label in the set, best match first. */
   labels: string[];
+} & Pick<TraitSynonymSetRow, "hexCode">;
+
+export type ExtractionTraitValue = {
+  id: number;
+  label: string;
+  hexCode: string | null;
 };

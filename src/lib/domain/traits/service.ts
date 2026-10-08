@@ -413,20 +413,26 @@ export async function listSynonymCandidates(
 
     const bySet = new Map<
       number,
-      { labels: { id: number; label: string; score: number }[] }
+      {
+        hexCode: string | null;
+        labels: { id: number; label: string; score: number }[];
+      }
     >();
 
     for (const row of rows) {
       const score = fq
         ? computeFuzzyScore(row.label.toLowerCase(), fq, row.similarity ?? 0)
         : 0;
-      const entry = bySet.get(row.synonymSetId) ?? { labels: [] };
+      const entry = bySet.get(row.synonymSetId) ?? {
+        hexCode: row.hexCode,
+        labels: [],
+      };
       entry.labels.push({ id: row.id, label: row.label, score });
       bySet.set(row.synonymSetId, entry);
     }
 
     const candidates = [...bySet.entries()].flatMap(
-      ([synonymSetId, { labels }]) => {
+      ([synonymSetId, { hexCode, labels }]) => {
         // Best match heads the set; the rest stay alphabetical behind it
         labels.sort((a, b) =>
           b.score !== a.score
@@ -444,6 +450,7 @@ export async function listSynonymCandidates(
             headLabel: head.label,
             headScore: head.score,
             labels: [head.label, ...rest.map((l) => l.label)],
+            hexCode,
           },
         ];
       },
@@ -457,10 +464,11 @@ export async function listSynonymCandidates(
 
     return candidates
       .slice(0, limit)
-      .map(({ synonymSetId, headTraitId, labels }) => ({
+      .map(({ synonymSetId, headTraitId, labels, hexCode }) => ({
         synonymSetId,
         headTraitId,
         labels,
+        hexCode,
       }));
   });
 }

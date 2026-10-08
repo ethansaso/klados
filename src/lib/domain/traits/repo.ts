@@ -24,6 +24,7 @@ import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
 import type { PaginatedResult } from "../../validation/pagination";
 import { hydrateMedia } from "../media/repo";
 import type {
+  ExtractionTraitValue,
   TraitSynonymDTO,
   TraitValueBaseDTO,
   TraitValueRow,
@@ -226,7 +227,13 @@ export async function selectSynonymCandidateRows(
     fq: FuzzyQuery | null;
   },
 ): Promise<
-  { id: number; label: string; synonymSetId: number; similarity: number }[]
+  {
+    id: number;
+    label: string;
+    synonymSetId: number;
+    hexCode: string | null;
+    similarity: number;
+  }[]
 > {
   const { characterId, excludeTraitId, fq } = args;
 
@@ -258,11 +265,13 @@ export async function selectSynonymCandidateRows(
       id: valsTbl.id,
       label: valsTbl.label,
       synonymSetId: valsTbl.synonymSetId,
+      hexCode: setsTbl.hexCode,
       similarity: fq
         ? fuzzySimilarity(valsTbl.label, fq)
         : sql<number>`0::real`,
     })
     .from(valsTbl)
+    .innerJoin(setsTbl, eq(setsTbl.id, valsTbl.synonymSetId))
     .where(and(...inScope, setFilter))
     .orderBy(asc(valsTbl.label));
 }
@@ -485,9 +494,3 @@ export async function selectAllTraitValuesByCharacters(
   }
   return grouped;
 }
-
-export type ExtractionTraitValue = {
-  id: number;
-  label: string;
-  hexCode: string | null;
-};

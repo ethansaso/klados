@@ -31,6 +31,7 @@ const seedMembership = (value: TraitValueDTO): TraitValueMembership =>
         synonymSetId: value.synonymSetId,
         traitId: value.synonyms[0]!.id,
         labels: value.synonyms.map((s) => s.label),
+        hexCode: value.hexCode,
       }
     : null;
 

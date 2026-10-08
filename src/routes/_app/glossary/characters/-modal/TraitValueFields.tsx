@@ -16,6 +16,7 @@ import {
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
 import MediaBrowser from "../../../../../components/media-browser";
+import { ColorBubble } from "../../../../../components/state-formatting/helpers/ColorBubble";
 import type { MediaDTO } from "../../../../../lib/domain/media/types";
 import { synonymCandidatesQueryOptions } from "../../../../../lib/queries/traits";
 import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
@@ -37,6 +38,8 @@ export const membershipSchema = z
     traitId: z.int().positive(),
     /** Labels of other members, a display concern riding w/ the trait in the form */
     labels: z.array(z.string()),
+    /** The set's swatch, likewise for display */
+    hexCode: z.string().nullable(),
   })
   .nullable();
 
@@ -106,6 +109,7 @@ export function TraitValueFields({
         id: c.synonymSetId,
         label: c.labels[0] ?? "",
         hint: c.labels.length > 1 ? `+ ${c.labels.slice(1).join(", ")}` : "",
+        adornment: swatch(c.hexCode),
       })),
     [candidates],
   );
@@ -114,6 +118,7 @@ export function TraitValueFields({
   const selectedOption: ComboboxOption | null = membership && {
     id: membership.synonymSetId,
     label: membership.labels.join(", "),
+    adornment: swatch(membership.hexCode),
   };
 
   /** Wikimedia seeds its search with the label as currently edited. */
@@ -189,6 +194,7 @@ export function TraitValueFields({
                         synonymSetId: set.synonymSetId,
                         traitId: set.headTraitId,
                         labels: set.labels,
+                        hexCode: set.hexCode,
                       }
                     : null,
                 );
@@ -285,4 +291,8 @@ export function TraitValueFields({
       </Box>
     </>
   );
+}
+
+function swatch(hexCode: string | null) {
+  return hexCode ? <ColorBubble hexColor={hexCode} /> : undefined;
 }
