@@ -2,6 +2,7 @@ import { Badge, Box, Button, Flex, Link, Text } from "@radix-ui/themes";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useId, useRef, useState } from "react";
 import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
+import { ColorBubble } from "../../../../../../../components/state-formatting/helpers/ColorBubble";
 import type { TraitSuggestion } from "../../../../../../../lib/domain/suggestions/types";
 import { listCharacterStateSuggestionsFn } from "../../../../../../../lib/server-fns/suggestions/listCharacterStateSuggestionsFn";
 import "./CharacterStateSearch.css";
@@ -145,6 +146,9 @@ export function CharacterStateSearch({
                     ml="auto"
                     style={{ flexShrink: 0 }}
                   >
+                    {s.kind === "categorical-value" && s.traitValueHexCode && (
+                      <ColorBubble hexColor={s.traitValueHexCode} />
+                    )}
                     {s.characterLabel}
                   </Badge>
                 </Flex>
