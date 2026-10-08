@@ -21,6 +21,7 @@ TanStack Start (React 19, Router, Query) · Radix Themes · react-hook-form + zo
 - `src/lib/queries/`: React Query `queryOptions` factories.
 - `src/routes/`: file-based routes. Folders prefixed `-` (`-components`, `-hooks`, `-external`) are route-private, not routes. `routeTree.gen.ts` is generated.
 - `src/components/`: shared UI.
+- **Out of scope by default:** the LLM extraction feature (`src/llms/`, `src/lib/domain/extraction/`, `src/lib/server-fns/extraction/`, `src/routes/api/_unauthenticated/extraction.ts`, `ExtractionModal.tsx`). Don't read, reference, or account for it unless the user brings it up.
 
 ## Conventions
 

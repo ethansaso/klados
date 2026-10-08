@@ -27,7 +27,6 @@ import type {
   UpdateTraitValueInput,
 } from "./validation";
 
-/** Deterministically chooses the larger of two sets to 'survive' a merge to reduce move operations. */
 /**
  * Delete a trait value by id.
  * Returns { id } if deleted, null if the value does not exist.

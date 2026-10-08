@@ -14,6 +14,7 @@ export const COLOR_ALIASES: Record<string, string[]> = {
   red: ["reddish", "crimson", "scarlet"],
   "grayish red": ["brick red"],
   "dark red": ["maroon", "wine"],
+  "pale red-orange": ["pale rusty brown"],
   "light red-orange": ["coral", "salmon"],
   "red-orange": ["reddish orange", "orange-red", "vermilion"],
   "grayish red-orange": ["tawny"],

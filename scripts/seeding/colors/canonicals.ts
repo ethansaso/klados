@@ -5,7 +5,7 @@ export const BASE_HUES = [
   { name: "orange", deg: 30 },
   { name: "yellow-orange", deg: 45 },
   { name: "yellow", deg: 60 },
-  { name: "yellow-green", deg: 80 },
+  { name: "yellow-green", deg: 75 },
   { name: "green", deg: 120 },
   { name: "blue-green", deg: 180 },
   { name: "blue", deg: 240 },
