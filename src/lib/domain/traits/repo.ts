@@ -21,11 +21,11 @@ import {
   fuzzySimilarity,
 } from "../../utils/sql/fuzzyLabel";
 import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
+import type { PaginatedResult } from "../../validation/pagination";
 import { hydrateMedia } from "../media/repo";
 import type {
   TraitSynonymDTO,
-  TraitValueDTO,
-  TraitValuePaginatedResult,
+  TraitValueBaseDTO,
   TraitValueRow,
 } from "./types";
 
@@ -271,7 +271,7 @@ export async function insertTraitValueRow(
 export async function selectTraitValueDtoById(
   tx: Transaction,
   id: number,
-): Promise<TraitValueDTO | null> {
+): Promise<TraitValueBaseDTO | null> {
   const usageAgg = usageAggFor(tx, eq(tcsTbl.traitValueId, id));
 
   const [row] = await tx
@@ -302,7 +302,7 @@ export async function selectTraitValueDtoById(
 export async function selectTraitValueDtosByIds(
   tx: Transaction,
   ids: number[],
-): Promise<TraitValueDTO[]> {
+): Promise<TraitValueBaseDTO[]> {
   if (!ids.length) {
     return [];
   }
@@ -382,7 +382,7 @@ export async function selectTraitValuesByCharacterPaginated(
   page: number,
   pageSize: number,
   opts?: { q?: string },
-): Promise<TraitValuePaginatedResult> {
+): Promise<PaginatedResult<TraitValueBaseDTO>> {
   const offset = (page - 1) * pageSize;
 
   const filters: ReturnType<typeof eq>[] = [

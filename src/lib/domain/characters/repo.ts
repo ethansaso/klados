@@ -159,6 +159,7 @@ export async function fetchCharacterDetailById(
   const categoricalMeta = await tx
     .select({
       isMultiSelect: catMetaTbl.isMultiSelect,
+      hasLockedSets: catMetaTbl.hasLockedSets,
     })
     .from(catMetaTbl)
     .where(eq(catMetaTbl.characterId, id))
@@ -187,6 +188,7 @@ export async function fetchCharacterDetailById(
       characterId: base.id,
       type: "categorical",
       isMultiSelect: categoricalMeta.isMultiSelect,
+      hasLockedSets: categoricalMeta.hasLockedSets,
     };
   }
 
@@ -480,6 +482,27 @@ export async function selectFeatureById(
     .select({ id: featuresTbl.id, label: featuresTbl.label })
     .from(featuresTbl)
     .where(eq(featuresTbl.id, featureId))
+    .limit(1);
+
+  return row ?? null;
+}
+
+/**
+ * A character's label and whether its synonym sets are locked (false for
+ * non-categorical characters). Returns null if the character doesn't exist.
+ */
+export async function selectCharacterLockInfo(
+  tx: TxOrDb,
+  id: number,
+): Promise<{ label: string; hasLockedSets: boolean } | null> {
+  const [row] = await tx
+    .select({
+      label: charsTbl.label,
+      hasLockedSets: sql<boolean>`COALESCE(${catMetaTbl.hasLockedSets}, false)`,
+    })
+    .from(charsTbl)
+    .leftJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
+    .where(eq(charsTbl.id, id))
     .limit(1);
 
   return row ?? null;

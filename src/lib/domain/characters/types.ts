@@ -38,7 +38,7 @@ export type CategoricalCharacterDetailDTO = Omit<
   CategoricalCharacterDTO,
   "traitCount"
 > &
-  Pick<CategoricalMetaRow, "isMultiSelect">;
+  Pick<CategoricalMetaRow, "isMultiSelect" | "hasLockedSets">;
 
 export type NumberCharacterDTO = BaseCharacterDTO & {
   type: "number";
@@ -55,9 +55,7 @@ export type RangeCharacterDetailDTO = BaseNumericCharacterDetailDTO & {
 };
 
 export type CharacterDTO =
-  | CategoricalCharacterDTO
-  | NumberCharacterDTO
-  | RangeCharacterDTO;
+  CategoricalCharacterDTO | NumberCharacterDTO | RangeCharacterDTO;
 
 export type CharacterDetailDTO =
   | CategoricalCharacterDetailDTO

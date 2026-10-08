@@ -9,6 +9,7 @@ import type { TraitValueDTO } from "../../../../../lib/domain/traits/types";
 import { updateTraitValueFn } from "../../../../../lib/server-fns/traits/updateTraitValueFn";
 import { toast } from "../../../../../lib/utils/toast";
 import {
+  lockedTraitValueFormSchema,
   TraitValueFields,
   traitValueFormSchema,
   type TraitValueFormValues,
@@ -18,6 +19,8 @@ import {
 
 interface Props {
   traitValue: TraitValueDTO;
+  /** Labels then can't be split off into a set of their own. */
+  hasLockedSets: boolean;
   invalidate: () => Promise<void> | void;
 }
 
@@ -39,13 +42,18 @@ const seedFormValues = (value: TraitValueDTO): TraitValueFormValues => ({
 });
 
 export const EditTraitValueModal = NiceModal.create<Props>(
-  ({ traitValue, invalidate }) => {
+  ({ traitValue, hasLockedSets, invalidate }) => {
     const { visible, hide } = NiceModal.useModal();
     const serverUpdate = useServerFn(updateTraitValueFn);
     const pickerOpen = useMediaPickerOpen();
 
+    // If canonical: clearing synonyms would split label into new set, forbidden.
+    const mustKeepSet = hasLockedSets && traitValue.synonyms.length > 0;
+
     const methods = useForm<TraitValueFormValues>({
-      resolver: zodResolver(traitValueFormSchema),
+      resolver: zodResolver(
+        mustKeepSet ? lockedTraitValueFormSchema : traitValueFormSchema,
+      ),
       defaultValues: seedFormValues(traitValue),
     });
     const {
@@ -121,6 +129,7 @@ export const EditTraitValueModal = NiceModal.create<Props>(
                 <TraitValueFields
                   characterId={traitValue.characterId}
                   excludeTraitId={traitValue.id}
+                  isCanonical={traitValue.isCanonical}
                   disabled={mutationPending}
                 />
               </Flex>

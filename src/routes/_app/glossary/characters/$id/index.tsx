@@ -7,7 +7,13 @@ import {
   stripSearchParams,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { PiMagnifyingGlass, PiPencil, PiPlus, PiTrash } from "react-icons/pi";
+import {
+  PiLock,
+  PiMagnifyingGlass,
+  PiPencil,
+  PiPlus,
+  PiTrash,
+} from "react-icons/pi";
 import z from "zod";
 import CategoricalTraitTable from "../-CategoricalTraitTable";
 import { AddTraitValueModal } from "../-modal/AddTraitValueModal";
@@ -19,6 +25,7 @@ import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDel
 import { CharacterIcon } from "../../../../../components/icons/modular/CharacterIcon";
 import { DebouncedTextField } from "../../../../../components/inputs/DebouncedTextField";
 import { PaginationFooter } from "../../../../../components/PaginationFooter";
+import { ResponsiveTooltip } from "../../../../../components/ResponsiveTooltip";
 import { roleHasCuratorRights } from "../../../../../lib/auth/utils";
 import type { CharacterDetailDTO } from "../../../../../lib/domain/characters/types";
 import { characterQueryOptions } from "../../../../../lib/queries/characters";
@@ -80,6 +87,15 @@ function RouteComponent() {
     }),
   );
 
+  const locked = character.type === "categorical" && character.hasLockedSets;
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(traitValuesPage.total / TRAIT_PAGE_SIZE),
+  );
+  const canPrev = traitPage > 1;
+  const canNext = traitPage < totalPages;
+
   const invalidateTraitValues = () =>
     qc.invalidateQueries({ queryKey: ["traitValues"] });
 
@@ -117,13 +133,6 @@ function RouteComponent() {
     });
   };
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(traitValuesPage.total / TRAIT_PAGE_SIZE),
-  );
-  const canPrev = traitPage > 1;
-  const canNext = traitPage < totalPages;
-
   const goToTraitPage = (nextPage: number) => {
     navigate({
       search: {
@@ -137,7 +146,16 @@ function RouteComponent() {
     <Box>
       <Box mb="3">
         <Flex justify="between" align="start" gap="2">
-          <Heading size="6">{character.label}</Heading>
+          <Flex align="center" gap="1">
+            <Heading size="6">{character.label}</Heading>
+            {locked && (
+              <ResponsiveTooltip content="Locked - this character has special protections. Original 'canonical' terms cannot be modified.">
+                <Text color="blue" size="6" asChild>
+                  <PiLock />
+                </Text>
+              </ResponsiveTooltip>
+            )}
+          </Flex>
           <CuratorOnly>
             <Flex gap="2">
               <Button size="1" asChild>
@@ -149,14 +167,23 @@ function RouteComponent() {
                   Edit
                 </Link>
               </Button>
-              <Button
-                size="1"
-                color="tomato"
-                onClick={() => handleCharacterDeleteClick(character)}
-              >
-                <PiTrash />
-                Delete
-              </Button>
+              {locked ? (
+                <ResponsiveTooltip content="Locked characters can't be deleted.">
+                  <Button size="1" color="tomato" disabled>
+                    <PiTrash />
+                    Delete
+                  </Button>
+                </ResponsiveTooltip>
+              ) : (
+                <Button
+                  size="1"
+                  color="tomato"
+                  onClick={() => handleCharacterDeleteClick(character)}
+                >
+                  <PiTrash />
+                  Delete
+                </Button>
+              )}
             </Flex>
           </CuratorOnly>
         </Flex>
@@ -200,6 +227,7 @@ function RouteComponent() {
                   onClick={() =>
                     NiceModal.show(AddTraitValueModal, {
                       characterId: id,
+                      hasLockedSets: character.hasLockedSets,
                       // Forward search into creation
                       initialLabel: traitQ,
                       invalidate: invalidateTraitValues,
@@ -229,6 +257,7 @@ function RouteComponent() {
             onEditClick={(value) =>
               NiceModal.show(EditTraitValueModal, {
                 traitValue: value,
+                hasLockedSets: character.hasLockedSets,
                 invalidate: invalidateTraitValues,
               })
             }

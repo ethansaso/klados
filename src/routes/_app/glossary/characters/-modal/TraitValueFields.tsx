@@ -1,5 +1,5 @@
 import NiceModal from "@ebay/nice-modal-react";
-import { Box, Button, Flex, TextArea, TextField } from "@radix-ui/themes";
+import { Box, Button, Flex, Text, TextArea, TextField } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
@@ -49,6 +49,15 @@ export const traitValueFormSchema = z.object({
   membership: membershipSchema,
 });
 
+/** Locked sets admit no new sets, so a label must join (or stay in) one. */
+export const lockedTraitValueFormSchema = traitValueFormSchema.refine(
+  (values) => values.membership !== null,
+  {
+    path: ["membership"],
+    message: "Required for locked characters.",
+  },
+);
+
 /** Signals whether to hide modal for visuals/ARIA. */
 export function useMediaPickerOpen(): boolean {
   const mediaBrowser = NiceModal.useModal(MediaBrowser);
@@ -60,12 +69,15 @@ type Props = {
   characterId: number;
   /** Keeps trait from appearing in own synonyms list (i.e. for editing extant trait) */
   excludeTraitId?: number;
+  /** Canonical labels of locked sets keep their label and set. */
+  isCanonical?: boolean;
   disabled?: boolean;
 };
 
 export function TraitValueFields({
   characterId,
   excludeTraitId,
+  isCanonical = false,
   disabled = false,
 }: Props) {
   const {
@@ -139,15 +151,26 @@ export function TraitValueFields({
           id="label"
           placeholder="e.g. red, convex, farinaceous"
           disabled={disabled}
+          // Read-only rather than disabled, so the label still submits
+          readOnly={isCanonical}
           {...register("label")}
           {...a11yProps("label-error", !!errors.label)}
         />
+        {isCanonical && (
+          <Text as="p" size="1" color="gray" mt="1">
+            Canonical terms can't be renamed or given different synonyms.
+          </Text>
+        )}
       </Box>
 
       <Box>
-        <Box mb="1">
+        <Flex justify="between" align="baseline" mb="1">
           <Label.Root htmlFor="synonyms">Synonyms</Label.Root>
-        </Box>
+          <ConditionalAlert
+            id="synonyms-error"
+            message={isSubmitted ? errors.membership?.message : undefined}
+          />
+        </Flex>
         <Controller
           control={control}
           name="membership"
@@ -174,7 +197,7 @@ export function TraitValueFields({
               onQueryChange={setSynonymQuery}
               options={candidateOptions}
               loading={candidatesLoading}
-              disabled={disabled}
+              disabled={disabled || isCanonical}
             >
               <SelectCombobox.Trigger placeholder="(none)" />
               <SelectCombobox.Content behavior="input" matchTriggerWidth>

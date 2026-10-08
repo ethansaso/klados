@@ -8,6 +8,7 @@ import { FormProvider, type SubmitHandler, useForm } from "react-hook-form";
 import { createTraitValueFn } from "../../../../../lib/server-fns/traits/createTraitValueFn";
 import { toast } from "../../../../../lib/utils/toast";
 import {
+  lockedTraitValueFormSchema,
   TraitValueFields,
   traitValueFormSchema,
   type TraitValueFormValues,
@@ -16,6 +17,8 @@ import {
 
 interface Props {
   characterId: number;
+  /** New labels must then join an existing set. */
+  hasLockedSets: boolean;
   /** Optional label prefill. */
   initialLabel?: string;
   invalidate: () => Promise<void> | void;
@@ -29,13 +32,15 @@ const seedFormValues = (label: string): TraitValueFormValues => ({
 });
 
 export const AddTraitValueModal = NiceModal.create<Props>(
-  ({ characterId, initialLabel = "", invalidate }) => {
+  ({ characterId, hasLockedSets, initialLabel = "", invalidate }) => {
     const { visible, hide } = NiceModal.useModal();
     const serverCreate = useServerFn(createTraitValueFn);
     const pickerOpen = useMediaPickerOpen();
 
     const methods = useForm<TraitValueFormValues>({
-      resolver: zodResolver(traitValueFormSchema),
+      resolver: zodResolver(
+        hasLockedSets ? lockedTraitValueFormSchema : traitValueFormSchema,
+      ),
       defaultValues: seedFormValues(initialLabel),
     });
     const {

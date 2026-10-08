@@ -16,12 +16,17 @@ export type TraitValueDTO = Pick<
   "id" | "characterId" | "synonymSetId" | "label" | "description"
 > &
   Pick<TraitSynonymSetRow, "hexCode"> & {
+    /** Code-defined label of a locked set; can't be renamed, moved, or deleted. */
+    isCanonical: boolean;
     /** States referencing this trait */
     usageCount: number;
     /** Other labels in the same set. Excludes self. Sorted by label. */
     synonyms: TraitSynonymDTO[];
     media: MediaDTO | null;
   };
+
+/** A TraitValueDTO as the database knows it; canonical labels come from code. */
+export type TraitValueBaseDTO = Omit<TraitValueDTO, "isCanonical">;
 
 export type TraitValuePaginatedResult = PaginatedResult<TraitValueDTO>;
 

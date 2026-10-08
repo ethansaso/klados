@@ -9,6 +9,7 @@ import {
   insertCharacter,
   insertNumericMeta,
   listCharactersQuery,
+  selectCharacterLockInfo,
   selectCharactersByIds,
   updateCategoricalMeta,
   updateCharacterBase,
@@ -148,7 +149,7 @@ export async function createCharacter(
 }
 
 /**
- * Delete a character if it is unused.
+ * Delete a character if it is unused and its sets aren't locked.
  * Returns { id } if deleted, null if the character does not exist.
  * Throws InUseError if in use.
  */
@@ -158,6 +159,12 @@ export async function deleteCharacter(args: {
   const { id } = args;
 
   return db.transaction(async (tx) => {
+    // Seeding finds a locked character by label, so it must keep existing
+    const lock = await selectCharacterLockInfo(tx, id);
+    if (lock?.hasLockedSets) {
+      throw new Error(`"${lock.label}" is locked and can't be deleted.`);
+    }
+
     const usageCount = await countUsageForCharacter(tx, id);
 
     if (usageCount === null) {
@@ -177,7 +184,8 @@ export async function deleteCharacter(args: {
  * Update a character's base fields and categorical meta.
  * Returns the refreshed CharacterDetailDTO, or null if not found.
  *
- * Throws if `isMultiSelect` is provided for a non-categorical character.
+ * Throws if `isMultiSelect` is provided for a non-categorical character, or if
+ * the label changes on a character with locked sets.
  */
 export async function updateCharacter(
   args: UpdateCharacterInput,
@@ -201,6 +209,14 @@ export async function updateCharacter(
   if (mediaId !== undefined) normalized.mediaId = mediaId;
 
   return db.transaction(async (tx) => {
+    // Seeding finds a locked character by label, so it must stay put
+    if (normalized.label !== undefined) {
+      const lock = await selectCharacterLockInfo(tx, id);
+      if (lock?.hasLockedSets && lock.label !== normalized.label) {
+        throw new Error(`"${lock.label}" is locked and can't be renamed.`);
+      }
+    }
+
     const updated = await updateCharacterBase(tx, id, normalized);
     if (!updated) return null;
 

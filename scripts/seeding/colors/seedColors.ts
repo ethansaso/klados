@@ -8,14 +8,14 @@ import {
   traitSynonymSet,
 } from "../../../db/schema/schema";
 import {
-  deleteSynonymSetIfEmpty,
-  insertSynonymSet,
-} from "../../../src/lib/domain/traits/repo";
+  buildColorPalette,
+  COLOR_CHARACTER_LABEL,
+  type PaletteColor,
+} from "../../../src/lib/domain/traits/colorPalette";
+import { insertSynonymSet } from "../../../src/lib/domain/traits/repo";
 import type { Transaction } from "../../../src/lib/utils/types/transactionType";
 import { askYesNo } from "../../utils/askYesNo";
-import { ansiBlock, buildColorSeedPlan, ColorDef } from "../colors/util";
-
-const COLOR_CHARACTER_LABEL = "Color";
+import { ansiBlock } from "./ansiBlock";
 
 type ExistingTrait = {
   id: number;
@@ -26,10 +26,10 @@ type ExistingTrait = {
 type SyncStats = {
   inserted: number;
   updated: number;
-  swatchesUpdated: number;
+  recolored: number;
   setsCreated: number;
-  setsDeleted: number;
-  unmanaged: string[];
+  /** Labels of each locked set with no canonical label, e.g. hand-made sets. */
+  setsWithoutCanonical: string[][];
 };
 
 /**
@@ -75,28 +75,46 @@ async function getOrCreateColorCharacterTx(tx: Transaction) {
 }
 
 /**
- * Index a character's trait values by lowercased label.
- * Throws on labels that differ only in case, which the seed cannot resolve.
+ * Index the rows holding canonical labels by lowercased label. Other labels
+ * are curators' and never looked at. Throws when canonical labels differ only
+ * in case, or share a set: either way seeding can't tell which is right.
  */
-function indexByLabel(rows: ExistingTrait[]): Map<string, ExistingTrait> {
+function indexCanonicalRows(
+  rows: ExistingTrait[],
+  palette: PaletteColor[],
+): Map<string, ExistingTrait> {
+  const canonical = new Set(palette.map((color) => color.label));
   const byLabel = new Map<string, ExistingTrait>();
-  const collisions: string[] = [];
+  const bySet = new Map<number, string[]>();
+  const problems: string[] = [];
 
   for (const row of rows) {
     const key = row.label.toLowerCase();
+    if (!canonical.has(key)) continue;
+
     const seen = byLabel.get(key);
     if (seen) {
-      collisions.push(`"${seen.label}" and "${row.label}"`);
-    } else {
-      byLabel.set(key, row);
+      problems.push(`"${seen.label}" and "${row.label}" differ only by case`);
+      continue;
+    }
+    byLabel.set(key, row);
+
+    const sharing = bySet.get(row.synonymSetId) ?? [];
+    sharing.push(row.label);
+    bySet.set(row.synonymSetId, sharing);
+  }
+
+  for (const labels of bySet.values()) {
+    if (labels.length > 1) {
+      problems.push(`${labels.map((l) => `"${l}"`).join(", ")} share a set`);
     }
   }
 
-  if (collisions.length > 0) {
+  if (problems.length > 0) {
     throw new Error(
-      `Existing colors differ only by case, so seeding cannot tell them apart:\n${collisions
-        .map((c) => `  - ${c}`)
-        .join("\n")}\nMerge or rename them, then re-run.`,
+      `Canonical colors are in a state seeding can't resolve:\n${problems
+        .map((p) => `  - ${p}`)
+        .join("\n")}\nFix them by hand, then re-run.`,
     );
   }
 
@@ -104,32 +122,14 @@ function indexByLabel(rows: ExistingTrait[]): Map<string, ExistingTrait> {
 }
 
 /**
- * Pick which set a color's labels should land in: whichever set the most of
- * them already share, lowest id winning ties. Keeps churn off the common path.
- */
-function pickTargetSet(rows: ExistingTrait[]): number {
-  const counts = new Map<number, number>();
-  for (const row of rows) {
-    counts.set(row.synonymSetId, (counts.get(row.synonymSetId) ?? 0) + 1);
-  }
-
-  let best = rows[0].synonymSetId;
-  for (const [setId, n] of counts) {
-    const bestN = counts.get(best)!;
-    if (n > bestN || (n === bestN && setId < best)) best = setId;
-  }
-
-  return best;
-}
-
-/**
- * Reconcile the character's trait values against the seed plan, one synonym set
- * per color. Trait values outside the plan are left alone and reported back.
+ * Reconcile the character's sets against the palette: one set per canonical
+ * label, carrying its color's hex. Each set is found by its canonical label;
+ * every other label in it belongs to curators and is never touched.
  */
 async function syncColorSetsTx(
   tx: Transaction,
   characterId: number,
-  plan: ColorDef[],
+  palette: PaletteColor[],
 ): Promise<SyncStats> {
   const existing: ExistingTrait[] = await tx
     .select({
@@ -146,110 +146,84 @@ async function syncColorSetsTx(
     .where(eq(traitSynonymSet.characterId, characterId));
   const hexBySet = new Map(sets.map((set) => [set.id, set.hexCode]));
 
-  const byLabel = indexByLabel(existing);
+  const canonicalRows = indexCanonicalRows(existing, palette);
   const stats: SyncStats = {
     inserted: 0,
     updated: 0,
-    swatchesUpdated: 0,
+    recolored: 0,
     setsCreated: 0,
-    setsDeleted: 0,
-    unmanaged: [],
+    setsWithoutCanonical: [],
   };
 
-  const planned = new Set<string>();
-  const targetSets = new Set<number>();
-  const vacatedSets = new Set<number>();
+  const canonicalSets = new Set<number>();
 
-  for (const color of plan) {
-    const labels = [color.label, ...color.synonyms];
-    for (const label of labels) planned.add(label.toLowerCase());
-
-    // A set already claimed by another swatch can't hold this one's hex too
-    const rows = labels
-      .map((label) => byLabel.get(label.toLowerCase()))
-      .filter((row): row is ExistingTrait => row !== undefined)
-      .filter((row) => !targetSets.has(row.synonymSetId));
-
+  for (const color of palette) {
+    const row = canonicalRows.get(color.label);
     let setId: number;
-    if (rows.length > 0) {
-      setId = pickTargetSet(rows);
-    } else {
+
+    if (!row) {
       setId = (await insertSynonymSet(tx, characterId)).id;
       hexBySet.set(setId, null);
       stats.setsCreated += 1;
+
+      await tx
+        .insert(categoricalTraitValue)
+        .values({ characterId, synonymSetId: setId, label: color.label });
+      stats.inserted += 1;
+    } else {
+      setId = row.synonymSetId;
+
+      // The palette owns capitalisation
+      if (row.label !== color.label) {
+        await tx
+          .update(categoricalTraitValue)
+          .set({ label: color.label })
+          .where(eq(categoricalTraitValue.id, row.id));
+        stats.updated += 1;
+      }
     }
-    targetSets.add(setId);
+
+    canonicalSets.add(setId);
 
     if (hexBySet.get(setId) !== color.hexCode) {
       await tx
         .update(traitSynonymSet)
         .set({ hexCode: color.hexCode })
         .where(eq(traitSynonymSet.id, setId));
-      stats.swatchesUpdated += 1;
-    }
-
-    for (const label of labels) {
-      const row = byLabel.get(label.toLowerCase());
-
-      if (!row) {
-        await tx.insert(categoricalTraitValue).values({
-          characterId,
-          synonymSetId: setId,
-          label,
-        });
-        stats.inserted += 1;
-        continue;
-      }
-
-      const settled = row.label === label && row.synonymSetId === setId;
-      if (settled) continue;
-
-      if (row.synonymSetId !== setId) vacatedSets.add(row.synonymSetId);
-
-      // Label is rewritten too, so the plan owns capitalisation
-      await tx
-        .update(categoricalTraitValue)
-        .set({ label, synonymSetId: setId })
-        .where(eq(categoricalTraitValue.id, row.id));
-      stats.updated += 1;
+      stats.recolored += 1;
     }
   }
 
-  for (const setId of vacatedSets) {
-    if (targetSets.has(setId)) continue;
-    if (await deleteSynonymSetIfEmpty(tx, setId)) stats.setsDeleted += 1;
+  const withoutCanonical = new Map<number, string[]>();
+  for (const row of existing) {
+    if (canonicalSets.has(row.synonymSetId)) continue;
+    const labels = withoutCanonical.get(row.synonymSetId) ?? [];
+    labels.push(row.label);
+    withoutCanonical.set(row.synonymSetId, labels);
   }
-
-  stats.unmanaged = existing
-    .filter((row) => !planned.has(row.label.toLowerCase()))
-    .map((row) => row.label)
-    .sort();
+  stats.setsWithoutCanonical = [...withoutCanonical.values()]
+    .map((labels) => labels.sort())
+    .sort((a, b) => a[0]!.localeCompare(b[0]!));
 
   return stats;
 }
 
-function printPlan(plan: ColorDef[]) {
+function printPalette(palette: PaletteColor[]) {
   console.log("\n=== Preview: Standard Color Palette ===\n");
-  console.log(
-    `${plan.length} colors, ${plan.reduce((n, c) => n + 1 + c.synonyms.length, 0)} labels\n`,
-  );
+  console.log(`${palette.length} canonical colors\n`);
 
-  for (const color of plan) {
+  for (const color of palette) {
     const swatch = color.hexCode
       ? `${ansiBlock(color.hexCode)}  ${color.hexCode}`
       : "[no swatch / no hex]";
     console.log(`${color.label.padEnd(32)} ${swatch}`);
-
-    for (const synonym of color.synonyms) {
-      console.log(`    - ${synonym}`);
-    }
   }
 }
 
 export async function run() {
-  const plan = buildColorSeedPlan();
+  const palette = buildColorPalette();
 
-  printPlan(plan);
+  printPalette(palette);
 
   console.log();
   const shouldProceed = await askYesNo(
@@ -265,20 +239,21 @@ export async function run() {
 
   const stats = await db.transaction(async (tx) => {
     const colorCharacter = await getOrCreateColorCharacterTx(tx);
-    return syncColorSetsTx(tx, colorCharacter.id, plan);
+    return syncColorSetsTx(tx, colorCharacter.id, palette);
   });
 
   console.log(
-    `Done. ${stats.inserted} label(s) inserted, ${stats.updated} updated, ` +
-      `${stats.swatchesUpdated} swatch(es) recolored, ` +
-      `${stats.setsCreated} synonym set(s) created, ${stats.setsDeleted} removed.`,
+    `Done. ${stats.inserted} canonical label(s) inserted, ${stats.updated} updated, ` +
+      `${stats.recolored} set(s) recolored, ${stats.setsCreated} set(s) created.`,
   );
 
-  if (stats.unmanaged.length > 0) {
+  if (stats.setsWithoutCanonical.length > 0) {
     console.log(
-      `\n${stats.unmanaged.length} existing color(s) are not in the palette and were left untouched:`,
+      `\n${stats.setsWithoutCanonical.length} set(s) have no canonical label; move their labels into a palette set:`,
     );
-    for (const label of stats.unmanaged) console.log(`  - ${label}`);
+    for (const labels of stats.setsWithoutCanonical) {
+      console.log(`  - ${labels.join(", ")}`);
+    }
   }
 
   console.log();

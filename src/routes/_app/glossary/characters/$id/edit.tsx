@@ -85,6 +85,8 @@ function RouteComponent() {
     resolver: zodResolver(updateCharacterSchema),
   });
   const label = watch("label");
+  const labelLocked =
+    character.type === "categorical" && character.hasLockedSets;
 
   useBlocker({
     shouldBlockFn: () =>
@@ -141,9 +143,16 @@ function RouteComponent() {
             type="text"
             placeholder="e.g. Cap Color"
             disabled={mutation.isPending}
+            // Read-only rather than disabled, so the label still submits
+            readOnly={labelLocked}
             {...register("label")}
             {...a11yProps("label-error", !!errors.label)}
           />
+          {labelLocked && (
+            <Text as="p" size="1" color="gray" mt="1">
+              Locked characters can't be renamed.
+            </Text>
+          )}
         </Box>
 
         {/* Description */}
