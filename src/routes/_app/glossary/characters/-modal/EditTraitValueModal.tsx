@@ -34,7 +34,6 @@ const seedMembership = (value: TraitValueDTO): TraitValueMembership =>
 const seedFormValues = (value: TraitValueDTO): TraitValueFormValues => ({
   label: value.label,
   description: value.description ?? "",
-  hexCode: value.hexCode ?? "",
   media: value.media,
   membership: seedMembership(value),
 });
@@ -85,7 +84,6 @@ export const EditTraitValueModal = NiceModal.create<Props>(
           characterId: traitValue.characterId,
           label: data.label,
           description: data.description,
-          hexCode: data.hexCode === "" ? null : data.hexCode,
           mediaId: data.media?.id ?? null,
           synonymOfTraitId: data.membership?.traitId ?? null,
         },

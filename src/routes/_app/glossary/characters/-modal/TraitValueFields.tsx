@@ -9,7 +9,6 @@ import {
   selectWikimediaPhotos,
   WikimediaPhotoSelectModal,
 } from "../../-WikimediaPhotoSelectModal";
-import { ClearableColorField } from "../../../../../components/inputs/ClearableColorField";
 import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../../../components/inputs/combobox/types";
 import {
@@ -46,12 +45,6 @@ export const traitValueFormSchema = z.object({
     max: { value: 200, message: "Max 200 characters" },
   }),
   description: trimmed("Must be a string").max(1000, "Max 1000 characters"),
-  hexCode: trimmed("Must be a string").refine(
-    (v) => v === "" || /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(v),
-    {
-      message: "Must be a valid hex color code",
-    },
-  ),
   media: z.custom<MediaDTO>().nullable(),
   membership: membershipSchema,
 });
@@ -215,10 +208,6 @@ export function TraitValueFields({
           {...register("description")}
           {...a11yProps("description-error", !!errors.description)}
         />
-      </Box>
-
-      <Box>
-        <ClearableColorField name="hexCode" label="Color" disabled={disabled} />
       </Box>
 
       <Box>

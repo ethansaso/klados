@@ -250,7 +250,6 @@ export async function insertTraitValueRow(
     synonymSetId: number;
     label: string;
     description?: string;
-    hexCode?: string | null;
     mediaId?: number | null;
   },
 ): Promise<TraitValueRow | null> {
@@ -261,7 +260,6 @@ export async function insertTraitValueRow(
       synonymSetId: args.synonymSetId,
       label: args.label,
       description: args.description ?? "",
-      hexCode: args.hexCode ?? null,
       mediaId: args.mediaId ?? null,
     })
     .returning();
@@ -282,13 +280,14 @@ export async function selectTraitValueDtoById(
       characterId: valsTbl.characterId,
       synonymSetId: valsTbl.synonymSetId,
       label: valsTbl.label,
-      hexCode: valsTbl.hexCode,
+      hexCode: setsTbl.hexCode,
       description: valsTbl.description,
       usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
       synonyms: synonymsAgg,
       mediaId: valsTbl.mediaId,
     })
     .from(valsTbl)
+    .innerJoin(setsTbl, eq(setsTbl.id, valsTbl.synonymSetId))
     .leftJoin(usageAgg, eq(usageAgg.traitValueId, valsTbl.id))
     .where(eq(valsTbl.id, id))
     .limit(1);
@@ -316,13 +315,14 @@ export async function selectTraitValueDtosByIds(
       characterId: valsTbl.characterId,
       synonymSetId: valsTbl.synonymSetId,
       label: valsTbl.label,
-      hexCode: valsTbl.hexCode,
+      hexCode: setsTbl.hexCode,
       description: valsTbl.description,
       usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
       synonyms: synonymsAgg,
       mediaId: valsTbl.mediaId,
     })
     .from(valsTbl)
+    .innerJoin(setsTbl, eq(setsTbl.id, valsTbl.synonymSetId))
     .leftJoin(usageAgg, eq(usageAgg.traitValueId, valsTbl.id))
     .where(inArray(valsTbl.id, ids))
     .orderBy(asc(valsTbl.id));
@@ -340,17 +340,15 @@ export async function updateTraitValueRow(
     id: number;
     characterId: number;
     label?: string;
-    hexCode?: string | null;
     description?: string;
     mediaId?: number | null;
   },
 ): Promise<{ id: number } | null> {
   const patch: Partial<
-    Pick<TraitValueRow, "label" | "hexCode" | "description" | "mediaId">
+    Pick<TraitValueRow, "label" | "description" | "mediaId">
   > = {};
 
   if (args.label !== undefined) patch.label = args.label;
-  if (args.hexCode !== undefined) patch.hexCode = args.hexCode;
   if (args.description !== undefined) patch.description = args.description;
   if (args.mediaId !== undefined) patch.mediaId = args.mediaId;
 
@@ -402,13 +400,14 @@ export async function selectTraitValuesByCharacterPaginated(
       characterId: valsTbl.characterId,
       synonymSetId: valsTbl.synonymSetId,
       label: valsTbl.label,
-      hexCode: valsTbl.hexCode,
+      hexCode: setsTbl.hexCode,
       description: valsTbl.description,
       usageCount: sql<number>`COALESCE(${usageAgg.usageCount}, 0)`,
       synonyms: synonymsAgg,
       mediaId: valsTbl.mediaId,
     })
     .from(valsTbl)
+    .innerJoin(setsTbl, eq(setsTbl.id, valsTbl.synonymSetId))
     .leftJoin(usageAgg, eq(usageAgg.traitValueId, valsTbl.id))
     .where(where)
     .orderBy(asc(valsTbl.label), asc(valsTbl.id))
@@ -439,9 +438,10 @@ export async function selectAllTraitValuesByCharacters(
       id: valsTbl.id,
       characterId: valsTbl.characterId,
       label: valsTbl.label,
-      hexCode: valsTbl.hexCode,
+      hexCode: setsTbl.hexCode,
     })
     .from(valsTbl)
+    .innerJoin(setsTbl, eq(setsTbl.id, valsTbl.synonymSetId))
     .where(inArray(valsTbl.characterId, characterIds))
     .orderBy(asc(valsTbl.characterId), asc(valsTbl.label));
 

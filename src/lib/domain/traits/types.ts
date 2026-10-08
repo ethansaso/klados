@@ -1,22 +1,27 @@
-import { categoricalTraitValue } from "../../../../db/schema/schema";
+import {
+  categoricalTraitValue,
+  traitSynonymSet,
+} from "../../../../db/schema/schema";
 import type { PaginatedResult } from "../../validation/pagination";
 import type { MediaDTO } from "../media/types";
 
 export type TraitValueRow = typeof categoricalTraitValue.$inferSelect;
+export type TraitSynonymSetRow = typeof traitSynonymSet.$inferSelect;
 
 /** For use as siblings in a synonym set. */
 export type TraitSynonymDTO = Pick<TraitValueRow, "id" | "label">;
 
 export type TraitValueDTO = Pick<
   TraitValueRow,
-  "id" | "characterId" | "synonymSetId" | "label" | "hexCode" | "description"
-> & {
-  /** States referencing this trait */
-  usageCount: number;
-  /** Other labels in the same set. Excludes self. Sorted by label. */
-  synonyms: TraitSynonymDTO[];
-  media: MediaDTO | null;
-};
+  "id" | "characterId" | "synonymSetId" | "label" | "description"
+> &
+  Pick<TraitSynonymSetRow, "hexCode"> & {
+    /** States referencing this trait */
+    usageCount: number;
+    /** Other labels in the same set. Excludes self. Sorted by label. */
+    synonyms: TraitSynonymDTO[];
+    media: MediaDTO | null;
+  };
 
 export type TraitValuePaginatedResult = PaginatedResult<TraitValueDTO>;
 

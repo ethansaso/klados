@@ -5,12 +5,13 @@ import {
   categoricalCharacterMeta,
   categoricalTraitValue,
   character,
+  traitSynonymSet,
 } from "../../../db/schema/schema";
 import {
   deleteSynonymSetIfEmpty,
   insertSynonymSet,
 } from "../../../src/lib/domain/traits/repo";
-import { Transaction } from "../../../src/lib/utils/transactionType";
+import type { Transaction } from "../../../src/lib/utils/types/transactionType";
 import { askYesNo } from "../../utils/askYesNo";
 import { ansiBlock, buildColorSeedPlan, ColorDef } from "../colors/util";
 
@@ -19,13 +20,13 @@ const COLOR_CHARACTER_LABEL = "Color";
 type ExistingTrait = {
   id: number;
   label: string;
-  hexCode: string | null;
   synonymSetId: number;
 };
 
 type SyncStats = {
   inserted: number;
   updated: number;
+  swatchesUpdated: number;
   setsCreated: number;
   setsDeleted: number;
   unmanaged: string[];
@@ -130,16 +131,22 @@ async function syncColorSetsTx(
     .select({
       id: categoricalTraitValue.id,
       label: categoricalTraitValue.label,
-      hexCode: categoricalTraitValue.hexCode,
       synonymSetId: categoricalTraitValue.synonymSetId,
     })
     .from(categoricalTraitValue)
     .where(eq(categoricalTraitValue.characterId, characterId));
 
+  const sets = await tx
+    .select({ id: traitSynonymSet.id, hexCode: traitSynonymSet.hexCode })
+    .from(traitSynonymSet)
+    .where(eq(traitSynonymSet.characterId, characterId));
+  const hexBySet = new Map(sets.map((set) => [set.id, set.hexCode]));
+
   const byLabel = indexByLabel(existing);
   const stats: SyncStats = {
     inserted: 0,
     updated: 0,
+    swatchesUpdated: 0,
     setsCreated: 0,
     setsDeleted: 0,
     unmanaged: [],
@@ -153,18 +160,29 @@ async function syncColorSetsTx(
     const labels = [color.label, ...color.synonyms];
     for (const label of labels) planned.add(label.toLowerCase());
 
+    // A set already claimed by another swatch can't hold this one's hex too
     const rows = labels
       .map((label) => byLabel.get(label.toLowerCase()))
-      .filter((row): row is ExistingTrait => row !== undefined);
+      .filter((row): row is ExistingTrait => row !== undefined)
+      .filter((row) => !targetSets.has(row.synonymSetId));
 
     let setId: number;
     if (rows.length > 0) {
       setId = pickTargetSet(rows);
     } else {
       setId = (await insertSynonymSet(tx, characterId)).id;
+      hexBySet.set(setId, null);
       stats.setsCreated += 1;
     }
     targetSets.add(setId);
+
+    if (hexBySet.get(setId) !== color.hexCode) {
+      await tx
+        .update(traitSynonymSet)
+        .set({ hexCode: color.hexCode })
+        .where(eq(traitSynonymSet.id, setId));
+      stats.swatchesUpdated += 1;
+    }
 
     for (const label of labels) {
       const row = byLabel.get(label.toLowerCase());
@@ -174,16 +192,12 @@ async function syncColorSetsTx(
           characterId,
           synonymSetId: setId,
           label,
-          hexCode: color.hexCode,
         });
         stats.inserted += 1;
         continue;
       }
 
-      const settled =
-        row.label === label &&
-        row.synonymSetId === setId &&
-        row.hexCode === color.hexCode;
+      const settled = row.label === label && row.synonymSetId === setId;
       if (settled) continue;
 
       if (row.synonymSetId !== setId) vacatedSets.add(row.synonymSetId);
@@ -191,7 +205,7 @@ async function syncColorSetsTx(
       // Label is rewritten too, so the plan owns capitalisation
       await tx
         .update(categoricalTraitValue)
-        .set({ label, synonymSetId: setId, hexCode: color.hexCode })
+        .set({ label, synonymSetId: setId })
         .where(eq(categoricalTraitValue.id, row.id));
       stats.updated += 1;
     }
@@ -252,6 +266,7 @@ export async function run() {
 
   console.log(
     `Done. ${stats.inserted} label(s) inserted, ${stats.updated} updated, ` +
+      `${stats.swatchesUpdated} swatch(es) recolored, ` +
       `${stats.setsCreated} synonym set(s) created, ${stats.setsDeleted} removed.`,
   );
 

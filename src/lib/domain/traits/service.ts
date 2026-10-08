@@ -111,7 +111,6 @@ export async function createTraitValue(
       synonymSetId,
       label,
       description: args.description?.trim(),
-      hexCode: args.hexCode,
       mediaId: args.mediaId,
     });
 
@@ -145,7 +144,6 @@ export async function updateTraitValue(
       id: args.id,
       characterId: args.characterId,
       label: args.label?.trim(),
-      hexCode: args.hexCode,
       description:
         args.description === undefined ? undefined : args.description.trim(),
       mediaId: args.mediaId,

@@ -39,8 +39,8 @@ Black
 ## Synonym sets
 
 Every swatch is one synonym set. Its systematic name plus everything listed
-under that name in `aliases.ts` are members of the set and carry the same
-hex code.
+under that name in `aliases.ts` are members of the set. The hex code lives on
+the set itself to avoid drift between individual traits.
 
 Vernacular names are just synonyms, with no special machinery behind them.
 Earth tones live under the systematic name of the swatch they describe, e.g.
@@ -63,7 +63,7 @@ capital at the head of a prose fragment.
 ## Re-running
 
 Seeding reconciles rather than replaces. Colors that exist already are
-moved into the right set and given the right hex, and colors outside
+moved into the right set, each set is given its swatch's hex, and colors outside
 the palette are left untouched and reported at the end, so hand-entered
 vocabulary survives a re-run. Running it twice is a no-op.
 

@@ -24,7 +24,6 @@ interface Props {
 const seedFormValues = (label: string): TraitValueFormValues => ({
   label,
   description: "",
-  hexCode: "",
   media: null,
   membership: null,
 });
@@ -74,7 +73,6 @@ export const AddTraitValueModal = NiceModal.create<Props>(
           characterId,
           label: data.label,
           description: data.description,
-          hexCode: data.hexCode === "" ? null : data.hexCode,
           mediaId: data.media?.id ?? null,
           synonymOfTraitId: data.membership?.traitId,
         },
