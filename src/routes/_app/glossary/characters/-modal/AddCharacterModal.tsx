@@ -10,6 +10,10 @@ import {
   useForm,
   useWatch,
 } from "react-hook-form";
+import { AddCategoricalCharacterForm } from "../-components/AddCategoricalCharacterForm";
+import { AddCharacterBaseForm } from "../-components/AddCharacterBaseForm";
+import { AddNumberCharacterForm } from "../-components/AddNumberCharacterForm";
+import { AddRangeCharacterForm } from "../-components/AddRangeCharacterForm";
 import {
   type CreateCharacterInput,
   createCharacterSchema,
@@ -17,10 +21,6 @@ import {
 import { createCharacterFn } from "../../../../../lib/server-fns/characters/createCharacterFn";
 import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../../lib/utils/toast";
-import { AddCategoricalCharacterForm } from "./AddCategoricalCharacterForm";
-import { AddCharacterBaseForm } from "./AddCharacterBaseForm";
-import { AddNumberCharacterForm } from "./AddNumberCharacterForm";
-import { AddRangeCharacterForm } from "./AddRangeCharacterForm";
 
 const DEFAULT_VALUES = {
   type: "categorical" as const,

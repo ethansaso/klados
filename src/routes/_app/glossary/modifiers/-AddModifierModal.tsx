@@ -11,8 +11,8 @@ import {
   ModifierFields,
   modifierFormSchema,
   type ModifierFormValues,
-  useMediaPickerOpen,
 } from "./-ModifierFields";
+import { useMediaPickerOpen } from "../-MediaField";
 
 interface Props {
   groupId: number;

@@ -71,6 +71,8 @@ function RouteComponent() {
               <Link
                 to="/glossary/features/$id/edit"
                 params={{ id: feature.id }}
+                // Carried through editing, so Save/Cancel return to the same view
+                search={true}
               >
                 <PiPencil />
                 Edit

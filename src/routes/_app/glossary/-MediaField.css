@@ -1,0 +1,23 @@
+.media-field {
+  box-shadow: inset 0 0 0 1px var(--gray-a7);
+  border-radius: var(--radius-2);
+}
+
+.media-field__thumb {
+  object-fit: cover;
+  border-radius: var(--radius-1);
+  border: 1px solid var(--gray-a5);
+}
+
+.media-field__thumb--empty {
+  border: 1px dashed var(--gray-a7);
+  color: var(--gray-a9);
+}
+
+.media-field__menu {
+  max-width: 280px;
+
+  .rt-ScrollAreaViewport > div {
+    max-width: 100%;
+  }
+}

@@ -9,15 +9,17 @@ export const listTraitValuesFn = createServerFn({ method: "GET" })
     PaginationSchema.extend({
       characterId: z.coerce.number().int().positive(),
       q: z.string().optional(),
+      synonymSetId: z.coerce.number().int().positive().optional(),
     }),
   )
   .handler(async ({ data }): Promise<TraitValuePaginatedResult> => {
-    const { characterId, page, pageSize, q } = data;
+    const { characterId, page, pageSize, q, synonymSetId } = data;
 
     return listTraitValuesByCharacter({
       characterId,
       page,
       pageSize,
       q,
+      synonymSetId,
     });
   });

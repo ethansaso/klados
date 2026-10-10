@@ -1,29 +1,26 @@
-import NiceModal from "@ebay/nice-modal-react";
-import { Box, Button, Flex, Text, TextArea, TextField } from "@radix-ui/themes";
+import { Box, Flex, Text, TextArea, TextField } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import z from "zod";
-import {
-  selectWikimediaPhotos,
-  WikimediaPhotoSelectModal,
-} from "../../-WikimediaPhotoSelectModal";
+import { useSynonymSetMembers } from "../-hooks/useSynonymSetMembers";
+import { distinctDescriptions, distinctMedia } from "../-synonymSuggestions";
+import { MediaField } from "../../-MediaField";
 import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
-import MediaBrowser from "../../../../../components/media-browser";
 import { ColorBubble } from "../../../../../components/state-formatting/helpers/ColorBubble";
 import type { MediaDTO } from "../../../../../lib/domain/media/types";
 import { synonymCandidatesQueryOptions } from "../../../../../lib/queries/traits";
-import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 import {
   trimmed,
   trimmedNonEmpty,
 } from "../../../../../lib/validation/trimmedOptional";
+import { SynonymDescriptionPicker } from "./SynonymDescriptionPicker";
 
 const SYNONYM_CANDIDATE_LIMIT = 20;
 
@@ -61,13 +58,6 @@ export const lockedTraitValueFormSchema = traitValueFormSchema.refine(
   },
 );
 
-/** Signals whether to hide modal for visuals/ARIA. */
-export function useMediaPickerOpen(): boolean {
-  const mediaBrowser = NiceModal.useModal(MediaBrowser);
-  const wikimediaPicker = NiceModal.useModal(WikimediaPhotoSelectModal);
-  return mediaBrowser.visible || wikimediaPicker.visible;
-}
-
 type Props = {
   characterId: number;
   /** Keeps trait from appearing in own synonyms list (i.e. for editing extant trait) */
@@ -86,14 +76,19 @@ export function TraitValueFields({
   const {
     control,
     register,
-    setValue,
     getValues,
+    setValue,
     formState: { errors, touchedFields, isSubmitted },
   } = useFormContext<TraitValueFormValues>();
 
   const [synonymQuery, setSynonymQuery] = useState("");
-  const currentMedia = useWatch({ control, name: "media" });
   const membership = useWatch({ control, name: "membership" });
+
+  const { members, isLoading: membersLoading } = useSynonymSetMembers(
+    characterId,
+    membership?.synonymSetId ?? null,
+    excludeTraitId,
+  );
 
   const { data: candidates, isFetching: candidatesLoading } = useQuery(
     synonymCandidatesQueryOptions(characterId, synonymQuery, {
@@ -120,23 +115,6 @@ export function TraitValueFields({
     label: membership.labels.join(", "),
     adornment: swatch(membership.hexCode),
   };
-
-  /** Wikimedia seeds its search with the label as currently edited. */
-  const handleWikimediaPick = async () => {
-    const picked = await selectWikimediaPhotos(getValues("label"));
-    const media = picked?.[0];
-    if (!media) return;
-
-    setValue("media", media, { shouldDirty: true });
-  };
-
-  const handleBrowserPick = () =>
-    NiceModal.show(MediaBrowser, {
-      mode: "single",
-      onSelect: (media: MediaDTO) => {
-        setValue("media", media, { shouldDirty: true });
-      },
-    });
 
   return (
     <>
@@ -226,10 +204,25 @@ export function TraitValueFields({
       <Box>
         <Flex justify="between" align="baseline" mb="1">
           <Label.Root htmlFor="description">Description</Label.Root>
-          <ConditionalAlert
-            id="description-error"
-            message={errors.description?.message}
-          />
+          <Flex align="center" gap="2">
+            <ConditionalAlert
+              id="description-error"
+              message={errors.description?.message}
+            />
+            {membership && (
+              <SynonymDescriptionPicker
+                suggestions={distinctDescriptions(members)}
+                loading={membersLoading}
+                onPick={(text) =>
+                  setValue("description", text, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+                disabled={disabled}
+              />
+            )}
+          </Flex>
         </Flex>
         <TextArea
           id="description"
@@ -241,53 +234,25 @@ export function TraitValueFields({
 
       <Box>
         <Flex justify="between" align="baseline" mb="1">
-          <Label.Root>Media</Label.Root>
-          <Flex gap="2">
-            <Button
-              type="button"
-              radius="full"
-              size="1"
-              color="cyan"
-              disabled={disabled}
-              onClick={handleWikimediaPick}
-            >
-              Wikimedia
-            </Button>
-            <Button
-              type="button"
-              radius="full"
-              size="1"
-              disabled={disabled}
-              onClick={handleBrowserPick}
-            >
-              Browser
-            </Button>
-            {currentMedia && (
-              <Button
-                type="button"
-                radius="full"
-                size="1"
-                color="tomato"
-                disabled={disabled}
-                onClick={() => setValue("media", null, { shouldDirty: true })}
-              >
-                Remove
-              </Button>
-            )}
-          </Flex>
+          <Label.Root htmlFor="media">Media</Label.Root>
         </Flex>
-        {currentMedia && (
-          <img
-            src={getMediaUrl(currentMedia.storageKey)}
-            alt={currentMedia.title}
-            style={{
-              width: "96px",
-              height: "96px",
-              objectFit: "cover",
-              borderRadius: "var(--radius-2)",
-            }}
-          />
-        )}
+        <Controller
+          control={control}
+          name="media"
+          render={({ field }) => (
+            <MediaField
+              id="media"
+              value={field.value}
+              onChange={field.onChange}
+              getWikimediaQuery={() => getValues("label")}
+              suggestions={{
+                title: "From synonym",
+                items: distinctMedia(members),
+              }}
+              disabled={disabled}
+            />
+          )}
+        />
       </Box>
     </>
   );

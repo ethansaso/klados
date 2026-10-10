@@ -1,4 +1,3 @@
-import NiceModal from "@ebay/nice-modal-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Badge,
@@ -30,7 +29,7 @@ import {
   updateFeatureFormSchema,
   type UpdateFeatureFormInput,
 } from "../-formValidation";
-import { selectWikimediaPhotos } from "../../-WikimediaPhotoSelectModal";
+import { MediaField } from "../../-MediaField";
 import { InputCombobox } from "../../../../../components/inputs/combobox/InputCombobox";
 import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../../../components/inputs/combobox/types";
@@ -38,7 +37,6 @@ import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
-import MediaBrowser from "../../../../../components/media-browser";
 import type { FeatureDetailDTO } from "../../../../../lib/domain/features/types";
 import type { MediaDTO } from "../../../../../lib/domain/media/types";
 import { charactersQueryOptions } from "../../../../../lib/queries/characters";
@@ -47,7 +45,6 @@ import {
   featuresQueryOptions,
 } from "../../../../../lib/queries/features";
 import { updateFeatureFn } from "../../../../../lib/server-fns/features/updateFeatureFn";
-import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 import { toast } from "../../../../../lib/utils/toast";
 
 export const Route = createFileRoute("/_app/glossary/features/$id/edit")({
@@ -132,6 +129,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
       navigate({
         to: "/glossary/features/$id",
         params: { id: feature.id },
+        search: true,
       });
     },
     onError: (err) => {
@@ -353,67 +351,17 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
         </Box>
         <Box>
           <Flex justify="between" align="baseline" mb="1">
-            <Label.Root>Media</Label.Root>
-            <Flex gap="2">
-              <Button
-                type="button"
-                radius="full"
-                size="1"
-                color="cyan"
-                onClick={async () => {
-                  const media = await selectWikimediaPhotos(label!);
-                  const result = media?.[0];
-                  if (!result) return;
-                  setValue("mediaId", result.id, { shouldDirty: true });
-                  setCurrentMedia(result);
-                }}
-              >
-                Wikimedia
-              </Button>
-              <Button
-                type="button"
-                radius="full"
-                size="1"
-                onClick={() =>
-                  NiceModal.show(MediaBrowser, {
-                    mode: "single",
-                    onSelect: (m) => {
-                      setValue("mediaId", m.id, { shouldDirty: true });
-                      setCurrentMedia(m);
-                    },
-                  })
-                }
-              >
-                Browser
-              </Button>
-              {currentMedia && (
-                <Button
-                  type="button"
-                  radius="full"
-                  size="1"
-                  color="tomato"
-                  onClick={() => {
-                    setValue("mediaId", null, { shouldDirty: true });
-                    setCurrentMedia(null);
-                  }}
-                >
-                  Remove
-                </Button>
-              )}
-            </Flex>
+            <Label.Root htmlFor="media">Media</Label.Root>
           </Flex>
-          {currentMedia && (
-            <img
-              src={getMediaUrl(currentMedia.storageKey)}
-              alt={currentMedia.title}
-              style={{
-                width: "96px",
-                height: "96px",
-                objectFit: "cover",
-                borderRadius: "var(--radius-2)",
-              }}
-            />
-          )}
+          <MediaField
+            id="media"
+            value={currentMedia}
+            onChange={(m) => {
+              setValue("mediaId", m?.id ?? null, { shouldDirty: true });
+              setCurrentMedia(m);
+            }}
+            getWikimediaQuery={() => label ?? ""}
+          />
         </Box>
         <Flex justify="end" gap="2">
           <Button
@@ -423,6 +371,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
               navigate({
                 to: "/glossary/features/$id",
                 params: { id: feature.id },
+                search: true,
               })
             }
             disabled={mutation.isPending}

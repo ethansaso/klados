@@ -415,7 +415,7 @@ export async function selectTraitValuesByCharacterPaginated(
   characterId: number,
   page: number,
   pageSize: number,
-  opts?: { q?: string },
+  opts?: { q?: string; synonymSetId?: number },
 ): Promise<PaginatedResult<TraitValueBaseDTO>> {
   const offset = (page - 1) * pageSize;
 
@@ -424,6 +424,9 @@ export async function selectTraitValuesByCharacterPaginated(
   ];
   if (opts?.q) {
     filters.push(ilike(valsTbl.label, `%${opts.q}%`));
+  }
+  if (opts?.synonymSetId !== undefined) {
+    filters.push(eq(valsTbl.synonymSetId, opts.synonymSetId));
   }
   const where = and(...filters)!;
   const usageAgg = usageAggFor(tx, eq(tcsTbl.characterId, characterId));

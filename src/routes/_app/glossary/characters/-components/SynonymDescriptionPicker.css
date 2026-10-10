@@ -1,0 +1,13 @@
+.synonym-description-picker__menu {
+  width: 300px;
+
+  .rt-ScrollAreaViewport > div {
+    max-width: 100%;
+  }
+}
+
+/* Override one-line-tall height from Radix */
+.synonym-description-picker__item {
+  height: auto;
+  padding-block: var(--space-1);
+}
