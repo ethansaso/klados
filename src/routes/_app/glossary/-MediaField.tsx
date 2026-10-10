@@ -17,6 +17,7 @@ import {
   selectWikimediaPhotos,
   WikimediaPhotoSelectModal,
 } from "./-WikimediaPhotoSelectModal";
+import type { MediaSuggestions } from "./characters/-synonymSuggestions";
 
 type Props = {
   id?: string;
@@ -24,16 +25,19 @@ type Props = {
   onChange: (media: MediaDTO | null) => void;
   /** Seeds the Wikimedia search. */
   getWikimediaQuery: () => string;
+  suggestions?: MediaSuggestions;
   disabled?: boolean;
 };
 
 const THUMB_SIZE = "40px";
+const SUGGESTION_THUMB_SIZE = "20px";
 
 export function MediaField({
   id,
   value,
   onChange,
   getWikimediaQuery,
+  suggestions,
   disabled = false,
 }: Props) {
   const handleWikimediaPick = async () => {
@@ -99,13 +103,20 @@ export function MediaField({
               <DropdownMenu.TriggerIcon />
             </Button>
           </DropdownMenu.Trigger>
-          <DropdownMenu.Content align="end" size="1">
+          <DropdownMenu.Content
+            align="end"
+            size="1"
+            className="media-field__menu"
+          >
             <DropdownMenu.Item onSelect={handleWikimediaPick}>
               Wikimedia
             </DropdownMenu.Item>
             <DropdownMenu.Item onSelect={handleBrowserPick}>
               Browser
             </DropdownMenu.Item>
+            {suggestions && (
+              <SuggestionGroup suggestions={suggestions} onPick={onChange} />
+            )}
           </DropdownMenu.Content>
         </DropdownMenu.Root>
         {value && (
@@ -123,6 +134,43 @@ export function MediaField({
         )}
       </Flex>
     </Flex>
+  );
+}
+
+function SuggestionGroup({
+  suggestions,
+  onPick,
+}: {
+  suggestions: MediaSuggestions;
+  onPick: (media: MediaDTO) => void;
+}) {
+  const { title, items } = suggestions;
+
+  // Display nothing if no suggestions
+  if (!items.length) return null;
+  return (
+    <>
+      <DropdownMenu.Label>{title}</DropdownMenu.Label>
+      {items.map(({ media, caption }) => (
+        <DropdownMenu.Item key={media.id} onSelect={() => onPick(media)}>
+          <Flex align="center" gap="2" minWidth="0" flexGrow="1">
+            <Box
+              asChild
+              width={SUGGESTION_THUMB_SIZE}
+              height={SUGGESTION_THUMB_SIZE}
+              flexShrink="0"
+            >
+              <img
+                src={getMediaUrl(media.storageKey)}
+                alt=""
+                className="media-field__thumb"
+              />
+            </Box>
+            <Text truncate>{caption}</Text>
+          </Flex>
+        </DropdownMenu.Item>
+      ))}
+    </>
   );
 }
 

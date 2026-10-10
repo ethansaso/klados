@@ -13,3 +13,11 @@
   border: 1px dashed var(--gray-a7);
   color: var(--gray-a9);
 }
+
+.media-field__menu {
+  max-width: 280px;
+
+  .rt-ScrollAreaViewport > div {
+    max-width: 100%;
+  }
+}

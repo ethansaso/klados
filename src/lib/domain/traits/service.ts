@@ -29,6 +29,7 @@ import type {
   CreateTraitValueInput,
   ListSynonymCandidatesInput,
   UpdateTraitValueInput,
+  UpdateTraitValuesInput,
 } from "./validation";
 
 type LockedSetsPolicy = {
@@ -311,6 +312,48 @@ export async function createTraitValue(
   });
 }
 
+/** Patches one trait value inside a transaction. */
+async function updateTraitValueTx(
+  tx: Transaction,
+  args: UpdateTraitValueInput,
+): Promise<TraitValueDTO> {
+  const cur = await selectTraitIdentityById(tx, args.id);
+  if (!cur) throw new Error("Trait value not found.");
+  if (cur.characterId !== args.characterId)
+    throw new Error("Trait value character mismatch.");
+
+  const policy = await getLockedSetsPolicy(tx, args.characterId);
+  if (policy) await assertLockedSetsUpdateTx(tx, policy, cur, args);
+
+  const nextLabel = args.label?.trim();
+  if (nextLabel !== undefined && nextLabel !== cur.label) {
+    await assertLabelFreeTx(tx, args.characterId, nextLabel, args.id);
+  }
+
+  const updated = await updateTraitValueRow(tx, {
+    id: args.id,
+    characterId: args.characterId,
+    label: args.label?.trim(),
+    description:
+      args.description === undefined ? undefined : args.description.trim(),
+    mediaId: args.mediaId,
+  });
+  if (!updated) throw new Error("Update failed.");
+
+  if (args.synonymOfTraitId !== undefined) {
+    if (args.synonymOfTraitId === null) {
+      await unlinkTraitFromSynonymsTx(tx, args.id);
+    } else {
+      await moveTraitIntoSetOfTx(tx, args.id, args.synonymOfTraitId);
+    }
+  }
+
+  const dto = await selectTraitValueDtoById(tx, args.id);
+  if (!dto) throw new Error("Updated row not found.");
+
+  return withCanonicalFlag(tx, dto);
+}
+
 /**
  * Patch a trait value's fields and, optionally, its synonym membership.
  * Setting `null` for `synonymOfTraitId` separates the trait into a set of its own.
@@ -319,42 +362,19 @@ export async function createTraitValue(
 export async function updateTraitValue(
   args: UpdateTraitValueInput,
 ): Promise<TraitValueDTO> {
+  return db.transaction(async (tx) => updateTraitValueTx(tx, args));
+}
+
+/** Patch several trait values in order. See {@link updateTraitValue}. */
+export async function updateTraitValues(
+  args: UpdateTraitValuesInput,
+): Promise<TraitValueDTO[]> {
   return db.transaction(async (tx) => {
-    const cur = await selectTraitIdentityById(tx, args.id);
-    if (!cur) throw new Error("Trait value not found.");
-    if (cur.characterId !== args.characterId)
-      throw new Error("Trait value character mismatch.");
-
-    const policy = await getLockedSetsPolicy(tx, args.characterId);
-    if (policy) await assertLockedSetsUpdateTx(tx, policy, cur, args);
-
-    const nextLabel = args.label?.trim();
-    if (nextLabel !== undefined && nextLabel !== cur.label) {
-      await assertLabelFreeTx(tx, args.characterId, nextLabel, args.id);
+    const updated: TraitValueDTO[] = [];
+    for (const item of args.items) {
+      updated.push(await updateTraitValueTx(tx, item));
     }
-
-    const updated = await updateTraitValueRow(tx, {
-      id: args.id,
-      characterId: args.characterId,
-      label: args.label?.trim(),
-      description:
-        args.description === undefined ? undefined : args.description.trim(),
-      mediaId: args.mediaId,
-    });
-    if (!updated) throw new Error("Update failed.");
-
-    if (args.synonymOfTraitId !== undefined) {
-      if (args.synonymOfTraitId === null) {
-        await unlinkTraitFromSynonymsTx(tx, args.id);
-      } else {
-        await moveTraitIntoSetOfTx(tx, args.id, args.synonymOfTraitId);
-      }
-    }
-
-    const dto = await selectTraitValueDtoById(tx, args.id);
-    if (!dto) throw new Error("Updated row not found.");
-
-    return withCanonicalFlag(tx, dto);
+    return updated;
   });
 }
 
@@ -364,6 +384,7 @@ export async function listTraitValuesByCharacter(args: {
   page: number;
   pageSize: number;
   q?: string;
+  synonymSetId?: number;
 }): Promise<TraitValuePaginatedResult> {
   return db.transaction(async (tx) => {
     const result = await selectTraitValuesByCharacterPaginated(
@@ -371,7 +392,7 @@ export async function listTraitValuesByCharacter(args: {
       args.characterId,
       args.page,
       args.pageSize,
-      { q: args.q },
+      { q: args.q, synonymSetId: args.synonymSetId },
     );
 
     return { ...result, items: await withCanonicalFlags(tx, result.items) };

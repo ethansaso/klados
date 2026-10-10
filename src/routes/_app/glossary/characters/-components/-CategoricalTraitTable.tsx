@@ -1,16 +1,18 @@
 import { Box, Flex, IconButton, Table, Text } from "@radix-ui/themes";
 import { useMemo } from "react";
-import { PiPencil, PiTrash } from "react-icons/pi";
-import { ResponsiveTooltip } from "../../../../components/ResponsiveTooltip";
-import { ColorBubble } from "../../../../components/state-formatting/helpers/ColorBubble";
-import type { TraitValueDTO } from "../../../../lib/domain/traits/types";
-import { getMediaUrl } from "../../../../lib/storage/getMediaUrl";
+import { PiPencil, PiShareFat, PiTrash } from "react-icons/pi";
+import { applyToSynonymsBlocker } from "../-hooks/useSynonymApply";
+import { ResponsiveTooltip } from "../../../../../components/ResponsiveTooltip";
+import { ColorBubble } from "../../../../../components/state-formatting/helpers/ColorBubble";
+import type { TraitValueDTO } from "../../../../../lib/domain/traits/types";
+import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 
 type RootProps = {
   values: TraitValueDTO[];
   showActions?: boolean;
   onDeleteClick?: (value: TraitValueDTO) => void;
   onEditClick?: (value: TraitValueDTO) => void;
+  onApplyClick?: (value: TraitValueDTO) => void;
 };
 
 type RowProps = {
@@ -18,6 +20,7 @@ type RowProps = {
   showActions: boolean;
   onDeleteClick?: (value: TraitValueDTO) => void;
   onEditClick?: (value: TraitValueDTO) => void;
+  onApplyClick?: (value: TraitValueDTO) => void;
 };
 
 export default function CategoricalTraitTable({
@@ -25,6 +28,7 @@ export default function CategoricalTraitTable({
   showActions = false,
   onDeleteClick,
   onEditClick,
+  onApplyClick,
 }: RootProps) {
   return (
     <Table.Root size="1" variant="surface">
@@ -57,6 +61,7 @@ export default function CategoricalTraitTable({
               showActions={showActions}
               onDeleteClick={onDeleteClick}
               onEditClick={onEditClick}
+              onApplyClick={onApplyClick}
             />
           ))
         )}
@@ -65,7 +70,15 @@ export default function CategoricalTraitTable({
   );
 }
 
-function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
+function Row({
+  value,
+  showActions,
+  onDeleteClick,
+  onEditClick,
+  onApplyClick,
+}: RowProps) {
+  const applyBlocker = applyToSynonymsBlocker(value);
+
   const noDeletionReason: string | null = useMemo(() => {
     if (value.isCanonical) return "Canonical terms can't be deleted";
     return value.usageCount > 0 ? "Value in use" : null;
@@ -143,6 +156,17 @@ function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
             >
               <PiPencil />
             </IconButton>
+            <ResponsiveTooltip content={applyBlocker ?? "Apply to synonyms"}>
+              <IconButton
+                variant="ghost"
+                size="1"
+                aria-label="Apply to synonyms"
+                disabled={!!applyBlocker}
+                onClick={() => onApplyClick?.(value)}
+              >
+                <PiShareFat />
+              </IconButton>
+            </ResponsiveTooltip>
             {deleteButton}
           </Flex>
         </Table.Cell>

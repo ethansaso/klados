@@ -4,6 +4,8 @@ import { Label } from "radix-ui";
 import { useMemo, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import z from "zod";
+import { useSynonymSetMembers } from "../-hooks/useSynonymSetMembers";
+import { distinctDescriptions, distinctMedia } from "../-synonymSuggestions";
 import { MediaField } from "../../-MediaField";
 import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../../../components/inputs/combobox/types";
@@ -18,6 +20,7 @@ import {
   trimmed,
   trimmedNonEmpty,
 } from "../../../../../lib/validation/trimmedOptional";
+import { SynonymDescriptionPicker } from "./SynonymDescriptionPicker";
 
 const SYNONYM_CANDIDATE_LIMIT = 20;
 
@@ -74,11 +77,18 @@ export function TraitValueFields({
     control,
     register,
     getValues,
+    setValue,
     formState: { errors, touchedFields, isSubmitted },
   } = useFormContext<TraitValueFormValues>();
 
   const [synonymQuery, setSynonymQuery] = useState("");
   const membership = useWatch({ control, name: "membership" });
+
+  const { members, isLoading: membersLoading } = useSynonymSetMembers(
+    characterId,
+    membership?.synonymSetId ?? null,
+    excludeTraitId,
+  );
 
   const { data: candidates, isFetching: candidatesLoading } = useQuery(
     synonymCandidatesQueryOptions(characterId, synonymQuery, {
@@ -194,10 +204,25 @@ export function TraitValueFields({
       <Box>
         <Flex justify="between" align="baseline" mb="1">
           <Label.Root htmlFor="description">Description</Label.Root>
-          <ConditionalAlert
-            id="description-error"
-            message={errors.description?.message}
-          />
+          <Flex align="center" gap="2">
+            <ConditionalAlert
+              id="description-error"
+              message={errors.description?.message}
+            />
+            {membership && (
+              <SynonymDescriptionPicker
+                suggestions={distinctDescriptions(members)}
+                loading={membersLoading}
+                onPick={(text) =>
+                  setValue("description", text, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+                disabled={disabled}
+              />
+            )}
+          </Flex>
         </Flex>
         <TextArea
           id="description"
@@ -220,6 +245,10 @@ export function TraitValueFields({
               value={field.value}
               onChange={field.onChange}
               getWikimediaQuery={() => getValues("label")}
+              suggestions={{
+                title: "From synonym",
+                items: distinctMedia(members),
+              }}
               disabled={disabled}
             />
           )}

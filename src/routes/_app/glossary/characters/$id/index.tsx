@@ -15,8 +15,9 @@ import {
   PiTrash,
 } from "react-icons/pi";
 import z from "zod";
-import CategoricalTraitTable from "../-CategoricalTraitTable";
+import CategoricalTraitTable from "../-components/-CategoricalTraitTable";
 import { AddTraitValueModal } from "../-modal/AddTraitValueModal";
+import { ApplyToSynonymsModal } from "../-modal/ApplyToSynonymsModal";
 import { DeleteTraitValueModal } from "../-modal/DeleteTraitValueModal";
 import { EditTraitValueModal } from "../-modal/EditTraitValueModal";
 import { AnnotationBubbleWrap } from "../../../../../components/annotations/AnnotationBubbleWrap";
@@ -258,6 +259,12 @@ function RouteComponent() {
               NiceModal.show(EditTraitValueModal, {
                 traitValue: value,
                 hasLockedSets: character.hasLockedSets,
+                invalidate: invalidateTraitValues,
+              })
+            }
+            onApplyClick={(value) =>
+              NiceModal.show(ApplyToSynonymsModal, {
+                traitValue: value,
                 invalidate: invalidateTraitValues,
               })
             }

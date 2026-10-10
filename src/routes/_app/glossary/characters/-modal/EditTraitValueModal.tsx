@@ -5,17 +5,17 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
 import { FormProvider, type SubmitHandler, useForm } from "react-hook-form";
-import type { TraitValueDTO } from "../../../../../lib/domain/traits/types";
-import { updateTraitValueFn } from "../../../../../lib/server-fns/traits/updateTraitValueFn";
-import { toast } from "../../../../../lib/utils/toast";
 import {
   lockedTraitValueFormSchema,
   TraitValueFields,
   traitValueFormSchema,
   type TraitValueFormValues,
   type TraitValueMembership,
-} from "./TraitValueFields";
+} from "../-components/TraitValueFields";
 import { useMediaPickerOpen } from "../../-MediaField";
+import type { TraitValueDTO } from "../../../../../lib/domain/traits/types";
+import { updateTraitValueFn } from "../../../../../lib/server-fns/traits/updateTraitValueFn";
+import { toast } from "../../../../../lib/utils/toast";
 
 interface Props {
   traitValue: TraitValueDTO;
