@@ -1,4 +1,3 @@
-import NiceModal from "@ebay/nice-modal-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Box,
@@ -24,12 +23,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { Label } from "radix-ui";
 import { useState } from "react";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
-import { selectWikimediaPhotos } from "../../-WikimediaPhotoSelectModal";
+import { MediaField } from "../../-MediaField";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../../components/inputs/ConditionalAlert";
-import MediaBrowser from "../../../../../components/media-browser";
 import {
   generateLoginRedirectFromLocation,
   roleHasCuratorRights,
@@ -41,7 +39,6 @@ import {
 import type { MediaDTO } from "../../../../../lib/domain/media/types";
 import { characterQueryOptions } from "../../../../../lib/queries/characters";
 import { updateCharacterFn } from "../../../../../lib/server-fns/characters/updateCharacterFn";
-import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 import { capitalizeFirstLetter } from "../../../../../lib/utils/formatting/casing";
 import { toast } from "../../../../../lib/utils/toast";
 
@@ -222,67 +219,17 @@ function RouteComponent() {
         {/* Media */}
         <Box>
           <Flex justify="between" align="baseline" mb="1">
-            <Label.Root>Media</Label.Root>
-            <Flex gap="2">
-              <Button
-                type="button"
-                radius="full"
-                size="1"
-                color="cyan"
-                onClick={async () => {
-                  const media = await selectWikimediaPhotos(label!);
-                  const result = media?.[0];
-                  if (!result) return;
-                  setValue("mediaId", result.id, { shouldDirty: true });
-                  setCurrentMedia(result);
-                }}
-              >
-                Wikimedia
-              </Button>
-              <Button
-                type="button"
-                radius="full"
-                size="1"
-                onClick={() =>
-                  NiceModal.show(MediaBrowser, {
-                    mode: "single",
-                    onSelect: (m) => {
-                      setValue("mediaId", m.id, { shouldDirty: true });
-                      setCurrentMedia(m);
-                    },
-                  })
-                }
-              >
-                Browser
-              </Button>
-              {currentMedia && (
-                <Button
-                  type="button"
-                  radius="full"
-                  size="1"
-                  color="tomato"
-                  onClick={() => {
-                    setValue("mediaId", null, { shouldDirty: true });
-                    setCurrentMedia(null);
-                  }}
-                >
-                  Remove
-                </Button>
-              )}
-            </Flex>
+            <Label.Root htmlFor="media">Media</Label.Root>
           </Flex>
-          {currentMedia && (
-            <img
-              src={getMediaUrl(currentMedia.storageKey)}
-              alt={currentMedia.title}
-              style={{
-                width: "96px",
-                height: "96px",
-                objectFit: "cover",
-                borderRadius: "var(--radius-2)",
-              }}
-            />
-          )}
+          <MediaField
+            id="media"
+            value={currentMedia}
+            onChange={(m) => {
+              setValue("mediaId", m?.id ?? null, { shouldDirty: true });
+              setCurrentMedia(m);
+            }}
+            getWikimediaQuery={() => label ?? ""}
+          />
         </Box>
 
         {/* Root error */}

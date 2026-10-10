@@ -14,8 +14,8 @@ import {
   traitValueFormSchema,
   type TraitValueFormValues,
   type TraitValueMembership,
-  useMediaPickerOpen,
 } from "./TraitValueFields";
+import { useMediaPickerOpen } from "../../-MediaField";
 
 interface Props {
   traitValue: TraitValueDTO;

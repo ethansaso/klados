@@ -12,8 +12,8 @@ import {
   TraitValueFields,
   traitValueFormSchema,
   type TraitValueFormValues,
-  useMediaPickerOpen,
 } from "./TraitValueFields";
+import { useMediaPickerOpen } from "../../-MediaField";
 
 interface Props {
   characterId: number;
