@@ -27,6 +27,7 @@ TanStack Start (React 19, Router, Query) · Radix Themes · react-hook-form + zo
 
 - **File order:** types → `UPPER_CASE` consts → other variables (schemas, `NiceModal.create` components) → functions. Prefer function declarations over arrow-function consts for helpers.
 - **`types.ts` files hold only types.** Helpers go in their own files.
+- **Backend layers**: `repo` holds database logic, `service` holds business logic, `serverFn` generally wraps service except in rare cases where additional logic is required.
 - **Query options** live in `src/lib/queries/`, use camelCase keys (`["inatTaxonImport", id]`), and are passed straight to `useQuery(...)`.
 - **Comments are brief.** Only explain a non-obvious "why"; never restate a name or obvious logic.
 - **Modals:** `NiceModal.create`, closed with `remove()`, plus an exported promise helper (`pickX`/`selectX`) that resolves to the result or `null`.
