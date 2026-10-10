@@ -32,6 +32,7 @@ TanStack Start (React 19, Router, Query) · Radix Themes · react-hook-form + zo
 - **Modals:** `NiceModal.create`, closed with `remove()`, plus an exported promise helper (`pickX`/`selectX`) that resolves to the result or `null`.
 - **Forms:** label rows use `Label.Root` + `ConditionalAlert`, inputs spread `a11yProps(errorId, invalid)`. Notifications use `toast()` from `src/lib/utils/toast`.
 - **Backend is resilient, frontend stays simple:** normalize or dedupe messy input (e.g. external names, repeated media ids) in the service layer instead of in every caller.
+- **CSS:** It is preferable to make identically named, sibling CSS files that components import, rather than adding styles to the assets CSS directory.
 - **Formatting:** Prettier.
 
 ## Workflow
