@@ -15,7 +15,7 @@ type Props = {
   isLast?: boolean;
   /** When true, suppresses capitalization of the first rendered character (prefix or label). */
   lowercaseFirst?: boolean;
-  /** When provided, renders a color swatch before content. */
+  /** When provided, renders a color swatch before the prefixes and content. */
   hexCode?: string | null;
   children: ReactNode;
 };
@@ -34,21 +34,17 @@ export const AffixedValue = memo(
     const suffixes = modifiers.filter((m) => m.affixType === "suffix");
     const prefixGroups = groupConsecutive(prefixes);
     const suffixGroups = groupConsecutive(suffixes);
+    const swatch = hexCode && (
+      <span style={{ display: "inline-block", marginRight: 4 }}>
+        <ColorBubble hexColor={hexCode} />
+      </span>
+    );
 
     if (modifiers.length === 0) {
       return (
         <Text as="span" weight={weight}>
           <span style={{ whiteSpace: "nowrap" }}>
-            {hexCode && (
-              <span
-                style={{
-                  display: "inline-block",
-                  marginRight: 4,
-                }}
-              >
-                <ColorBubble hexColor={hexCode} />
-              </span>
-            )}
+            {swatch}
             {children}
           </span>
           {!isLast && ","}
@@ -65,32 +61,29 @@ export const AffixedValue = memo(
             weight={weight}
             color={highlightAffixes ? "crimson" : undefined}
           >
-            {group.map((m, mi) => (
-              <Fragment key={m.id}>
-                {mi > 0 && "/"}
-                <ModifierDisplay
-                  modifier={m}
-                  text={formatModifierLabel(
-                    m.label,
-                    !lowercaseFirst && gi === 0 && mi === 0,
-                  )}
-                />
-              </Fragment>
-            ))}{" "}
+            {/* Keeps the swatch from wrapping apart from the first prefix. */}
+            <span
+              style={gi === 0 && swatch ? { whiteSpace: "nowrap" } : undefined}
+            >
+              {gi === 0 && swatch}
+              {group.map((m, mi) => (
+                <Fragment key={m.id}>
+                  {mi > 0 && "/"}
+                  <ModifierDisplay
+                    modifier={m}
+                    text={formatModifierLabel(
+                      m.label,
+                      !lowercaseFirst && gi === 0 && mi === 0,
+                    )}
+                  />
+                </Fragment>
+              ))}
+            </span>{" "}
           </Text>
         ))}
         <Text as="span" weight={weight}>
           <span style={{ whiteSpace: "nowrap" }}>
-            {hexCode && (
-              <span
-                style={{
-                  display: "inline-block",
-                  marginRight: 4,
-                }}
-              >
-                <ColorBubble hexColor={hexCode} />
-              </span>
-            )}
+            {prefixGroups.length === 0 && swatch}
             {children}
           </span>
           {!isLast && suffixGroups.length === 0 && ","}

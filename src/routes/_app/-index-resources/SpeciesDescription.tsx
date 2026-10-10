@@ -138,13 +138,13 @@ const joinNodes = (nodes: ReactNode[], separator: string) =>
 
 const StateText = ({ prefix, suffix, hex, ...term }: State) => (
   <>
-    {prefix && `${prefix} `}
     <span className="species-demo__state">
       {hex && (
         <span className="species-demo__swatch">
           <ColorBubble size={8} hexColor={hex} />
         </span>
       )}
+      {prefix && `${prefix} `}
       <Term {...term} />
     </span>
     {suffix && ` ${suffix}`}
