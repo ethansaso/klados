@@ -77,18 +77,14 @@ function RouteComponent() {
   const invalidateModifiers = () =>
     qc.invalidateQueries({ queryKey: ["modifiers"] });
 
-  // A new query invalidates the current page number along with the results
+  // A new query invalidates the current page number along with the results.
+  // Merge into the search, so the sidebar's own params survive.
   const setQ = (value: string) => {
-    navigate({ search: { valuePage: 1, valueQ: value } });
+    navigate({ search: (prev) => ({ ...prev, valuePage: 1, valueQ: value }) });
   };
 
   const goToPage = (nextPage: number) => {
-    navigate({
-      search: {
-        valuePage: nextPage,
-        valueQ: q,
-      },
-    });
+    navigate({ search: (prev) => ({ ...prev, valuePage: nextPage }) });
   };
 
   const handleDeleteGroupClick = () => {
@@ -184,6 +180,8 @@ function RouteComponent() {
               </Button>
             </CuratorOnly>
             <DebouncedTextField
+              // Fresh input per group; the page stays mounted between them
+              key={id}
               size="2"
               placeholder="Search values..."
               initialValue={q}

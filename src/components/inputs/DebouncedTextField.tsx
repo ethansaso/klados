@@ -19,26 +19,23 @@ export const DebouncedTextField = ({
   ...rest
 }: Props) => {
   const [qInput, setQInput] = useState(initialValue);
+  const [debouncedQ] = useDebounce(qInput, DEBOUNCE_DELAY);
 
+  const lastCommittedRef = useRef(initialValue);
   const onDebouncedChangeRef = useRef(onDebouncedChange);
   onDebouncedChangeRef.current = onDebouncedChange;
 
-  const commit = useCallback(
-    (q: string) => {
-      onDebouncedChange(q);
-    },
-    [onDebouncedChange],
-  );
+  // Blur and Enter re-commit the current text; callers often reset paging on a
+  // new query, so only commit text that differs from the last commit
+  const commit = useCallback((q: string) => {
+    if (q === lastCommittedRef.current) return;
+    lastCommittedRef.current = q;
+    onDebouncedChangeRef.current(q);
+  }, []);
 
-  const [debouncedQ] = useDebounce(qInput, DEBOUNCE_DELAY);
-  const hasMountedRef = useRef(false);
   useEffect(() => {
-    if (!hasMountedRef.current) {
-      hasMountedRef.current = true;
-      return;
-    }
-    onDebouncedChangeRef.current(debouncedQ);
-  }, [debouncedQ]);
+    commit(debouncedQ);
+  }, [debouncedQ, commit]);
 
   return (
     <TextField.Root

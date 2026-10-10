@@ -100,9 +100,10 @@ function RouteComponent() {
   const invalidateTraitValues = () =>
     qc.invalidateQueries({ queryKey: ["traitValues"] });
 
-  // A new query invalidates the current page number along with the results
+  // A new query invalidates the current page number along with the results.
+  // Merge into the search, so the sidebar's own params survive.
   const setTraitQ = (value: string) => {
-    navigate({ search: { valuePage: 1, valueQ: value } });
+    navigate({ search: (prev) => ({ ...prev, valuePage: 1, valueQ: value }) });
   };
 
   const handleCharacterDeleteClick = (character: CharacterDetailDTO) => {
@@ -135,12 +136,7 @@ function RouteComponent() {
   };
 
   const goToTraitPage = (nextPage: number) => {
-    navigate({
-      search: {
-        valuePage: nextPage,
-        valueQ: traitQ,
-      },
-    });
+    navigate({ search: (prev) => ({ ...prev, valuePage: nextPage }) });
   };
 
   return (
@@ -163,6 +159,8 @@ function RouteComponent() {
                 <Link
                   to="/glossary/characters/$id/edit"
                   params={{ id: character.id }}
+                  // Carried through editing, so Save/Cancel return to the same view
+                  search={true}
                 >
                   <PiPencil />
                   Edit
@@ -240,6 +238,8 @@ function RouteComponent() {
                 </Button>
               </CuratorOnly>
               <DebouncedTextField
+                // Fresh input per character
+                key={id}
                 size="2"
                 placeholder="Search traits..."
                 initialValue={traitQ}

@@ -129,6 +129,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
       navigate({
         to: "/glossary/features/$id",
         params: { id: feature.id },
+        search: true,
       });
     },
     onError: (err) => {
@@ -370,6 +371,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
               navigate({
                 to: "/glossary/features/$id",
                 params: { id: feature.id },
+                search: true,
               })
             }
             disabled={mutation.isPending}
