@@ -2,12 +2,13 @@ import { Badge, Box } from "@radix-ui/themes";
 
 type PctColor = "tomato" | "orange" | "yellow" | "green";
 
+/** `percentage` is a fraction in [0, 1]. */
 const getColorFromPercentage = (percentage: number): PctColor => {
-  if (percentage >= 75) {
+  if (percentage >= 0.75) {
     return "green";
-  } else if (percentage >= 50) {
+  } else if (percentage >= 0.5) {
     return "yellow";
-  } else if (percentage >= 25) {
+  } else if (percentage >= 0.25) {
     return "orange";
   } else {
     return "tomato";
