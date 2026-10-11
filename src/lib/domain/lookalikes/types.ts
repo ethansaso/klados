@@ -14,13 +14,9 @@ export type TaxonLookalikeDTO = {
   preferredCommonName: string | null;
   media: MediaDTO[];
 
-  sharedCount: number;
-  jaccard: number;
-  pctOfTargetMatched: number;
-
-  // optional debugging / UI
-  targetCount: number;
-  otherCount: number;
+  /** [0, 1]. */
+  score: number;
+  sharedSlotCount: number;
 };
 
 type OverlapAnnotation = {

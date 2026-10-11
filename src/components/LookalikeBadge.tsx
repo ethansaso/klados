@@ -1,13 +1,17 @@
 import { Badge, Box } from "@radix-ui/themes";
+import type { ComponentProps } from "react";
 
-type PctColor = "tomato" | "orange" | "yellow" | "green";
-
-const getColorFromPercentage = (percentage: number): PctColor => {
-  if (percentage >= 75) {
-    return "green";
-  } else if (percentage >= 50) {
-    return "yellow";
-  } else if (percentage >= 25) {
+/** `percentage` is a fraction in [0, 1]. */
+const getColorFromPercentage = (
+  percentage: number,
+): ComponentProps<typeof Badge>["color"] => {
+  if (percentage >= 0.7) {
+    return "grass";
+  } else if (percentage > 0.6) {
+    return "lime";
+  } else if (percentage >= 0.5) {
+    return "amber";
+  } else if (percentage >= 0.25) {
     return "orange";
   } else {
     return "tomato";

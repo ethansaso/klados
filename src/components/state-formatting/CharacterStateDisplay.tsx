@@ -1,6 +1,6 @@
 import { Text } from "@radix-ui/themes";
 import { memo } from "react";
-import { relativeLuminance } from "../../lib/utils/relativeLuminance";
+import { relativeLuminance } from "../../lib/utils/color/relativeLuminance";
 import { CategoricalStateDisplay } from "./displays/CategoricalStateDisplay";
 import { NumericStateDisplay } from "./displays/NumericStateDisplay";
 import { AffixedValue } from "./helpers/AffixedValue";

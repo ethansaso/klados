@@ -1,19 +1,63 @@
 import { db } from "../../../../db/client";
 import { selectTaxonStatesByTaxonIds } from "../states/repo";
-import { selectTaxonDtoById } from "../taxa/repo";
-import { computeTaxonLookalikesByCategoricalOverlap } from "./repo";
+import { selectTaxonDtoById, selectTaxonDtosByIds } from "../taxa/repo";
+import { selectLookalikeCandidateIds } from "./repo";
+import { scoreLookalike } from "./scoring";
 import type { LookalikeComparisonDetailDTO, TaxonLookalikeDTO } from "./types";
 import { buildGroupedLookalikeStates } from "./util";
+
+/** How many overlap-ranked candidates get the full slot comparison. */
+const CANDIDATE_POOL_SIZE = 100;
 
 export const getLookalikesForTaxon = async (
   taxonId: number,
   limit: number,
 ): Promise<TaxonLookalikeDTO[]> => {
-  const lookalikes = await computeTaxonLookalikesByCategoricalOverlap({
-    taxonId,
-    limit,
+  return db.transaction(async (tx) => {
+    const candidateIds = await selectLookalikeCandidateIds(tx, {
+      taxonId,
+      limit: CANDIDATE_POOL_SIZE,
+    });
+    if (!candidateIds.length) return [];
+
+    const statesById = await selectTaxonStatesByTaxonIds(tx, [
+      taxonId,
+      ...candidateIds,
+    ]);
+    const target = statesById[taxonId] ?? [];
+
+    const ranked = candidateIds
+      .map((id) => ({ id, ...scoreLookalike(target, statesById[id] ?? []) }))
+      .sort(
+        (x, y) =>
+          y.score - x.score ||
+          y.sharedSlotCount - x.sharedSlotCount ||
+          x.id - y.id,
+      )
+      .slice(0, limit);
+
+    const taxa = await selectTaxonDtosByIds(
+      tx,
+      ranked.map((r) => r.id),
+    );
+    const taxaById = new Map(taxa.map((t) => [t.id, t]));
+
+    return ranked.flatMap(({ id, score, sharedSlotCount }) => {
+      const t = taxaById.get(id);
+      if (!t) return [];
+      return [
+        {
+          id,
+          rank: t.rank,
+          acceptedName: t.acceptedName,
+          preferredCommonName: t.preferredCommonName,
+          media: t.media,
+          score,
+          sharedSlotCount,
+        },
+      ];
+    });
   });
-  return lookalikes;
 };
 
 export const getLookalikeComparisonDetailForTaxa = async (args: {

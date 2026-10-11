@@ -20,7 +20,6 @@ interface LookalikesListProps {
 /** Fraction of visible width a button press travels. */
 const PAGE_FRACTION = 0.8;
 
-// TODO: consider confidence differential heuristic for when % matched and Jaccard diverge greatly
 export const LookalikesList = ({
   taxonId,
   taxonRank,
@@ -125,7 +124,7 @@ export const LookalikesList = ({
                 inset
               >
                 <Box position="absolute" top="2" right="2">
-                  <LookalikePercentBadge percentage={l.jaccard} />
+                  <LookalikePercentBadge percentage={l.score} />
                 </Box>
               </TaxonCard>
               <Button
