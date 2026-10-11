@@ -5,8 +5,10 @@ import type { ComponentProps } from "react";
 const getColorFromPercentage = (
   percentage: number,
 ): ComponentProps<typeof Badge>["color"] => {
-  if (percentage >= 0.75) {
+  if (percentage >= 0.7) {
     return "grass";
+  } else if (percentage > 0.6) {
+    return "lime";
   } else if (percentage >= 0.5) {
     return "amber";
   } else if (percentage >= 0.25) {
