@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { KEYGEN_DEBUG } from "../debug";
 import type { HierarchyTaxonNode } from "../hierarchy/types";
 import type { KeyGenOptions } from "../options";
 import { mergeCharacterDefinitionSplits } from "../splitting/characters/mergeCompatibleCharacterSplits";
@@ -224,12 +225,14 @@ function buildKeyForSiblings(
   // If no valid splits, attach all siblings directly and recurse hierarchically
   // under each.
   if (candidates.length === 0) {
-    console.log(
-      `[KEYGEN] No candidates for siblings: [${siblings.map((s) => `${s.id}(${s.acceptedName})`).join(", ")}]`,
-      `rawCharSplits=${rawCharacterSplits.length}`,
-      `mergedCharSplits=${characterSplits.length}`,
-      `featureSplits=${featureSplits.length}`,
-    );
+    if (KEYGEN_DEBUG) {
+      console.log(
+        `[KEYGEN] No candidates for siblings: [${siblings.map((s) => `${s.id}(${s.acceptedName})`).join(", ")}]`,
+        `rawCharSplits=${rawCharacterSplits.length}`,
+        `mergedCharSplits=${characterSplits.length}`,
+        `featureSplits=${featureSplits.length}`,
+      );
+    }
     for (const sib of siblings) {
       const childNode = makeTaxonNode(sib.id);
       const branch = makeBranch(null, childNode);

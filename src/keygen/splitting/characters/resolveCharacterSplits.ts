@@ -2,6 +2,7 @@ import type {
   CategoricalStateDTO,
   Trait,
 } from "../../../lib/domain/states/types";
+import { KEYGEN_DEBUG } from "../../debug";
 import type { HierarchyTaxonNode } from "../../hierarchy/types";
 import type { KeyGenOptions } from "../../options";
 import type {
@@ -244,25 +245,27 @@ function buildGroupsWithDeadTags(
 
   if ((hasNotTaxa && groups.length === 0) || groups.length < 2) {
     // Either everyone is ambiguous, or there's no real split.
-    console.log(
-      `[KEYGEN]   buildGroups null: groups=${groups.length}, notTaxa=[${Array.from(
-        notTaxa,
-      )
-        .map((t) => `${t.id}(${t.acceptedName})`)
-        .join(", ")}]`,
-      `deadTraits=[${Array.from(deadTraitIds).join(", ")}]`,
-    );
-    for (const [key, g] of groupMap) {
+    if (KEYGEN_DEBUG) {
       console.log(
-        `[KEYGEN]   remaining group key=${key}: taxa=[${g.taxa.map((t) => t.id).join(", ")}] traits=[${g.traits.map((t) => `${t.id}/${t.synonymSetId}:${t.label}`).join(", ")}]`,
+        `[KEYGEN]   buildGroups null: groups=${groups.length}, notTaxa=[${Array.from(
+          notTaxa,
+        )
+          .map((t) => `${t.id}(${t.acceptedName})`)
+          .join(", ")}]`,
+        `deadTraits=[${Array.from(deadTraitIds).join(", ")}]`,
       );
-    }
-    // Log each taxon's full trait set for this character
-    for (const taxon of [...notTaxa, ...groups.flatMap((g) => g.taxa)]) {
-      const traits = traitSetsByTaxon.get(taxon.id) ?? [];
-      console.log(
-        `[KEYGEN]   taxon ${taxon.id}(${taxon.acceptedName}) traits: [${traits.map((t) => `${t.id}/${t.synonymSetId}:${t.label}`).join(", ")}]`,
-      );
+      for (const [key, g] of groupMap) {
+        console.log(
+          `[KEYGEN]   remaining group key=${key}: taxa=[${g.taxa.map((t) => t.id).join(", ")}] traits=[${g.traits.map((t) => `${t.id}/${t.synonymSetId}:${t.label}`).join(", ")}]`,
+        );
+      }
+      // Log each taxon's full trait set for this character
+      for (const taxon of [...notTaxa, ...groups.flatMap((g) => g.taxa)]) {
+        const traits = traitSetsByTaxon.get(taxon.id) ?? [];
+        console.log(
+          `[KEYGEN]   taxon ${taxon.id}(${taxon.acceptedName}) traits: [${traits.map((t) => `${t.id}/${t.synonymSetId}:${t.label}`).join(", ")}]`,
+        );
+      }
     }
     return null;
   }
@@ -392,33 +395,39 @@ export function resolveCharacterSplits(
       describedTaxa.length < 2 ||
       describedTaxa.length !== morphDescribedTaxa.length
     ) {
-      const missing = morphDescribedTaxa
-        .filter((t) => !byTaxon.has(t.id))
-        .map((t) => `${t.id}(${t.acceptedName})`);
-      const charLabel = firstEntry.states[0]!.characterLabel;
-      console.log(
-        `[KEYGEN] char ${characterId}(${charLabel}): skipped before normalize — morph-described taxa missing character data: [${missing.join(", ")}]`,
-      );
+      if (KEYGEN_DEBUG) {
+        const missing = morphDescribedTaxa
+          .filter((t) => !byTaxon.has(t.id))
+          .map((t) => `${t.id}(${t.acceptedName})`);
+        const charLabel = firstEntry.states[0]!.characterLabel;
+        console.log(
+          `[KEYGEN] char ${characterId}(${charLabel}): skipped before normalize — morph-described taxa missing character data: [${missing.join(", ")}]`,
+        );
+      }
       continue;
     }
 
     // 1) normalize trait-sets for the described subset
     const normalized = normalizeTraitSetsForCharacter(describedTaxa, byTaxon);
     if (!normalized) {
-      const charLabel = firstEntry.states[0]!.characterLabel;
-      console.log(
-        `[KEYGEN] char ${characterId}(${charLabel}): skipped at normalize (empty traits)`,
-      );
+      if (KEYGEN_DEBUG) {
+        const charLabel = firstEntry.states[0]!.characterLabel;
+        console.log(
+          `[KEYGEN] char ${characterId}(${charLabel}): skipped at normalize (empty traits)`,
+        );
+      }
       continue;
     }
 
     // 2) build disjoint groups + notTaxa
     const groupsResult = buildGroupsWithDeadTags(describedTaxa, normalized);
     if (!groupsResult) {
-      const charLabel = firstEntry.states[0]!.characterLabel;
-      console.log(
-        `[KEYGEN] char ${characterId}(${charLabel}): skipped at buildGroups`,
-      );
+      if (KEYGEN_DEBUG) {
+        const charLabel = firstEntry.states[0]!.characterLabel;
+        console.log(
+          `[KEYGEN] char ${characterId}(${charLabel}): skipped at buildGroups`,
+        );
+      }
       continue;
     }
 
