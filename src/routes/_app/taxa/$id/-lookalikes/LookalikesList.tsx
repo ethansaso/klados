@@ -3,12 +3,12 @@ import { Box, Button, Flex, Heading, IconButton, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PiCaretLeft, PiCaretRight, PiSubtractSquare } from "react-icons/pi";
+import type { TaxonRank } from "../../../../../../db/schema/schema";
 import { LookalikeDialog } from "../../../../../components/dialogs/LookalikeDialog";
 import { LookalikePercentBadge } from "../../../../../components/LookalikeBadge";
 import { TaxonCard } from "../../../../../components/TaxonCard";
 import { TaxonName } from "../../../../../components/TaxonName";
 import { lookalikesQueryOptions } from "../../../../../lib/queries/lookalikes";
-import type { TaxonRank } from "../../../../../../db/schema/schema";
 import "./LookalikesList.css";
 
 interface LookalikesListProps {
@@ -60,19 +60,15 @@ export const LookalikesList = ({
   };
 
   return (
-    <Box>
-      <Flex
-        align="end"
-        justify="between"
-        style={{ borderBottom: "1px solid var(--gray-a7)" }}
-      >
-        <Heading size={{ initial: "3", sm: "4" }} mb="1" weight="medium">
+    <Box className="taxon-section">
+      <Flex align="end" justify="between" className="taxon-section__header">
+        <Heading size="4" mb="1" weight="medium">
           Similar Taxa
         </Heading>
         {lookalikes.length > 0 && (
-          <Flex gap="2" mb="2">
+          <Flex gap="2" mb={{ initial: "0", sm: "2" }}>
             <IconButton
-              size="1"
+              size={{ initial: "2", sm: "1" }}
               variant="ghost"
               aria-label="Show previous similar taxa"
               disabled={!scrollable.prev}
@@ -81,7 +77,7 @@ export const LookalikesList = ({
               <PiCaretLeft />
             </IconButton>
             <IconButton
-              size="1"
+              size={{ initial: "2", sm: "1" }}
               variant="ghost"
               aria-label="Show more similar taxa"
               disabled={!scrollable.next}
@@ -128,7 +124,7 @@ export const LookalikesList = ({
                 </Box>
               </TaxonCard>
               <Button
-                size="1"
+                size={{ initial: "2", xs: "1" }}
                 variant="surface"
                 onClick={() =>
                   NiceModal.show(LookalikeDialog, {

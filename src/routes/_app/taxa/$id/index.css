@@ -1,0 +1,100 @@
+.taxon-section__header {
+  border-bottom: 1px solid var(--gray-a7);
+}
+
+/* Phones flatten desktop wrappers so their children can be reordered. */
+@media (max-width: 767px) {
+  .taxon-page {
+    display: flex;
+    flex-direction: column;
+
+    .taxon-page__body,
+    .taxon-page__sidebar,
+    .taxon-page__main {
+      display: contents;
+    }
+
+    /* The card draws its border with pseudo-elements, which `contents` keeps. */
+    .taxon-page__sidebar::before,
+    .taxon-page__sidebar::after {
+      display: none;
+    }
+
+    .taxon-image-browser {
+      order: 1;
+      margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-4)) 0;
+    }
+
+    /* Shares the crumbs' order but comes first in the DOM. */
+    .taxon-page__status {
+      order: 2;
+      margin-inline: calc(-1 * var(--space-4));
+
+      .rt-CalloutRoot {
+        border-radius: 0;
+        border-bottom: 1px solid var(--accent-a5);
+      }
+
+      &:empty {
+        display: none;
+      }
+    }
+
+    /* Full-width dividers. */
+    .taxon-page__crumbs,
+    .taxon-section {
+      margin-inline: calc(-1 * var(--space-4));
+      padding-inline: var(--space-4);
+    }
+
+    .taxon-page__crumbs {
+      order: 2;
+      padding-block: var(--space-2);
+      border-bottom: 1px solid var(--gray-a5);
+
+      /* Already shown on the photo. */
+      li:last-child,
+      li:nth-last-child(2) svg {
+        display: none;
+      }
+
+      &:has(li:only-child) {
+        display: none;
+      }
+    }
+
+    .taxon-section {
+      order: 4;
+      padding-bottom: var(--space-4);
+      border-bottom: 1px solid var(--gray-a5);
+    }
+
+    .taxon-page__details {
+      order: 5;
+    }
+
+    .taxon-page__sources {
+      order: 6;
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .taxon-section__header {
+      display: flex;
+      align-items: center;
+      padding: var(--space-4) 0 var(--space-2);
+      margin-bottom: 0;
+      border-bottom: 0;
+
+      &.rt-Heading,
+      .rt-Heading {
+        margin-bottom: 0;
+      }
+
+      /* Beats the inline desktop margin. */
+      .rt-Button {
+        margin-bottom: 0 !important;
+      }
+    }
+  }
+}
