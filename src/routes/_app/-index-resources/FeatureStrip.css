@@ -18,8 +18,6 @@
       flex-direction: column;
       align-items: center;
       text-align: center;
-      /* Shrinkable so a narrow viewport fits two per row before wrapping to
-         one; wrapped rows stay centred rather than orphaning to the left. */
       flex: 0 1 176px;
     }
   }
@@ -27,5 +25,21 @@
   .feature-strip__icon {
     color: var(--accent-11);
     margin-bottom: var(--space-4);
+    width: 5rem;
+    height: 5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .feature-strip {
+    .feature-strip__list {
+      li {
+        flex: 0 1 128px;
+      }
+      .feature-strip__icon {
+        width: 4rem;
+        height: 4rem;
+      }
+    }
   }
 }

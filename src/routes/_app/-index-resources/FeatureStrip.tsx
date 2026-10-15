@@ -8,7 +8,6 @@ import {
   PiNotePencil,
   PiTreeStructure,
 } from "react-icons/pi";
-import { RouterRadixLink } from "../../../components/RouterRadixLink";
 
 const CAPABILITIES = [
   {
@@ -30,11 +29,6 @@ const CAPABILITIES = [
     icon: PiNotePencil,
     verb: "Author",
     object: "guides and descriptions",
-    extras: (
-      <RouterRadixLink to="/curators/new" size="1" highContrast mt="1">
-        (apply to be a curator!)
-      </RouterRadixLink>
-    ),
   },
   {
     icon: PiGlobeHemisphereWest,
@@ -60,7 +54,7 @@ export const FeatureStrip = () => {
         <ul className="feature-strip__list">
           {CAPABILITIES.map(({ icon: Icon, verb, object, extras }) => (
             <li key={verb}>
-              <Icon className="feature-strip__icon" aria-hidden size="5rem" />
+              <Icon className="feature-strip__icon" aria-hidden />
               <Heading as="h3" size="5" mb="1">
                 {verb}
               </Heading>
