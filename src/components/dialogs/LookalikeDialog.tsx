@@ -39,7 +39,7 @@ const PRESENCE_COPY: Record<LookalikeComparisonPresence, string> = {
 
 /** Phones label each value by taxon; desktop lines values up under the photos. */
 const GRID_COLUMNS = {
-  initial: "max-content minmax(0, 1fr)",
+  initial: "fit-content(35%) minmax(0, 1fr)",
   sm: "140px repeat(2, minmax(0, 1fr))",
 };
 
@@ -193,11 +193,18 @@ function TaxonRowLabel({ taxon }: { taxon: TaxonDTO }) {
       display={{ initial: "flex", sm: "none" }}
       align="center"
       gap="1"
+      minWidth="0"
       // Center on value's first line
       height="20px"
     >
       <TaxonAvatar taxon={taxon} size={16} />
-      <Text size="1" weight="bold" color="gray" wrap="nowrap">
+      <Text
+        className="lookalike-modal__label-name"
+        size="1"
+        weight="bold"
+        color="gray"
+        truncate
+      >
         <TaxonName
           rank={taxon.rank}
           name={taxon.acceptedName}
