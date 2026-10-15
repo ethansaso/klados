@@ -5,7 +5,7 @@ export const StatusCallout = ({ status }: { status: TaxonStatus }) => {
   if (status === "active") return null;
 
   return (
-    <Box asChild width="100%" mb="4">
+    <Box asChild width="100%" mb={{ initial: "0", sm: "4" }}>
       <Callout.Root color={status === "archived" ? "tomato" : undefined}>
         <Callout.Text>
           Heads up! This taxon is{" "}

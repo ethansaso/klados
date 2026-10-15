@@ -1,0 +1,10 @@
+/* The sections only share a row at `lg`; below that they wrap and the
+   dividers dangle. */
+.taxon-filters__separator {
+  display: none;
+  height: auto;
+
+  @media (min-width: 1280px) {
+    display: block;
+  }
+}

@@ -183,10 +183,21 @@ export const SpeciesDescription = () => (
   <HomeSection>
     <Box maxWidth="880px" mx="auto">
       <Flex direction="column" align="center" mb="6">
-        <Heading as="h2" size={{ initial: "7", sm: "8" }} align="center">
+        <Heading
+          as="h2"
+          size={{ initial: "5", xs: "7", sm: "8" }}
+          align="center"
+        >
           Descriptions that teach themselves
         </Heading>
-        <Text as="p" size="4" align="center" mt="4" style={{ maxWidth: 560 }}>
+        <Text
+          as="p"
+          size={{ initial: "3", sm: "4" }}
+          align="center"
+          mt="4"
+          wrap="pretty"
+          style={{ maxWidth: 560 }}
+        >
           Using a curated vocabulary, Klados renders{" "}
           <GlossaryCard
             info={{
@@ -203,7 +214,7 @@ export const SpeciesDescription = () => (
       </Flex>
 
       <Box className="species-demo">
-        <Card size="3">
+        <Card size={{ initial: "2", sm: "3" }}>
           <Box className="species-demo__body">
             <Box className="species-demo__figure">
               <AnnotationBubbleWrap

@@ -110,7 +110,11 @@
 .home-section {
   box-sizing: border-box;
   width: 100%;
-  padding: var(--space-8) var(--space-6);
+  padding: var(--space-8) var(--space-5);
+
+  @media (min-width: 520px) {
+    padding-inline: var(--space-6);
+  }
 
   @media (min-width: 768px) {
     padding-block: var(--space-9);

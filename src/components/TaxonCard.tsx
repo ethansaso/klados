@@ -55,7 +55,13 @@ export const TaxonCard = memo(
         </Inset>
         <Flex direction="column" flexGrow="1" justify="between">
           <Box className="taxonomy">
-            <Text as="div" size="1" weight="bold" color="gray">
+            <Text
+              className="taxon-rank"
+              as="div"
+              size="1"
+              weight="bold"
+              color="gray"
+            >
               {capitalizeFirstLetter(rank)}
             </Text>
             <Text
@@ -67,7 +73,13 @@ export const TaxonCard = memo(
               <TaxonName rank={rank} name={acceptedName} prefixMode="never" />
             </Text>
             {preferredCommonName && (
-              <Text as="div" size="1" color="gray" truncate>
+              <Text
+                className="taxon-common-name"
+                as="div"
+                size="1"
+                color="gray"
+                truncate
+              >
                 {preferredCommonName}
               </Text>
             )}

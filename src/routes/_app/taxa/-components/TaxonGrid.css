@@ -1,0 +1,6 @@
+/* Phone tiles (see TaxonCard.css) sit tighter. */
+@media (max-width: 519px) {
+  .taxon-grid {
+    gap: 2px;
+  }
+}

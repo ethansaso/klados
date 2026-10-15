@@ -13,22 +13,22 @@ export const GuideDemo = ({ guidesCount }: Props) => {
   return (
     <HomeSection>
       <Flex
-        direction={{ initial: "column", sm: "row" }}
+        direction={{ initial: "column-reverse", md: "row" }}
         width="100%"
-        gap={{ initial: "6", sm: "9" }}
-        align="center"
+        gap={{ initial: "6", md: "9" }}
+        align={{ initial: "stretch", md: "center" }}
       >
         <GuideDemoCanvas />
-        <Box maxWidth={{ sm: "380px" }}>
+        <Box maxWidth={{ md: "380px" }} flexShrink="0">
           <Heading
             as="h2"
-            size={{ initial: "7", sm: "8" }}
+            size={{ initial: "5", xs: "7", sm: "8" }}
             mb="4"
             wrap="balance"
           >
             Visual-first identification guides
           </Heading>
-          <Text as="p" mb="3" size="4">
+          <Text as="p" mb="3" size={{ initial: "3", sm: "4" }}>
             Klados turns complex{" "}
             <GlossaryCard
               info={{
@@ -41,7 +41,7 @@ export const GuideDemo = ({ guidesCount }: Props) => {
             </GlossaryCard>{" "}
             data into clear, readable flowcharts.
           </Text>
-          <Text as="p" mb="5" size="4">
+          <Text as="p" mb="5" size={{ initial: "3", sm: "4" }}>
             Its free, community-driven guides offer a visually rich alternative
             to traditional{" "}
             <GlossaryCard

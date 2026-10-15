@@ -52,16 +52,16 @@ export const TraitSearchDemo = ({ taxaCount }: Props) => (
       <Box maxWidth={{ md: "300px", lg: "352px" }} flexShrink="1">
         <Heading
           as="h2"
-          size={{ initial: "7", sm: "8", md: "7", lg: "8" }}
+          size={{ initial: "5", xs: "7", sm: "8", md: "7", lg: "8" }}
           mb="4"
           wrap="balance"
         >
           Search what you see
         </Heading>
-        <Text as="p" mb="3" size="4" wrap="pretty">
+        <Text as="p" mb="3" size={{ initial: "3", sm: "4" }} wrap="pretty">
           Identification usually begins without a name.
         </Text>
-        <Text as="p" mb="5" size="4" wrap="pretty">
+        <Text as="p" mb="5" size={{ initial: "3", sm: "4" }} wrap="pretty">
           Klados lets you find species by the traits you can observe, like
           color, shape, and size.
         </Text>
@@ -94,7 +94,7 @@ const TraitSearchWidget = () => {
     <Card size="2" className="trait-demo">
       <Flex
         direction={{ initial: "column", sm: "row" }}
-        gap={{ initial: "7", md: "5", lg: "7" }}
+        gap={{ initial: "5", sm: "7", md: "5", lg: "7" }}
       >
         <Flex
           direction="column"
