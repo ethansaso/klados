@@ -11,13 +11,13 @@ export const ClosingSection = () => (
       direction="column"
       align="center"
       py={{ initial: "8", sm: "9" }}
-      px="6"
+      px={{ initial: "5", xs: "6" }}
       width="100%"
       className="closing-section"
     >
       <Heading
         as="h2"
-        size={{ initial: "7", sm: "8" }}
+        size={{ initial: "5", xs: "7", sm: "8" }}
         align="center"
         mb="3"
         wrap="balance"
@@ -27,7 +27,7 @@ export const ClosingSection = () => (
       </Heading>
       <Text
         as="p"
-        size="4"
+        size={{ initial: "3", sm: "4" }}
         align="center"
         mb="4"
         wrap="balance"

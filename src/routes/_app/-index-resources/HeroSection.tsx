@@ -12,8 +12,8 @@ export const HeroSection = () => {
       align="center"
       justify="center"
       py={{ initial: "8", md: "9" }}
-      px={{ initial: "6", md: "8" }}
-      minHeight={{ initial: "60svh", sm: "528px" }}
+      px={{ initial: "5", xs: "6", md: "8" }}
+      minHeight={{ sm: "528px" }}
       width="100%"
     >
       <Flex
@@ -33,7 +33,7 @@ export const HeroSection = () => {
           }}
         >
           <Heading
-            size={{ initial: "8", sm: "9" }}
+            size={{ initial: "7", xs: "8", sm: "9" }}
             align={{ initial: "left", xs: "center", lg: "left" }}
             mb="3"
             className="hero-text"
@@ -41,7 +41,7 @@ export const HeroSection = () => {
             A shared language for identification.
           </Heading>
           <Text
-            size={{ initial: "5", sm: "6" }}
+            size={{ initial: "3", xs: "5", sm: "6" }}
             align={{ initial: "left", xs: "center", lg: "left" }}
             mb="5"
             className="hero-text"

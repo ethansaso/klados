@@ -43,7 +43,7 @@ export const FeatureStrip = () => {
       direction="column"
       align="center"
       py="7"
-      px="6"
+      px={{ initial: "5", xs: "6" }}
       width="100%"
       className="feature-strip"
     >
@@ -52,16 +52,15 @@ export const FeatureStrip = () => {
       </Heading>
       <Box asChild>
         <ul className="feature-strip__list">
-          {CAPABILITIES.map(({ icon: Icon, verb, object, extras }) => (
+          {CAPABILITIES.map(({ icon: Icon, verb, object }) => (
             <li key={verb}>
               <Icon className="feature-strip__icon" aria-hidden />
-              <Heading as="h3" size="5" mb="1">
+              <Heading as="h3" size={{ initial: "4", sm: "5" }} mb="1">
                 {verb}
               </Heading>
               <Text as="p" size="2" color="gray">
                 {object}
               </Text>
-              {extras && extras}
             </li>
           ))}
         </ul>

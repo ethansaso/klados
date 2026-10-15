@@ -37,7 +37,7 @@
   margin-right: 4px;
 }
 
-@container (min-width: 520px) {
+@container (min-width: 640px) {
   .species-demo__body {
     flex-direction: row;
   }

@@ -16,7 +16,7 @@ export const GuideDemoCanvas = () => {
     <Flex
       direction="column"
       width="100%"
-      height="400px"
+      height={{ initial: "300px", sm: "400px" }}
       className="rf-demo__wrapper"
     >
       <ReactFlow
