@@ -114,7 +114,8 @@ function TaxaListPage() {
           <Heading weight="medium">Browse Taxa</Heading>
           <Flex gap="2">
             <TextField.Root
-              placeholder="Search by common or scientific name..."
+              className="taxa-search-field"
+              placeholder="Search by name..."
               id="taxa-search"
               value={localQ}
               onChange={(e) => setLocalQ(e.currentTarget.value)}

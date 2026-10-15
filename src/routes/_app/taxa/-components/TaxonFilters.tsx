@@ -1,3 +1,5 @@
+import "./TaxonFilters.css";
+
 import {
   Box,
   Button,
@@ -47,7 +49,11 @@ export function TaxonFilters({ search, setSearch }: Props) {
     <Box asChild width="100%">
       <Card size="2">
         <Flex gap="5" wrap="wrap">
-          <Flex direction="column" gap="3">
+          <Flex
+            direction="column"
+            gap="3"
+            width={{ initial: "100%", xs: "auto" }}
+          >
             <Box>
               <Heading size="2" mb={HEADER_MB}>
                 Taxonomy
@@ -55,7 +61,13 @@ export function TaxonFilters({ search, setSearch }: Props) {
 
               <Flex direction="row" gap="3">
                 {/* High rank */}
-                <Flex direction="column" gap="1" style={{ minWidth: 160 }}>
+                <Flex
+                  direction="column"
+                  gap="1"
+                  flexGrow="1"
+                  flexBasis="0"
+                  minWidth={{ initial: "0", xs: "160px" }}
+                >
                   <Flex align="center" justify="between" gap="2">
                     <Text as="label" htmlFor="high-rank" size="1" color="gray">
                       High rank
@@ -91,7 +103,13 @@ export function TaxonFilters({ search, setSearch }: Props) {
                 </Flex>
 
                 {/* Low rank */}
-                <Flex direction="column" gap="1" style={{ minWidth: 160 }}>
+                <Flex
+                  direction="column"
+                  gap="1"
+                  flexGrow="1"
+                  flexBasis="0"
+                  minWidth={{ initial: "0", xs: "160px" }}
+                >
                   <Flex align="center" justify="between" gap="2">
                     <Text as="label" htmlFor="low-rank" size="1" color="gray">
                       Low rank
@@ -152,7 +170,10 @@ export function TaxonFilters({ search, setSearch }: Props) {
               </Flex>
             </Box>
           </Flex>
-          <Separator orientation="vertical" style={{ height: "auto" }} />
+          <Separator
+            orientation="vertical"
+            className="taxon-filters__separator"
+          />
           <Box>
             <Heading size="2" mb={HEADER_MB}>
               Properties
@@ -176,7 +197,10 @@ export function TaxonFilters({ search, setSearch }: Props) {
               ))}
             </Flex>
           </Box>
-          <Separator orientation="vertical" style={{ height: "auto" }} />
+          <Separator
+            orientation="vertical"
+            className="taxon-filters__separator"
+          />
           <Box minWidth="256px">
             <Flex direction="column" gap="2" style={{ minWidth: 180 }}>
               <TaxonStateFilterField

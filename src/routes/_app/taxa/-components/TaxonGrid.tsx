@@ -1,3 +1,5 @@
+import "./TaxonGrid.css";
+
 import { Grid, Text } from "@radix-ui/themes";
 import { TaxonCard } from "../../../../components/TaxonCard";
 import { type TaxonDTO } from "../../../../lib/domain/taxa/types";
