@@ -6,6 +6,7 @@ import {
   infraspecificMarker,
   isRankMarker,
   isSubgenericRank,
+  RANK_NAME_SHAPE,
   sciNameWords,
 } from "../../domain/taxon-names/scientificName";
 import { capitalizeFirstLetter } from "./casing";
@@ -32,11 +33,13 @@ function showsRankPrefix(rank: TaxonRank, mode: RankPrefixMode): boolean {
 /**
  * Split an accepted scientific name into display parts: names at genus and below
  * are italic, while rank prefixes and markers ("var.") are not.
+ * `abbreviateGenus` shortens the genus of multi-word names ("A. muscaria").
  */
 export function formatTaxonNameParts(
   rank: TaxonRank,
   name: string,
   prefixMode: RankPrefixMode = "always",
+  abbreviateGenus = false,
 ): TaxonNamePart[] {
   const italic = rankIndex(rank) >= GENUS_IDX;
   const words = sciNameWords(name);
@@ -45,6 +48,11 @@ export function formatTaxonNameParts(
     text,
     italic: italic && !isRankMarker(text),
   }));
+
+  const genus = parts[0];
+  if (abbreviateGenus && genus && RANK_NAME_SHAPE[rank] !== "uninomial") {
+    genus.text = `${genus.text.charAt(0)}.`;
+  }
 
   // Only insert into conventional trinomials; legacy names may already carry a marker
   const marker = infraspecificMarker(rank);
@@ -64,8 +72,9 @@ export function formatTaxonName(
   rank: TaxonRank,
   name: string,
   rankPrefix: RankPrefixMode = "always",
+  abbreviateGenus = false,
 ): string {
-  return formatTaxonNameParts(rank, name, rankPrefix)
+  return formatTaxonNameParts(rank, name, rankPrefix, abbreviateGenus)
     .map((p) => p.text)
     .join(" ");
 }

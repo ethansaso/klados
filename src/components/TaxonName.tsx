@@ -9,11 +9,18 @@ interface TaxonNameProps {
   rank: TaxonRank;
   name: string;
   prefixMode?: RankPrefixMode;
+  /** "A. muscaria" rather than "Amanita muscaria". */
+  abbreviateGenus?: boolean;
 }
 
 /** Formatted accepted scientific name, italicized per convention. */
-export const TaxonName = ({ rank, name, prefixMode }: TaxonNameProps) => {
-  const parts = formatTaxonNameParts(rank, name, prefixMode);
+export const TaxonName = ({
+  rank,
+  name,
+  prefixMode,
+  abbreviateGenus,
+}: TaxonNameProps) => {
+  const parts = formatTaxonNameParts(rank, name, prefixMode, abbreviateGenus);
 
   // Merge adjacent parts of the same style so e.g. a binomial is one <i>
   const runs: { text: string; italic: boolean }[] = [];
