@@ -1,7 +1,8 @@
-import { HoverCard, Inset, Spinner, Text } from "@radix-ui/themes";
+import { Inset, Spinner, Text } from "@radix-ui/themes";
 import type { MediaDTO } from "../../lib/domain/media/types";
 import { getMediaUrl } from "../../lib/storage/getMediaUrl";
 import { AnnotationBubbleWrap } from "../annotations/AnnotationBubbleWrap";
+import { ResponsiveHoverCard } from "../ResponsiveHoverCard";
 
 interface Props {
   info?: {
@@ -19,10 +20,16 @@ export const GlossaryCard: React.FC<Props> = ({
   children,
 }) => {
   return (
-    <HoverCard.Root onOpenChange={onOpenChange}>
-      <HoverCard.Trigger>{children}</HoverCard.Trigger>
-      <HoverCard.Content maxWidth="224px" size="1" align="center" side="top">
-        {info ? (
+    <ResponsiveHoverCard
+      onOpenChange={onOpenChange}
+      contentProps={{
+        maxWidth: "224px",
+        size: "1",
+        align: "center",
+        side: "top",
+      }}
+      content={
+        info ? (
           <>
             {info.media && (
               <Inset side="top" pb="current">
@@ -52,8 +59,10 @@ export const GlossaryCard: React.FC<Props> = ({
           </>
         ) : (
           <Spinner size="2" />
-        )}
-      </HoverCard.Content>
-    </HoverCard.Root>
+        )
+      }
+    >
+      {children}
+    </ResponsiveHoverCard>
   );
 };

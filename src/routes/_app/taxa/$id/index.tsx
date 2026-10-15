@@ -193,7 +193,7 @@ function TaxonPage() {
 
               {characterStates.length ? (
                 <Text as="p" color="gray" size="1" mb="3">
-                  Hover underlined terms for additional information.
+                  Hover or tap underlined terms for additional information.
                 </Text>
               ) : (
                 <Text size={{ initial: "2", sm: "3" }}>
