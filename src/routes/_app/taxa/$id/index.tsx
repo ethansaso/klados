@@ -193,9 +193,7 @@ function TaxonPage() {
 
               {characterStates.length ? (
                 <Text as="p" color="gray" size="1" mb="3">
-                  Some traits may have additional information from the glossary,
-                  indicated by an underline. Hover over these terms to view
-                  these definitions.
+                  Hover underlined terms for additional information.
                 </Text>
               ) : (
                 <Text size={{ initial: "2", sm: "3" }}>
