@@ -91,9 +91,8 @@ export const LookalikesList = ({
 
       {lookalikes.length ? (
         <Text as="p" color="gray" size="1" mb="3">
-          These taxa share similar characteristics with{" "}
-          <TaxonName rank={taxonRank} name={taxonName} />. Click on any taxon to
-          compare side-by-side.
+          These taxa share similar morphology with{" "}
+          <TaxonName rank={taxonRank} name={taxonName} />.
         </Text>
       ) : (
         <Text size={{ initial: "2", sm: "3" }}>
