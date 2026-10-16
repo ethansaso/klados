@@ -39,6 +39,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@ebay/nice-modal-react": "^1.2.13",
+    "@fontsource-variable/source-sans-3": "^5.3.1",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/themes": "^3.2.1",
     "@sentry/tanstackstart-react": "^10.36.0",

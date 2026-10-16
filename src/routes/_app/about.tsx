@@ -1,9 +1,17 @@
-import { Box, Em, Flex, Heading, Link, Strong, Text } from "@radix-ui/themes";
-import { createFileRoute } from "@tanstack/react-router";
+import "./about.css";
+
+import { Box, Button, Flex, Heading, Link, Text } from "@radix-ui/themes";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link as RouterLink } from "@tanstack/react-router";
+import { PiArrowRight } from "react-icons/pi";
 import { ContentContainer } from "../../components/ContentContainer";
+import { summaryStatsQueryOptions } from "../../lib/queries/stats";
 import { routeSeo } from "../../lib/utils/head/routeSeo";
 
 export const Route = createFileRoute("/_app/about")({
+  beforeLoad: async ({ context }) => {
+    await context.queryClient.ensureQueryData(summaryStatsQueryOptions());
+  },
   head: ({ match }) =>
     routeSeo({
       title: "About | Klados",
@@ -13,106 +21,121 @@ export const Route = createFileRoute("/_app/about")({
 });
 
 function RouteComponent() {
+  const { data: stats } = useSuspenseQuery(summaryStatsQueryOptions());
+
   return (
-    <ContentContainer align="start">
-      <Box mb="5">
-        <Heading mb="3">What is Klados?</Heading>
-        <Text as="p" mb="2">
-          Klados is a free, community-driven platform for educational resources
-          surrounding the identification and morphology of organisms. It uses a
-          rich dataset of language, images, and relationships to provide
-          resources like interactive identification guides and detailed taxon
-          descriptions, all created and curated by the community.
-        </Text>
-        <Text as="p" size="2">
-          <Em>
-            Disclaimer: Klados is currently in early alpha. Generated guides
-            and/or taxon descriptions may contain errors and should be reviewed
-            before acceptance.
-          </Em>
-        </Text>
-      </Box>
-      <Box mb="5">
-        <Heading mb="3">What *isn't* Klados?</Heading>
-        <Text as="p" mb="2">
-          Klados is not an observational platform like iNaturalist, nor is it a
-          formal taxonomic database like ITIS or GBIF. Its primary focus is on
-          providing tools for identification and learning, rather than data
-          collection or taxonomic authority.
-        </Text>
-        <Text as="p" mb="2">
-          Furthermore, Klados is not intended to replace traditional dichotomous
-          keys, or other established identification resources. Rather, Klados
-          simply provides a community-driven alternative that emphasizes
-          collaboration, accessibility, and ease of use.
-        </Text>
-        <Text as="p">
-          <Strong>
-            Klados should not be used to host or digitize copyrighted materials,
-            including verbatim descriptions and dichotomous keys, without
-            explicit permission from the original author(s).
-          </Strong>
-        </Text>
-      </Box>
-      <Box mb="5">
-        <Heading mb="3">Our Mission</Heading>
-        <Text as="p">
-          Klados was created with the idea of free, equitable access to learning
-          resources for anyone seeking to learn to identify organisms. Field
-          guides, dichotomous keys, and other educational materials are often
-          hard to obtain, and are frequently written in a jargon-heavy,
-          inaccessible fashion which discourages newcomers to the field. Klados
-          addresses this with an intuitive, modern alternative to traditional
-          keys, accessible to all audiences, built to break down barriers to
-          community science.
-        </Text>
-      </Box>
-      <Box mb="5">
-        <Heading mb="3">Meet the Founder</Heading>
-        <Flex
-          direction={{ initial: "column-reverse", sm: "row" }}
-          gap={{ initial: "2", sm: "8" }}
-        >
-          <Box flexShrink="1">
-            <Text as="p" mb="2">
-              Hi there! My name is Ethan Saso, and I'm a full-stack developer
-              with a lifelong passion for naturalism. I originally created
-              Klados under the name 'TaxoKeys' in my last semester of college as
-              my first web development project. Once I'd picked up more
-              experience from my career, I decided to return and rebuild the
-              platform from the ground up as Klados, with a focus on community
-              contribution and open science.
+    <ContentContainer align="stretch">
+      <Box width="100%" maxWidth="720px" mx="auto" py={{ sm: "5" }}>
+        <Flex align="center" gap="5" wrap="wrap" mb="6">
+          <img
+            className="about__headshot"
+            src="/about/ethan-headshot.webp"
+            alt="Ethan Saso"
+          />
+          <Box>
+            <Text as="p" size="2" color="gray">
+              About Klados
             </Text>
-            <Text as="p" mb="2">
-              I graduated from UC Berkeley in 2024 with a degree in Molecular
-              Environmental Biology and Computer Science. I previously led the
-              university's Mycological Society and have been an active member of
-              the bay area mycological community for many years. In my free
-              time, I dabble in extreme macro photography of tiny organisms like
-              insects, fungi, and slime molds, which you can view over on my{" "}
-              <Link href="https://www.inaturalist.org/people/ethansaso">
-                iNaturalist
-              </Link>
-              .
-            </Text>
-            <Text as="p" mb="2">
-              You can also find me on{" "}
-              <Link href="https://www.linkedin.com/in/ethansaso/">
-                LinkedIn
-              </Link>
-              .
-            </Text>
-          </Box>
-          <Box asChild flexShrink="0" height="208px" width="208px">
-            <img
-              src={"/about/ethan-headshot.webp"}
-              alt="Ethan Saso"
-              height="100%"
-              width="100%"
-            />
+            <Heading as="h1" size={{ initial: "7", sm: "8" }}>
+              Hi! I'm Ethan, and this is Klados.
+            </Heading>
           </Box>
         </Flex>
+
+        <Text as="p" size="4" mb="4">
+          Klados is a free, community-driven website for learning to identify
+          organisms. Built on shared glossary of morphological terms, every
+          species becomes a living resource, explaining terms in place and
+          powering comparison across the platform.
+        </Text>
+        <Text as="p" size="4" mb="4">
+          Field guides, dichotomous keys, and the wisdom of experienced
+          naturalists are wonderful resources. Nonetheless, they can be hard to
+          come by, and often difficult to understand. Klados aims to make
+          identification accessible to all audiences: it helps you learn the
+          vocabulary, study and compare similar species, and work through
+          visual-first identification guides.
+        </Text>
+        <Text as="p" size="4" mb="7">
+          Klados is still very young. Right now, it describes only{" "}
+          <strong>{countLabel(stats.taxaCount, "taxon", "taxa")}</strong> and
+          hosts{" "}
+          <strong>{countLabel(stats.guidesCount, "guide", "guides")}</strong>,
+          but both numbers will grow as curators join. If you're interested in
+          chatting about the future of the tool, feel free to reach out to{" "}
+          <Link href="mailto:admin@klados.bio">admin@klados.bio</Link>.
+        </Text>
+
+        <figure className="about__figure">
+          <img
+            src="/about/castilleja.jpg"
+            alt="A field of paintbrush (Castilleja exserta) in Carrizo Plain National Monument."
+          />
+          <Text as="p" size="1" color="gray" mt="1" asChild>
+            <figcaption>
+              To know what we stand to lose, we first need to learn what we
+              have.
+            </figcaption>
+          </Text>
+        </figure>
+
+        <Box
+          mt={{ initial: "6", sm: "8" }}
+          pt="6"
+          pb={{ initial: "4", sm: "0" }}
+          className="about__closing"
+        >
+          <Text as="p" size={{ initial: "3", sm: "4" }} mb="4" weight="medium">
+            If you'd like to help Klados grow, there are a few ways to pitch in:
+          </Text>
+          <Flex
+            direction={{ initial: "column", xs: "row" }}
+            wrap="wrap"
+            gap="3"
+          >
+            <Button asChild size="3" radius="full">
+              <RouterLink to="/curators/new">
+                Become a curator
+                <PiArrowRight />
+              </RouterLink>
+            </Button>
+            <Button
+              asChild
+              size="3"
+              radius="full"
+              variant="surface"
+              color="gray"
+              highContrast
+            >
+              <RouterLink to="/donate">
+                Donate
+                <PiArrowRight />
+              </RouterLink>
+            </Button>
+            <Button
+              asChild
+              size="3"
+              radius="full"
+              variant="surface"
+              color="gray"
+              highContrast
+            >
+              <a
+                href="https://github.com/ethansaso/klados"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Contribute on GitHub
+                <PiArrowRight />
+              </a>
+            </Button>
+          </Flex>
+        </Box>
       </Box>
     </ContentContainer>
   );
+}
+
+function countLabel(n: number, singular: string, plural: string) {
+  return `${n.toLocaleString()} ${n === 1 ? singular : plural}`;
 }

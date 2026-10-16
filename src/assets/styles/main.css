@@ -1,5 +1,6 @@
 @import "@radix-ui/themes/styles.css" layer(radix);
 @import "admin.css";
+@import "fonts.css";
 @import "forms.css";
 @import "typography.css";
 @import "vars.css";
@@ -12,10 +13,29 @@
     "Open Sans", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue",
     Arial, "Noto Sans";
   --default-font-family: var(--ff-declaration);
+  --heading-font-family:
+    "Source Sans 3", system-ui, -apple-system, Segoe UI, Roboto,
+    "Helvetica Neue", Arial, "Noto Sans";
   --em-font-family: var(--ff-declaration);
   --em-font-size-adjust: 1.05;
   --font-size-9: calc(48px * var(--scaling));
+
   --heading-line-height-9: calc(48px * var(--scaling));
+}
+
+/* Source Sans 3 renders ~11% smaller than Open Sans at the same size, so
+   headings get their own scale (rounded to whole pixels). Line heights are
+   left alone so heading boxes don't change size. */
+.rt-Heading {
+  --font-size-1: calc(13px * var(--scaling));
+  --font-size-2: calc(16px * var(--scaling));
+  --font-size-3: calc(18px * var(--scaling));
+  --font-size-4: calc(20px * var(--scaling));
+  --font-size-5: calc(22px * var(--scaling));
+  --font-size-6: calc(27px * var(--scaling));
+  --font-size-7: calc(31px * var(--scaling));
+  --font-size-8: calc(39px * var(--scaling));
+  --font-size-9: calc(53px * var(--scaling));
 }
 
 .radix-themes[data-is-root-theme="true"] {

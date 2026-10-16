@@ -1,0 +1,27 @@
+.about__headshot {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.about__section-title {
+  color: var(--accent-12);
+}
+
+.about__figure {
+  margin: 0;
+
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 21 / 9;
+    object-fit: cover;
+    object-position: 50% 30%;
+    border-radius: var(--radius-4);
+  }
+}
+
+.about__closing {
+  border-top: 1px solid var(--gray-a5);
+}

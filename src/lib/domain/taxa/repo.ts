@@ -269,6 +269,7 @@ export async function fetchTaxonDetailById(
       a.source_gbif_id AS "sourceGbifId",
       a.source_inat_id AS "sourceInatId",
       a.status,
+      a.ecology,
       a.notes,
       s.value  AS "acceptedName",
       pc.value AS "preferredCommonName",
