@@ -35,7 +35,7 @@ function RouteComponent() {
     ) {
       await scrubSources({ data: sourceId });
       await qc.invalidateQueries({ queryKey: ["sources"] });
-      await qc.invalidateQueries({ queryKey: ["taxon"] });
+      await qc.invalidateQueries({ queryKey: ["taxa"] });
     }
   };
 

@@ -22,7 +22,6 @@ import z from "zod";
 import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
 import { ContentContainer } from "../../../../../components/ContentContainer";
 import { TaxonName } from "../../../../../components/TaxonName";
-import { formatTaxonName } from "../../../../../lib/utils/formatting/formatTaxonName";
 import type { SourceDTO } from "../../../../../lib/domain/sources/types";
 import type { CharacterByFeatureUpdate } from "../../../../../lib/domain/states/validation";
 import { setTaxonSourcesSchema } from "../../../../../lib/domain/taxon-sources/validation";
@@ -32,6 +31,7 @@ import { getTaxonFn } from "../../../../../lib/server-fns/taxa/getTaxonFn";
 import { publishTaxonFn } from "../../../../../lib/server-fns/taxa/publishFn";
 import { updateTaxonFn } from "../../../../../lib/server-fns/taxa/updateTaxonFn";
 import { getSourcesForTaxonFn } from "../../../../../lib/server-fns/taxon-sources/getSourcesForTaxonFn";
+import { formatTaxonName } from "../../../../../lib/utils/formatting/formatTaxonName";
 import { getErrorMessage } from "../../../../../lib/utils/getErrorMessage";
 import { routeSeo } from "../../../../../lib/utils/head/routeSeo";
 import { toast } from "../../../../../lib/utils/toast";
@@ -64,7 +64,7 @@ export const taxonEditFormSchema = z.object({
 });
 
 const convertToServerCharacterValues = (
-  values: TaxonEditFormValues["states"]
+  values: TaxonEditFormValues["states"],
 ): CharacterByFeatureUpdate => {
   return values.map((feature) => ({
     featureId: feature.featureId,
@@ -159,7 +159,7 @@ function RouteComponent() {
     defaultValues: seedTaxonEditState(
       initialTaxon,
       initialCharacterValues,
-      initialSources
+      initialSources,
     ),
   });
   const { control, handleSubmit, reset } = methods;
@@ -203,7 +203,7 @@ function RouteComponent() {
 
   async function invalidateTaxon(id: number) {
     await Promise.all([
-      qc.invalidateQueries({ queryKey: ["taxon"] }),
+      qc.invalidateQueries({ queryKey: ["taxa"] }),
       // Invalidate all lookalike details involving this taxon
       qc.invalidateQueries({
         predicate: (q: Query) => {
@@ -226,7 +226,7 @@ function RouteComponent() {
       seedTaxonEditState(initialTaxon, initialCharacterValues, initialSources),
       {
         keepDirty: false,
-      }
+      },
     );
   };
 
@@ -283,7 +283,7 @@ function RouteComponent() {
     if (!isDraft || isDeleting || liveFormStateRef.current.isSubmitting) return;
 
     const ok = window.confirm(
-      "Delete this taxon draft? This cannot be undone."
+      "Delete this taxon draft? This cannot be undone.",
     );
     if (!ok) return;
 
