@@ -1,0 +1,4 @@
+/* Ko-fi's widget CSS forces its cup icon into a box wider than the image. */
+.kofi-button img.kofiimg {
+  object-fit: contain;
+}
