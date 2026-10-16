@@ -13,7 +13,7 @@ export const Footer = () => {
           width="100%"
           px={{ initial: "2", sm: "0" }}
         >
-          <Text color="gray" align={{ initial: "center", xs: "left" }}>
+          <Text color="gray" size="2" align={{ initial: "center", xs: "left" }}>
             Text and data{" "}
             <Link
               href="https://creativecommons.org/licenses/by/4.0/"
