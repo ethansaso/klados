@@ -13,7 +13,7 @@ function RouteComponent() {
       <article aria-labelledby="tos-title">
         <Box mb="4">
           <Heading id="tos-title">Terms of Service</Heading>
-          <Text color="gray">Effective date: January 25th, 2026</Text>
+          <Text color="gray">Effective date: October 15th, 2026</Text>
         </Box>
         <ProseSections.Section>
           <ProseSections.Content>
@@ -71,15 +71,32 @@ function RouteComponent() {
               </li>
             </ul>
           </ProseSections.Subsection>
-          <ProseSections.Subsection title="3.2. License to Klados">
-            <ProseSections.Content>
-              By submitting User Content, you grant Klados a non-exclusive,
-              worldwide, royalty-free license to host, display, reproduce, and
-              distribute that content solely for the purpose of operating,
-              improving, and promoting the Service.
-            </ProseSections.Content>
+          <ProseSections.Subsection title="3.2. Licensing of User Content">
             <ProseSections.Content>
               You retain ownership of your User Content.
+            </ProseSections.Content>
+            <ProseSections.Content>
+              Text and structured data you contribute, including descriptions,
+              character states, glossary entries, and guides, are licensed to
+              everyone under the{" "}
+              <RadixLink href="https://creativecommons.org/licenses/by/4.0/">
+                Creative Commons Attribution 4.0 International license (CC BY
+                4.0)
+              </RadixLink>
+              . Anyone may share and adapt them for any purpose, including
+              commercially, as long as they give appropriate credit. Crediting
+              "Klados contributors" with a link to the source page is
+              sufficient.
+            </ProseSections.Content>
+            <ProseSections.Content>
+              Media, such as photos, keeps the license recorded with it on the
+              Site. When you add media, you are responsible for recording its
+              owner and license accurately.
+            </ProseSections.Content>
+            <ProseSections.Content>
+              You also grant Klados a non-exclusive, worldwide, royalty-free
+              license to host, display, reproduce, and distribute your User
+              Content as needed to operate, improve, and promote the Service.
             </ProseSections.Content>
           </ProseSections.Subsection>
           <ProseSections.Subsection title="3.3. Prohibited Content">
@@ -136,6 +153,9 @@ function RouteComponent() {
             The Site may display content from third-party sources (such as
             images or links to external databases) with attribution. Klados does
             not control and is not responsible for third-party content.
+            Third-party media is shown under its original license, noted
+            alongside it, and is not covered by the CC BY 4.0 license in Section
+            3.2.
           </ProseSections.Content>
         </ProseSections.Section>
         <ProseSections.Section title="8. Disclaimer of Warranties">
