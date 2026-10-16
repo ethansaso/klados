@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/ethansaso/klados/actions/workflows/ci.yml/badge.svg)
 ![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
-![License](https://img.shields.io/badge/license-proprietary-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
 [klados.bio](https://klados.bio)
 
@@ -66,6 +66,7 @@ npm run dev
 ```
 
 ### DB Dumping (wip)
+
 npm run db:dump
 npm run db:load < {filename}.sql
 </details>
@@ -87,5 +88,6 @@ We are grateful to the researchers, institutions, and community contributors who
 
 ## License
 
-This project is currently distributed without an open-source license.
-All rights reserved unless otherwise stated.
+- **Code:** [MIT](LICENSE).
+- **Structured data and text** contributed on Klados (taxon descriptions, glossary entries, guides): [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+- **Media** (photos and other images) keeps its original license, shown with each item.

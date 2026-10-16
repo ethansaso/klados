@@ -13,7 +13,26 @@ export const Footer = () => {
           width="100%"
           px={{ initial: "2", sm: "0" }}
         >
-          <Text color="gray">© 2026 Klados. All rights reserved.</Text>
+          <Text color="gray" align={{ initial: "center", xs: "left" }}>
+            Text and data{" "}
+            <Link
+              href="https://creativecommons.org/licenses/by/4.0/"
+              target="_blank"
+              rel="noopener noreferrer"
+              color="amber"
+            >
+              CC BY 4.0
+            </Link>{" "}
+            · Media as marked · Code{" "}
+            <Link
+              href="https://github.com/ethansaso/klados/blob/main/LICENSE"
+              target="_blank"
+              rel="noopener noreferrer"
+              color="amber"
+            >
+              MIT
+            </Link>
+          </Text>
           <Text color="gray">
             Built with <Text highContrast>❤️</Text> by{" "}
             <Link
