@@ -29,6 +29,7 @@ function RouteComponent() {
                 width: "100%",
                 aspectRatio: "16 / 7",
                 objectFit: "cover",
+                objectPosition: "bottom",
               }}
             />
           </Inset>
