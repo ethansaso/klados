@@ -1,0 +1,24 @@
+.curator-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: curator-step;
+
+  li {
+    counter-increment: curator-step;
+  }
+}
+
+.curator-steps__number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--accent-3);
+  color: var(--accent-12);
+  font-size: var(--font-size-2);
+  font-weight: var(--font-weight-bold);
+
+  &::before {
+    content: counter(curator-step);
+  }
+}
