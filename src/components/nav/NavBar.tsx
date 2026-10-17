@@ -89,6 +89,9 @@ export function NavBar() {
             <NavDropdown.Link to="/users">Users</NavDropdown.Link>
             <NavDropdown.Link to="/about">About</NavDropdown.Link>
             <NavDropdown.Link to="/donate">Donate</NavDropdown.Link>
+            <NavDropdown.Link to="/curators/new">
+              Become a curator
+            </NavDropdown.Link>
             <NavDropdown.Separator />
             <NavDropdown.Link to="/tos">Terms of Service</NavDropdown.Link>
           </NavDropdown.Content>

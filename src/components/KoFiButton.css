@@ -1,4 +1,13 @@
 /* Ko-fi's widget CSS forces its cup icon into a box wider than the image. */
-.kofi-button img.kofiimg {
-  object-fit: contain;
+.kofi-button {
+  img.kofiimg {
+    object-fit: contain;
+    margin-bottom: 0 !important;
+  }
+
+  .kofitext {
+    display: flex;
+    align-items: center;
+    line-height: unset !important;
+  }
 }

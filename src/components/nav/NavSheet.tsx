@@ -132,6 +132,9 @@ export function NavSheet({ user, onNavigate }: Props) {
               <NavSheetLinkButton to="/donate" onNavigate={onNavigate}>
                 Donate
               </NavSheetLinkButton>
+              <NavSheetLinkButton to="/curators/new" onNavigate={onNavigate}>
+                Become a Curator
+              </NavSheetLinkButton>
             </Flex>
           </Box>
         </Dialog.Content>
