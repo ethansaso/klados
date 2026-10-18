@@ -10,6 +10,7 @@ export * from "./guides/guide";
 export * from "./media/media";
 export * from "./media/taxonMedia";
 export * from "./sources/source";
+export * from "./sources/taxonFeatureSource";
 export * from "./sources/taxonSource";
 export * from "./taxa/characterStateModifiers";
 export * from "./taxa/characterStates";
