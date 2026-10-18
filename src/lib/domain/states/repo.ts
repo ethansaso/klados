@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import {
   categoricalCharacterMeta as catMetaTbl,
   taxonCharacterStateCategorical as catStateTbl,
@@ -84,7 +84,22 @@ export async function selectTaxonStatesByTaxonIds(
       notes: row.notes,
       presence: row.presence,
       states: [],
+      sourceIds: [],
     });
+  }
+
+  const citationRows = await tx
+    .select({
+      taxonId: featureSourceTbl.taxonId,
+      featureId: featureSourceTbl.featureId,
+      sourceId: featureSourceTbl.sourceId,
+    })
+    .from(featureSourceTbl)
+    .where(inArray(featureSourceTbl.taxonId, taxonIds))
+    .orderBy(asc(featureSourceTbl.sourceId));
+
+  for (const row of citationRows) {
+    byTaxon.get(row.taxonId)?.get(row.featureId)?.sourceIds.push(row.sourceId);
   }
 
   // Categorical states

@@ -60,4 +60,5 @@ export type FeatureStateDTO = {
   notes: string;
   presence: FeaturePresence;
   states: CharacterStateDTO[];
+  sourceIds: number[];
 };
