@@ -26,6 +26,7 @@ import { escapeLike } from "../../utils/sql/likeAnywhere";
 import { lowerLike } from "../../utils/sql/lowerLike";
 import type { Transaction } from "../../utils/types/transactionType";
 import { selectMediaByTaxonIds } from "../media/repo";
+import { selectTaxonCuration } from "../taxon-edits/repo";
 import type { TaxonSearchParams } from "./search";
 import {
   common,
@@ -45,9 +46,7 @@ import type {
 import { computeRankBand } from "./utils";
 import type { TaxonPatch } from "./validation";
 
-/**
- * Insert a draft taxon row and return its id.
- */
+/** Insert a draft taxon row and return its id. */
 export async function insertDraftTaxon(
   tx: Transaction,
   args: Pick<TaxonRow, "parentId" | "rank"> &
@@ -360,12 +359,15 @@ export async function fetchTaxonDetailById(
     acceptedName: c.acceptedName,
   }));
 
+  const curation = await selectTaxonCuration(db, id);
+
   // Assemble final TaxonDetailDTO
   const detail: TaxonDetailDTO = {
     ...baseDto,
     ancestors,
     names,
     subtaxa,
+    curation,
   };
 
   return detail;

@@ -1,6 +1,7 @@
 import { taxon, type TaxonRank } from "../../../../db/schema/schema";
 import type { PaginatedResult } from "../../validation/pagination";
 import type { MediaDTO } from "../media/types";
+import type { TaxonCurationDTO } from "../taxon-edits/types";
 import type { NameItem } from "../taxon-names/validation";
 
 export type LeanTaxonDTO = {
@@ -41,6 +42,8 @@ export type TaxonDetailDTO = TaxonDTO & {
   names: NameItem[];
   /* Direct children (subtaxa) with IDs, ranks, and accepted scientific names. */
   subtaxa: LeanTaxonDTO[];
+  /* Edit log, newest first. */
+  curation: TaxonCurationDTO[];
 };
 
 export type TaxonPaginatedResult = PaginatedResult<TaxonDTO>;

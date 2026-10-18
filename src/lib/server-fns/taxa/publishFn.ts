@@ -8,10 +8,10 @@ import { type TaxonDTO } from "../../domain/taxa/types";
 export const publishTaxonFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
   .validator(z.object({ id: z.number() }))
-  .handler(async ({ data }): Promise<TaxonDTO> => {
+  .handler(async ({ data, context }): Promise<TaxonDTO> => {
     const { id } = data;
 
-    const dto = await publishTaxon({ id });
+    const dto = await publishTaxon({ id, actorId: context.user.id });
     if (!dto) {
       throw notFound();
     }

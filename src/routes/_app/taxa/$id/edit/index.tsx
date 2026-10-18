@@ -23,7 +23,6 @@ import { TAXON_RANKS_DESCENDING } from "../../../../../../db/schema/schema";
 import { ContentContainer } from "../../../../../components/ContentContainer";
 import { TaxonName } from "../../../../../components/TaxonName";
 import type { SourceDTO } from "../../../../../lib/domain/sources/types";
-import type { CharacterByFeatureUpdate } from "../../../../../lib/domain/states/validation";
 import { setTaxonSourcesSchema } from "../../../../../lib/domain/taxon-sources/validation";
 import { getTaxonCharacterStatesFn } from "../../../../../lib/server-fns/character-states/getTaxonCharacterStatesFn";
 import { deleteTaxonFn } from "../../../../../lib/server-fns/taxa/deleteTaxonFn";
@@ -44,6 +43,11 @@ import { mediaFormItemSchema } from "./-media/validation";
 import { MetaForm } from "./-meta/MetaForm";
 import { NameEditingForm } from "./-names/NameEditingForm";
 import { nameItemFormSchema } from "./-names/validation";
+import {
+  pickDirtySections,
+  toUpdatePayload,
+  type DirtyTaxonFields,
+} from "./-payload";
 import { seedTaxonEditState } from "./-seeding";
 import { SourceEditingForm } from "./-sources/SourceEditingForm";
 import { TextForm } from "./-text/TextForm";
@@ -62,46 +66,6 @@ export const taxonEditFormSchema = z.object({
   states: groupedCharacterFormSchema,
   sources: setTaxonSourcesSchema,
 });
-
-const convertToServerCharacterValues = (
-  values: TaxonEditFormValues["states"],
-): CharacterByFeatureUpdate => {
-  return values.map((feature) => ({
-    featureId: feature.featureId,
-    notes: feature.notes,
-    presence: feature.presence,
-    characters: feature.characters.map((v) => {
-      switch (v.kind) {
-        case "categorical":
-          return {
-            kind: "categorical",
-            characterId: v.characterId,
-            traitValueId: v.trait.id,
-            modifierIds: v.modifiers.map((m) => m.id),
-          };
-
-        case "number":
-          return {
-            kind: "number",
-            characterId: v.characterId,
-            unitId: v.unit?.id,
-            siBaseValue: v.siBaseValue,
-            modifierIds: v.modifiers.map((m) => m.id),
-          };
-
-        case "range":
-          return {
-            kind: "range",
-            characterId: v.characterId,
-            unitId: v.unit?.id,
-            siBaseMin: v.siBaseMin,
-            siBaseMax: v.siBaseMax,
-            modifierIds: v.modifiers.map((m) => m.id),
-          };
-      }
-    }),
-  }));
-};
 
 export const Route = createFileRoute("/_app/taxa/$id/edit/")({
   beforeLoad: async ({ params }) => {
@@ -169,14 +133,19 @@ function RouteComponent() {
   // only tracks/recomputes fields that were actually accessed while
   // rendering). Reading it lazily inside a callback with nothing else
   // subscribing during render would silently freeze at its initial value.
-  const liveFormStateRef = useRef({ isDirty: false, isSubmitting: false });
+  const liveFormStateRef = useRef<{
+    isDirty: boolean;
+    isSubmitting: boolean;
+    dirtyFields: DirtyTaxonFields;
+  }>({ isDirty: false, isSubmitting: false, dirtyFields: {} });
   useEffect(() => {
     return methods.subscribe({
-      formState: { isDirty: true },
+      formState: { isDirty: true, dirtyFields: true },
       callback: (formState) => {
         liveFormStateRef.current = {
           isDirty: formState.isDirty ?? false,
           isSubmitting: formState.isSubmitting ?? false,
+          dirtyFields: formState.dirtyFields ?? {},
         };
       },
     });
@@ -230,19 +199,22 @@ function RouteComponent() {
     );
   };
 
+  // Sends only dirty sections, since the server logs each one it receives
+  async function saveChanges(data: TaxonEditFormValues) {
+    const changed = pickDirtySections(
+      toUpdatePayload(data),
+      liveFormStateRef.current.dirtyFields,
+    );
+    if (Object.keys(changed).length > 0) {
+      await serverUpdate({ data: { ...changed, id } });
+    }
+    reset(data, { keepDirty: false }); // keep RHF dirty tracking in sync
+  }
+
   const onSave: SubmitHandler<TaxonEditFormValues> = async (data) => {
     if (!liveFormStateRef.current.isDirty) return;
     try {
-      const { media, ...rest } = data;
-      await serverUpdate({
-        data: {
-          ...rest,
-          id,
-          states: convertToServerCharacterValues(data.states),
-          mediaIds: media.map((m) => m.id),
-        },
-      });
-      reset(data, { keepDirty: false }); // keep RHF dirty tracking in sync
+      await saveChanges(data);
       await invalidateTaxon(id);
       toast({ description: "Taxon saved.", variant: "success" });
     } catch (error) {
@@ -256,16 +228,7 @@ function RouteComponent() {
   const onPublish: SubmitHandler<TaxonEditFormValues> = async (data) => {
     if (!isDraft) return;
     try {
-      const { media, ...rest } = data;
-      await serverUpdate({
-        data: {
-          ...rest,
-          id,
-          states: convertToServerCharacterValues(data.states),
-          mediaIds: media.map((m) => m.id),
-        },
-      });
-      reset(data, { keepDirty: false }); // clear dirty after persisting
+      await saveChanges(data);
       await serverPublish({ data: { id } });
       await invalidateTaxon(id);
       toast({ description: "Taxon published.", variant: "success" });
