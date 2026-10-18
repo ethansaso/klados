@@ -57,8 +57,9 @@ export const GuideRow = ({ rowData }: GuideRowProps) => {
       <Table.Cell>
         <Flex gap="2" align="baseline">
           <UserHoverCard
-            username={author.name}
+            username={author.username}
             name={author.name}
+            imageUrl={author.image ?? undefined}
             description={author.description}
             role={author.role}
             banned={author.banned}
