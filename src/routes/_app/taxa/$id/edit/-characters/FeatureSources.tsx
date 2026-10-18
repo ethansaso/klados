@@ -39,7 +39,7 @@ export function FeatureSources({ sourceIds, citableSources, onChange }: Props) {
           key={c.source.sourceId}
           content={formatPublicationUsage(c.source)}
         >
-          <Badge variant="surface" color="gray">
+          <Badge variant="surface" color="gray" style={{ cursor: "help" }}>
             <Text color="amber">[{c.number}]</Text>
             <IconButton
               type="button"

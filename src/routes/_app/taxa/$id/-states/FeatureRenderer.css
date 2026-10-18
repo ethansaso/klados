@@ -1,4 +1,9 @@
 .source-footnotes {
   font-size: 0.75em;
   line-height: 0;
+
+  /* Prevent pesky Radix override */
+  a {
+    line-height: inherit;
+  }
 }
