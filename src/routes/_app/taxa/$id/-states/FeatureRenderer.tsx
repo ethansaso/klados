@@ -118,19 +118,23 @@ function SourceFootnotes({
   if (cited.length === 0) return null;
 
   return (
-    <sup className="source-footnotes">
-      {cited.map(({ number, source }) => (
-        <HoverCard.Root key={source.sourceId}>
-          <HoverCard.Trigger>
-            <Link href={`#source-${source.sourceId}`}>[{number}]</Link>
-          </HoverCard.Trigger>
-          <HoverCard.Content size="1" maxWidth="320px">
-            <Text as="p" size="1">
-              {formatPublicationUsage(source)}
-            </Text>
-          </HoverCard.Content>
-        </HoverCard.Root>
-      ))}
-    </sup>
+    <>
+      {/* Word joiner to avoid starting a line w/ a footnote */}
+      {"\u2060"}
+      <sup className="source-footnotes">
+        {cited.map(({ number, source }) => (
+          <HoverCard.Root key={source.sourceId}>
+            <HoverCard.Trigger>
+              <Link href={`#source-${source.sourceId}`}>[{number}]</Link>
+            </HoverCard.Trigger>
+            <HoverCard.Content size="1" maxWidth="320px">
+              <Text as="p" size="1">
+                {formatPublicationUsage(source)}
+              </Text>
+            </HoverCard.Content>
+          </HoverCard.Root>
+        ))}
+      </sup>
+    </>
   );
 }
