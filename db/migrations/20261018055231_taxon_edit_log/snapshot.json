@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "1d773fc5-82e2-45a7-b181-c0309bab6f29",
+  "id": "ec951f9d-e61c-4a27-9915-3d0ba77e5728",
   "prevIds": [
     "bade34de-339e-4be9-8e95-955914815650"
   ],
@@ -130,7 +130,7 @@
         "published",
         "archived"
       ],
-      "name": "taxon_edit_action",
+      "name": "taxon_edit_kind",
       "entityType": "enums",
       "schema": "public"
     },
@@ -3566,14 +3566,14 @@
       "table": "taxon_edit"
     },
     {
-      "type": "taxon_edit_action",
+      "type": "taxon_edit_kind",
       "typeSchema": "public",
       "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "action",
+      "name": "kind",
       "entityType": "columns",
       "schema": "public",
       "table": "taxon_edit"
@@ -7080,7 +7080,7 @@
       "table": "taxon"
     },
     {
-      "value": "\"action\" <> 'edited' OR \"names\" OR \"taxonomy\" OR \"external_ids\" OR \"morphology\" OR \"media\" OR \"sources\" OR \"ecology\" OR \"notes\"",
+      "value": "\"kind\" <> 'edited' OR \"names\" OR \"taxonomy\" OR \"external_ids\" OR \"morphology\" OR \"media\" OR \"sources\" OR \"ecology\" OR \"notes\"",
       "name": "taxon_edit_edited_has_area_ck",
       "entityType": "checks",
       "schema": "public",

@@ -2,7 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import { user as userTbl } from "../../../../db/schema/schema";
 import {
   taxonEdit as taxonEditTbl,
-  type TaxonEditAction,
+  type TaxonEditKind,
 } from "../../../../db/schema/taxa/taxonEdit";
 import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
 import { userDtoSelection } from "../users/sqlAdapters";
@@ -13,14 +13,14 @@ export async function insertTaxonEdit(
   args: {
     taxonId: number;
     actorId: string;
-    action: TaxonEditAction;
+    kind: TaxonEditKind;
     areas?: TaxonEditAreas;
   },
 ): Promise<void> {
   await tx.insert(taxonEditTbl).values({
     taxonId: args.taxonId,
     userId: args.actorId,
-    action: args.action,
+    kind: args.kind,
     ...args.areas,
   });
 }
@@ -33,7 +33,7 @@ export async function selectTaxonCuration(
   return tx
     .select({
       id: taxonEditTbl.id,
-      kind: taxonEditTbl.action,
+      kind: taxonEditTbl.kind,
       names: taxonEditTbl.names,
       taxonomy: taxonEditTbl.taxonomy,
       externalIds: taxonEditTbl.externalIds,

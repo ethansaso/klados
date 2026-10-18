@@ -114,7 +114,7 @@ export async function createTaxonDraft(args: {
     await insertTaxonEdit(tx, {
       taxonId: id,
       actorId,
-      action: "created",
+      kind: "created",
       areas: {
         names: true,
         taxonomy: true,
@@ -270,7 +270,7 @@ export async function archiveTaxon(args: {
     });
 
     if (dto) {
-      await insertTaxonEdit(tx, { taxonId: id, actorId, action: "archived" });
+      await insertTaxonEdit(tx, { taxonId: id, actorId, kind: "archived" });
     }
 
     return dto;
@@ -481,7 +481,7 @@ export async function publishTaxon(args: {
       return null;
     }
 
-    await insertTaxonEdit(tx, { taxonId: id, actorId, action: "published" });
+    await insertTaxonEdit(tx, { taxonId: id, actorId, kind: "published" });
 
     const dto = await selectTaxonDtoById(tx, id);
     return dto;
@@ -586,7 +586,7 @@ export async function updateTaxon(
       await insertTaxonEdit(tx, {
         taxonId: id,
         actorId,
-        action: "edited",
+        kind: "edited",
         areas,
       });
     }

@@ -1,9 +1,9 @@
-CREATE TYPE "taxon_edit_action" AS ENUM('created', 'edited', 'published', 'archived');--> statement-breakpoint
+CREATE TYPE "taxon_edit_kind" AS ENUM('created', 'edited', 'published', 'archived');--> statement-breakpoint
 CREATE TABLE "taxon_edit" (
 	"id" serial PRIMARY KEY,
 	"taxon_id" integer NOT NULL,
 	"user_id" text,
-	"action" "taxon_edit_action" NOT NULL,
+	"kind" "taxon_edit_kind" NOT NULL,
 	"names" boolean DEFAULT false NOT NULL,
 	"taxonomy" boolean DEFAULT false NOT NULL,
 	"external_ids" boolean DEFAULT false NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE "taxon_edit" (
 	"ecology" boolean DEFAULT false NOT NULL,
 	"notes" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "taxon_edit_edited_has_area_ck" CHECK ("action" <> 'edited' OR "names" OR "taxonomy" OR "external_ids" OR "morphology" OR "media" OR "sources" OR "ecology" OR "notes")
+	CONSTRAINT "taxon_edit_edited_has_area_ck" CHECK ("kind" <> 'edited' OR "names" OR "taxonomy" OR "external_ids" OR "morphology" OR "media" OR "sources" OR "ecology" OR "notes")
 );
 --> statement-breakpoint
 CREATE INDEX "taxon_edit_taxon_created_idx" ON "taxon_edit" ("taxon_id","created_at");--> statement-breakpoint

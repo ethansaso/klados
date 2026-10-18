@@ -13,14 +13,14 @@ import {
 import { user } from "../schema";
 import { taxon } from "./taxon";
 
-export type TaxonEditAction = (typeof TAXON_EDIT_ACTIONS)[number];
-export const TAXON_EDIT_ACTIONS = [
+export type TaxonEditKind = (typeof TAXON_EDIT_KINDS)[number];
+export const TAXON_EDIT_KINDS = [
   "created",
   "edited",
   "published",
   "archived",
 ] as const;
-export const taxonEditAction = pgEnum("taxon_edit_action", TAXON_EDIT_ACTIONS);
+export const taxonEditKind = pgEnum("taxon_edit_kind", TAXON_EDIT_KINDS);
 
 /** Append-only log of saves by content section. */
 export const taxonEdit = pgTable(
@@ -36,7 +36,7 @@ export const taxonEdit = pgTable(
       onDelete: "set null",
     }),
 
-    action: taxonEditAction("action").notNull(),
+    kind: taxonEditKind("kind").notNull(),
 
     // Areas changed by this save
     names: boolean("names").notNull().default(false),
@@ -59,7 +59,7 @@ export const taxonEdit = pgTable(
     // No-op check
     check(
       "taxon_edit_edited_has_area_ck",
-      sql`${t.action} <> 'edited' OR ${t.names} OR ${t.taxonomy} OR ${t.externalIds} OR ${t.morphology} OR ${t.media} OR ${t.sources} OR ${t.ecology} OR ${t.notes}`,
+      sql`${t.kind} <> 'edited' OR ${t.names} OR ${t.taxonomy} OR ${t.externalIds} OR ${t.morphology} OR ${t.media} OR ${t.sources} OR ${t.ecology} OR ${t.notes}`,
     ),
   ],
 );

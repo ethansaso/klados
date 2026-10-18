@@ -1,4 +1,4 @@
-import type { taxonEdit, TaxonEditAction } from "../../../../db/schema/schema";
+import type { taxonEdit, TaxonEditKind } from "../../../../db/schema/schema";
 import type { UserDTO } from "../users/types";
 
 export type TaxonEditRow = typeof taxonEdit.$inferSelect;
@@ -20,7 +20,7 @@ export type TaxonCurationDTO = Pick<
   TaxonEditRow,
   "id" | "createdAt" | TaxonEditArea
 > & {
-  kind: TaxonEditAction;
+  kind: TaxonEditKind;
   /** Null once the account has been deleted. */
   user: UserDTO | null;
 };
