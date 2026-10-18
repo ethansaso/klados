@@ -78,3 +78,12 @@ button.modifier-tag__available-item {
   outline: 1px solid var(--tomato-11);
   outline-offset: -1px;
 }
+
+.editing-feature-card {
+  &:not(:has(.note-button)) .cite-button:first-child {
+    margin-left: calc(var(--space-1) * -1);
+  }
+  .cite-button:not(:first-child) {
+    margin-left: 0;
+  }
+}

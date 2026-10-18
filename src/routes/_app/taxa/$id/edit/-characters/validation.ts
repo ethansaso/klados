@@ -74,6 +74,7 @@ export const featureFormSchema = z
     notes: z.string().trim(),
     presence: z.enum(FEATURE_PRESENCES).default("present"),
     characters: z.array(characterStateFormSchema),
+    sourceIds: z.array(z.number().int().positive()).optional(),
   })
   .superRefine((feature, ctx) => {
     const seenCategorical = new Set<string>();

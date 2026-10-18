@@ -86,6 +86,7 @@ const seedCharacterGroups = (
     notes: feature.notes,
     presence: feature.presence,
     characters: seedFeatureStates(feature.states),
+    sourceIds: feature.sourceIds,
   }));
 
 const seedNames = (names: TaxonDetailDTO["names"]) => {

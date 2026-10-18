@@ -57,6 +57,8 @@ const featureUpdateSchema = z
     notes: z.string().trim(),
     presence: z.enum(FEATURE_PRESENCES).default("present"),
     characters: z.array(characterUpdateSchema),
+    // Omission will leave feature's sources as they are
+    sourceIds: z.array(z.number().int().positive()).optional(),
   })
   .superRefine((group, ctx) => {
     if (group.presence === "absent" && group.characters.length > 0) {

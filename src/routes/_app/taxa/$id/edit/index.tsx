@@ -9,7 +9,13 @@ import {
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Form } from "radix-ui";
-import { useEffect, useRef, useState, type MouseEventHandler } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEventHandler,
+} from "react";
 import {
   Controller,
   FormProvider,
@@ -50,6 +56,7 @@ import {
 } from "./-payload";
 import { seedTaxonEditState } from "./-seeding";
 import { SourceEditingForm } from "./-sources/SourceEditingForm";
+import { getCitableSources } from "./-sources/citableSources";
 import { TextForm } from "./-text/TextForm";
 
 export type TaxonEditFormValues = z.infer<typeof taxonEditFormSchema>;
@@ -161,6 +168,12 @@ function RouteComponent() {
     for (const row of initialSources) m.set(row.sourceId, row.source);
     return m;
   });
+
+  const sources = useWatch({ control, name: "sources" });
+  const citableSources = useMemo(
+    () => getCitableSources(sources, sourcesById),
+    [sources, sourcesById],
+  );
 
   const isDraft = initialTaxon.status === "draft";
   const statusBadgeColor =
@@ -387,6 +400,7 @@ function RouteComponent() {
                   render={({ field }) => (
                     <CharacterEditingForm
                       value={field.value as GroupedCharacterFormValue}
+                      citableSources={citableSources}
                       onChange={field.onChange}
                     />
                   )}

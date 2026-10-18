@@ -8,12 +8,16 @@ import type { Transaction } from "../../utils/types/transactionType";
 import { selectFeatureIdsByCharacterIds } from "../characters/repo";
 import { getFeatureDescendantIds } from "../features/repo";
 import { replaceGroupedCharacterStatesForTaxon } from "../states/repo";
+import type { CharacterByFeatureUpdate } from "../states/validation";
 import { insertTaxonEdit } from "../taxon-edits/repo";
 import type { TaxonEditAreas } from "../taxon-edits/types";
 import { replaceNamesForTaxon } from "../taxon-names/repo";
 import { normalizeScientificName } from "../taxon-names/scientificName";
 import type { NameItem } from "../taxon-names/validation";
-import { setSourcesForTaxon } from "../taxon-sources/repo";
+import {
+  selectSourceIdsForTaxon,
+  setSourcesForTaxon,
+} from "../taxon-sources/repo";
 import { selectSynonymSetIdsByTraitValueIds } from "../traits/repo";
 import {
   listUnitFamiliesQuery,
@@ -565,14 +569,15 @@ export async function updateTaxon(
       await assertAcceptedNameUniqueAmongSiblings(tx, id);
     }
 
-    // 3) character states replace (if provided)
-    if (updates.states) {
-      await replaceGroupedCharacterStatesForTaxon(tx, id, updates.states ?? []);
-    }
-
-    // 4) taxon sources set (if provided)
+    // 3) taxon sources set (if provided), before states for per-feature citations
     if (sources) {
       await setSourcesForTaxon(tx, id, sources);
+    }
+
+    // 4) character states replace (if provided)
+    if (updates.states) {
+      const states = await dropCitationsNotOnTaxon(tx, id, updates.states);
+      await replaceGroupedCharacterStatesForTaxon(tx, id, states);
     }
 
     // 5) taxon_media replace (if provided)
@@ -595,6 +600,22 @@ export async function updateTaxon(
     if (!dto) throw notFound();
     return dto;
   });
+}
+
+/** Features can only cite the taxon's own sources; others are ignored. */
+async function dropCitationsNotOnTaxon(
+  tx: Transaction,
+  taxonId: number,
+  states: CharacterByFeatureUpdate,
+): Promise<CharacterByFeatureUpdate> {
+  if (!states.some((f) => f.sourceIds?.length)) return states;
+
+  const onTaxon = new Set(await selectSourceIdsForTaxon(tx, taxonId));
+  return states.map((f) =>
+    f.sourceIds
+      ? { ...f, sourceIds: f.sourceIds.filter((id) => onTaxon.has(id)) }
+      : f,
+  );
 }
 
 export async function getTaxaSitemapEntries(): Promise<

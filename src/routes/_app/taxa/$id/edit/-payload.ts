@@ -55,6 +55,7 @@ function toServerCharacterValues(
     featureId: feature.featureId,
     notes: feature.notes,
     presence: feature.presence,
+    sourceIds: feature.sourceIds,
     characters: feature.characters.map((v) => {
       switch (v.kind) {
         case "categorical":

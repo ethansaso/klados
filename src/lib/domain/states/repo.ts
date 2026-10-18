@@ -1,4 +1,4 @@
-import { eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import {
   categoricalCharacterMeta as catMetaTbl,
   taxonCharacterStateCategorical as catStateTbl,
@@ -13,6 +13,7 @@ import {
   numericCharacterMeta as numMetaTbl,
   taxonCharacterStateNumber as numStateTbl,
   taxonCharacterStateRange as rangeStateTbl,
+  taxonFeatureSource as featureSourceTbl,
   taxonFeatureState as tfsTbl,
   traitSynonymSet as traitSetsTbl,
   unit as unitsTbl,
@@ -83,7 +84,22 @@ export async function selectTaxonStatesByTaxonIds(
       notes: row.notes,
       presence: row.presence,
       states: [],
+      sourceIds: [],
     });
+  }
+
+  const citationRows = await tx
+    .select({
+      taxonId: featureSourceTbl.taxonId,
+      featureId: featureSourceTbl.featureId,
+      sourceId: featureSourceTbl.sourceId,
+    })
+    .from(featureSourceTbl)
+    .where(inArray(featureSourceTbl.taxonId, taxonIds))
+    .orderBy(asc(featureSourceTbl.sourceId));
+
+  for (const row of citationRows) {
+    byTaxon.get(row.taxonId)?.get(row.featureId)?.sourceIds.push(row.sourceId);
   }
 
   // Categorical states
@@ -491,7 +507,39 @@ export async function replaceGroupedCharacterStatesForTaxon(
 
       await replaceCharacterStates(rows[0]!.id);
     }
+
+    if (feature.sourceIds) {
+      await replaceFeatureSources(
+        tx,
+        taxonId,
+        feature.featureId,
+        feature.sourceIds,
+      );
+    }
   }
+}
+
+/** Replace the sources cited by one of a taxon's features. */
+async function replaceFeatureSources(
+  tx: Transaction,
+  taxonId: number,
+  featureId: number,
+  sourceIds: number[],
+): Promise<void> {
+  await tx
+    .delete(featureSourceTbl)
+    .where(
+      and(
+        eq(featureSourceTbl.taxonId, taxonId),
+        eq(featureSourceTbl.featureId, featureId),
+      ),
+    );
+
+  const unique = [...new Set(sourceIds)];
+  if (unique.length === 0) return;
+  await tx
+    .insert(featureSourceTbl)
+    .values(unique.map((sourceId) => ({ taxonId, featureId, sourceId })));
 }
 
 /** Replace categorical states for a single taxon-feature-state. */

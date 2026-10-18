@@ -13,9 +13,7 @@ import { withTimestamps } from "../../utils/timestamps";
 import { taxon } from "../schema";
 import { source } from "./source";
 
-/**
- * Per-taxon citation of a source.
- */
+/** Per-taxon citation of a source. */
 export const taxonSource = pgTable(
   "taxon_source",
   withTimestamps({
