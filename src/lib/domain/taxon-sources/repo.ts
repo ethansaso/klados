@@ -32,6 +32,17 @@ export const selectSourcesForTaxon = async (
   return rows;
 };
 
+export async function selectSourceIdsForTaxon(
+  tx: Transaction,
+  taxonId: number,
+): Promise<number[]> {
+  const rows = await tx
+    .select({ sourceId: taxonSourceTbl.sourceId })
+    .from(taxonSourceTbl)
+    .where(eq(taxonSourceTbl.taxonId, taxonId));
+  return rows.map((r) => r.sourceId);
+}
+
 /**
  * Removes deleted links, inserts new links, updates existing link metadata.
  */
