@@ -15,14 +15,24 @@ import { ExGbif } from "../../../../components/icons/individual/ExGbif";
 import { ExInat } from "../../../../components/icons/individual/ExInat";
 import { RouterRadixLink } from "../../../../components/RouterRadixLink";
 import { TaxonName } from "../../../../components/TaxonName";
+import { UserHoverCard } from "../../../../components/UserHoverCard";
 import type { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
+import type { TaxonCurationDTO } from "../../../../lib/domain/taxon-edits/types";
+import type { UserDTO } from "../../../../lib/domain/users/types";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
 import { NamesDataList } from "./-NamesDataList";
+
+const DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeZone: "UTC",
+});
 
 /** Taxonomy, links, and names: under the photo on desktop, its own section on phones. */
 export const TaxonDetails = ({ taxon }: { taxon: TaxonDetailDTO }) => {
   const [namesOpen, setNamesOpen] = useState(false);
   const parent = taxon.ancestors.at(-1);
+  const contributors = getUniqueContributors(taxon.curation);
+  const lastUpdated = taxon.curation[0]?.createdAt;
 
   return (
     <Box className="taxon-section taxon-page__details">
@@ -122,6 +132,40 @@ export const TaxonDetails = ({ taxon }: { taxon: TaxonDetailDTO }) => {
           </DataList.Item>
         )}
         <DataList.Item>
+          <DataList.Label minWidth="88px">Contributors</DataList.Label>
+          <DataList.Value>
+            <Flex wrap="wrap" gap="1">
+              {contributors.map((user, i, arr) => (
+                <Flex
+                  key={user?.id ?? "deleted"}
+                  display="inline-flex"
+                  align="center"
+                >
+                  {user ? (
+                    <UserHoverCard
+                      username={user.username}
+                      name={user.name}
+                      imageUrl={user.image ?? undefined}
+                      description={user.description}
+                      role={user.role}
+                      banned={user.banned}
+                    />
+                  ) : (
+                    <Text color="gray">[deleted]</Text>
+                  )}
+                  {i !== arr.length - 1 && <Text as="span">,</Text>}
+                </Flex>
+              ))}
+            </Flex>
+          </DataList.Value>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.Label minWidth="88px">Last updated</DataList.Label>
+          <DataList.Value>
+            {lastUpdated && DATE_FORMAT.format(new Date(lastUpdated))}
+          </DataList.Value>
+        </DataList.Item>
+        <DataList.Item>
           <DataList.Label minWidth="88px">Names</DataList.Label>
           <DataList.Value>
             <RadixLink asChild>
@@ -155,3 +199,19 @@ export const TaxonDetails = ({ taxon }: { taxon: TaxonDetailDTO }) => {
     </Box>
   );
 };
+
+/**
+ * Users who created or edited the taxon, in order of first contribution.
+ * Deleted accounts can't be told apart, so they share one tombstone.
+ */
+function getUniqueContributors(
+  curation: TaxonCurationDTO[],
+): (UserDTO | null)[] {
+  const byId = new Map<string, UserDTO | null>();
+  for (const entry of [...curation].reverse()) {
+    if (entry.kind !== "created" && entry.kind !== "edited") continue;
+    const key = entry.user?.id ?? "deleted";
+    if (!byId.has(key)) byId.set(key, entry.user);
+  }
+  return [...byId.values()];
+}

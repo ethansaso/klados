@@ -17,3 +17,4 @@ export * from "./taxa/distributionTiles";
 export * from "./taxa/featureStates";
 export * from "./taxa/name";
 export * from "./taxa/taxon";
+export * from "./taxa/taxonEdit";

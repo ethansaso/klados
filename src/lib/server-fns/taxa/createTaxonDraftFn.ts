@@ -20,8 +20,8 @@ export const createTaxonDraftFn = createServerFn({ method: "POST" })
       mediaIds: z.array(z.number().int()).optional(),
     }),
   )
-  .handler(async ({ data }): Promise<TaxonDTO> => {
-    const dto = await createTaxonDraft(data);
+  .handler(async ({ data, context }): Promise<TaxonDTO> => {
+    const dto = await createTaxonDraft({ ...data, actorId: context.user.id });
 
     // Rare but still worth catching
     if (!dto) {

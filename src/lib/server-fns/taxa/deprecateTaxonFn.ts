@@ -13,10 +13,11 @@ export const archiveTaxonFn = createServerFn({ method: "POST" })
       replacedById: z.number().optional().nullable(),
     }),
   )
-  .handler(async ({ data }): Promise<TaxonDTO> => {
+  .handler(async ({ data, context }): Promise<TaxonDTO> => {
     const dto = await archiveTaxon({
       id: data.id,
       replacedById: data.replacedById ?? null,
+      actorId: context.user.id,
     });
 
     if (!dto) {

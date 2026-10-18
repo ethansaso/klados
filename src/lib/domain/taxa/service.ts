@@ -8,6 +8,8 @@ import type { Transaction } from "../../utils/types/transactionType";
 import { selectFeatureIdsByCharacterIds } from "../characters/repo";
 import { getFeatureDescendantIds } from "../features/repo";
 import { replaceGroupedCharacterStatesForTaxon } from "../states/repo";
+import { insertTaxonEdit } from "../taxon-edits/repo";
+import type { TaxonEditAreas } from "../taxon-edits/types";
 import { replaceNamesForTaxon } from "../taxon-names/repo";
 import { normalizeScientificName } from "../taxon-names/scientificName";
 import type { NameItem } from "../taxon-names/validation";
@@ -47,6 +49,21 @@ import {
 } from "./utils";
 import type { UpdateTaxonInput } from "./validation";
 
+/** ! Callers should send partial updates. */
+function getUpdatedAreas(input: UpdateTaxonInput): TaxonEditAreas {
+  return {
+    names: input.names !== undefined,
+    taxonomy: input.parentId !== undefined || input.rank !== undefined,
+    externalIds:
+      input.sourceGbifId !== undefined || input.sourceInatId !== undefined,
+    morphology: input.states !== undefined,
+    media: input.mediaIds !== undefined,
+    sources: input.sources !== undefined,
+    ecology: input.ecology !== undefined,
+    notes: input.notes !== undefined,
+  };
+}
+
 /**
  * Create a new draft taxon with an accepted scientific name, optionally seeded
  * with external source IDs, additional names, and media.
@@ -59,6 +76,7 @@ export async function createTaxonDraft(args: {
   sourceInatId?: number | null;
   names?: NameItem[];
   mediaIds?: number[];
+  actorId: string;
 }): Promise<TaxonDTO | null> {
   const {
     acceptedName,
@@ -68,6 +86,7 @@ export async function createTaxonDraft(args: {
     sourceInatId,
     names = [],
     mediaIds = [],
+    actorId,
   } = args;
 
   return db.transaction(async (tx) => {
@@ -91,6 +110,18 @@ export async function createTaxonDraft(args: {
     await assertAcceptedNameUniqueAmongSiblings(tx, id);
 
     await insertTaxonMedia(tx, id, mediaIds);
+
+    await insertTaxonEdit(tx, {
+      taxonId: id,
+      actorId,
+      kind: "created",
+      areas: {
+        names: true,
+        taxonomy: true,
+        externalIds: sourceGbifId != null || sourceInatId != null,
+        media: mediaIds.length > 0,
+      },
+    });
 
     const dto = await selectTaxonDtoById(tx, id);
     return dto;
@@ -193,8 +224,9 @@ export async function deleteTaxon(args: {
 export async function archiveTaxon(args: {
   id: number;
   replacedById?: number | null;
+  actorId: string;
 }): Promise<TaxonDTO | null> {
-  const { id, replacedById } = args;
+  const { id, replacedById, actorId } = args;
 
   return db.transaction(async (tx) => {
     const current = await getCurrentTaxonMinimal(tx, id);
@@ -236,6 +268,10 @@ export async function archiveTaxon(args: {
       status: "archived",
       replacedById: replacedById ?? null,
     });
+
+    if (dto) {
+      await insertTaxonEdit(tx, { taxonId: id, actorId, kind: "archived" });
+    }
 
     return dto;
   });
@@ -420,8 +456,9 @@ async function resolveFilters(
  */
 export async function publishTaxon(args: {
   id: number;
+  actorId: string;
 }): Promise<TaxonDTO | null> {
-  const { id } = args;
+  const { id, actorId } = args;
 
   return db.transaction(async (tx) => {
     const current = await getCurrentTaxonMinimal(tx, id);
@@ -443,6 +480,8 @@ export async function publishTaxon(args: {
       // Taxon disappeared or was concurrently modified.
       return null;
     }
+
+    await insertTaxonEdit(tx, { taxonId: id, actorId, kind: "published" });
 
     const dto = await selectTaxonDtoById(tx, id);
     return dto;
@@ -471,8 +510,10 @@ function assertNamesPayloadInvariant(names: NameItem[]) {
   }
 }
 
-export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
-  const { id, sources, mediaIds, ...updates } = args;
+export async function updateTaxon(
+  args: UpdateTaxonInput & { actorId: string },
+): Promise<TaxonDTO> {
+  const { id, sources, mediaIds, actorId, ...updates } = args;
 
   return db.transaction(async (tx) => {
     const current = await getCurrentTaxonMinimal(tx, id);
@@ -538,6 +579,16 @@ export async function updateTaxon(args: UpdateTaxonInput): Promise<TaxonDTO> {
     if (mediaIds !== undefined) {
       await tx.delete(taxonMediaTbl).where(eq(taxonMediaTbl.taxonId, id));
       await insertTaxonMedia(tx, id, mediaIds);
+    }
+
+    const areas = getUpdatedAreas(args);
+    if (Object.values(areas).some(Boolean)) {
+      await insertTaxonEdit(tx, {
+        taxonId: id,
+        actorId,
+        kind: "edited",
+        areas,
+      });
     }
 
     const dto = await selectTaxonDtoById(tx, id);
