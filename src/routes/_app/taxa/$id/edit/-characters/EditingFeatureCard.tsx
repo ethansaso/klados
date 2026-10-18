@@ -7,11 +7,13 @@ import {
   Flex,
   Heading,
   IconButton,
+  Separator,
   Text,
   TextField,
   Tooltip,
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
+import classNames from "classnames";
 import { memo, useCallback, useId, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import {
@@ -24,10 +26,12 @@ import {
   PiX,
 } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
+import type { NumberedFeatureCitation } from "../-sources/citableSources";
 import type { FeaturePresence } from "../../../../../../../db/schema/schema";
 import type { TraitSuggestion } from "../../../../../../lib/domain/suggestions/types";
 import { featureQueryOptions } from "../../../../../../lib/queries/features";
 import { CharacterStateRow } from "./CharacterStateRow";
+import { FeatureSources } from "./FeatureSources";
 import { CharacterStateSearch } from "./search/CharacterStateSearch";
 import { FEATURE_SEARCH_INPUT_ID } from "./search/FeatureSearch";
 import {
@@ -80,6 +84,7 @@ export const characterSearchInputId = (featureId: number) =>
 
 type Props = {
   feature: FeatureFormValue;
+  citableSources: NumberedFeatureCitation[];
   onChange: (nextFeatures: FeatureFormValue[]) => void;
   onDelete: () => void;
   onRemoveCategoricalValue: (
@@ -90,7 +95,13 @@ type Props = {
 };
 
 export const EditingFeatureCard = memo(
-  ({ feature, onChange, onDelete, onRemoveCategoricalValue }: Props) => {
+  ({
+    feature,
+    citableSources,
+    onChange,
+    onDelete,
+    onRemoveCategoricalValue,
+  }: Props) => {
     const { getValues } = useFormContext<TaxonEditFormValues>();
     const [confirmingDelete, setConfirmingDelete] = useState(false);
     const [notesExpanded, setNotesExpanded] = useState(
@@ -252,6 +263,19 @@ export const EditingFeatureCard = memo(
       [getValues, onChange, feature.featureId],
     );
 
+    const handleSourceIdsChange = useCallback(
+      (sourceIds: number[]) => {
+        const prev = getValues("states");
+        const next = prev.map((group) =>
+          group.featureId === feature.featureId
+            ? { ...group, sourceIds }
+            : group,
+        );
+        onChange(next);
+      },
+      [getValues, onChange, feature.featureId],
+    );
+
     const handlePresenceCycle = useCallback(() => {
       const prev = getValues("states");
       const next = prev.map((group) =>
@@ -274,9 +298,10 @@ export const EditingFeatureCard = memo(
 
     return (
       <Card
-        className={
-          absentWithStates ? "feature-card--absent-with-states" : undefined
-        }
+        className={classNames(
+          "editing-feature-card",
+          absentWithStates ? "feature-card--absent-with-states" : undefined,
+        )}
         style={{ display: "flex", flexDirection: "column" }}
       >
         <Flex
@@ -411,7 +436,7 @@ export const EditingFeatureCard = memo(
         )}
 
         <Box mt="auto">
-          {notesExpanded ? (
+          {notesExpanded && (
             <>
               <Flex align="center" justify="between" mb="1" mt="3">
                 <Text as="label" size="1" htmlFor={notesInputId}>
@@ -446,23 +471,45 @@ export const EditingFeatureCard = memo(
                 }}
               />
             </>
-          ) : (
-            <Button
-              type="button"
-              size="1"
-              variant="ghost"
-              color="gray"
-              mt="3"
-              ml="1"
-              onClick={() => {
-                focusNotesOnExpandRef.current = true;
-                setNotesExpanded(true);
-              }}
-            >
-              <PiPlus size={10} />
-              Add note
-            </Button>
           )}
+          <Flex
+            align="center"
+            wrap="wrap"
+            gap="2"
+            mt="3"
+            mx="-3"
+            mb="-3"
+            px="3"
+            py="2"
+            style={{
+              borderTop: "1px solid var(--gray-a5)",
+            }}
+          >
+            {!notesExpanded && (
+              <>
+                <Button
+                  type="button"
+                  size="1"
+                  variant="ghost"
+                  ml="1"
+                  className="note-button"
+                  onClick={() => {
+                    focusNotesOnExpandRef.current = true;
+                    setNotesExpanded(true);
+                  }}
+                >
+                  <PiPlus size={10} />
+                  Note
+                </Button>
+                <Separator orientation="vertical" mx="1" />
+              </>
+            )}
+            <FeatureSources
+              sourceIds={feature.sourceIds ?? []}
+              citableSources={citableSources}
+              onChange={handleSourceIdsChange}
+            />
+          </Flex>
         </Box>
       </Card>
     );

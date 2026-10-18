@@ -65,7 +65,11 @@ export const NamesDataList = ({ rank, names }: NamesDataListProps) => {
                   }
                 >
                   {item.locale === "sci" && item.isPreferred ? (
-                    <TaxonName rank={rank} name={item.value} prefixMode="never" />
+                    <TaxonName
+                      rank={rank}
+                      name={item.value}
+                      prefixMode="never"
+                    />
                   ) : (
                     item.value
                   )}

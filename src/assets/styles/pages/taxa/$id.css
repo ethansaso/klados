@@ -17,3 +17,8 @@
     margin: 0 0 var(--space-1);
   }
 }
+
+/* Footnote jump target */
+.taxon-sources-list li:target {
+  background-color: var(--accent-a3);
+}

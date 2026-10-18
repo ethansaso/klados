@@ -576,8 +576,8 @@ export async function updateTaxon(
 
     // 4) character states replace (if provided)
     if (updates.states) {
-      await assertCitedSourcesOnTaxon(tx, id, updates.states);
-      await replaceGroupedCharacterStatesForTaxon(tx, id, updates.states);
+      const states = await dropCitationsNotOnTaxon(tx, id, updates.states);
+      await replaceGroupedCharacterStatesForTaxon(tx, id, states);
     }
 
     // 5) taxon_media replace (if provided)
@@ -602,18 +602,20 @@ export async function updateTaxon(
   });
 }
 
-async function assertCitedSourcesOnTaxon(
+/** Features can only cite the taxon's own sources; others are ignored. */
+async function dropCitationsNotOnTaxon(
   tx: Transaction,
   taxonId: number,
   states: CharacterByFeatureUpdate,
-) {
-  const cited = states.flatMap((f) => f.sourceIds ?? []);
-  if (cited.length === 0) return;
+): Promise<CharacterByFeatureUpdate> {
+  if (!states.some((f) => f.sourceIds?.length)) return states;
 
   const onTaxon = new Set(await selectSourceIdsForTaxon(tx, taxonId));
-  if (cited.some((sourceId) => !onTaxon.has(sourceId))) {
-    throw new Error("Features can only cite sources listed on this taxon.");
-  }
+  return states.map((f) =>
+    f.sourceIds
+      ? { ...f, sourceIds: f.sourceIds.filter((id) => onTaxon.has(id)) }
+      : f,
+  );
 }
 
 export async function getTaxaSitemapEntries(): Promise<

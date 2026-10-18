@@ -9,17 +9,20 @@ import {
   EditingFeatureCard,
 } from "./EditingFeatureCard";
 import { selectExtraction } from "./ExtractionModal";
+import type { NumberedFeatureCitation } from "../-sources/citableSources";
 import { FeatureSearch } from "./search/FeatureSearch";
 import { removeCategoricalTraitValue } from "./stateUtils";
 import type { GroupedCharacterFormValue } from "./validation";
 
 type CharacterEditingFormProps = {
   value: GroupedCharacterFormValue;
+  citableSources: NumberedFeatureCitation[];
   onChange: (next: GroupedCharacterFormValue) => void;
 };
 
 export function CharacterEditingForm({
   value,
+  citableSources,
   onChange,
 }: CharacterEditingFormProps) {
   const { getValues } = useFormContext<TaxonEditFormValues>();
@@ -38,6 +41,7 @@ export function CharacterEditingForm({
         notes: "",
         presence: "present" as const,
         characters: [],
+        sourceIds: [],
       },
     ]);
     setLastAddedFeatureId(option.id);
@@ -119,6 +123,7 @@ export function CharacterEditingForm({
             <EditingFeatureCard
               key={group.featureId}
               feature={group}
+              citableSources={citableSources}
               onChange={onChange}
               onDelete={() => handleDeleteGroup(group.featureId)}
               onRemoveCategoricalValue={handleRemoveCategoricalTrait}

@@ -1,13 +1,17 @@
-import { Box, Strong, Text } from "@radix-ui/themes";
+import "./FeatureRenderer.css";
+
+import { Box, HoverCard, Link, Strong, Text } from "@radix-ui/themes";
 import { Fragment } from "react";
+import type { FeaturePresence } from "../../../../../../db/schema/schema";
 import { GlossaryCharacterCard } from "../../../../../components/glossary-cards/GlossaryCharacterCard";
 import { GlossaryFeatureCard } from "../../../../../components/glossary-cards/GlossaryFeatureCard";
 import { CharacterStateDisplay } from "../../../../../components/state-formatting/CharacterStateDisplay";
-import type { FeaturePresence } from "../../../../../../db/schema/schema";
 import type {
   CharacterStateDTO,
   FeatureStateDTO,
 } from "../../../../../lib/domain/states/types";
+import { formatPublicationUsage } from "../../../../../lib/utils/formatting/formatPublication";
+import type { NumberedFeatureCitation } from "../edit/-sources/citableSources";
 
 const PRESENCE_LABELS: Record<FeaturePresence, string> = {
   present: "present",
@@ -17,9 +21,12 @@ const PRESENCE_LABELS: Record<FeaturePresence, string> = {
 
 export const FeatureRenderer = ({
   feature,
+  citations,
   indentDescription,
 }: {
   feature: FeatureStateDTO;
+  /** Keyed by source ID. */
+  citations: Map<number, NumberedFeatureCitation>;
   indentDescription?: boolean;
 }) => {
   const notes = feature.notes.trim();
@@ -89,7 +96,41 @@ export const FeatureRenderer = ({
       ) : (
         <Text>{PRESENCE_LABELS[feature.presence]}</Text>
       )}
-      {notes.length > 0 && <>; {notes}</>}.{" "}
+      {notes.length > 0 && <>; {notes}</>}.
+      <SourceFootnotes
+        sourceIds={feature.sourceIds}
+        citations={citations}
+      />{" "}
     </Wrapper>
   );
 };
+
+function SourceFootnotes({
+  sourceIds,
+  citations,
+}: {
+  sourceIds: number[];
+  citations: Map<number, NumberedFeatureCitation>;
+}) {
+  const cited = sourceIds
+    .flatMap((id) => citations.get(id) ?? [])
+    .sort((a, b) => a.number - b.number);
+  if (cited.length === 0) return null;
+
+  return (
+    <sup className="source-footnotes">
+      {cited.map(({ number, source }) => (
+        <HoverCard.Root key={source.sourceId}>
+          <HoverCard.Trigger>
+            <Link href={`#source-${source.sourceId}`}>[{number}]</Link>
+          </HoverCard.Trigger>
+          <HoverCard.Content size="1" maxWidth="320px">
+            <Text as="p" size="1">
+              {formatPublicationUsage(source)}
+            </Text>
+          </HoverCard.Content>
+        </HoverCard.Root>
+      ))}
+    </sup>
+  );
+}

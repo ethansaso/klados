@@ -27,7 +27,9 @@ export function formatPublication(source: SourceDTO): string {
   return parts.join(". ") + (parts.length ? "." : "");
 }
 
-export function formatPublicationUsage(ts: TaxonSourceDTO): string {
+export function formatPublicationUsage(
+  ts: Pick<TaxonSourceDTO, "source" | "locator" | "accessedAt">,
+): string {
   const publication = formatPublication(ts.source);
   const locator = ts.locator ? ts.locator.trim() : undefined;
   const accessed = ts.accessedAt

@@ -203,6 +203,7 @@ function TaxonPage() {
               <Text as="div" size={{ initial: "2", sm: "3" }}>
                 <TaxonStateSection
                   groups={characterStates}
+                  sources={sources}
                   indentDescription={indentDescription}
                 />
               </Text>
@@ -271,7 +272,7 @@ function TaxonPage() {
               {sources.length > 0 ? (
                 <ol className="taxon-sources-list">
                   {sources.map((s) => (
-                    <li key={s.id}>
+                    <li key={s.id} id={`source-${s.sourceId}`}>
                       <Text as="span">{formatPublicationUsage(s)}</Text>
                     </li>
                   ))}
