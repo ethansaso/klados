@@ -38,6 +38,6 @@ TanStack Start (React 19, Router, Query) · Radix Themes · react-hook-form + zo
 
 ## Workflow
 
-- Work is tracked as GitHub issues.
+- Work is tracked as GitHub Issues.
 - Never commit, push, or stage.
 - For UI or UX changes, discuss the approach before building unless told to go ahead.

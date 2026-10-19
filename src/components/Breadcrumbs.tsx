@@ -8,7 +8,7 @@ export interface Breadcrumb {
   key: string;
   label: ReactNode;
   to?: string;
-  params?: Record<string, string>;
+  params?: Record<string, string | number>;
   hiddenItems?: Breadcrumb[];
 }
 

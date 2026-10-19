@@ -7,6 +7,7 @@ import type { MediaDTO } from "../lib/domain/media/types";
 import { getMediaUrl } from "../lib/storage/getMediaUrl";
 import { capitalizeFirstLetter } from "../lib/utils/formatting/casing";
 import { formatTaxonName } from "../lib/utils/formatting/formatTaxonName";
+import { taxonParams } from "../lib/utils/formatting/taxonUrl";
 import { AnnotationBubbleWrap } from "./annotations/AnnotationBubbleWrap";
 import "./TaxonCard.css";
 import { TaxonName } from "./TaxonName";
@@ -93,7 +94,7 @@ export const TaxonCard = memo(
       <AnnotationBubbleWrap media={thumbnail} spacing={size}>
         {serveAsLink ? (
           <Card className={className} size={size} asChild>
-            <Link to="/taxa/$id" params={{ id }}>
+            <Link to="/taxa/$id" params={taxonParams({ id, acceptedName })}>
               {content}
             </Link>
           </Card>

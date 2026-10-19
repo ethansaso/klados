@@ -3,10 +3,9 @@ import "./index.css";
 
 import { Box, Button, Card, Flex, Heading, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PiListDashes, PiTextAlignLeft } from "react-icons/pi";
-import z from "zod";
 import {
   type Breadcrumb,
   Breadcrumbs,
@@ -24,6 +23,10 @@ import { getMediaUrl } from "../../../../lib/storage/getMediaUrl";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
 import { formatPublicationUsage } from "../../../../lib/utils/formatting/formatPublication";
 import { formatTaxonName } from "../../../../lib/utils/formatting/formatTaxonName";
+import {
+  taxonParams,
+  taxonPath,
+} from "../../../../lib/utils/formatting/taxonUrl";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { LookalikesList } from "./-lookalikes/LookalikesList";
 import { TaxonStateSection } from "./-states/TaxonStatesSection";
@@ -32,20 +35,31 @@ import { TaxonDetails } from "./-TaxonDetails";
 import { TaxonGBIFDistribution } from "./-TaxonGBIFDistribution";
 import { TaxonImageBrowser } from "./-TaxonImageBrowser";
 
-const ParamsSchema = z.object({
-  id: z.coerce.number().int().positive(),
-});
-
 export const Route = createFileRoute("/_app/taxa/$id/")({
-  params: ParamsSchema,
-  loader: async ({ context, params: { id } }) => {
-    const [taxon] = await Promise.all([
-      context.queryClient.ensureQueryData(taxonQueryOptions(id)),
-      context.queryClient.ensureQueryData(taxonCharacterStatesQueryOptions(id)),
-      context.queryClient.ensureQueryData(lookalikesQueryOptions(id)),
-      context.queryClient.ensureQueryData(sourcesForTaxonQueryOptions(id)),
-      context.queryClient.ensureQueryData(distributionTilesQueryOptions(id)),
+  loader: async ({ context, params: { id, slug } }) => {
+    const { queryClient } = context;
+    const taxonPromise = queryClient.ensureQueryData(taxonQueryOptions(id));
+    const rest = Promise.all([
+      queryClient.ensureQueryData(taxonCharacterStatesQueryOptions(id)),
+      queryClient.ensureQueryData(lookalikesQueryOptions(id)),
+      queryClient.ensureQueryData(sourcesForTaxonQueryOptions(id)),
+      queryClient.ensureQueryData(distributionTilesQueryOptions(id)),
     ]);
+
+    // Redirect stale or missing slugs immediately
+    const taxon = await taxonPromise;
+    const canonical = taxonParams(taxon);
+    if (slug !== canonical.slug) {
+      rest.catch(() => {}); // abandon other reqs
+      throw redirect({
+        to: "/taxa/$id",
+        params: canonical,
+        statusCode: 301,
+        // ! Never cache to avoid redirect loops on a->b->a rename edge case
+        headers: { "Cache-Control": "no-store" },
+      });
+    }
+    await rest;
 
     return { id, taxon };
   },
@@ -55,7 +69,7 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
         ? `${formatTaxonName(loaderData.taxon.rank, loaderData.taxon.acceptedName)} | Klados`
         : "Klados",
       ...(loaderData && taxonPreview(loaderData.taxon)),
-      canonicalUrl: match.pathname,
+      canonicalUrl: loaderData ? taxonPath(loaderData.taxon) : match.pathname,
     }),
   component: TaxonPage,
 });
@@ -78,7 +92,7 @@ function TaxonPage() {
       key: String(ancestor.id),
       label: <TaxonName rank={ancestor.rank} name={ancestor.acceptedName} />,
       to: "/taxa/$id",
-      params: { id: String(ancestor.id) },
+      params: taxonParams(ancestor),
     }));
 
     lineageItems.push({
