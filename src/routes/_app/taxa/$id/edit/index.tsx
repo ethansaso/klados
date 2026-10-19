@@ -75,12 +75,7 @@ export const taxonEditFormSchema = z.object({
 });
 
 export const Route = createFileRoute("/_app/taxa/$id/edit/")({
-  beforeLoad: async ({ params }) => {
-    const id = Number(params.id);
-    if (isNaN(id)) {
-      throw notFound();
-    }
-
+  beforeLoad: async ({ params: { id } }) => {
     const [taxon, values, sources] = await Promise.all([
       getTaxonFn({ data: { id } }),
       getTaxonCharacterStatesFn({ data: { taxonId: id } }),

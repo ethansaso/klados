@@ -20,6 +20,7 @@ import type { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
 import type { TaxonCurationDTO } from "../../../../lib/domain/taxon-edits/types";
 import type { UserDTO } from "../../../../lib/domain/users/types";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
+import { taxonParams } from "../../../../lib/utils/formatting/taxonUrl";
 import { NamesDataList } from "./-NamesDataList";
 
 const DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
@@ -55,14 +56,12 @@ export const TaxonDetails = ({ taxon }: { taxon: TaxonDetailDTO }) => {
           <DataList.Label minWidth="88px">Rank</DataList.Label>
           <DataList.Value>{capitalizeFirstLetter(taxon.rank)}</DataList.Value>
         </DataList.Item>
-        {taxon.parentId && (
+        {parent && (
           <DataList.Item>
             <DataList.Label minWidth="88px">Parent</DataList.Label>
             <DataList.Value>
-              <RouterRadixLink to="/taxa/$id" params={{ id: taxon.parentId }}>
-                {parent && (
-                  <TaxonName rank={parent.rank} name={parent.acceptedName} />
-                )}
+              <RouterRadixLink to="/taxa/$id" params={taxonParams(parent)}>
+                <TaxonName rank={parent.rank} name={parent.acceptedName} />
               </RouterRadixLink>
             </DataList.Value>
           </DataList.Item>
@@ -77,7 +76,7 @@ export const TaxonDetails = ({ taxon }: { taxon: TaxonDetailDTO }) => {
                 {taxon.subtaxa.map((st, i, arr) => (
                   <Flex key={st.id} display="inline-flex" align="center">
                     <RadixLink asChild>
-                      <Link to="/taxa/$id" params={{ id: st.id }}>
+                      <Link to="/taxa/$id" params={taxonParams(st)}>
                         <Text as="span">
                           <TaxonName rank={st.rank} name={st.acceptedName} />
                         </Text>
@@ -189,7 +188,7 @@ export const TaxonDetails = ({ taxon }: { taxon: TaxonDetailDTO }) => {
       <CuratorOnly>
         <Box asChild width="100%" mt="4">
           <Button asChild size="2" variant="surface">
-            <Link to="/taxa/$id/edit" params={{ id: String(taxon.id) }}>
+            <Link to="/taxa/$id/edit" params={taxonParams(taxon)}>
               <PiPencilSimple />
               Edit
             </Link>

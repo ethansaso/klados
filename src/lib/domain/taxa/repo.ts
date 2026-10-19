@@ -659,9 +659,11 @@ export async function selectIndexableTaxa() {
   return db
     .select({
       id: taxaTbl.id,
+      acceptedName: sci.value,
       updatedAt: taxaTbl.updatedAt,
     })
     .from(taxaTbl)
+    .innerJoin(sci, sciJoinPred)
     .where(eq(taxaTbl.status, "active"))
     .orderBy(taxaTbl.id);
 }

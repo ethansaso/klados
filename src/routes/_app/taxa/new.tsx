@@ -44,6 +44,7 @@ import {
 import { taxonQueryOptions } from "../../../lib/queries/taxa";
 import { createTaxonDraftFn } from "../../../lib/server-fns/taxa/createTaxonDraftFn";
 import { formatTaxonName } from "../../../lib/utils/formatting/formatTaxonName";
+import { taxonParams } from "../../../lib/utils/formatting/taxonUrl";
 import { getErrorMessage } from "../../../lib/utils/getErrorMessage";
 import { routeSeo } from "../../../lib/utils/head/routeSeo";
 import { toast } from "../../../lib/utils/toast";
@@ -159,7 +160,7 @@ function RouteComponent() {
         },
       });
 
-      navigate({ to: `/taxa/${res.id}/edit` });
+      navigate({ to: "/taxa/$id/edit", params: taxonParams(res) });
       toast({
         description: `Successfully created draft for ${formatTaxonName(res.rank, res.acceptedName)}${
           imported

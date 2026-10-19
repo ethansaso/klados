@@ -51,6 +51,7 @@ import {
   getChildCount,
   getCurrentTaxonMinimal,
 } from "./utils";
+import { taxonPath } from "../../utils/formatting/taxonUrl";
 import type { UpdateTaxonInput } from "./validation";
 
 /** ! Callers should send partial updates. */
@@ -627,7 +628,7 @@ export async function getTaxaSitemapEntries(): Promise<
   const taxa = await selectIndexableTaxa();
 
   return taxa.map((t) => ({
-    loc: `https://klados.bio/taxa/${t.id}`,
+    loc: `https://klados.bio${taxonPath(t)}`,
     lastmod: t.updatedAt.toISOString().slice(0, 10),
   }));
 }
