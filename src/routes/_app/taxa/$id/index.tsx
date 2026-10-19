@@ -300,9 +300,10 @@ function taxonPreview(taxon: TaxonDetailDTO) {
   const name = taxon.preferredCommonName
     ? `${capitalizeFirstLetter(taxon.preferredCommonName)} (${taxon.acceptedName})`
     : taxon.acceptedName;
+  const article = /^[aeiou]/.test(taxon.rank) ? "an" : "a";
   const placement = parent
-    ? `a ${taxon.rank} in the ${parent.rank} ${parent.acceptedName}`
-    : `a ${taxon.rank}`;
+    ? `${article} ${taxon.rank} in the ${parent.rank} ${parent.acceptedName}`
+    : `${article} ${taxon.rank}`;
   const photo = taxon.media[0];
 
   return {
