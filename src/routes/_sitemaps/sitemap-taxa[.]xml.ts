@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTaxaSitemapEntriesFn } from "../../lib/server-fns/sitemap/getTaxaSitemapEntriesFn";
+import { getTaxaSitemapEntries } from "../../lib/domain/taxa/service";
 import { renderSitemapXml } from "./-renderSitemapXml";
 
 export const Route = createFileRoute("/_sitemaps/sitemap-taxa.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const entries = await getTaxaSitemapEntriesFn();
+        const entries = await getTaxaSitemapEntries();
         const xml = renderSitemapXml(entries);
 
         return new Response(xml, {

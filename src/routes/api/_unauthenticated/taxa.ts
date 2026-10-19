@@ -1,15 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { listTaxaFn } from "../../../lib/server-fns/taxa/listTaxaFn";
+import { TaxonSearchSchema } from "../../../lib/domain/taxa/search";
+import { listTaxa } from "../../../lib/domain/taxa/service";
 import { getQueryParams } from "../../../lib/utils/getQueryParams";
 
 export const Route = createFileRoute("/api/_unauthenticated/taxa")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const query = getQueryParams(request);
+        const parsed = TaxonSearchSchema.safeParse(getQueryParams(request));
+        if (!parsed.success) {
+          return Response.json(
+            { issues: parsed.error.issues },
+            { status: 400 },
+          );
+        }
 
-        const taxa = await listTaxaFn({ data: query });
-        return Response.json(taxa);
+        return Response.json(await listTaxa(parsed.data));
       },
     },
   },

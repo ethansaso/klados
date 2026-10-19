@@ -28,15 +28,19 @@ export const Route = createFileRoute("/_app/users/$username/")({
 
     if (me?.username === effectiveUsername) isMe = true;
 
-    await context.queryClient.ensureQueryData(
-      userQueryOptions(effectiveUsername)
+    const user = await context.queryClient.ensureQueryData(
+      userQueryOptions(effectiveUsername),
     );
 
-    return { effectiveUsername, isMe };
+    return { effectiveUsername, isMe, user };
   },
   head: ({ loaderData, match }) =>
     routeSeo({
       title: loaderData ? `${loaderData.effectiveUsername} | Klados` : "Klados",
+      description: loaderData
+        ? loaderData.user?.description?.trim() ||
+          `${loaderData.effectiveUsername} on Klados.`
+        : undefined,
       canonicalUrl: match.pathname,
     }),
 

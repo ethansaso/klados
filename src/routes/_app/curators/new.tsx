@@ -14,6 +14,8 @@ export const Route = createFileRoute("/_app/curators/new")({
   head: ({ match }) =>
     routeSeo({
       title: "Become a curator | Klados",
+      description:
+        "Curators describe taxa and build identification guides on Klados. If you have expertise, here is how to apply.",
       canonicalUrl: match.pathname,
     }),
   component: RouteComponent,

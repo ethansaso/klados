@@ -14,11 +14,14 @@ import {
 import { ContentContainer } from "../../../../components/ContentContainer";
 import { TaxonName } from "../../../../components/TaxonName";
 import { supportsLookalikes } from "../../../../lib/domain/lookalikes/util";
+import type { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
 import { distributionTilesQueryOptions } from "../../../../lib/queries/distributionTiles";
 import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
 import { taxonQueryOptions } from "../../../../lib/queries/taxa";
 import { taxonCharacterStatesQueryOptions } from "../../../../lib/queries/taxonCharacterStates";
 import { sourcesForTaxonQueryOptions } from "../../../../lib/queries/taxonSources";
+import { getMediaUrl } from "../../../../lib/storage/getMediaUrl";
+import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
 import { formatPublicationUsage } from "../../../../lib/utils/formatting/formatPublication";
 import { formatTaxonName } from "../../../../lib/utils/formatting/formatTaxonName";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
@@ -51,6 +54,7 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
       title: loaderData
         ? `${formatTaxonName(loaderData.taxon.rank, loaderData.taxon.acceptedName)} | Klados`
         : "Klados",
+      ...(loaderData && taxonPreview(loaderData.taxon)),
       canonicalUrl: match.pathname,
     }),
   component: TaxonPage,
@@ -288,4 +292,21 @@ function TaxonPage() {
       </div>
     </ContentContainer>
   );
+}
+
+/** Link preview text and image for a taxon. */
+function taxonPreview(taxon: TaxonDetailDTO) {
+  const parent = taxon.ancestors.at(-1);
+  const name = taxon.preferredCommonName
+    ? `${capitalizeFirstLetter(taxon.preferredCommonName)} (${taxon.acceptedName})`
+    : taxon.acceptedName;
+  const placement = parent
+    ? `a ${taxon.rank} in the ${parent.rank} ${parent.acceptedName}`
+    : `a ${taxon.rank}`;
+  const photo = taxon.media[0];
+
+  return {
+    description: `${name}, ${placement}. Morphology, similar taxa, and distribution on Klados.`,
+    image: photo ? getMediaUrl(photo.storageKey) : undefined,
+  };
 }

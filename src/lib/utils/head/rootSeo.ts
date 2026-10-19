@@ -5,29 +5,23 @@ export type SeoInput = {
   canonicalUrl: string;
   description?: string;
   image?: string;
-  keywords?: string;
 };
 
-export function rootSeo({
-  title,
-  description,
-  keywords,
-  image,
-  canonicalUrl,
-}: SeoInput) {
+export function rootSeo({ title, description, image, canonicalUrl }: SeoInput) {
   const imageAbs = absoluteUrl(image);
 
   return {
     meta: [
       { title },
       { name: "description", content: description },
-      { name: "keywords", content: keywords },
       { name: "theme-color", content: "#FFC53D" },
 
       // Open Graph
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Klados" },
       { property: "og:title", content: title },
       { property: "og:description", content: description },
+      { property: "og:url", content: absoluteUrl(canonicalUrl) },
       imageAbs ? { property: "og:image", content: imageAbs } : null,
 
       // Twitter

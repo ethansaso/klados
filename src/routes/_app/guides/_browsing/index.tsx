@@ -23,7 +23,12 @@ export const Route = createFileRoute("/_app/guides/_browsing/")({
     );
   },
   head: ({ match }) =>
-    routeSeo({ title: "Browse Guides | Klados", canonicalUrl: match.pathname }),
+    routeSeo({
+      title: "Browse Guides | Klados",
+      description:
+        "Browse flowchart-style identification guides, built by curators from structured data.",
+      canonicalUrl: match.pathname,
+    }),
   component: RouteComponent,
 });
 

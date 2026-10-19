@@ -6,6 +6,7 @@ export const Route = createFileRoute("/_app/users/")({
   head: ({ match }) =>
     routeSeo({
       title: "Users | Klados",
+      description: "The people who use and curate Klados.",
       canonicalUrl: match.pathname,
     }),
   component: RouteComponent,
