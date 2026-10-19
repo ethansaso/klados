@@ -24,11 +24,13 @@ export const Route = createFileRoute("/_app/guides/$id/")({
 
     return { id, guide };
   },
-  head: ({ loaderData }) =>
+  head: ({ loaderData, match }) =>
     routeSeo({
       title: loaderData
         ? `Guide '${loaderData.guide.name}' | Klados`
         : "Klados",
+      description: loaderData?.guide.description.trim() || undefined,
+      canonicalUrl: match.pathname,
     }),
   component: RouteComponent,
 });

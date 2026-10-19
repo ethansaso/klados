@@ -66,6 +66,8 @@ export const Route = createFileRoute("/_app/taxa/")({
   head: ({ match }) =>
     routeSeo({
       title: "Taxa | Klados",
+      description:
+        "Browse taxa on Klados, with morphological descriptions, photos, similar taxa, and distribution maps.",
       canonicalUrl: match.pathname,
     }),
   component: TaxaListPage,

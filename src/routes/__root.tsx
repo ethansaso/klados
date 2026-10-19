@@ -38,8 +38,8 @@ export const Route = createRootRouteWithContext<{
   head: ({ match }) => {
     const { meta } = rootSeo({
       title: "Klados",
-      description: "Twenty-first century identification.",
-      image: "/logos/LogoBrand.png",
+      description: "Visual tools for organisms.",
+      image: "/og/default.png",
       canonicalUrl: match.pathname,
     });
 

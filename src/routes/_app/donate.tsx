@@ -8,6 +8,8 @@ export const Route = createFileRoute("/_app/donate")({
   head: ({ match }) =>
     routeSeo({
       title: "Donate | Klados",
+      description:
+        "Klados is free to use and paid for out of pocket. Contributions help cover hosting, storage, and the domain.",
       canonicalUrl: match.pathname,
     }),
   component: RouteComponent,
