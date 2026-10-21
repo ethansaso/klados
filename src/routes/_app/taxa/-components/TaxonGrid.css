@@ -1,4 +1,48 @@
-/* Phone tiles (see TaxonCard.css) sit tighter. */
+/* Tiles fill their cell; only some are wrapped by the attribution bubble. */
+.taxon-grid__cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+
+  > .annotation-bubble__wrapper {
+    height: 100%;
+  }
+}
+
+/* One wide tile per two columns, so the featured tiles fill the first row.
+   Phones keep the plain dense grid. */
+.taxon-grid--featured {
+  @media (min-width: 520px) {
+    > :nth-child(-n + 2) {
+      grid-column: span 2;
+      aspect-ratio: 3 / 2;
+      --tile-padding: var(--space-3);
+      --tile-name-size: var(--font-size-5);
+      --tile-common-name-size: var(--font-size-2);
+
+      /* Credit icon lines up with the wider caption inset. */
+      > .annotation-bubble__wrapper {
+        --edge-spacing: var(--space-2);
+      }
+    }
+  }
+
+  @media (min-width: 1024px) {
+    > :nth-child(3) {
+      grid-column: span 2;
+      aspect-ratio: 3 / 2;
+      --tile-padding: var(--space-3);
+      --tile-name-size: var(--font-size-5);
+      --tile-common-name-size: var(--font-size-2);
+
+      /* Credit icon lines up with the wider caption inset. */
+      > .annotation-bubble__wrapper {
+        --edge-spacing: var(--space-2);
+      }
+    }
+  }
+}
+
+/* Phone tiles sit tighter. */
 @media (max-width: 519px) {
   .taxon-grid {
     gap: 2px;

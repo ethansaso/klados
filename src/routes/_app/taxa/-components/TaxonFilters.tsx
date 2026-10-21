@@ -18,7 +18,6 @@ import {
 } from "../../../../../db/schema/schema";
 import { type TaxonSearchParams } from "../../../../lib/domain/taxa/search";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
-import { TaxonStateFilterField } from "./TaxonStateFilterField";
 
 type Props = {
   search: TaxonSearchParams;
@@ -195,19 +194,6 @@ export function TaxonFilters({ search, setSearch }: Props) {
                   </Text>
                 </Flex>
               ))}
-            </Flex>
-          </Box>
-          <Separator
-            orientation="vertical"
-            className="taxon-filters__separator"
-          />
-          <Box minWidth="256px">
-            <Flex direction="column" gap="2" style={{ minWidth: 180 }}>
-              <TaxonStateFilterField
-                label={<Heading size="2">Morphology</Heading>}
-                selected={search.filters}
-                onChange={(filters) => setSearch({ filters })}
-              />
             </Flex>
           </Box>
         </Flex>

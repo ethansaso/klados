@@ -11,7 +11,7 @@ export type PaginationParams = z.infer<typeof PaginationSchema>;
 
 export const paginationDefaults = {
   page: 1,
-  pageSize: 20,
+  pageSize: 30,
 };
 
 export const PaginationSchema = z.object({

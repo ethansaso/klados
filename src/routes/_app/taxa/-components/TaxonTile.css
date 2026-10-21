@@ -1,0 +1,87 @@
+.taxon-tile {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: var(--radius-3);
+  background-color: var(--gray-4);
+  color: white;
+  text-decoration: none;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  img[data-placeholder] {
+    box-sizing: border-box;
+    padding: 14%;
+    object-fit: contain;
+  }
+
+  /* Drawn over the photo; an outline would be clipped by the rounding. */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  &:hover::after,
+  &:focus-visible::after {
+    box-shadow: inset 0 0 0 2px var(--accent-9);
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+.taxon-tile__caption {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: var(--space-6) var(--tile-padding, var(--space-2))
+    var(--tile-padding, var(--space-2));
+  background: linear-gradient(to top, rgb(0 0 0 / 0.72), rgb(0 0 0 / 0));
+}
+
+.taxon-tile__name {
+  font-size: var(--tile-name-size, var(--font-size-2));
+  font-weight: 600;
+}
+
+.taxon-tile__common-name {
+  font-size: var(--tile-common-name-size, var(--font-size-1));
+  opacity: 0.88;
+}
+
+/* Phones: name only, on a blurred strip. ! No attribution. */
+@media (max-width: 519px) {
+  .annotation-bubble__wrapper:has(> .taxon-tile) .annotation-bubble {
+    display: none;
+  }
+
+  .taxon-tile {
+    border-radius: var(--radius-2);
+
+    img[data-placeholder] {
+      padding: 20%;
+    }
+  }
+
+  .taxon-tile__caption {
+    padding: var(--space-1);
+    background: rgb(0 0 0 / 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .taxon-tile__name {
+    font-size: var(--font-size-1);
+    font-weight: normal;
+  }
+
+  .taxon-tile__common-name {
+    display: none;
+  }
+}
