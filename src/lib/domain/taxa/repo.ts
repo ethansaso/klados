@@ -2,6 +2,7 @@ import {
   and,
   asc,
   count,
+  desc,
   eq,
   exists,
   inArray,
@@ -27,7 +28,7 @@ import { lowerLike } from "../../utils/sql/lowerLike";
 import type { Transaction } from "../../utils/types/transactionType";
 import { selectMediaByTaxonIds } from "../media/repo";
 import { selectTaxonCuration } from "../taxon-edits/repo";
-import type { TaxonSearchParams } from "./search";
+import type { TaxonSearchParams, TaxonSort } from "./search";
 import {
   common,
   commonJoinPred,
@@ -402,7 +403,7 @@ export type ResolvedFilter =
 
 export async function listTaxaQuery(
   args: TaxonSearchParams,
-  opts: { filters: ResolvedFilter[] } = { filters: [] },
+  opts: { filters: ResolvedFilter[]; sort?: TaxonSort } = { filters: [] },
 ): Promise<TaxonPaginatedResult> {
   const {
     q,
@@ -586,7 +587,11 @@ export async function listTaxaQuery(
     .innerJoin(sci, sciJoinPred)
     .leftJoin(common, commonJoinPred)
     .where(where)
-    .orderBy(asc(taxaTbl.rank), asc(taxaTbl.id))
+    .orderBy(
+      ...(opts.sort === "completeness" ? completenessOrder() : []),
+      asc(taxaTbl.rank),
+      asc(taxaTbl.id),
+    )
     .limit(pageSize)
     .offset(offset);
 
@@ -600,6 +605,27 @@ export async function listTaxaQuery(
   }));
 
   return { items, page, pageSize, total };
+}
+
+/**
+ * Morphology + photo, morphology, photo, then neither; richer descriptions
+ * first within each. Feature states count even when "absent": this ranks how
+ * thoroughly a taxon is written up, not how many features it bears.
+ */
+function completenessOrder(): SQL[] {
+  const featureCount = sql`(${db
+    .select({ n: count() })
+    .from(featureStatesTbl)
+    .where(eq(featureStatesTbl.taxonId, taxaTbl.id))})`;
+  const hasPhoto = exists(
+    db
+      .select({ _: sql`1` })
+      .from(taxonMediaTbl)
+      .where(eq(taxonMediaTbl.taxonId, taxaTbl.id)),
+  );
+  const tier = sql`(case when ${featureCount} > 0 then 0 else 2 end) + (case when ${hasPhoto} then 0 else 1 end)`;
+
+  return [asc(tier), desc(featureCount)];
 }
 
 /**

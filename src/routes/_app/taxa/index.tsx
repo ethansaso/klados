@@ -30,6 +30,7 @@ import {
   TaxonStateFilterChips,
   TaxonStateFilterPopover,
 } from "./-components/TaxonStateFilter";
+import { isDefaultTaxonListing } from "./-defaultListing";
 import { useTaxonSearchControls } from "./-hooks/useTaxonSearchControls";
 import "./index.css";
 
@@ -60,6 +61,7 @@ export const Route = createFileRoute("/_app/taxa/")({
         hasMorphology,
         hasEcology,
         filters,
+        sort: isDefaultTaxonListing(deps) ? "completeness" : undefined,
       }),
     );
   },
@@ -95,6 +97,7 @@ function TaxaListPage() {
       hasMorphology: search.hasMorphology,
       hasEcology: search.hasEcology,
       filters: search.filters,
+      sort: isDefaultTaxonListing(search) ? "completeness" : undefined,
     }),
   );
 
@@ -103,8 +106,8 @@ function TaxaListPage() {
   // order; `search.q` can lag and would overwrite newer typing.
   const urlQ = useRouterState({ select: (s) => s.location.search.q ?? "" });
 
-  // Widened tiles only lead the unsearched listing
-  const featured = page === 1 && !search.q && !search.filters.length;
+  // Widen tiles only for default display
+  const featured = page === 1 && isDefaultTaxonListing(search);
 
   return (
     <ContentContainer align="stretch" gray>

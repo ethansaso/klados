@@ -8,6 +8,9 @@ import { PaginationSchema } from "../../validation/pagination";
 
 const TaxonStatusEnum = z.enum(TAXON_STATUSES);
 
+/** Orders a caller can opt into; name searches keep their match order. */
+export const TAXON_SORTS = ["completeness"] as const;
+
 /** Statuses selected when the user hasn't touched the status filter. */
 export const DEFAULT_TAXON_STATUSES: TaxonStatus[] = ["active"];
 
@@ -87,6 +90,8 @@ export const TaxonFilterSchema = z.object({
   hasMorphology: BooleanParam,
   hasEcology: BooleanParam,
   filters: TaxonFilterTokensSchema,
+  /** Ignored when searching by name, which orders by match. */
+  sort: z.enum(TAXON_SORTS).optional(),
 });
 
 export const TaxonSearchSchema = PaginationSchema.extend(
@@ -97,6 +102,7 @@ export const TaxonSearchSchema = PaginationSchema.extend(
 export type TaxonFilterInput = z.input<typeof TaxonFilterSchema>;
 export type TaxonFilters = z.infer<typeof TaxonFilterSchema>;
 export type TaxonSearchParams = z.infer<typeof TaxonSearchSchema>;
+export type TaxonSort = (typeof TAXON_SORTS)[number];
 export type FeatureFilterToken = z.infer<typeof FeatureFilter>;
 export type CategoricalStateFilterToken = z.infer<
   typeof CategoricalStateFilter
