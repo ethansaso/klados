@@ -313,7 +313,10 @@ export async function getTaxaByIds(ids: number[]): Promise<TaxonDTO[]> {
 export async function listTaxa(
   args: TaxonSearchParams,
 ): Promise<TaxonPaginatedResult> {
-  return listTaxaQuery(args, { filters: await resolveFilters(args.filters) });
+  return listTaxaQuery(args, {
+    filters: await resolveFilters(args.filters),
+    sort: args.sort,
+  });
 }
 
 /**

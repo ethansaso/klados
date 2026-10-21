@@ -37,6 +37,7 @@ export const taxaQueryOptions = (
         hasMorphology: filters?.hasMorphology ?? null,
         hasEcology: filters?.hasEcology ?? null,
         filters: tokens.map((token) => JSON.stringify(token)).sort(),
+        sort: filters?.sort ?? null,
       },
     ] as const,
     queryFn: () =>
@@ -52,6 +53,7 @@ export const taxaQueryOptions = (
           hasMorphology: filters?.hasMorphology,
           hasEcology: filters?.hasEcology,
           filters: tokens,
+          sort: filters?.sort,
         },
       }) as Promise<TaxonPaginatedResult>,
   });
