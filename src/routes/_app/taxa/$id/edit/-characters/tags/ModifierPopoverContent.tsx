@@ -10,7 +10,7 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import { PiPlus, PiX } from "react-icons/pi";
 import { DebouncedTextField } from "../../../../../../../components/inputs/DebouncedTextField";
 import { modifierSuggestionsQueryOptions } from "../../../../../../../lib/queries/suggestions";
@@ -51,17 +51,29 @@ export function ModifierPopoverContent({
     }));
 
   const listRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(-1);
+  const listId = useId();
+  // Focus stays in the input; arrows move this highlight, Enter adds it
+  const [activeIndexRaw, setActiveIndexRaw] = useState(0);
+  const activeIndex = available.length
+    ? Math.min(activeIndexRaw, available.length - 1)
+    : -1;
 
-  // Auto-activate first item whenever the list updates (mirrors Ariakit autoSelect="always").
   useEffect(() => {
-    setActiveIndex(available.length > 0 ? 0 : -1);
-  }, [suggestions, modifiers]);
+    listRef.current
+      ?.querySelector("[data-active-item]")
+      ?.scrollIntoView({ block: "nearest" });
+  }, [activeIndex, available.length]);
+
+  const handleQueryChange = (next: string) => {
+    setQ(next);
+    setActiveIndexRaw(0);
+  };
 
   const handleAdd = (m: ModifierTokenFormValue) => {
     onAdd(m);
     // Reset the text input and clear the committed query.
     setQ("");
+    setActiveIndexRaw(0);
     setInputKey((k) => k + 1);
     // Defer focus until after React reconciles the remounted DebouncedTextField.
     requestAnimationFrame(() => filterInputRef.current?.focus());
@@ -70,42 +82,16 @@ export function ModifierPopoverContent({
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      const buttons =
-        listRef.current?.querySelectorAll<HTMLButtonElement>("button");
-      if (buttons?.length) {
-        buttons[0]?.focus();
-        setActiveIndex(0);
-      }
-    } else if (
-      e.key === "Enter" &&
-      activeIndex >= 0 &&
-      available[activeIndex]
-    ) {
-      e.preventDefault();
-      handleAdd(available[activeIndex]!);
-    }
-  };
-
-  const handleListKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const buttons = Array.from(
-      listRef.current?.querySelectorAll<HTMLButtonElement>("button") ?? [],
-    );
-    const idx = buttons.indexOf(e.target as HTMLButtonElement);
-    if (idx === -1) return;
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      buttons[idx + 1]?.focus();
-      setActiveIndex(idx + 1);
+      setActiveIndexRaw(Math.min(activeIndex + 1, available.length - 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      if (idx === 0) {
-        filterInputRef.current?.focus();
-        setActiveIndex(0);
-      } else {
-        buttons[idx - 1]?.focus();
-        setActiveIndex(idx - 1);
-      }
+      setActiveIndexRaw(Math.max(activeIndex - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      // Rows may be from the last search while the next is pending or loading
+      if (e.currentTarget.value !== q || isFetching) return;
+      const m = available[activeIndex];
+      if (m) handleAdd(m);
     }
   };
 
@@ -160,32 +146,41 @@ export function ModifierPopoverContent({
         size="1"
         placeholder="Search modifiers…"
         initialValue=""
-        onDebouncedChange={setQ}
+        onDebouncedChange={handleQueryChange}
         onKeyDown={handleInputKeyDown}
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded
+        aria-controls={listId}
+        aria-activedescendant={
+          activeIndex >= 0 ? `${listId}-${activeIndex}` : undefined
+        }
         mb="2"
       />
 
       {/* ── Available modifiers list ── */}
       <ScrollArea type="auto" scrollbars="vertical" style={{ maxHeight: 200 }}>
-        {isFetching ? (
+        {available.length === 0 ? (
           <Text size="1" color="gray">
-            Searching…
-          </Text>
-        ) : available.length === 0 ? (
-          <Text size="1" color="gray">
-            No matching modifiers found.
+            {isFetching ? "Searching…" : "No matching modifiers found."}
           </Text>
         ) : (
           <Flex
             ref={listRef}
+            id={listId}
+            role="listbox"
             direction="column"
             gap="0"
-            onKeyDown={handleListKeyDown}
             pr="3"
           >
             {available.map((m, i) => (
               <Button
                 key={m.id}
+                id={`${listId}-${i}`}
+                role="option"
+                aria-selected={i === activeIndex}
+                // Reached by arrows from the input, not by Tab
+                tabIndex={-1}
                 type="button"
                 variant="ghost"
                 color="gray"
@@ -193,7 +188,7 @@ export function ModifierPopoverContent({
                 style={{ width: "100%", justifyContent: "space-between" }}
                 className="modifier-tag__available-item"
                 data-active-item={i === activeIndex || undefined}
-                onMouseEnter={() => setActiveIndex(i)}
+                onMouseEnter={() => setActiveIndexRaw(i)}
                 onClick={() => handleAdd(m)}
               >
                 <Flex align="center" gap="1">

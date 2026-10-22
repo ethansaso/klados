@@ -17,6 +17,8 @@ export const modifierSuggestionsQueryOptions = (q: string) =>
         ModifierSuggestion[]
       >,
     staleTime: 5_000,
+    // The modifier list stays up (and keyboard-navigable) while a search loads
+    placeholderData: keepPreviousData,
   });
 
 /** Suggestions for the taxa filters; `featureId` narrows, omitting it searches all. */
