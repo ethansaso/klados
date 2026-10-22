@@ -30,6 +30,8 @@ type Props = {
   selected: TaxonFilterToken[];
   onChange: (tokens: TaxonFilterToken[]) => void;
 };
+type FeatureOption = ComboboxOption & { id: number };
+type StateOption = ComboboxOption & { suggestion: TraitSuggestion };
 
 /**
  * Popover to add one filter chip for a feature, character, or both.
@@ -41,12 +43,8 @@ export function TaxonStateFilterPopover({
   children,
 }: PropsWithChildren<Props>) {
   const [open, setOpen] = useState(false);
-  const [feature, setFeature] = useState<ComboboxOption | null>(null);
-  // Combobox for display, suggestion for actual state
-  const [state, setState] = useState<{
-    option: ComboboxOption;
-    suggestion: TraitSuggestion;
-  } | null>(null);
+  const [feature, setFeature] = useState<FeatureOption | null>(null);
+  const [state, setState] = useState<StateOption | null>(null);
   const [featureQ, setFeatureQ] = useState("");
   const [stateQ, setStateQ] = useState("");
 
@@ -59,26 +57,29 @@ export function TaxonStateFilterPopover({
       featureId: feature?.id,
     }),
   );
-  const featureOptions: ComboboxOption[] = (featureData ?? []).map((f) => ({
+  const featureOptions: FeatureOption[] = (featureData ?? []).map((f) => ({
     id: f.id,
     label: f.label,
   }));
 
   const selectedKeys = new Set(selected.map(filterTokenKey));
 
-  // Suggestions have no id of their own, so options are keyed by position.
-  const offered = (suggestions ?? []).filter((suggestion) => {
+  // Suggestions have no id of their own; the filter they'd make is unique.
+  const stateOptions = (suggestions ?? []).flatMap((suggestion) => {
     const token = tokenFromSuggestion(suggestion, feature?.id);
-    return token !== null && !selectedKeys.has(filterTokenKey(token));
+    if (!token || selectedKeys.has(filterTokenKey(token))) return [];
+
+    const option: StateOption = {
+      id: filterTokenKey(token),
+      label:
+        suggestion.kind === "categorical-value"
+          ? suggestion.traitValueLabel
+          : suggestion.displayValue,
+      hint: suggestion.characterLabel,
+      suggestion,
+    };
+    return [option];
   });
-  const stateOptions: ComboboxOption[] = offered.map((suggestion, index) => ({
-    id: index,
-    label:
-      suggestion.kind === "categorical-value"
-        ? suggestion.traitValueLabel
-        : suggestion.displayValue,
-    hint: suggestion.characterLabel,
-  }));
 
   const pending = state
     ? tokenFromSuggestion(state.suggestion, feature?.id)
@@ -97,7 +98,7 @@ export function TaxonStateFilterPopover({
   };
 
   // Scoping to a different feature can invalidate picked state.
-  const changeFeature = (next: ComboboxOption | null) => {
+  const changeFeature = (next: FeatureOption | null) => {
     setFeature(next);
     setState(null);
   };
@@ -126,17 +127,9 @@ export function TaxonStateFilterPopover({
             onQueryChange={setFeatureQ}
           >
             <SelectCombobox.Trigger placeholder="Any feature" />
-            <SelectCombobox.Content behavior="input" matchTriggerWidth>
+            <SelectCombobox.Content matchTriggerWidth>
               <SelectCombobox.Input placeholder="Search features…" />
-              <SelectCombobox.List>
-                {featureOptions.map((option, index) => (
-                  <SelectCombobox.Item
-                    key={option.id}
-                    option={option}
-                    index={index}
-                  />
-                ))}
-              </SelectCombobox.List>
+              <SelectCombobox.List />
             </SelectCombobox.Content>
           </SelectCombobox.Root>
         </Box>
@@ -165,31 +158,20 @@ export function TaxonStateFilterPopover({
         <Box mt="1">
           <SelectCombobox.Root
             id={STATE_ID}
-            value={state?.option ?? null}
-            onValueChange={(option) => {
-              const suggestion = option ? offered[option.id] : undefined;
-              setState(option && suggestion ? { option, suggestion } : null);
-            }}
+            value={state}
+            onValueChange={setState}
             options={stateOptions}
             onQueryChange={setStateQ}
             loading={isLoading}
           >
             <SelectCombobox.Trigger placeholder="Any state" />
-            <SelectCombobox.Content behavior="input" matchTriggerWidth>
+            <SelectCombobox.Content matchTriggerWidth>
               <SelectCombobox.Input
                 placeholder={
                   feature ? `Search ${feature.label} states…` : "Search states…"
                 }
               />
-              <SelectCombobox.List>
-                {stateOptions.map((option, index) => (
-                  <SelectCombobox.Item
-                    key={option.id}
-                    option={option}
-                    index={index}
-                  />
-                ))}
-              </SelectCombobox.List>
+              <SelectCombobox.List />
             </SelectCombobox.Content>
           </SelectCombobox.Root>
         </Box>

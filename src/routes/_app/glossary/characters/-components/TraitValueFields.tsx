@@ -26,6 +26,9 @@ const SYNONYM_CANDIDATE_LIMIT = 20;
 
 export type TraitValueMembership = z.infer<typeof membershipSchema>;
 export type TraitValueFormValues = z.infer<typeof traitValueFormSchema>;
+type SynonymOption = ComboboxOption & {
+  membership: NonNullable<TraitValueMembership>;
+};
 
 /** Null to signal sole membership */
 export const membershipSchema = z
@@ -98,23 +101,19 @@ export function TraitValueFields({
   );
 
   /** Keyed by set for edge case where synonyms change while editing trait. */
-  const candidateOptions: ComboboxOption[] = useMemo(
+  const candidateOptions: SynonymOption[] = useMemo(
     () =>
-      (candidates ?? []).map((c) => ({
-        id: c.synonymSetId,
-        label: c.labels[0] ?? "",
-        hint: c.labels.length > 1 ? `+ ${c.labels.slice(1).join(", ")}` : "",
-        adornment: swatch(c.hexCode),
-      })),
+      (candidates ?? []).map((c) =>
+        toSynonymOption({
+          synonymSetId: c.synonymSetId,
+          traitId: c.headTraitId,
+          labels: c.labels,
+          hexCode: c.hexCode,
+        }),
+      ),
     [candidates],
   );
-
-  /** Trigger references a single synonym for payload, but labels w/ all synonyms. */
-  const selectedOption: ComboboxOption | null = membership && {
-    id: membership.synonymSetId,
-    label: membership.labels.join(", "),
-    adornment: swatch(membership.hexCode),
-  };
+  const selectedOption = membership && toSynonymOption(membership);
 
   return (
     <>
@@ -163,38 +162,27 @@ export function TraitValueFields({
               value={selectedOption}
               onValueChange={(opt) => {
                 // Clearing leaves the trait standing on its own
-                const set =
-                  opt && candidates?.find((c) => c.synonymSetId === opt.id);
-
-                field.onChange(
-                  set
-                    ? {
-                        synonymSetId: set.synonymSetId,
-                        traitId: set.headTraitId,
-                        labels: set.labels,
-                        hexCode: set.hexCode,
-                      }
-                    : null,
-                );
+                field.onChange(opt?.membership ?? null);
                 setSynonymQuery("");
               }}
               onQueryChange={setSynonymQuery}
               options={candidateOptions}
               loading={candidatesLoading}
+              // The trigger lists every synonym; rows lead with the first
+              renderValue={(opt) => (
+                <Flex align="center" gap="2">
+                  {opt.adornment}
+                  <Text as="div" truncate>
+                    {opt.membership.labels.join(", ")}
+                  </Text>
+                </Flex>
+              )}
               disabled={disabled || isCanonical}
             >
               <SelectCombobox.Trigger placeholder="(none)" />
-              <SelectCombobox.Content behavior="input" matchTriggerWidth>
+              <SelectCombobox.Content matchTriggerWidth>
                 <SelectCombobox.Input placeholder="Search traits…" />
-                <SelectCombobox.List>
-                  {candidateOptions.map((opt, i) => (
-                    <SelectCombobox.Item
-                      key={String(opt.id)}
-                      option={opt}
-                      index={i}
-                    />
-                  ))}
-                </SelectCombobox.List>
+                <SelectCombobox.List />
               </SelectCombobox.Content>
             </SelectCombobox.Root>
           )}
@@ -260,4 +248,17 @@ export function TraitValueFields({
 
 function swatch(hexCode: string | null) {
   return hexCode ? <ColorBubble hexColor={hexCode} /> : undefined;
+}
+
+function toSynonymOption(
+  membership: NonNullable<TraitValueMembership>,
+): SynonymOption {
+  const [first = "", ...rest] = membership.labels;
+  return {
+    id: membership.synonymSetId,
+    label: first,
+    hint: rest.length ? `+ ${rest.join(", ")}` : "",
+    adornment: swatch(membership.hexCode),
+    membership,
+  };
 }

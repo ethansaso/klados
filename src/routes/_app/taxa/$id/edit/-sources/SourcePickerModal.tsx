@@ -23,11 +23,13 @@ import { formatPublication } from "../../../../../../lib/utils/formatting/format
 type Props = {
   onConfirm: (source: SourceDTO) => void;
 };
+type SourceOption = ComboboxOption & { source: SourceDTO };
 
-const toOption = (s: SourceDTO): ComboboxOption => ({
+const toOption = (s: SourceDTO): SourceOption => ({
   id: s.id,
   label: s.name,
   hint: [s.authors, s.publisher, s.publicationYear].filter(Boolean).join(" • "),
+  source: s,
 });
 
 const SourcePickerModal = NiceModal.create<Props>(({ onConfirm }) => {
@@ -45,10 +47,10 @@ const SourcePickerModal = NiceModal.create<Props>(({ onConfirm }) => {
     sourcesQueryOptions({ page: 1, pageSize: 10, filters: { q } }),
   );
 
-  const options = useMemo<ComboboxOption[]>(() => {
-    const items: SourceDTO[] = searchResp?.items ?? [];
-    return items.map(toOption);
-  }, [searchResp]);
+  const options = useMemo(
+    () => (searchResp?.items ?? []).map(toOption),
+    [searchResp],
+  );
 
   // Create new
   const [newName, setNewName] = useState("");
@@ -109,31 +111,15 @@ const SourcePickerModal = NiceModal.create<Props>(({ onConfirm }) => {
           <Flex direction="column" gap="3" mt="4">
             <SelectCombobox.Root
               value={selectedSource && toOption(selectedSource)}
-              onValueChange={(opt) =>
-                setSelectedSource(
-                  opt
-                    ? ((searchResp?.items ?? []).find((s) => s.id === opt.id) ??
-                        null)
-                    : null,
-                )
-              }
+              onValueChange={(opt) => setSelectedSource(opt?.source ?? null)}
               options={options}
               onQueryChange={setQ}
+              loading={isFetching}
             >
-              <SelectCombobox.Trigger
-                placeholder={isFetching ? "Searching…" : "Select a source"}
-              />
+              <SelectCombobox.Trigger placeholder="Select a source" />
               <SelectCombobox.Content>
-                <SelectCombobox.Input />
-                <SelectCombobox.List>
-                  {options.map((opt, idx) => (
-                    <SelectCombobox.Item
-                      key={opt.id}
-                      index={idx}
-                      option={opt}
-                    />
-                  ))}
-                </SelectCombobox.List>
+                <SelectCombobox.Input placeholder="Search sources..." />
+                <SelectCombobox.List />
               </SelectCombobox.Content>
             </SelectCombobox.Root>
 

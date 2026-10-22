@@ -66,7 +66,7 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
   const { data: parentRes, isFetching: parentLoading } = useQuery(
     featuresQueryOptions(1, 20, { q: parentQuery }),
   );
-  const parentOptions: ComboboxOption[] = useMemo(
+  const parentOptions: (ComboboxOption & { id: number })[] = useMemo(
     () =>
       (parentRes?.items ?? []).map((p) => ({
         id: p.id,
@@ -154,17 +154,9 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
                     disabled={isSubmitting}
                   >
                     <SelectCombobox.Trigger placeholder="No parent" />
-                    <SelectCombobox.Content behavior="input" maxWidth="400px">
+                    <SelectCombobox.Content maxWidth="400px">
                       <SelectCombobox.Input placeholder="Search features..." />
-                      <SelectCombobox.List>
-                        {parentOptions.map((opt, i) => (
-                          <SelectCombobox.Item
-                            key={String(opt.id)}
-                            option={opt}
-                            index={i}
-                          />
-                        ))}
-                      </SelectCombobox.List>
+                      <SelectCombobox.List />
                     </SelectCombobox.Content>
                   </SelectCombobox.Root>
                 )}

@@ -31,19 +31,23 @@ import type { ComboboxOption } from "./types";
 
 /* =============================== Context =============================== */
 
-type RootProps = {
+type RootProps<T extends ComboboxOption> = {
   /** If provided, the combobox take this id for label interaction/a11y. */
   id?: string;
   /** If provided, a hidden input will be rendered for form posts (value = selected id). */
   name?: string;
-  /** Controlled selected option. */
-  value: ComboboxOption | null;
+  /** Controlled selected option. Pinned atop list while nothing is typed. */
+  value: T | null;
   /** Selection change handler. */
-  onValueChange: (opt: ComboboxOption | null) => void;
+  onValueChange: (opt: T | null) => void;
   /** Externally filtered/paginated options for the current query. */
-  options: ComboboxOption[];
+  options: T[];
   /** Called whenever the query string changes. Use to fetch/filter `options`. */
   onQueryChange?: (q: string) => void;
+  /** Custom row content. */
+  renderItem?: (opt: T) => ReactNode;
+  /** Custom trigger content. */
+  renderValue?: (opt: T) => ReactNode;
   /** Disable the whole combobox. */
   disabled?: boolean;
   /** Parent-controlled loading state for current query. */
@@ -51,12 +55,11 @@ type RootProps = {
   /** Style hooks for the outer wrapper. */
   className?: string;
   style?: CSSProperties;
-  /** Compose with Trigger/Content/Input/List/Item children. */
+  /** Compose with Trigger/Content/Input/List children. */
   children: ReactNode;
 };
 
 type ContentProps = ComponentProps<typeof Popover.Content> & {
-  behavior?: "select" | "input";
   matchTriggerWidth?: boolean;
 };
 
@@ -70,7 +73,10 @@ type ComboboxContext = {
   value: ComboboxOption | null;
   onValueChange: (opt: ComboboxOption | null) => void;
 
-  options: ComboboxOption[];
+  /** What the list shows: the pinned value, then the other options. */
+  items: ComboboxOption[];
+  renderItem?: (opt: ComboboxOption) => ReactNode;
+  renderValue?: (opt: ComboboxOption) => ReactNode;
   loading?: boolean;
 
   query: string;
@@ -90,32 +96,43 @@ function useCb() {
   return ctx;
 }
 
-function Root({
+function Root<T extends ComboboxOption>({
   id,
   name,
   value,
   onValueChange,
   options,
   onQueryChange,
+  renderItem,
+  renderValue,
   disabled,
   loading,
   className,
   style,
   children,
-}: RootProps) {
+}: RootProps<T>) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndexRaw, setActiveIndexRaw] = useState(-1);
 
+  // Search results can't be counted on to include the selection
+  const items: T[] =
+    value && !query
+      ? [value, ...options.filter((o) => o.id !== value.id)]
+      : options;
+
   const activeIndex =
-    options.length === 0
+    items.length === 0
       ? -1
       : activeIndexRaw < 0
         ? -1
-        : Math.min(activeIndexRaw, options.length - 1);
+        : Math.min(activeIndexRaw, items.length - 1);
 
   const openPopover = () => {
-    if (!disabled) setOpen(true);
+    if (disabled) return;
+    setOpen(true);
+    // Start on the pinned selection, so Enter keeps it
+    setActiveIndexRaw(value ? 0 : -1);
   };
   const closePopover = () => {
     setOpen(false);
@@ -125,8 +142,9 @@ function Root({
   };
 
   const selectActive = () => {
-    if (activeIndex >= 0 && options[activeIndex]) {
-      onValueChange(options[activeIndex]);
+    const item = items[activeIndex];
+    if (item) {
+      onValueChange(item);
       closePopover();
     }
   };
@@ -142,8 +160,11 @@ function Root({
     setOpen: (o) => (o ? openPopover() : closePopover()),
     disabled,
     value,
-    onValueChange,
-    options,
+    // From Root's `T`
+    onValueChange: onValueChange as ComboboxContext["onValueChange"],
+    items,
+    renderItem: renderItem as ComboboxContext["renderItem"],
+    renderValue: renderValue as ComboboxContext["renderValue"],
     loading,
     query,
     setQuery: (q) => {
@@ -183,8 +204,7 @@ type TriggerProps = {
 >;
 
 function Trigger({ placeholder, ...ariaProps }: TriggerProps) {
-  const { open, disabled, value, id, setOpen, clear } = useCb();
-  const triggerLabel = value ? value.label : (placeholder ?? "Select...");
+  const { open, disabled, value, id, setOpen, clear, renderValue } = useCb();
 
   return (
     <Flex align="center" gap="2" position="relative" style={{ width: "100%" }}>
@@ -208,12 +228,16 @@ function Trigger({ placeholder, ...ariaProps }: TriggerProps) {
           style={{ width: "100%" }}
         >
           <Flex align="center" justify="between" width="100%" gap="6">
-            <Flex align="center" gap="2" minWidth="0">
-              {value?.adornment}
-              <Text as="div" truncate>
-                {triggerLabel}
-              </Text>
-            </Flex>
+            {value && renderValue ? (
+              <Box minWidth="0">{renderValue(value)}</Box>
+            ) : (
+              <Flex align="center" gap="2" minWidth="0">
+                {value?.adornment}
+                <Text as="div" truncate>
+                  {value ? value.label : (placeholder ?? "Select...")}
+                </Text>
+              </Flex>
+            )}
             <PiCaretUpDownFill
               size="14"
               aria-hidden
@@ -247,7 +271,6 @@ function Content({
   matchTriggerWidth,
   minWidth = "280px",
   maxWidth = "400px",
-  behavior = "select",
   style,
   ...props
 }: ContentProps) {
@@ -263,11 +286,6 @@ function Content({
       size="1"
       minWidth={minWidth}
       maxWidth={maxWidth}
-      onOpenAutoFocus={(e) => {
-        if (behavior === "input") {
-          e.preventDefault();
-        }
-      }}
       {...props}
       style={mergedStyles}
     >
@@ -280,7 +298,7 @@ function Input(props: React.ComponentProps<typeof TextField.Root>) {
   const {
     id,
     open,
-    options,
+    items,
     query,
     setQuery,
     setActiveIndex,
@@ -293,18 +311,18 @@ function Input(props: React.ComponentProps<typeof TextField.Root>) {
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      if (!options.length) return;
-      setActiveIndex((i) => (i < 0 ? 0 : Math.min(i + 1, options.length - 1)));
+      if (!items.length) return;
+      setActiveIndex((i) => (i < 0 ? 0 : Math.min(i + 1, items.length - 1)));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      if (!options.length) return;
-      setActiveIndex((i) => (i < 0 ? options.length - 1 : Math.max(i - 1, 0)));
+      if (!items.length) return;
+      setActiveIndex((i) => (i < 0 ? items.length - 1 : Math.max(i - 1, 0)));
     } else if (e.key === "Home") {
       e.preventDefault();
-      if (options.length) setActiveIndex(0);
+      if (items.length) setActiveIndex(0);
     } else if (e.key === "End") {
       e.preventDefault();
-      if (options.length) setActiveIndex(options.length - 1);
+      if (items.length) setActiveIndex(items.length - 1);
     } else if (e.key === "Enter") {
       e.preventDefault();
       selectActive();
@@ -339,14 +357,20 @@ function Input(props: React.ComponentProps<typeof TextField.Root>) {
 function List({
   className,
   style,
-  children,
-}: React.PropsWithChildren<{
+}: {
   className?: string;
   style?: React.CSSProperties;
-}>) {
-  const { id, loading, options } = useCb();
+}) {
+  const { id, loading, items, query } = useCb();
 
-  const showFallbacks = options.length === 0;
+  const status =
+    items.length > 0
+      ? ""
+      : loading
+        ? "Loading"
+        : query
+          ? "No results"
+          : "Type to search";
 
   return (
     <ScrollArea
@@ -382,50 +406,39 @@ function List({
             whiteSpace: "nowrap",
           }}
         >
-          {loading ? "Loading results" : showFallbacks ? "No results" : ""}
+          {status}
         </li>
 
-        {showFallbacks && loading && (
+        {status && (
           <li>
             <Text
               size="2"
               color="gray"
               style={{ display: "block", padding: "8px 10px" }}
             >
-              Loading
+              {status}
             </Text>
           </li>
         )}
 
-        {showFallbacks && !loading && (
-          <li>
-            <Text
-              size="2"
-              color="gray"
-              style={{ display: "block", padding: "8px 10px" }}
-            >
-              No results
-            </Text>
-          </li>
-        )}
-
-        {children}
+        {items.map((option, index) => (
+          <Item key={option.id} option={option} index={index} />
+        ))}
       </ul>
     </ScrollArea>
   );
 }
 
-function Item({
-  option,
-  index,
-  style,
-}: {
-  option: ComboboxOption;
-  index: number;
-  style?: React.CSSProperties;
-}) {
-  const { id, activeIndex, setActiveIndex, value, onValueChange, setOpen } =
-    useCb();
+function Item({ option, index }: { option: ComboboxOption; index: number }) {
+  const {
+    id,
+    activeIndex,
+    setActiveIndex,
+    value,
+    onValueChange,
+    setOpen,
+    renderItem,
+  } = useCb();
   const active = index === activeIndex;
   const selected = value ? value.id === option.id : false;
 
@@ -447,7 +460,6 @@ function Item({
           borderRadius: 6,
           cursor: "pointer",
           background: active ? "var(--accent-3)" : "transparent",
-          ...style,
         }}
       >
         <Flex
@@ -456,29 +468,35 @@ function Item({
           gap="2"
           className="combobox__item-content"
         >
-          <Flex align="baseline" gap="2" flexShrink="1" overflow="hidden">
-            {option.adornment}
-            <Text
-              as="p"
-              size="2"
-              truncate
-              weight="medium"
-              className="combobox__item-text__label"
-            >
-              {option.label}
-            </Text>
-            {option.hint && (
+          {renderItem ? (
+            <Box flexGrow="1" minWidth="0">
+              {renderItem(option)}
+            </Box>
+          ) : (
+            <Flex align="baseline" gap="2" flexShrink="1" overflow="hidden">
+              {option.adornment}
               <Text
                 as="p"
-                size="1"
-                color="gray"
+                size="2"
                 truncate
-                className="combobox__item-text__hint"
+                weight="medium"
+                className="combobox__item-text__label"
               >
-                {option.hint}
+                {option.label}
               </Text>
-            )}
-          </Flex>
+              {option.hint && (
+                <Text
+                  as="p"
+                  size="1"
+                  color="gray"
+                  truncate
+                  className="combobox__item-text__hint"
+                >
+                  {option.hint}
+                </Text>
+              )}
+            </Flex>
+          )}
           <PiCheck size="14" visibility={selected ? "visible" : "hidden"} />
         </Flex>
       </li>
@@ -493,5 +511,4 @@ export const SelectCombobox = {
   Content,
   Input,
   List,
-  Item,
 };

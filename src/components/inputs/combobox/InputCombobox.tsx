@@ -7,7 +7,7 @@ import {
   useStoreState,
 } from "@ariakit/react";
 import * as RadixPopover from "@radix-ui/react-popover";
-import { Box, ScrollArea, Text, Theme } from "@radix-ui/themes";
+import { Box, Flex, ScrollArea, Text, Theme } from "@radix-ui/themes";
 import classNames from "classnames";
 import {
   type ComponentProps,
@@ -17,21 +17,29 @@ import {
   type ReactNode,
   type RefObject,
   use,
+  useCallback,
   useEffect,
   useRef,
   useState,
 } from "react";
 import "./combobox.css";
+import type { ComboboxOption } from "./types";
 
-type RootProps = {
+type RootProps<T extends ComboboxOption> = {
   id?: string;
 
-  /** Fired with the selected item's value. Selection is transient — the
+  /** Externally filtered/paginated options for the current query. */
+  options: T[];
+
+  /** Fired with the chosen option. Selection is transient — the
    * combobox holds no selection state of its own. */
-  onSelect: (value: string) => void;
+  onSelect: (opt: T) => void;
 
   /** Debounced query callback (for DB calls). */
   onQueryChange?: (q: string) => void;
+
+  /** Row content; defaults to adornment, label and hint. */
+  renderItem?: (opt: T) => ReactNode;
 
   disabled?: boolean;
   loading?: boolean;
@@ -52,23 +60,12 @@ type InputProps = Omit<
   /** Optional content to render inside the input's right slot. */
   rightSlot?: ReactNode;
 };
-type PopoverProps = ComponentProps<typeof RadixPopover.Content> & {
+type ContentProps = ComponentProps<typeof RadixPopover.Content> & {
   matchTriggerWidth?: boolean;
 };
 type ListProps = {
-  /** Whether the caller has no items to render — shows the
-   * "Loading"/"No results" placeholders. */
-  isEmpty?: boolean;
   className?: string;
   style?: CSSProperties;
-  children: ReactNode;
-};
-type ItemProps = {
-  /** Identity of this item, passed to Root's onSelect when chosen. */
-  value: string;
-  className?: string;
-  style?: CSSProperties;
-  children: ReactNode;
 };
 
 type Ctx = {
@@ -79,7 +76,11 @@ type Ctx = {
   disabled?: boolean;
   loading?: boolean;
 
-  onSelect: (value: string) => void;
+  options: ComboboxOption[];
+  onSelect: (opt: ComboboxOption) => void;
+  renderItem?: (opt: ComboboxOption) => ReactNode;
+  /** The debounced query, i.e. the one `options` answer. */
+  query: string;
 
   comboboxRef: RefObject<HTMLInputElement | null>;
   listboxRef: RefObject<HTMLDivElement | null>;
@@ -87,7 +88,8 @@ type Ctx = {
   size?: "1" | "2" | "3";
 };
 
-const DEBOUNCE_MS = 200;
+// Matches SelectCombobox's search field
+const DEBOUNCE_MS = 300;
 function useDebouncedEffect(
   value: string,
   delay: number,
@@ -113,7 +115,7 @@ function useCb() {
 function QueryWatcher({
   onQueryChange,
 }: {
-  onQueryChange?: (q: string) => void;
+  onQueryChange: (q: string) => void;
 }) {
   const store = useComboboxContext();
   const value = useStoreState(store, "value") ?? "";
@@ -121,18 +123,29 @@ function QueryWatcher({
   return null;
 }
 
-function Root({
+function Root<T extends ComboboxOption>({
   id,
+  options,
   onSelect,
   onQueryChange,
+  renderItem,
   disabled,
   loading,
   size,
   className,
   style,
   children,
-}: RootProps) {
+}: RootProps<T>) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const handleQueryChange = useCallback(
+    (q: string) => {
+      setQuery(q);
+      onQueryChange?.(q);
+    },
+    [onQueryChange],
+  );
 
   const comboboxRef = useRef<HTMLInputElement | null>(null);
   const listboxRef = useRef<HTMLDivElement | null>(null);
@@ -143,7 +156,11 @@ function Root({
     setOpen,
     disabled,
     loading,
-    onSelect,
+    options,
+    // From Root's `T`
+    onSelect: onSelect as Ctx["onSelect"],
+    renderItem: renderItem as Ctx["renderItem"],
+    query,
     comboboxRef,
     listboxRef,
     size,
@@ -157,7 +174,7 @@ function Root({
       <RadixPopover.Root open={open} onOpenChange={setOpen}>
         <ComboboxProvider open={open} setOpen={setOpen}>
           <InputComboboxContext value={ctx}>
-            {onQueryChange && <QueryWatcher onQueryChange={onQueryChange} />}
+            <QueryWatcher onQueryChange={handleQueryChange} />
             {children}
           </InputComboboxContext>
         </ComboboxProvider>
@@ -220,7 +237,7 @@ function Input({ className, rightSlot, ...rest }: InputProps) {
   );
 }
 
-function Popover({
+function Content({
   children,
   side = "bottom",
   align = "start",
@@ -229,7 +246,7 @@ function Popover({
   className,
   style,
   ...props
-}: PopoverProps) {
+}: ContentProps) {
   const { comboboxRef, listboxRef, size } = useCb();
   const mergedClassName = classNames(
     "input-combobox__content",
@@ -272,8 +289,18 @@ function Popover({
   );
 }
 
-function List({ isEmpty = false, className, style, children }: ListProps) {
-  const { id, loading, listboxRef } = useCb();
+function List({ className, style }: ListProps) {
+  const { id, loading, options, query, listboxRef } = useCb();
+
+  const status =
+    options.length > 0
+      ? ""
+      : loading
+        ? "Loading"
+        : query
+          ? "No results"
+          : "Type to search";
+
   return (
     <ScrollArea
       type="auto"
@@ -288,45 +315,54 @@ function List({ isEmpty = false, className, style, children }: ListProps) {
         className="input-combobox__list"
         aria-busy={!!loading}
       >
-        {loading && isEmpty && (
+        {status && (
           <Box p="2">
-            <Text color="gray">Loading</Text>
+            <Text color="gray">{status}</Text>
           </Box>
         )}
 
-        {!loading && isEmpty && (
-          <Box p="2">
-            <Text color="gray">No results</Text>
-          </Box>
-        )}
-
-        {children}
+        {options.map((option) => (
+          <Item key={option.id} option={option} />
+        ))}
       </ComboboxList>
     </ScrollArea>
   );
 }
 
-function Item({ value, className, style, children }: ItemProps) {
-  const { onSelect, setOpen } = useCb();
+function Item({ option }: { option: ComboboxOption }) {
+  const { onSelect, setOpen, renderItem } = useCb();
   const store = useComboboxContext();
 
   return (
     <ComboboxItem
-      value={value}
+      value={String(option.id)}
       focusOnHover
       setValueOnClick={false}
-      className={classNames("input-combobox__item", className)}
+      className="input-combobox__item"
       onClick={() => {
         // 1) Tell parent what was selected.
-        onSelect(value);
+        onSelect(option);
         // 2) Clear the combobox text / query.
         store?.setValue("");
         // 3) Close popover — focus returns to the input automatically.
         setOpen(false);
       }}
-      style={style}
     >
-      {children}
+      {renderItem ? (
+        renderItem(option)
+      ) : (
+        <Flex align="baseline" gap="2" overflow="hidden">
+          {option.adornment}
+          <Text as="p" truncate weight="medium">
+            {option.label}
+          </Text>
+          {option.hint && (
+            <Text as="p" size="1" color="gray" truncate>
+              {option.hint}
+            </Text>
+          )}
+        </Flex>
+      )}
     </ComboboxItem>
   );
 }
@@ -335,7 +371,6 @@ export const InputCombobox = {
   Root,
   Label,
   Input,
-  Popover,
+  Content,
   List,
-  Item,
 };

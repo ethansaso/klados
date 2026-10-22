@@ -26,7 +26,6 @@ import {
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
 import { useGuideEditorStore } from "../../../../components/react-flow-guides/editor/data/useGuideEditorStore";
-import { formatTaxonName } from "../../../../lib/utils/formatting/formatTaxonName";
 import {
   type KeyGenerationInput,
   KeyGenerationInputSchema,
@@ -35,6 +34,7 @@ import { taxaQueryOptions } from "../../../../lib/queries/taxa";
 import { generateGuideFn } from "../../../../lib/server-fns/guides/generateGuideFn";
 import { saveGuideFn } from "../../../../lib/server-fns/guides/saveGuideFn";
 import { capitalizeFirstLetter } from "../../../../lib/utils/formatting/casing";
+import { formatTaxonName } from "../../../../lib/utils/formatting/formatTaxonName";
 import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../lib/utils/toast";
 import { Route } from "./index";
@@ -71,9 +71,15 @@ export const GuideEditorSidebar = () => {
   const toSavePayload = useGuideEditorStore((s) => s.toSavePayload);
   const markSaved = useGuideEditorStore((s) => s.markSaved);
 
-  const { data: taxaResp } = useQuery(
-    taxaQueryOptions(1, 10, { q: taxonQ, status: "active" }),
+  const { data: taxaResp, isFetching: taxaLoading } = useQuery(
+    taxaQueryOptions(
+      1,
+      10,
+      { q: taxonQ, status: "active" },
+      { keepPreviousData: true },
+    ),
   );
+  const [pickedTaxon, setPickedTaxon] = useState<ComboboxOption | null>(null);
   const taxaOptions = useMemo<ComboboxOption[]>(() => {
     const items = taxaResp?.items ?? [];
     return items.reduce<ComboboxOption[]>((acc, i) => {
@@ -86,10 +92,12 @@ export const GuideEditorSidebar = () => {
     }, []);
   }, [taxaResp]);
   const taxonIdVal = useWatch({ control, name: "taxonId" });
+  // The referral's taxon is only known once a result includes it
   const taxonSelected = useMemo<ComboboxOption | null>(() => {
     if (!taxonIdVal) return null;
+    if (pickedTaxon?.id === Number(taxonIdVal)) return pickedTaxon;
     return taxaOptions.find((o) => o.id === Number(taxonIdVal)) ?? null;
-  }, [taxonIdVal, taxaOptions]);
+  }, [taxonIdVal, pickedTaxon, taxaOptions]);
 
   const handleGenerateGuide: SubmitHandler<KeyGenerationInput> = async (
     data,
@@ -188,26 +196,20 @@ export const GuideEditorSidebar = () => {
                     id="taxon-id"
                     value={taxonSelected}
                     onValueChange={(opt) => {
+                      setPickedTaxon(opt);
                       field.onChange(opt ? Number(opt.id) : null);
                     }}
                     options={taxaOptions}
                     onQueryChange={setTaxonQ}
+                    loading={taxaLoading}
                   >
                     <SelectCombobox.Trigger
                       placeholder="Select root taxon..."
                       {...a11yProps("taxon-id-error", !!errors.taxonId)}
                     />
                     <SelectCombobox.Content>
-                      <SelectCombobox.Input />
-                      <SelectCombobox.List>
-                        {taxaOptions.map((option, index) => (
-                          <SelectCombobox.Item
-                            key={option.id}
-                            index={index}
-                            option={option}
-                          />
-                        ))}
-                      </SelectCombobox.List>
+                      <SelectCombobox.Input placeholder="Search taxa..." />
+                      <SelectCombobox.List />
                     </SelectCombobox.Content>
                   </SelectCombobox.Root>
                 )}

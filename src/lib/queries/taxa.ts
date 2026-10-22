@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query";
+import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import {
   DEFAULT_TAXON_STATUSES,
   type TaxonFilterInput,
@@ -17,6 +17,8 @@ export const taxaQueryOptions = (
   page: number,
   pageSize: number,
   filters?: TaxonFilterInput,
+  /** For pickers: keep the last results up while a new search loads. */
+  opts?: { keepPreviousData?: boolean },
 ) => {
   const status = filters?.status ?? DEFAULT_TAXON_STATUSES;
   const statuses = Array.isArray(status) ? status : [status];
@@ -56,5 +58,6 @@ export const taxaQueryOptions = (
           sort: filters?.sort,
         },
       }) as Promise<TaxonPaginatedResult>,
+    placeholderData: opts?.keepPreviousData ? keepPreviousData : undefined,
   });
 };
