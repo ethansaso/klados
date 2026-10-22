@@ -1,7 +1,7 @@
 import { Box, Flex } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { Label } from "radix-ui";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { ConditionalAlert } from "../../../../../components/inputs/ConditionalAlert";
 import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
@@ -22,9 +22,11 @@ export const AddNumberCharacterForm = () => {
 
   const [unitFamilyQuery, setUnitFamilyQuery] = useState("");
 
-  const { data: unitFamilyResp } = useQuery(
+  const { data: unitFamilyResp, isFetching: unitFamilyLoading } = useQuery(
     unitFamiliesQueryOptions(unitFamilyQuery),
   );
+  // Kept apart from the results, which may not include it mid-search
+  const [picked, setPicked] = useState<ComboboxOption | null>(null);
 
   const unitFamilyOptions = (unitFamilyResp?.map((i) => ({
     id: i.id,
@@ -38,12 +40,8 @@ export const AddNumberCharacterForm = () => {
 
   const unitFamilyIdVal = useWatch({ control, name: "unitFamilyId" });
 
-  const unitFamilySelected = useMemo<ComboboxOption | null>(() => {
-    if (!unitFamilyIdVal) return null;
-    return (
-      unitFamilyOptions.find((o) => o.id === Number(unitFamilyIdVal)) ?? null
-    );
-  }, [unitFamilyIdVal, unitFamilyOptions]);
+  const unitFamilySelected =
+    unitFamilyIdVal && picked?.id === Number(unitFamilyIdVal) ? picked : null;
 
   return (
     <Box>
@@ -62,20 +60,18 @@ export const AddNumberCharacterForm = () => {
           <SelectCombobox.Root
             id="unit-family-id"
             value={unitFamilySelected}
-            onValueChange={(opt) =>
-              field.onChange(opt ? Number(opt.id) : undefined)
-            }
+            onValueChange={(opt) => {
+              setPicked(opt);
+              field.onChange(opt ? Number(opt.id) : undefined);
+            }}
             onQueryChange={setUnitFamilyQuery}
             options={unitFamilyOptions}
+            loading={unitFamilyLoading}
           >
             <SelectCombobox.Trigger placeholder="Select a unit family" />
             <SelectCombobox.Content maxWidth="300px">
               <SelectCombobox.Input placeholder="Search unit families..." />
-              <SelectCombobox.List>
-                {unitFamilyOptions.map((opt, i) => (
-                  <SelectCombobox.Item key={opt.id} option={opt} index={i} />
-                ))}
-              </SelectCombobox.List>
+              <SelectCombobox.List />
             </SelectCombobox.Content>
           </SelectCombobox.Root>
         )}

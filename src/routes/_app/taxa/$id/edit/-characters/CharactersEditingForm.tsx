@@ -3,14 +3,13 @@ import { useCallback, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { PiSparkle } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
-import type { ComboboxOption } from "../../../../../../components/inputs/combobox/types";
 import {
   characterSearchInputId,
   EditingFeatureCard,
 } from "./EditingFeatureCard";
 import { selectExtraction } from "./ExtractionModal";
 import type { NumberedFeatureCitation } from "../-sources/citableSources";
-import { FeatureSearch } from "./search/FeatureSearch";
+import { type FeatureOption, FeatureSearch } from "./search/FeatureSearch";
 import { removeCategoricalTraitValue } from "./stateUtils";
 import type { GroupedCharacterFormValue } from "./validation";
 
@@ -30,7 +29,7 @@ export function CharacterEditingForm({
     null,
   );
 
-  const handleGroupSelect = (option: ComboboxOption) => {
+  const handleGroupSelect = (option: FeatureOption) => {
     if (value.some((g) => g.featureId === option.id)) return;
 
     onChange([

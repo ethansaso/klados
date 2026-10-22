@@ -47,6 +47,16 @@ export const TaxonDetails = ({ taxon }: { taxon: TaxonDetailDTO }) => {
           Details
         </Heading>
       </Box>
+      <CuratorOnly>
+        <Box asChild width="100%" mt={{ initial: "2", sm: "3" }} mb="3">
+          <Button asChild size="2" variant="surface">
+            <Link to="/taxa/$id/edit" params={taxonParams(taxon)}>
+              <PiPencilSimple />
+              Edit
+            </Link>
+          </Button>
+        </Box>
+      </CuratorOnly>
       <DataList.Root
         orientation={{ initial: "horizontal", sm: "vertical" }}
         mt={{ sm: "3" }}
@@ -185,16 +195,6 @@ export const TaxonDetails = ({ taxon }: { taxon: TaxonDetailDTO }) => {
           <NamesDataList rank={taxon.rank} names={taxon.names} />
         </Box>
       )}
-      <CuratorOnly>
-        <Box asChild width="100%" mt="4">
-          <Button asChild size="2" variant="surface">
-            <Link to="/taxa/$id/edit" params={taxonParams(taxon)}>
-              <PiPencilSimple />
-              Edit
-            </Link>
-          </Button>
-        </Box>
-      </CuratorOnly>
     </Box>
   );
 };

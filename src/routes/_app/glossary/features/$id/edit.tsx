@@ -5,7 +5,6 @@ import {
   Button,
   Flex,
   IconButton,
-  Text,
   TextArea,
   TextField,
 } from "@radix-ui/themes";
@@ -157,7 +156,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
       q: parentQuery,
     }),
   );
-  const parentOptions: ComboboxOption[] = useMemo(() => {
+  const parentOptions: (ComboboxOption & { id: number })[] = useMemo(() => {
     const items = parentRes?.items ?? [];
     return items
       .filter((p) => p.id !== featureId)
@@ -184,9 +183,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
   }, [characterRes, linkedIds]);
 
   const handleAddCharacter = useCallback(
-    (value: string) => {
-      const opt = characterOptions.find((o) => String(o.id) === value);
-      if (!opt) return;
+    (opt: ComboboxOption) => {
       if (linkedIds.has(Number(opt.id))) return;
       setValue(
         "characters",
@@ -194,7 +191,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
         { shouldDirty: true },
       );
     },
-    [characterOptions, characters, linkedIds, setValue],
+    [characters, linkedIds, setValue],
   );
 
   const handleRemoveCharacter = useCallback(
@@ -269,17 +266,9 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
                 disabled={mutation.isPending}
               >
                 <SelectCombobox.Trigger placeholder="No parent" />
-                <SelectCombobox.Content behavior="input" maxWidth="400px">
-                  <SelectCombobox.Input placeholder="Search canonical values..." />
-                  <SelectCombobox.List>
-                    {parentOptions.map((opt, i) => (
-                      <SelectCombobox.Item
-                        key={String(opt.id)}
-                        option={opt}
-                        index={i}
-                      />
-                    ))}
-                  </SelectCombobox.List>
+                <SelectCombobox.Content maxWidth="400px">
+                  <SelectCombobox.Input placeholder="Search features..." />
+                  <SelectCombobox.List />
                 </SelectCombobox.Content>
               </SelectCombobox.Root>
             )}
@@ -295,33 +284,16 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
           </Flex>
           <InputCombobox.Root
             id="characters"
+            options={characterOptions}
             onSelect={handleAddCharacter}
             onQueryChange={setCharacterQuery}
             loading={characterLoading}
             disabled={mutation.isPending}
           >
             <InputCombobox.Input placeholder="Search characters to add..." />
-            <InputCombobox.Popover>
-              <InputCombobox.List isEmpty={characterOptions.length === 0}>
-                {characterOptions.map((opt) => (
-                  <InputCombobox.Item
-                    key={String(opt.id)}
-                    value={String(opt.id)}
-                  >
-                    <Flex align="baseline" gap="2" overflow="hidden">
-                      <Text as="p" truncate weight="medium">
-                        {opt.label}
-                      </Text>
-                      {opt.hint && (
-                        <Text as="p" size="1" color="gray" truncate>
-                          {opt.hint}
-                        </Text>
-                      )}
-                    </Flex>
-                  </InputCombobox.Item>
-                ))}
-              </InputCombobox.List>
-            </InputCombobox.Popover>
+            <InputCombobox.Content>
+              <InputCombobox.List />
+            </InputCombobox.Content>
           </InputCombobox.Root>
           {characters.length > 0 && (
             <Flex gap="1" wrap="wrap" mt="2">

@@ -7,8 +7,7 @@ import type { LeanTaxonDTO } from "../../../../lib/domain/taxa/types";
 import { taxaQueryOptions } from "../../../../lib/queries/taxa";
 import { formatTaxonName } from "../../../../lib/utils/formatting/formatTaxonName";
 
-const PAGE_SIZE = 20;
-
+type TaxonOption = ComboboxOption & { taxon: LeanTaxonDTO };
 type ParentTaxonComboboxProps = {
   id: string;
   value: number | null;
@@ -22,11 +21,16 @@ type ParentTaxonComboboxProps = {
   errorId?: string;
 };
 
-const toOption = (t: LeanTaxonDTO): ComboboxOption => ({
-  id: t.id,
-  label: formatTaxonName(t.rank, t.acceptedName, "never"),
-  hint: t.rank,
-});
+const PAGE_SIZE = 20;
+
+function toOption(t: LeanTaxonDTO): TaxonOption {
+  return {
+    id: t.id,
+    label: formatTaxonName(t.rank, t.acceptedName, "never"),
+    hint: t.rank,
+    taxon: t,
+  };
+}
 
 export function ParentTaxonCombobox({
   id,
@@ -42,14 +46,18 @@ export function ParentTaxonCombobox({
   const [picked, setPicked] = useState<LeanTaxonDTO | null>(null);
 
   const { data, isFetching } = useQuery(
-    taxaQueryOptions(1, PAGE_SIZE, { q, status: ["active", "draft"] }),
+    taxaQueryOptions(
+      1,
+      PAGE_SIZE,
+      { q, status: ["active", "draft"] },
+      { keepPreviousData: true },
+    ),
   );
 
-  const candidates = useMemo<LeanTaxonDTO[]>(
-    () => (data?.items ?? []).filter((t) => t.id !== excludeId),
+  const options = useMemo(
+    () => (data?.items ?? []).filter((t) => t.id !== excludeId).map(toOption),
     [data, excludeId],
   );
-  const options = useMemo(() => candidates.map(toOption), [candidates]);
 
   const selectedParent =
     value === null
@@ -65,11 +73,8 @@ export function ParentTaxonCombobox({
       id={id}
       value={selectedParent && toOption(selectedParent)}
       onValueChange={(opt) => {
-        const next = opt
-          ? (candidates.find((t) => t.id === opt.id) ?? null)
-          : null;
-        setPicked(next);
-        onChange(next?.id ?? null);
+        setPicked(opt?.taxon ?? null);
+        onChange(opt?.taxon.id ?? null);
       }}
       options={options}
       onQueryChange={setQ}
@@ -81,15 +86,7 @@ export function ParentTaxonCombobox({
       />
       <SelectCombobox.Content>
         <SelectCombobox.Input placeholder="Search taxa..." />
-        <SelectCombobox.List>
-          {options.map((option, index) => (
-            <SelectCombobox.Item
-              key={option.id}
-              index={index}
-              option={option}
-            />
-          ))}
-        </SelectCombobox.List>
+        <SelectCombobox.List />
       </SelectCombobox.Content>
     </SelectCombobox.Root>
   );

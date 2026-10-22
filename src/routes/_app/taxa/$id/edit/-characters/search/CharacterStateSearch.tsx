@@ -1,10 +1,11 @@
 import { Badge, Box, Button, Flex, Link, Text } from "@radix-ui/themes";
-import { useServerFn } from "@tanstack/react-start";
-import { useCallback, useId, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useId, useState } from "react";
 import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
+import type { ComboboxOption } from "../../../../../../../components/inputs/combobox/types";
 import { ColorBubble } from "../../../../../../../components/state-formatting/helpers/ColorBubble";
 import type { TraitSuggestion } from "../../../../../../../lib/domain/suggestions/types";
-import { listCharacterStateSuggestionsFn } from "../../../../../../../lib/server-fns/suggestions/listCharacterStateSuggestionsFn";
+import { characterStateSuggestionsQueryOptions } from "../../../../../../../lib/queries/suggestions";
 import "./CharacterStateSearch.css";
 
 type FeatureStateSearchProps = {
@@ -20,6 +21,7 @@ type FeatureStateSearchProps = {
   /** Stable HTML id for the search input (used for external focus). */
   inputId?: string;
 };
+type SuggestionOption = ComboboxOption & { suggestion: TraitSuggestion };
 
 function suggestionLabel(s: TraitSuggestion): string {
   return s.kind === "categorical-value" ? s.traitValueLabel : s.displayValue;
@@ -41,57 +43,15 @@ export function CharacterStateSearch({
   onEscapeShortcut,
   inputId,
 }: FeatureStateSearchProps) {
-  const [suggestions, setSuggestions] = useState<TraitSuggestion[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const serverSearch = useServerFn(listCharacterStateSuggestionsFn);
-
-  // Simple "request id" guard so stale responses don't win.
-  const requestIdRef = useRef(0);
-
-  const handleQueryChange = useCallback(
-    async (q: string) => {
-      const trimmed = q.trim();
-      if (!trimmed) {
-        setSuggestions([]);
-        setLoading(false);
-        return;
-      }
-
-      const requestId = ++requestIdRef.current;
-      setLoading(true);
-
-      try {
-        const result = await serverSearch({
-          data: { featureId, q: trimmed, limit: 20 },
-        });
-
-        // Ignore stale responses
-        if (requestId !== requestIdRef.current) return;
-
-        setSuggestions(result);
-      } catch {
-        if (requestId !== requestIdRef.current) return;
-        setSuggestions([]);
-      } finally {
-        if (requestId === requestIdRef.current) {
-          setLoading(false);
-        }
-      }
-    },
-    [featureId, serverSearch],
+  const [q, setQ] = useState("");
+  const { data, isFetching } = useQuery(
+    characterStateSuggestionsQueryOptions(featureId, q.trim()),
   );
-
-  // Item values are indices into `suggestions`.
-  const handleSelect = useCallback(
-    (value: string) => {
-      const suggestion = suggestions[Number(value)];
-      if (suggestion) {
-        onSelect(suggestion);
-      }
-    },
-    [suggestions, onSelect],
-  );
+  const options: SuggestionOption[] = (data ?? []).map((suggestion) => ({
+    id: suggestionKey(suggestion),
+    label: suggestionLabel(suggestion),
+    suggestion,
+  }));
 
   const fallbackId = useId();
   const rootId = inputId ?? fallbackId;
@@ -100,9 +60,36 @@ export function CharacterStateSearch({
     <Box>
       <InputCombobox.Root
         id={rootId}
-        onSelect={handleSelect}
-        onQueryChange={handleQueryChange}
-        loading={loading}
+        options={options}
+        onSelect={(opt) => onSelect(opt.suggestion)}
+        onQueryChange={setQ}
+        loading={isFetching}
+        renderItem={({ label, suggestion: s }) => (
+          <Flex align="baseline" gap="2" overflow="hidden">
+            <Text as="p" weight="medium" style={{ flexShrink: 0 }}>
+              {label}
+            </Text>
+
+            {s.kind === "categorical-value" && s.traitValueDescription && (
+              <Text
+                as="p"
+                size="1"
+                color="gray"
+                truncate
+                style={{ minWidth: 0 }}
+              >
+                {s.traitValueDescription}
+              </Text>
+            )}
+
+            <Badge size="1" color="gray" ml="auto" style={{ flexShrink: 0 }}>
+              {s.kind === "categorical-value" && s.traitValueHexCode && (
+                <ColorBubble hexColor={s.traitValueHexCode} />
+              )}
+              {s.characterLabel}
+            </Badge>
+          </Flex>
+        )}
         size="1"
       >
         <InputCombobox.Input
@@ -118,43 +105,8 @@ export function CharacterStateSearch({
             }
           }}
         />
-        <InputCombobox.Popover matchTriggerWidth>
-          <InputCombobox.List isEmpty={suggestions.length === 0}>
-            {suggestions.map((s, index) => (
-              <InputCombobox.Item key={suggestionKey(s)} value={String(index)}>
-                <Flex align="baseline" gap="2" overflow="hidden">
-                  <Text as="p" weight="medium" style={{ flexShrink: 0 }}>
-                    {suggestionLabel(s)}
-                  </Text>
-
-                  {s.kind === "categorical-value" &&
-                    s.traitValueDescription && (
-                      <Text
-                        as="p"
-                        size="1"
-                        color="gray"
-                        truncate
-                        style={{ minWidth: 0 }}
-                      >
-                        {s.traitValueDescription}
-                      </Text>
-                    )}
-
-                  <Badge
-                    size="1"
-                    color="gray"
-                    ml="auto"
-                    style={{ flexShrink: 0 }}
-                  >
-                    {s.kind === "categorical-value" && s.traitValueHexCode && (
-                      <ColorBubble hexColor={s.traitValueHexCode} />
-                    )}
-                    {s.characterLabel}
-                  </Badge>
-                </Flex>
-              </InputCombobox.Item>
-            ))}
-          </InputCombobox.List>
+        <InputCombobox.Content matchTriggerWidth>
+          <InputCombobox.List />
           <Box m="-2" p="2" mt="2" className="character-search__feature-footer">
             <Button asChild size="1" variant="ghost">
               <Link
@@ -166,7 +118,7 @@ export function CharacterStateSearch({
               </Link>
             </Button>
           </Box>
-        </InputCombobox.Popover>
+        </InputCombobox.Content>
       </InputCombobox.Root>
     </Box>
   );
