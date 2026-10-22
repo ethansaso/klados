@@ -131,8 +131,8 @@ function Root<T extends ComboboxOption>({
   const openPopover = () => {
     if (disabled) return;
     setOpen(true);
-    // Start on the pinned selection, so Enter keeps it
-    setActiveIndexRaw(value ? 0 : -1);
+    // The first row: the pinned selection if any, so Enter keeps it
+    setActiveIndexRaw(0);
   };
   const closePopover = () => {
     setOpen(false);
@@ -170,7 +170,8 @@ function Root<T extends ComboboxOption>({
     setQuery: (q) => {
       setQuery(q);
       onQueryChange?.(q);
-      setActiveIndexRaw(-1); // wait for new options
+      // Top result is highlighted, so Enter picks it once it's current
+      setActiveIndexRaw(0);
     },
     activeIndex,
     setActiveIndex: setActiveIndexRaw,
@@ -301,6 +302,7 @@ function Input(props: React.ComponentProps<typeof TextField.Root>) {
     items,
     query,
     setQuery,
+    loading,
     setActiveIndex,
     selectActive,
     setOpen,
@@ -325,6 +327,8 @@ function Input(props: React.ComponentProps<typeof TextField.Root>) {
       if (items.length) setActiveIndex(items.length - 1);
     } else if (e.key === "Enter") {
       e.preventDefault();
+      // Rows may be from the last search while the next is pending or loading
+      if (e.currentTarget.value !== query || loading) return;
       selectActive();
     } else if (e.key === "Escape") {
       e.preventDefault();
