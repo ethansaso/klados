@@ -17,6 +17,9 @@ import {
   type ReactNode,
   type SetStateAction,
   use,
+  useCallback,
+  useEffect,
+  useRef,
   useState,
 } from "react";
 import {
@@ -87,6 +90,8 @@ type ComboboxContext = {
 
   selectActive: () => void;
   clear: () => void;
+  /** Clears the search; run once the closed popover has finished leaving. */
+  resetSearch: () => void;
 };
 
 const ComboboxContext = createContext<ComboboxContext | null>(null);
@@ -134,12 +139,19 @@ function Root<T extends ComboboxOption>({
     // The first row: the pinned selection if any, so Enter keeps it
     setActiveIndexRaw(0);
   };
-  const closePopover = () => {
-    setOpen(false);
+  // The search resets after the exit animation (see ResetSearchOnUnmount),
+  // so the closing popover doesn't redraw with different rows.
+  const closePopover = () => setOpen(false);
+
+  const onQueryChangeRef = useRef(onQueryChange);
+  useEffect(() => {
+    onQueryChangeRef.current = onQueryChange;
+  });
+  const resetSearch = useCallback(() => {
     setActiveIndexRaw(-1);
     setQuery("");
-    onQueryChange?.("");
-  };
+    onQueryChangeRef.current?.("");
+  }, []);
 
   const selectActive = () => {
     const item = items[activeIndex];
@@ -177,6 +189,7 @@ function Root<T extends ComboboxOption>({
     setActiveIndex: setActiveIndexRaw,
     selectActive,
     clear,
+    resetSearch,
   };
 
   const selectedId = value ? String(value.id) : "";
@@ -291,8 +304,16 @@ function Content({
       style={mergedStyles}
     >
       {children}
+      <ResetSearchOnUnmount />
     </Popover.Content>
   );
+}
+
+/** Radix keeps closed content mounted until its exit animation ends. */
+function ResetSearchOnUnmount() {
+  const { resetSearch } = useCb();
+  useEffect(() => resetSearch, [resetSearch]);
+  return null;
 }
 
 function Input(props: React.ComponentProps<typeof TextField.Root>) {
