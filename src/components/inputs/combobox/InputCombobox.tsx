@@ -249,6 +249,8 @@ function Content({
 }: ContentProps) {
   const { comboboxRef, listboxRef, size } = useCb();
   const mergedClassName = classNames(
+    // Radix Themes' popover open/close animation; it carries no other styles
+    "rt-PopperContent",
     "input-combobox__content",
     `size-${size ?? 2}`,
     className,
@@ -310,6 +312,8 @@ function List({ className, style }: ListProps) {
     >
       <ComboboxList
         ref={listboxRef}
+        // Radix decides presence; Ariakit would hide it mid exit animation
+        alwaysVisible
         id={id ? `${id}-listbox` : undefined}
         role="listbox"
         className="input-combobox__list"
