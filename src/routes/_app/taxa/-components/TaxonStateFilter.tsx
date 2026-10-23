@@ -48,10 +48,10 @@ export function TaxonStateFilterPopover({
   const [featureQ, setFeatureQ] = useState("");
   const [stateQ, setStateQ] = useState("");
 
-  const { data: featureData } = useQuery(
+  const { data: featureData, isFetching: featuresLoading } = useQuery(
     featureSuggestionsQueryOptions(featureQ),
   );
-  const { data: suggestions, isLoading } = useQuery(
+  const { data: suggestions, isFetching: statesLoading } = useQuery(
     characterStateFilterSuggestionsQueryOptions({
       q: stateQ,
       featureId: feature?.id,
@@ -125,6 +125,7 @@ export function TaxonStateFilterPopover({
             onValueChange={changeFeature}
             options={featureOptions}
             onQueryChange={setFeatureQ}
+            loading={featuresLoading}
           >
             <SelectCombobox.Trigger placeholder="Any feature" />
             <SelectCombobox.Content matchTriggerWidth>
@@ -162,7 +163,7 @@ export function TaxonStateFilterPopover({
             onValueChange={setState}
             options={stateOptions}
             onQueryChange={setStateQ}
-            loading={isLoading}
+            loading={statesLoading}
           >
             <SelectCombobox.Trigger placeholder="Any state" />
             <SelectCombobox.Content matchTriggerWidth>

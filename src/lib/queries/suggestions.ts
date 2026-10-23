@@ -36,6 +36,21 @@ export const characterStateFilterSuggestionsQueryOptions = (opts: {
         data: { q: opts.q, featureId: opts.featureId },
       }),
     enabled: opts.q.trim().length > 0,
+    placeholderData: opts.q.trim() ? keepPreviousData : undefined,
+  });
+
+/** States for one feature's card in the taxon editor. */
+export const characterStateSuggestionsQueryOptions = (
+  featureId: number,
+  q: string,
+) =>
+  queryOptions<TraitSuggestion[]>({
+    queryKey: ["characterStateSuggestions", { featureId, q }] as const,
+    queryFn: () =>
+      listCharacterStateSuggestionsFn({ data: { featureId, q, limit: 20 } }),
+    enabled: q.trim().length > 0,
+    // Keep matches up while typing, but not once the box is cleared
+    placeholderData: q.trim() ? keepPreviousData : undefined,
   });
 
 /** States for one feature's card in the taxon editor. */
@@ -58,4 +73,5 @@ export const featureSuggestionsQueryOptions = (q: string) =>
     queryKey: ["featureSuggestions", { q }] as const,
     queryFn: () => listFeatureSuggestionsFn({ data: { q } }),
     enabled: q.trim().length > 0,
+    placeholderData: q.trim() ? keepPreviousData : undefined,
   });
