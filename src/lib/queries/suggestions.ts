@@ -53,20 +53,6 @@ export const characterStateSuggestionsQueryOptions = (
     placeholderData: q.trim() ? keepPreviousData : undefined,
   });
 
-/** States for one feature's card in the taxon editor. */
-export const characterStateSuggestionsQueryOptions = (
-  featureId: number,
-  q: string,
-) =>
-  queryOptions<TraitSuggestion[]>({
-    queryKey: ["characterStateSuggestions", { featureId, q }] as const,
-    queryFn: () =>
-      listCharacterStateSuggestionsFn({ data: { featureId, q, limit: 20 } }),
-    enabled: q.trim().length > 0,
-    // Keep matches up while typing, but not once the box is cleared
-    placeholderData: q.trim() ? keepPreviousData : undefined,
-  });
-
 /** Fuzzy feature search for typeahead pickers; see `listFeatures` for browsing. */
 export const featureSuggestionsQueryOptions = (q: string) =>
   queryOptions<FeatureSuggestion[]>({
