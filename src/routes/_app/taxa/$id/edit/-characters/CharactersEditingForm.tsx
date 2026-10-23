@@ -3,12 +3,12 @@ import { useCallback, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { PiSparkle } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
+import type { NumberedFeatureCitation } from "../-sources/citableSources";
 import {
   characterSearchInputId,
   EditingFeatureCard,
 } from "./EditingFeatureCard";
 import { selectExtraction } from "./ExtractionModal";
-import type { NumberedFeatureCitation } from "../-sources/citableSources";
 import { type FeatureOption, FeatureSearch } from "./search/FeatureSearch";
 import { removeCategoricalTraitValue } from "./stateUtils";
 import type { GroupedCharacterFormValue } from "./validation";
@@ -97,6 +97,7 @@ export function CharacterEditingForm({
             }
           }}
           aria-label="Extract states from text description"
+          style={{ display: "none" }}
         >
           <PiSparkle size="16" />
           Import text

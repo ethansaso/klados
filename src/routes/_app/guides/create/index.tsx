@@ -16,11 +16,17 @@ const CreateGuideSearchSchema = z.object({
 
 export const Route = createFileRoute("/_app/guides/create/")({
   validateSearch: CreateGuideSearchSchema,
-  head: ({ match }) =>
-    routeSeo({
+  head: ({ match }) => {
+    const seo = routeSeo({
       title: "Create Guide | Klados",
       canonicalUrl: match.pathname,
-    }),
+    });
+    // Reachable by exact URL only while guides aren't public
+    return {
+      ...seo,
+      meta: [...seo.meta, { name: "robots", content: "noindex,nofollow" }],
+    };
+  },
   component: RouteComponent,
 });
 

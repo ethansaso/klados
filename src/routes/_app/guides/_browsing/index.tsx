@@ -1,81 +1,61 @@
-import { Box, Button, Flex, TextField } from "@radix-ui/themes";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { PiMagnifyingGlass } from "react-icons/pi";
-import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
-import { PaginationFooter } from "../../../../components/PaginationFooter";
-import { useRoutedPaginatedSearch } from "../../../../lib/hooks/useRoutedPaginatedSearch";
-import { guidesQueryOptions } from "../../../../lib/queries/guides";
+import { Button, Flex, Heading, Text } from "@radix-ui/themes";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { PiArrowLeft } from "react-icons/pi";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
-import { SearchWithQuerySchema } from "../../../../lib/validation/search";
-import { GuideTable } from "./-GuideTable";
 
+// Guides are walled off until they're ready: viewers redirect here, and the
+// creator is reachable only by its exact URL.
 export const Route = createFileRoute("/_app/guides/_browsing/")({
-  validateSearch: SearchWithQuerySchema,
-  loaderDeps: ({ search: { page, pageSize: pageSize, q } }) => ({
-    page,
-    pageSize,
-    q,
-  }),
-  loader: async ({ context, deps: { page, pageSize, q } }) => {
-    await context.queryClient.ensureQueryData(
-      guidesQueryOptions(page, pageSize, { q }),
-    );
-  },
   head: ({ match }) =>
     routeSeo({
-      title: "Browse Guides | Klados",
-      description:
-        "Browse flowchart-style identification guides, built by curators from structured data.",
+      title: "Guides | Klados",
+      description: "Flowchart-style identification guides are coming soon.",
       canonicalUrl: match.pathname,
     }),
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const navigate = Route.useNavigate();
-  const { search, setQ, next, prev } = useRoutedPaginatedSearch();
-  const {
-    data: { items, page: currentPage, pageSize: currentPageSize, total },
-  } = useSuspenseQuery(
-    guidesQueryOptions(search.page, search.pageSize, { q: search.q }),
-  );
-
-  const handlePrev = () => {
-    next(total);
-  };
-
-  const handleNext = () => {
-    prev();
-  };
-
   return (
-    <Flex direction="column">
-      <Box mb="4">
-        <Button onClick={() => navigate({ to: "create" })}>
-          Create New Guide
-        </Button>
-      </Box>
-      <Box mb="4">
-        <DebouncedTextField
-          placeholder="Search guides..."
-          id="guides-search"
-          initialValue={search.q}
-          onDebouncedChange={(value) => setQ(value)}
-        >
-          <TextField.Slot>
-            <PiMagnifyingGlass size="16" />
-          </TextField.Slot>
-        </DebouncedTextField>
-      </Box>
-      <GuideTable items={items} />
-      <PaginationFooter
-        page={currentPage}
-        pageSize={currentPageSize}
-        total={total}
-        onNext={handlePrev}
-        onPrev={handleNext}
-      />
+    <Flex
+      direction="column"
+      align="start"
+      gap="3"
+      py="9"
+      maxWidth="576px"
+      mx="auto"
+    >
+      <Heading size="6" weight="bold">
+        Guides are coming soon!
+      </Heading>
+      <Text as="p">
+        Klados' flowchart-style identification guides aren't ready yet.
+      </Text>
+      <Text as="p">
+        Eventually, this page will host visual-first resources for
+        identification, curated by experts through using a highly interactive
+        editor.
+      </Text>
+      <Text as="p">
+        However, the road there is long and winding, and we want to make sure
+        the rest of the site (detailed taxon descriptions, filtering and
+        comparison tools, so on & so forth) hosts strong supporting content
+        before committing to this feature's development.
+      </Text>
+      <Text as="p">
+        Testing the algorithm that assists users in generating parts of these
+        guides also requires a lot of data to make sure we're not biasing
+        towards certain trends or tendencies.{" "}
+      </Text>
+      <Text as="p" weight="bold">
+        Thanks to our curators for contributing to Klados!
+      </Text>
+      <Button asChild variant="soft">
+        <Link to="/taxa">
+          <PiArrowLeft />
+          Return to taxa
+        </Link>
+      </Button>
     </Flex>
   );
 }

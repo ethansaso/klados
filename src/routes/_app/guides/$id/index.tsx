@@ -2,7 +2,7 @@ import "../../../../assets/styles/pages/guides/viewer.css";
 
 import { Box, Flex, Heading, Separator, Text } from "@radix-ui/themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ReactFlowProvider } from "@xyflow/react";
 import z from "zod";
 import { GuideViewerCanvas } from "../../../../components/react-flow-guides/GuideViewerCanvas";
@@ -15,6 +15,10 @@ const ParamsSchema = z.object({
 
 export const Route = createFileRoute("/_app/guides/$id/")({
   params: ParamsSchema,
+  // Guides aren't public yet; the index explains. Remove to reopen viewing.
+  beforeLoad: () => {
+    throw redirect({ to: "/guides" });
+  },
   loader: async ({ context, params }) => {
     const { id } = params;
 
