@@ -14,7 +14,7 @@ import {
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import classNames from "classnames";
-import { memo, useCallback, useId, useRef, useState } from "react";
+import { memo, useCallback, useId, useMemo, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import {
   PiCheck,
@@ -38,7 +38,11 @@ import {
   addStateFromSuggestion,
   updateCategoricalTraitValueModifiers,
 } from "./stateUtils";
-import type { FeatureFormValue, ModifierTokenFormValue } from "./validation";
+import type {
+  CharacterStateFormValue,
+  FeatureFormValue,
+  ModifierTokenFormValue,
+} from "./validation";
 
 type LastAdded = {
   characterId: number;
@@ -79,6 +83,8 @@ const PRESENCE_CYCLE: Record<
   },
 };
 
+const NO_STATES: CharacterStateFormValue[] = [];
+
 export const characterSearchInputId = (featureId: number) =>
   `character-search-${featureId}`;
 
@@ -86,7 +92,7 @@ type Props = {
   feature: FeatureFormValue;
   citableSources: NumberedFeatureCitation[];
   onChange: (nextFeatures: FeatureFormValue[]) => void;
-  onDelete: () => void;
+  onDelete: (featureId: number) => void;
   onRemoveCategoricalValue: (
     featureId: number,
     characterId: number,
@@ -168,6 +174,14 @@ export const EditingFeatureCard = memo(
     const handleAutoOpenHandled = useCallback(() => {
       setAutoOpenFor(null);
     }, []);
+
+    const handleRemoveCategoricalTrait = useCallback(
+      (characterId: number, stateIndex: number) =>
+        onRemoveCategoricalValue(feature.featureId, characterId, stateIndex),
+      [onRemoveCategoricalValue, feature.featureId],
+    );
+
+    const statesByCharacter = useStatesByCharacter(feature.characters);
 
     const handleUpdateCategoricalModifiers = useCallback(
       (
@@ -326,7 +340,7 @@ export const EditingFeatureCard = memo(
                 size="1"
                 variant="ghost"
                 color="tomato"
-                onClick={() => onDelete()}
+                onClick={() => onDelete(feature.featureId)}
               >
                 <PiCheck size={12} />
               </IconButton>
@@ -397,41 +411,22 @@ export const EditingFeatureCard = memo(
 
         {data && (
           <DataList.Root size="1">
-            {data.characters.map((c) => {
-              const statesForCharacter = feature.characters.filter(
-                (state) => state.characterId === c.id,
-              );
-
-              return (
-                <CharacterStateRow
-                  key={c.id}
-                  character={c}
-                  states={statesForCharacter}
-                  onRemoveCategoricalTrait={(characterId, stateIndex) =>
-                    onRemoveCategoricalValue(
-                      feature.featureId,
-                      characterId,
-                      stateIndex,
-                    )
-                  }
-                  onRemoveNumericState={handleRemoveNumericState}
-                  onUpdateCategoricalModifiers={
-                    handleUpdateCategoricalModifiers
-                  }
-                  onUpdateNumericModifiers={handleUpdateNumericModifiers}
-                  autoOpenModifierFor={
-                    autoOpenFor?.characterId === c.id
-                      ? {
-                          characterId: autoOpenFor.characterId,
-                          traitIndex: autoOpenFor.traitIndex,
-                        }
-                      : undefined
-                  }
-                  onAutoOpenHandled={handleAutoOpenHandled}
-                  onReturnToSearch={focusSearch}
-                />
-              );
-            })}
+            {data.characters.map((c) => (
+              <CharacterStateRow
+                key={c.id}
+                character={c}
+                states={statesByCharacter.get(c.id) ?? NO_STATES}
+                onRemoveCategoricalTrait={handleRemoveCategoricalTrait}
+                onRemoveNumericState={handleRemoveNumericState}
+                onUpdateCategoricalModifiers={handleUpdateCategoricalModifiers}
+                onUpdateNumericModifiers={handleUpdateNumericModifiers}
+                autoOpenModifierFor={
+                  autoOpenFor?.characterId === c.id ? autoOpenFor : undefined
+                }
+                onAutoOpenHandled={handleAutoOpenHandled}
+                onReturnToSearch={focusSearch}
+              />
+            ))}
           </DataList.Root>
         )}
 
@@ -515,3 +510,31 @@ export const EditingFeatureCard = memo(
     );
   },
 );
+
+/** States grouped by character. */
+function useStatesByCharacter(states: CharacterStateFormValue[]) {
+  const prevRef = useRef(new Map<number, CharacterStateFormValue[]>());
+
+  return useMemo(() => {
+    const next = new Map<number, CharacterStateFormValue[]>();
+    for (const state of states) {
+      const list = next.get(state.characterId);
+      if (list) list.push(state);
+      else next.set(state.characterId, [state]);
+    }
+
+    for (const [characterId, list] of next) {
+      const prev = prevRef.current.get(characterId);
+      if (
+        prev &&
+        prev.length === list.length &&
+        prev.every((s, i) => s === list[i])
+      ) {
+        next.set(characterId, prev);
+      }
+    }
+
+    prevRef.current = next;
+    return next;
+  }, [states]);
+}
