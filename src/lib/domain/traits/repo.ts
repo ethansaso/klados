@@ -191,7 +191,12 @@ export async function selectTraitByLabelIgnoringCase(
 export async function selectSynonymSetIdsByTraitValueIds(
   tx: TxOrDb,
   traitValueIds: number[],
-): Promise<Map<number, { synonymSetId: number; characterId: number }>> {
+): Promise<
+  Map<
+    number,
+    { synonymSetId: number; characterId: number; hexCode: string | null }
+  >
+> {
   if (!traitValueIds.length) return new Map();
 
   const rows = await tx
@@ -199,16 +204,50 @@ export async function selectSynonymSetIdsByTraitValueIds(
       id: valsTbl.id,
       synonymSetId: valsTbl.synonymSetId,
       characterId: valsTbl.characterId,
+      hexCode: setsTbl.hexCode,
     })
     .from(valsTbl)
+    .innerJoin(setsTbl, eq(setsTbl.id, valsTbl.synonymSetId))
     .where(inArray(valsTbl.id, Array.from(new Set(traitValueIds))));
 
   return new Map(
     rows.map((row) => [
       row.id,
-      { synonymSetId: row.synonymSetId, characterId: row.characterId },
+      {
+        synonymSetId: row.synonymSetId,
+        characterId: row.characterId,
+        hexCode: row.hexCode,
+      },
     ]),
   );
+}
+
+/** Synonym sets of `characterIds` whose swatch is one of `hexes` (case insensitive). */
+export async function selectSynonymSetsByHexCodes(
+  tx: TxOrDb,
+  characterIds: number[],
+  hexes: string[],
+): Promise<{ id: number; characterId: number; hexCode: string }[]> {
+  if (!characterIds.length || !hexes.length) return [];
+
+  const rows = await tx
+    .select({
+      id: setsTbl.id,
+      characterId: setsTbl.characterId,
+      hexCode: sql<string>`lower(${setsTbl.hexCode})`,
+    })
+    .from(setsTbl)
+    .where(
+      and(
+        inArray(setsTbl.characterId, Array.from(new Set(characterIds))),
+        inArray(
+          sql`lower(${setsTbl.hexCode})`,
+          Array.from(new Set(hexes.map((h) => h.toLowerCase()))),
+        ),
+      ),
+    );
+
+  return rows;
 }
 
 /**
