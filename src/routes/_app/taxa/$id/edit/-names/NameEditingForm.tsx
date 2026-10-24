@@ -8,7 +8,7 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { useCallback, useMemo } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { FaDove } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import type { TaxonEditFormValues } from "..";
@@ -25,8 +25,8 @@ type NameEditingFormProps = {
 };
 
 export const NameEditingForm = ({ inatId, onChange }: NameEditingFormProps) => {
-  const { watch, getValues } = useFormContext<TaxonEditFormValues>();
-  const value = watch("names");
+  const { control, getValues } = useFormContext<TaxonEditFormValues>();
+  const value = useWatch({ control, name: "names" });
   // const addRow = () =>
   //   onChange([...value, { locale: "", value: "", isPreferred: false }]);
 

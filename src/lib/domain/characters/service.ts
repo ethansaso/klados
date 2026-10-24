@@ -111,7 +111,6 @@ export async function createCharacter(
         media: null,
         type: "categorical",
         characterId: charRow.id,
-        traitCount: 0,
       };
       return dto;
     }

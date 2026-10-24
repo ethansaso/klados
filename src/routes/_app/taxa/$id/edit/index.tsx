@@ -75,28 +75,29 @@ export const taxonEditFormSchema = z.object({
 });
 
 export const Route = createFileRoute("/_app/taxa/$id/edit/")({
-  beforeLoad: async ({ params: { id } }) => {
-    const [taxon, values, sources] = await Promise.all([
-      getTaxonFn({ data: { id } }),
-      getTaxonCharacterStatesFn({ data: { taxonId: id } }),
-      getSourcesForTaxonFn({ data: { id } }),
-    ]);
+  // ! MUST start from a fresh copy. Use `loader`, not `beforeLoad`, so code + data are parallel
+  staleTime: 0,
+  gcTime: 0,
+  loader: {
+    staleReloadMode: "blocking",
+    handler: async ({ params: { id } }) => {
+      const [taxon, values, sources] = await Promise.all([
+        getTaxonFn({ data: { id } }),
+        getTaxonCharacterStatesFn({ data: { taxonId: id } }),
+        getSourcesForTaxonFn({ data: { id } }),
+      ]);
 
-    if (!taxon || !values || !sources) {
-      throw notFound();
-    }
+      if (!taxon || !values || !sources) {
+        throw notFound();
+      }
 
-    return {
-      id,
-      initialTaxon: taxon,
-      initialCharacterValues: values,
-      initialSources: sources,
-    };
-  },
-  loader: async ({ context }) => {
-    const { id, initialTaxon, initialCharacterValues, initialSources } =
-      context;
-    return { id, initialTaxon, initialCharacterValues, initialSources };
+      return {
+        id,
+        initialTaxon: taxon,
+        initialCharacterValues: values,
+        initialSources: sources,
+      };
+    },
   },
   head: ({ loaderData, match }) =>
     routeSeo({

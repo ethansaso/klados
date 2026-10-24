@@ -1,5 +1,6 @@
 import { Box, Button, Flex, Heading, Text } from "@radix-ui/themes";
-import { useCallback, useMemo, useState } from "react";
+import { replaceEqualDeep } from "@tanstack/react-query";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { PiSparkle } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
@@ -46,18 +47,28 @@ export function CharacterEditingForm({
     setLastAddedFeatureId(option.id);
   };
 
-  const handleDeleteGroup = (groupId: number) => {
-    onChange(value.filter((g) => g.featureId !== groupId));
-  };
+  const handleDeleteGroup = useCallback(
+    (groupId: number) => {
+      onChange(getValues("states").filter((g) => g.featureId !== groupId));
+    },
+    [getValues, onChange],
+  );
+
+  // Controller hands a deep clone on every change; cheaply compute reference changes *before* handing off values
+  const sharedValueRef = useRef(value);
+  const sharedValue = useMemo(() => {
+    sharedValueRef.current = replaceEqualDeep(sharedValueRef.current, value);
+    return sharedValueRef.current;
+  }, [value]);
 
   const sortedGroups = useMemo(
     () =>
-      [...value].sort((a, b) =>
+      [...sharedValue].sort((a, b) =>
         a.featureLabel.localeCompare(b.featureLabel, undefined, {
           sensitivity: "base",
         }),
       ),
-    [value],
+    [sharedValue],
   );
 
   // getValues is stable, so these callbacks are stable
@@ -125,7 +136,7 @@ export function CharacterEditingForm({
               feature={group}
               citableSources={citableSources}
               onChange={onChange}
-              onDelete={() => handleDeleteGroup(group.featureId)}
+              onDelete={handleDeleteGroup}
               onRemoveCategoricalValue={handleRemoveCategoricalTrait}
             />
           ))}

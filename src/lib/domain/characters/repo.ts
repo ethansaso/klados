@@ -27,12 +27,9 @@ import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
 import { hydrateMedia, selectMediaById } from "../media/repo";
 import type { MediaDTO } from "../media/types";
 import {
-  catTraitCountSel,
-  catUsageSel,
+  characterUsageFor,
   characterTypeExpr,
   hasSomeMetaExpr,
-  numUsageSel,
-  rangeUsageSel,
 } from "./selectors";
 import type {
   CharacterDetailDTO,
@@ -50,7 +47,6 @@ type RawCharacterRow = {
   feature: { id: number; label: string };
   usageCount: number;
   type: "categorical" | "number" | "range";
-  traitCount: number | null;
   unitFamilyId: number | null;
   mediaId: number | null;
 };
@@ -83,7 +79,6 @@ function groupRowsToCharacterDTOs(
           ...base,
           type: "categorical",
           characterId: row.id,
-          traitCount: row.traitCount ?? 0,
         };
       } else {
         if (row.unitFamilyId === null) {
@@ -256,6 +251,7 @@ export async function selectCharactersByIds(
 ): Promise<CharacterDTO[]> {
   if (!ids.length) return [];
 
+  const usage = characterUsageFor(ids);
   const rows = (await tx
     .select({
       id: charsTbl.id,
@@ -263,18 +259,9 @@ export async function selectCharactersByIds(
       description: charsTbl.description,
       showInProse: charsTbl.showInProse,
       feature: { id: featuresTbl.id, label: featuresTbl.label },
-
-      usageCount: sql<number>`CASE
-        WHEN ${characterTypeExpr} = 'categorical' THEN COALESCE(${catUsageSel.catUsageCount}, 0)
-        WHEN ${characterTypeExpr} = 'number'      THEN COALESCE(${numUsageSel.numUsageCount}, 0)
-        WHEN ${characterTypeExpr} = 'range'       THEN COALESCE(${rangeUsageSel.rangeUsageCount}, 0)
-        ELSE 0
-      END`,
-
+      usageCount: sql<number>`COALESCE(${usage.usageCount}, 0)`,
       type: characterTypeExpr,
       unitFamilyId: numMetaTbl.unitFamilyId,
-
-      traitCount: catTraitCountSel.traitCount,
       mediaId: charsTbl.mediaId,
     })
     .from(charsTbl)
@@ -285,10 +272,7 @@ export async function selectCharactersByIds(
     .leftJoin(featuresTbl, eq(featuresTbl.id, characterFeatureTbl.featureId))
     .leftJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
     .leftJoin(numMetaTbl, eq(numMetaTbl.characterId, charsTbl.id))
-    .leftJoin(catUsageSel, eq(catUsageSel.characterId, charsTbl.id))
-    .leftJoin(numUsageSel, eq(numUsageSel.characterId, charsTbl.id))
-    .leftJoin(rangeUsageSel, eq(rangeUsageSel.characterId, charsTbl.id))
-    .leftJoin(catTraitCountSel, eq(catTraitCountSel.characterId, charsTbl.id))
+    .leftJoin(usage, eq(usage.characterId, charsTbl.id))
     .where(and(inArray(charsTbl.id, ids), hasSomeMetaExpr))
     .orderBy(
       asc(featuresTbl.label),
@@ -341,6 +325,7 @@ export async function listCharactersQuery(args: {
   let items: CharacterDTO[] = [];
 
   if (characterIds.length) {
+    const usage = characterUsageFor(characterIds);
     const rows = (await db
       .select({
         id: charsTbl.id,
@@ -348,17 +333,9 @@ export async function listCharactersQuery(args: {
         description: charsTbl.description,
         showInProse: charsTbl.showInProse,
         feature: { id: featuresTbl.id, label: featuresTbl.label },
-
-        usageCount: sql<number>`(
-          COALESCE(${catUsageSel.catUsageCount}, 0) +
-          COALESCE(${numUsageSel.numUsageCount}, 0) +
-          COALESCE(${rangeUsageSel.rangeUsageCount}, 0)
-        )`,
-
+        usageCount: sql<number>`COALESCE(${usage.usageCount}, 0)`,
         type: characterTypeExpr,
         unitFamilyId: numMetaTbl.unitFamilyId,
-
-        traitCount: catTraitCountSel.traitCount,
         mediaId: charsTbl.mediaId,
       })
       .from(charsTbl)
@@ -369,10 +346,7 @@ export async function listCharactersQuery(args: {
       .leftJoin(featuresTbl, eq(featuresTbl.id, characterFeatureTbl.featureId))
       .leftJoin(catMetaTbl, eq(catMetaTbl.characterId, charsTbl.id))
       .leftJoin(numMetaTbl, eq(numMetaTbl.characterId, charsTbl.id))
-      .leftJoin(catUsageSel, eq(catUsageSel.characterId, charsTbl.id))
-      .leftJoin(numUsageSel, eq(numUsageSel.characterId, charsTbl.id))
-      .leftJoin(rangeUsageSel, eq(rangeUsageSel.characterId, charsTbl.id))
-      .leftJoin(catTraitCountSel, eq(catTraitCountSel.characterId, charsTbl.id))
+      .leftJoin(usage, eq(usage.characterId, charsTbl.id))
       .where(inArray(charsTbl.id, characterIds))
       // order for consistent ordering with pagination step
       .orderBy(

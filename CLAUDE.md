@@ -41,3 +41,4 @@ TanStack Start (React 19, Router, Query) · Radix Themes · react-hook-form + zo
 - Work is tracked as GitHub Issues.
 - Never commit, push, or stage.
 - For UI or UX changes, discuss the approach before building unless told to go ahead.
+- Never permanently modify the local database.
