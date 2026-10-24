@@ -3,6 +3,7 @@ import { and, count, eq } from "drizzle-orm";
 import { db } from "../../../../db/client";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
 import { taxon as taxaTbl } from "../../../../db/schema/taxa/taxon";
+import { taxonPath } from "../../utils/formatting/taxonUrl";
 import { assertHierarchyInvariant } from "../../utils/sql/assertHierarchyInvariant";
 import type { Transaction } from "../../utils/types/transactionType";
 import { selectFeatureIdsByCharacterIds } from "../characters/repo";
@@ -18,7 +19,11 @@ import {
   selectSourceIdsForTaxon,
   setSourcesForTaxon,
 } from "../taxon-sources/repo";
-import { selectSynonymSetIdsByTraitValueIds } from "../traits/repo";
+import { matchingColorHexes } from "../traits/colorSimilarity";
+import {
+  selectSynonymSetIdsByTraitValueIds,
+  selectSynonymSetsByHexCodes,
+} from "../traits/repo";
 import {
   listUnitFamiliesQuery,
   selectCharacterUnitRequirements,
@@ -51,7 +56,6 @@ import {
   getChildCount,
   getCurrentTaxonMinimal,
 } from "./utils";
-import { taxonPath } from "../../utils/formatting/taxonUrl";
 import type { UpdateTaxonInput } from "./validation";
 
 /** ! Callers should send partial updates. */
@@ -342,6 +346,7 @@ async function resolveFilters(
     closureByRoot,
     {
       synonymSetByValue,
+      colorSets,
       unitRequirements,
       featuresByCharacter,
       scaleByUnit,
@@ -356,6 +361,16 @@ async function resolveFilters(
       const synonymSetByValue = await selectSynonymSetIdsByTraitValueIds(
         tx,
         tokens.filter((token) => token.k === "c").map((token) => token.t),
+      );
+
+      // Color values also match nearby swatches.
+      const colorValues = [...synonymSetByValue.values()].filter(
+        (value) => value.hexCode !== null,
+      );
+      const colorSets = await selectSynonymSetsByHexCodes(
+        tx,
+        colorValues.map((value) => value.characterId),
+        colorValues.flatMap((value) => matchingColorHexes(value.hexCode!)),
       );
 
       const unitRequirements = await selectCharacterUnitRequirements(
@@ -374,6 +389,7 @@ async function resolveFilters(
 
       return {
         synonymSetByValue,
+        colorSets,
         unitRequirements,
         featuresByCharacter,
         scaleByUnit: new Map(
@@ -418,7 +434,7 @@ async function resolveFilters(
           kind: "categorical",
           featureId: token.f,
           characterId: token.c,
-          synonymSetId: traitValue.synonymSetId,
+          synonymSetIds: matchingSynonymSetIds(traitValue, colorSets),
         },
       ];
     }
@@ -634,4 +650,21 @@ export async function getTaxaSitemapEntries(): Promise<
     loc: `https://klados.bio${taxonPath(t)}`,
     lastmod: t.updatedAt.toISOString().slice(0, 10),
   }));
+}
+
+/** Sets a categorical filter matches (own + nearby palette swatches) */
+function matchingSynonymSetIds(
+  value: { synonymSetId: number; characterId: number; hexCode: string | null },
+  colorSets: { id: number; characterId: number; hexCode: string }[],
+): number[] {
+  if (value.hexCode === null) return [value.synonymSetId];
+
+  const hexes = new Set(matchingColorHexes(value.hexCode));
+  const ids = colorSets
+    .filter(
+      (set) => set.characterId === value.characterId && hexes.has(set.hexCode),
+    )
+    .map((set) => set.id);
+
+  return [...new Set([value.synonymSetId, ...ids])];
 }

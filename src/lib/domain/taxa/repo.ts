@@ -392,7 +392,8 @@ export type ResolvedFilter =
       /** Omitted matches the state on any feature. */
       featureId?: number;
       characterId: number;
-      synonymSetId: number;
+      /** Its own set, plus nearby swatches for a color. */
+      synonymSetIds: number[];
     }
   | {
       kind: "numeric";
@@ -489,7 +490,7 @@ export async function listTaxaQuery(
                 ? undefined
                 : eq(catStatesTbl.featureId, filter.featureId),
               eq(catStatesTbl.characterId, filter.characterId),
-              eq(catStatesTbl.synonymSetId, filter.synonymSetId),
+              inArray(catStatesTbl.synonymSetId, filter.synonymSetIds),
             ),
           ),
       );

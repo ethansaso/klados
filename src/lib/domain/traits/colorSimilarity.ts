@@ -28,9 +28,7 @@ export function colorSimilarity(aHex: string, bHex: string): number {
   if (a.kind === "neutral") return neutralSimilarity(a, b);
   if (b.kind === "neutral") return neutralSimilarity(b, a);
 
-  // Wrap hues for red-purple
-  const hueGap = Math.abs(a.hueIndex - b.hueIndex);
-  const hueSteps = Math.min(hueGap, BASE_HUES.length - hueGap);
+  const hueSteps = hueDistance(a.hueIndex, b.hueIndex);
   if (hueSteps > 1) return 0;
   const hueSimilarity = hueSteps === 0 ? 1 : ADJACENT_HUE_SIMILARITY;
 
@@ -41,6 +39,40 @@ export function colorSimilarity(aHex: string, bHex: string): number {
       : (BAND_GAP_SIMILARITY[bandGap] ?? 0);
 
   return hueSimilarity * shadeSimilarity;
+}
+
+/**
+ * Matching palette hexes (lowercase) for a given `hex`.
+ * Color rule: same and neighbouring hues, vivid or grayish, in the same lightness band only.
+ * Neutral rule: within one lightness band.
+ * Other rule: anything off the palette matches only itself.
+ */
+export function matchingColorHexes(hex: string): string[] {
+  const key = hex.toLowerCase();
+  const target = PALETTE_POSITIONS.get(key);
+  if (!target) return [key];
+
+  return [...PALETTE_POSITIONS]
+    .filter(([, position]) => searchMatches(target, position))
+    .map(([paletteHex]) => paletteHex);
+}
+
+function searchMatches(a: PalettePosition, b: PalettePosition): boolean {
+  if (a.kind === "neutral" || b.kind === "neutral") {
+    return (
+      a.kind === "neutral" &&
+      b.kind === "neutral" &&
+      Math.abs(a.level - b.level) <= 1
+    );
+  }
+
+  return hueDistance(a.hueIndex, b.hueIndex) <= 1 && a.band === b.band;
+}
+
+/** Steps around the hue wheel, wrapping red-purple back to red. */
+function hueDistance(a: number, b: number): number {
+  const gap = Math.abs(a - b);
+  return Math.min(gap, BASE_HUES.length - gap);
 }
 
 function neutralSimilarity(
