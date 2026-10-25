@@ -29,6 +29,7 @@ import type {
   FeatureDetailDTO,
   FeatureDTO,
   FeaturePaginatedResult,
+  FeatureTreeNode,
 } from "./types";
 
 /**
@@ -472,6 +473,21 @@ export async function deleteFeatureById(
     .returning({ id: featuresTbl.id });
 
   return deleted ?? null;
+}
+
+/**
+ * Select every feature's parent and semantics.
+ */
+export async function selectFeatureTree(
+  tx: Transaction,
+): Promise<FeatureTreeNode[]> {
+  return tx
+    .select({
+      id: featuresTbl.id,
+      parentId: featuresTbl.parentId,
+      semantics: featuresTbl.semantics,
+    })
+    .from(featuresTbl);
 }
 
 /**
