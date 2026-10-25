@@ -459,6 +459,8 @@ export async function listTaxaQuery(
   // Every filter kind reduces to one EXISTS against whichever state table
   // holds it, so they can all be ANDed together as peers.
   const filterPredicates = opts.filters.map((filter) => {
+    // Recorded presence only, whatever the semantics: presuming assumed
+    // features would match nearly every taxon!
     if (filter.kind === "feature") {
       return exists(
         db

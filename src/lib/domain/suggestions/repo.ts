@@ -10,6 +10,7 @@ import {
   character,
   characterFeature,
   feature,
+  type FeatureSemantics,
   numericCharacterMeta,
   traitSynonymSet,
 } from "../../../../db/schema/schema";
@@ -57,6 +58,7 @@ export type FeatureSuggestionRow = {
   id: number;
   label: string;
   description: string;
+  semantics: FeatureSemantics;
   similarityScore: number;
 };
 
@@ -132,6 +134,7 @@ export async function queryFeatureSuggestionRows(opts: {
         id: feature.id,
         label: feature.label,
         description: feature.description,
+        semantics: feature.semantics,
         similarityScore: similarity,
       })
       .from(feature)

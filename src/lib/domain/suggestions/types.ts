@@ -1,3 +1,5 @@
+import type { FeatureSemantics } from "../../../../db/schema/schema";
+
 /**
  * Shared character context for all suggestions.
  */
@@ -64,4 +66,5 @@ export type FeatureSuggestion = {
   id: number;
   label: string;
   description: string;
+  semantics: FeatureSemantics;
 };
