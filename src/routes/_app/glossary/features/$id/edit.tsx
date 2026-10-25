@@ -28,6 +28,7 @@ import {
   updateFeatureFormSchema,
   type UpdateFeatureFormInput,
 } from "../-formValidation";
+import { SemanticsField } from "../-SemanticsField";
 import { MediaField } from "../../-MediaField";
 import { InputCombobox } from "../../../../../components/inputs/combobox/InputCombobox";
 import { SelectCombobox } from "../../../../../components/inputs/combobox/SelectCombobox";
@@ -88,6 +89,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
         id: c.id,
         label: c.label,
       })),
+      semantics: feature.semantics,
       mediaId: feature.media?.id ?? null,
     },
     resolver: zodResolver(updateFeatureFormSchema),
@@ -95,6 +97,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
   const featureId = watch("id");
   const label = watch("label");
   const characters = watch("characters");
+  const parent = watch("parent");
 
   useBlocker({
     shouldBlockFn: () =>
@@ -274,6 +277,20 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
             )}
           />
         </Box>
+        <Controller
+          name="semantics"
+          control={control}
+          render={({ field }) => (
+            <SemanticsField
+              id="semantics"
+              value={field.value}
+              onChange={field.onChange}
+              hasParent={!!parent}
+              error={errors.semantics?.message}
+              disabled={mutation.isPending}
+            />
+          )}
+        />
         <Box>
           <Flex justify="between" align="baseline" mb="1">
             <Label.Root htmlFor="characters">Linked characters</Label.Root>

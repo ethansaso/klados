@@ -6,7 +6,7 @@ export type FeatureRow = typeof feature.$inferSelect;
 
 export type FeatureDTO = Pick<
   FeatureRow,
-  "id" | "label" | "description" | "parentId"
+  "id" | "label" | "description" | "parentId" | "semantics"
 > & {
   characterCount: number;
   media: MediaDTO | null;

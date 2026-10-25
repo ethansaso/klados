@@ -19,6 +19,7 @@ import {
   feature as featuresTbl,
   numericCharacterMeta as numMetaTbl,
   taxonFeatureState as tfsTbl,
+  type FeatureSemantics,
 } from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/sql/likeAnywhere";
 import { type Transaction } from "../../utils/types/transactionType";
@@ -47,6 +48,7 @@ export async function selectFeaturesByIds(
       label: featuresTbl.label,
       description: featuresTbl.description,
       parentId: featuresTbl.parentId,
+      semantics: featuresTbl.semantics,
       characterCount: count(characterFeatureTbl.characterId),
       mediaId: featuresTbl.mediaId,
     })
@@ -89,6 +91,7 @@ export async function listFeaturesQuery(args: {
       label: featuresTbl.label,
       description: featuresTbl.description,
       parentId: featuresTbl.parentId,
+      semantics: featuresTbl.semantics,
       characterCount: count(characterFeatureTbl.characterId),
       mediaId: featuresTbl.mediaId,
     })
@@ -129,6 +132,7 @@ export async function fetchFeatureDetailById(
       id: featuresTbl.id,
       label: featuresTbl.label,
       description: featuresTbl.description,
+      semantics: featuresTbl.semantics,
       parentId: parentTbl.id,
       parentLabel: parentTbl.label,
       mediaId: featuresTbl.mediaId,
@@ -206,6 +210,7 @@ export async function fetchFeatureDetailById(
     id: featureRow.id,
     label: featureRow.label,
     description: featureRow.description,
+    semantics: featureRow.semantics,
     characterCount: characters.length,
     characters,
     media,
@@ -224,7 +229,12 @@ export async function fetchFeatureDetailById(
  */
 export async function insertFeature(
   tx: Transaction,
-  args: { label: string; description: string; parentId?: number | null },
+  args: {
+    label: string;
+    description: string;
+    parentId?: number | null;
+    semantics: FeatureSemantics;
+  },
 ): Promise<FeatureDTO | null> {
   const [featureRow] = await tx
     .insert(featuresTbl)
@@ -232,11 +242,13 @@ export async function insertFeature(
       label: args.label,
       description: args.description,
       parentId: args.parentId ?? null,
+      semantics: args.semantics,
     })
     .returning({
       id: featuresTbl.id,
       label: featuresTbl.label,
       parentId: featuresTbl.parentId,
+      semantics: featuresTbl.semantics,
       description: featuresTbl.description,
       characterCount: sql<number>`0`,
     });
@@ -251,6 +263,7 @@ export async function updateFeatureRow(
     label?: string;
     description?: string;
     parentId?: number | null;
+    semantics?: FeatureSemantics;
     mediaId?: number | null;
   },
 ): Promise<Omit<FeatureDTO, "characterCount"> | null> {
@@ -260,6 +273,7 @@ export async function updateFeatureRow(
       label: args.label,
       description: args.description,
       parentId: args.parentId,
+      semantics: args.semantics,
       mediaId: args.mediaId,
     })
     .where(eq(featuresTbl.id, id))
@@ -268,6 +282,7 @@ export async function updateFeatureRow(
       label: featuresTbl.label,
       description: featuresTbl.description,
       parentId: featuresTbl.parentId,
+      semantics: featuresTbl.semantics,
       mediaId: featuresTbl.mediaId,
     });
 

@@ -15,10 +15,12 @@ import { Fragment } from "react/jsx-runtime";
 import { AnnotationBubbleWrap } from "../../../../../components/annotations/AnnotationBubbleWrap";
 import { CuratorOnly } from "../../../../../components/CuratorOnly";
 import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
+import { FeatureSemanticsIcon } from "../../../../../components/icons/modular/FeatureSemanticsIcon";
 import { featureQueryOptions } from "../../../../../lib/queries/features";
 import { deleteFeatureFn } from "../../../../../lib/server-fns/features/deleteFeatureFn";
 import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 import { toast } from "../../../../../lib/utils/toast";
+import { SEMANTICS_OPTIONS } from "../-SemanticsField";
 
 export const Route = createFileRoute("/_app/glossary/features/$id/")({
   component: RouteComponent,
@@ -84,6 +86,14 @@ function RouteComponent() {
             </Button>
           </Flex>
         </CuratorOnly>
+      </Flex>
+      <Flex gap="1" align="center" mb="2">
+        <Text color="gray" size="2" asChild>
+          <FeatureSemanticsIcon semantics={feature.semantics} />
+        </Text>
+        <Text size="2" color="gray">
+          {SEMANTICS_OPTIONS[feature.semantics].label}
+        </Text>
       </Flex>
       <Box mb="3">
         {feature.description ? (
