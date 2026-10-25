@@ -66,5 +66,6 @@ export type FeatureSuggestion = {
   id: number;
   label: string;
   description: string;
+  parentId: number | null;
   semantics: FeatureSemantics;
 };

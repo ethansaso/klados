@@ -38,6 +38,8 @@ export function CharacterEditingForm({
       {
         featureId: option.id,
         featureLabel: option.label,
+        featureParentId: option.parentId,
+        featureSemantics: option.semantics,
         notes: "",
         presence: "present" as const,
         characters: [],

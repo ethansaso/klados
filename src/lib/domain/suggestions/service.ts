@@ -425,6 +425,7 @@ export async function searchFeatureSuggestions(opts: {
       id: row.id,
       label: row.label,
       description: row.description,
+      parentId: row.parentId,
       semantics: row.semantics,
     }));
 }

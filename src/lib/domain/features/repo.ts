@@ -484,6 +484,7 @@ export async function selectFeatureTree(
   return tx
     .select({
       id: featuresTbl.id,
+      label: featuresTbl.label,
       parentId: featuresTbl.parentId,
       semantics: featuresTbl.semantics,
     })

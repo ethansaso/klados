@@ -58,6 +58,7 @@ export type FeatureSuggestionRow = {
   id: number;
   label: string;
   description: string;
+  parentId: number | null;
   semantics: FeatureSemantics;
   similarityScore: number;
 };
@@ -134,6 +135,7 @@ export async function queryFeatureSuggestionRows(opts: {
         id: feature.id,
         label: feature.label,
         description: feature.description,
+        parentId: feature.parentId,
         semantics: feature.semantics,
         similarityScore: similarity,
       })

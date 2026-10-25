@@ -58,6 +58,8 @@ export async function selectTaxonStatesByTaxonIds(
 
       featureId: featuresTbl.id,
       featureLabel: featuresTbl.label,
+      featureParentId: featuresTbl.parentId,
+      featureSemantics: featuresTbl.semantics,
       notes: tfsTbl.notes,
       presence: tfsTbl.presence,
       featureDescription: featuresTbl.description,
@@ -79,6 +81,8 @@ export async function selectTaxonStatesByTaxonIds(
     featuresById.set(row.featureId, {
       featureId: row.featureId,
       featureLabel: row.featureLabel,
+      featureParentId: row.featureParentId,
+      featureSemantics: row.featureSemantics,
       featureHasInfo:
         hasText(row.featureDescription) || row.featureMediaId !== null,
       notes: row.notes,
