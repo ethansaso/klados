@@ -33,10 +33,8 @@ export async function resolveFilterChips(
   return tokens.map((token) => ({
     key: filterTokenKey(token),
     label: describeToken(token, labels),
-    semantics:
-      token.f === undefined
-        ? null
-        : (labels.features.get(token.f)?.semantics ?? null),
+    feature:
+      token.f === undefined ? null : (labels.features.get(token.f) ?? null),
   }));
 }
 
