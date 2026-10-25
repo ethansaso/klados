@@ -20,7 +20,7 @@ export type FeatureSemantics = (typeof FEATURE_SEMANTICS)[number];
  * - variant: one alternative among its sibling variants
  * - assumed: omission is usually accidental or covered by its sub-features
  */
-export const FEATURE_SEMANTICS = ["explicit", "variant", "assumed"] as const;
+export const FEATURE_SEMANTICS = ["explicit", "assumed", "variant"] as const;
 
 export const featureSemantics = pgEnum("feature_semantics", FEATURE_SEMANTICS);
 

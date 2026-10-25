@@ -1,4 +1,4 @@
-import { PiCircleDashed, PiGitFork, PiToggleRight } from "react-icons/pi";
+import { PiBracketsRound, PiSubtract, PiUsersThree } from "react-icons/pi";
 import type { FeatureSemantics } from "../../../../db/schema/schema";
 
 interface Props {
@@ -8,10 +8,10 @@ interface Props {
 export const FeatureSemanticsIcon = ({ semantics, ...rest }: Props) => {
   switch (semantics) {
     case "explicit":
-      return <PiToggleRight {...rest} />;
+      return <PiSubtract {...rest} />;
     case "variant":
-      return <PiGitFork {...rest} />;
+      return <PiUsersThree {...rest} />;
     case "assumed":
-      return <PiCircleDashed {...rest} />;
+      return <PiBracketsRound {...rest} />;
   }
 };

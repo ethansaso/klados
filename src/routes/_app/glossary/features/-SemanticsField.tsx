@@ -1,4 +1,4 @@
-import { Box, Flex, RadioGroup, Text } from "@radix-ui/themes";
+import { Box, Flex, RadioCards, Text } from "@radix-ui/themes";
 import { Label } from "radix-ui";
 import {
   FEATURE_SEMANTICS,
@@ -26,15 +26,15 @@ export const SEMANTICS_OPTIONS: Record<
 > = {
   explicit: {
     label: "Explicit",
-    hint: "The presence/absence of this feature means something.",
-  },
-  variant: {
-    label: "Variant",
-    hint: "This feature is one alternative amongst its other variant siblings.",
+    hint: "Omitting this feature from a description implies it's absent.",
   },
   assumed: {
     label: "Assumed",
-    hint: "The omission of this feature is typically accidental, or due to adequate description by its sub-features.",
+    hint: "Omitting this feature doesn't imply it's absent, but marking it absent still counts. Useful for features descriptions often skip, like microscopic structures.",
+  },
+  variant: {
+    label: "Variant",
+    hint: "This feature is a mutually exclusive alternative among its other variant siblings.",
   },
 };
 
@@ -54,40 +54,46 @@ export function SemanticsField({
         <Label.Root id={`${id}-label`}>Semantics</Label.Root>
         <ConditionalAlert id={errorId} message={error} />
       </Flex>
-      <RadioGroup.Root
+      <RadioCards.Root
         id={id}
+        size="1"
+        columns="1"
+        gap="2"
         value={value}
         onValueChange={(next) => onChange(next as FeatureSemantics)}
         disabled={disabled}
         aria-labelledby={`${id}-label`}
         {...a11yProps(errorId, !!error)}
       >
-        <Flex direction="column" gap="2">
-          {FEATURE_SEMANTICS.map((option) => {
-            const { label, hint } = SEMANTICS_OPTIONS[option];
-            const needsParent = option === "variant" && !hasParent;
+        {FEATURE_SEMANTICS.map((option) => {
+          const { label, hint } = SEMANTICS_OPTIONS[option];
+          const needsParent = option === "variant" && !hasParent;
 
-            return (
-              <RadioGroup.Item
-                key={option}
-                value={option}
-                disabled={needsParent && value !== option}
-              >
-                <Flex direction="column">
-                  <Flex align="center" gap="1">
-                    <FeatureSemanticsIcon semantics={option} />
-                    <Text weight="medium">{label}</Text>
-                  </Flex>
-                  <Text size="1" color="gray">
-                    {hint}
-                    {needsParent && " Needs a parent feature."}
-                  </Text>
+          return (
+            <RadioCards.Item
+              key={option}
+              value={option}
+              disabled={needsParent && value !== option}
+            >
+              <Flex direction="column" width="100%">
+                <Flex align="center" gap="1">
+                  <FeatureSemanticsIcon semantics={option} />
+                  <Text weight="medium">{label}</Text>
                 </Flex>
-              </RadioGroup.Item>
-            );
-          })}
-        </Flex>
-      </RadioGroup.Root>
+                <Text size="1" color="gray">
+                  {hint}
+                  {needsParent && (
+                    <Text color="tomato" style={{ opacity: 0.75 }}>
+                      {" "}
+                      Requires a parent feature.
+                    </Text>
+                  )}
+                </Text>
+              </Flex>
+            </RadioCards.Item>
+          );
+        })}
+      </RadioCards.Root>
     </Box>
   );
 }
