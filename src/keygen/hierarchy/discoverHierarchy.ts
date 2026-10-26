@@ -1,4 +1,5 @@
-import { getFeatureAncestorMap } from "../../lib/domain/features/repo";
+import { getFeatureTree } from "../../lib/domain/features/service";
+import type { FeatureTreeNode } from "../../lib/domain/features/types";
 import { getTaxaStates, getTaxonStates } from "../../lib/domain/states/service";
 import type { FeatureStateDTO } from "../../lib/domain/states/types";
 import { getTaxonHierarchyMetaForParents } from "../../lib/domain/taxa/repo";
@@ -153,20 +154,20 @@ function assembleHierarchyNodes(
 
 /**
  * Build a flat map of KGTaxonNodes for the subtree rooted at `rootTaxonId`
- * and a feature ancestry map covering all features referenced by those taxa.
+ * and the feature tree.
  *
  * Steps:
  *  1. Discover taxon subtree structure.
  *  2. Bulk-load character states for all discovered taxa.
  *  3. Assemble Map<number, HierarchyTaxonNode>.
- *  4. Collect all referenced featureIds and fetch their full ancestor chains.
+ *  4. Load the feature tree (parents and semantics).
  */
 export const discoverTaxonHierarchyFromRoot = async (
   rootTaxonId: number,
   options: KeyGenOptions,
 ): Promise<{
   hierarchy: Map<number, HierarchyTaxonNode>;
-  featureAncestorMap: Map<number, number | null>;
+  featureTree: FeatureTreeNode[];
 }> => {
   const metaById = await discoverTaxonMetaHierarchyBFS(rootTaxonId, options);
   if (!metaById.size) {
@@ -176,16 +177,7 @@ export const discoverTaxonHierarchyFromRoot = async (
   const statesByTaxonId = await loadStatesForHierarchy(metaById);
   const hierarchy = assembleHierarchyNodes(metaById, statesByTaxonId);
 
-  // Collect every featureId referenced across all taxa, then fetch ancestor chains.
-  const allFeatureIds = new Set<number>();
-  for (const node of hierarchy.values()) {
-    for (const state of node.states) {
-      allFeatureIds.add(state.featureId);
-    }
-  }
-  const featureAncestorMap = await getFeatureAncestorMap(
-    Array.from(allFeatureIds),
-  );
+  const featureTree = await getFeatureTree();
 
-  return { hierarchy, featureAncestorMap };
+  return { hierarchy, featureTree };
 };

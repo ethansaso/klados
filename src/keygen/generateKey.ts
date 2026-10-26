@@ -17,8 +17,10 @@ export async function generateKeyForTaxon(
   taxonId: number,
   options: KeyGenOptions,
 ): Promise<{ rootNode: KeyTaxonNode }> {
-  const { hierarchy, featureAncestorMap } =
-    await discoverTaxonHierarchyFromRoot(taxonId, options);
+  const { hierarchy, featureTree } = await discoverTaxonHierarchyFromRoot(
+    taxonId,
+    options,
+  );
 
   const root = hierarchy.get(taxonId);
   if (!root) {
@@ -40,7 +42,7 @@ export async function generateKeyForTaxon(
     rootNode,
     hierarchy,
     options,
-    featureAncestorMap,
+    featureTree,
     inheritedFromAncestors,
   );
 

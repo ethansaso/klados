@@ -7,6 +7,7 @@ import {
   listFeaturesQuery,
   selectAllFeatureLabels,
   selectFeaturesByIds,
+  selectFeatureTree,
   setCharacterFeatureRows,
   updateFeatureRow,
 } from "./repo";
@@ -14,6 +15,7 @@ import type {
   FeatureDetailDTO,
   FeatureDTO,
   FeaturePaginatedResult,
+  FeatureTreeNode,
 } from "./types";
 import type { CreateFeatureInput, UpdateFeatureInput } from "./validation";
 
@@ -177,6 +179,13 @@ export async function deleteFeature(args: {
     const deleted = await deleteFeatureById(tx, id);
     return deleted;
   });
+}
+
+/**
+ * Every feature's parent and semantics.
+ */
+export async function getFeatureTree(): Promise<FeatureTreeNode[]> {
+  return db.transaction((tx) => selectFeatureTree(tx));
 }
 
 /**

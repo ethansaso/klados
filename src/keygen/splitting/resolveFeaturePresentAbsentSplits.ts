@@ -1,3 +1,4 @@
+import type { FeatureTreeNode } from "../../lib/domain/features/types";
 import type { FeatureStateDTO } from "../../lib/domain/states/types";
 import type { HierarchyTaxonNode } from "../hierarchy/types";
 import type { FeaturePresentAbsentSplitResult } from "./types";
@@ -57,14 +58,15 @@ export function extendInheritedStatements(
  */
 export function expandInheritedStatements(
   inherited: InheritedFeatureStatements,
-  featureAncestorMap: Map<number, number | null>,
+  featureTree: FeatureTreeNode[],
 ): ReadonlySet<number> {
+  const parentMap = new Map(featureTree.map((f) => [f.id, f.parentId]));
   const memo = new Map<number, Set<number>>();
   const certain = new Set<number>();
 
   for (const [featureId, reliable] of inherited) {
     if (!reliable) continue;
-    for (const id of expandWithAncestors(featureId, featureAncestorMap, memo)) {
+    for (const id of expandWithAncestors(featureId, parentMap, memo)) {
       certain.add(id);
     }
   }
@@ -85,11 +87,12 @@ export function expandInheritedStatements(
  */
 export function resolveFeaturePresentAbsentSplits(
   taxa: HierarchyTaxonNode[],
-  featureAncestorMap: Map<number, number | null>,
+  featureTree: FeatureTreeNode[],
   inheritedFeatureIds: ReadonlySet<number> = new Set(),
 ): FeaturePresentAbsentSplitResult[] {
   if (taxa.length < 2) return [];
 
+  const parentMap = new Map(featureTree.map((f) => [f.id, f.parentId]));
   const expandMemo = new Map<number, Set<number>>();
 
   // Precompute per-taxon: always vs. sometimes present.
@@ -107,7 +110,7 @@ export function resolveFeaturePresentAbsentSplits(
     for (const feature of taxon.states) {
       const expanded = expandWithAncestors(
         feature.featureId,
-        featureAncestorMap,
+        parentMap,
         expandMemo,
       );
 
