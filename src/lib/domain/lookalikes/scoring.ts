@@ -2,7 +2,7 @@ import type { FeaturePresence } from "../../../../db/schema/schema";
 import type { FeatureTreeNode } from "../features/types";
 import type { FeatureStateDTO } from "../states/types";
 import { colorSimilarity } from "../traits/colorSimilarity";
-import { resolvePresence } from "./resolvePresence";
+import { resolvePresence } from "../states/resolvePresence";
 
 /** Synonym set id to its swatch hex, if any. */
 type SlotValues = Map<number, string | undefined>;
