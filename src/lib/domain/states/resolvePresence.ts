@@ -14,7 +14,8 @@ type ResolveOptions = {
 
 /**
  * Inferred feature presence from marks and hierarchy. Unknown features are left out.
- * * A present or variable feature makes its ancestors present, even over an absent mark.
+ * * A present or variable feature makes its ancestors present, even over an absent
+ *   mark. A variable mark only yields to a present feature beneath it.
  * * A present variant makes its unmarked variant siblings absent.
  * * An absent feature makes its unmarked descendants absent.
  * With `inferExplicitAbsence`, an unmarked Explicit feature is absent, unless
@@ -46,7 +47,7 @@ export function resolvePresence(
     if (status === "absent") continue;
     let ancestorId = byId.get(featureId)?.parentId ?? null;
     while (ancestorId !== null) {
-      if (presence.get(ancestorId) !== "variable") {
+      if (status === "present" || presence.get(ancestorId) !== "variable") {
         presence.set(ancestorId, "present");
       }
       ancestorId = byId.get(ancestorId)?.parentId ?? null;

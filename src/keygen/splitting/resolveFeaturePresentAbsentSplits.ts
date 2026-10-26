@@ -1,4 +1,5 @@
 import type { FeatureTreeNode } from "../../lib/domain/features/types";
+import { resolvePresence } from "../../lib/domain/states/resolvePresence";
 import type { FeatureStateDTO } from "../../lib/domain/states/types";
 import type { HierarchyTaxonNode } from "../hierarchy/types";
 import type { FeaturePresentAbsentSplitResult } from "./types";
@@ -77,8 +78,8 @@ export function expandInheritedStatements(
  * Try to split taxa into two groups based on
  * "taxon has feature G" vs "taxon does not have feature G".
  *
- * A taxon is considered to have an ancestor feature if any of its explicitly
- * stated features is a descendant of that ancestor (implicit presence).
+ * Each taxon's presence comes from {@link resolvePresence}. A taxon it can't
+ * call present or absent can't be placed, so the split is dropped.
  *
  * `inheritedFeatureIds` are features an ancestor taxon reliably bears, so every
  * taxon here bears them too whether or not anyone wrote it down.
@@ -92,70 +93,56 @@ export function resolveFeaturePresentAbsentSplits(
 ): FeaturePresentAbsentSplitResult[] {
   if (taxa.length < 2) return [];
 
+  // A taxon w/ no states at all is "undescribed", not "absent".
+  // Excluded from keying.
+  const described = taxa.filter((taxon) => taxon.states.length > 0);
+  const presenceByTaxon = new Map(
+    described.map((taxon) => [
+      taxon.id,
+      resolvePresence(featureTree, taxon.allStates, {
+        inferExplicitAbsence: true,
+        inheritedPresent: inheritedFeatureIds,
+      }),
+    ]),
+  );
+
+  // Candidates in the order taxa state them (then their ancestors), so ties
+  // between equal-scoring splits resolve as they always have.
   const parentMap = new Map(featureTree.map((f) => [f.id, f.parentId]));
   const expandMemo = new Map<number, Set<number>>();
-
-  // Precompute per-taxon: always vs. sometimes present.
-  // Expands unreliability to ancestors (uncertain cap -> uncertain sporocarp)
-  const certainByTaxon = new Map<number, Set<number>>();
-  const uncertainByTaxon = new Map<number, Set<number>>();
-  const allFeatureIds = new Set<number>();
-
-  for (const taxon of taxa) {
-    // Seeded with what an ancestor reliably bears: certain for every taxon in
-    // the group, which collapses the "absent" branch and drops the split.
-    const certain = new Set<number>(inheritedFeatureIds);
-    const uncertain = new Set<number>();
-
+  const candidateIds = new Set<number>();
+  for (const taxon of described) {
+    const presence = presenceByTaxon.get(taxon.id)!;
     for (const feature of taxon.states) {
-      const expanded = expandWithAncestors(
+      for (const id of expandWithAncestors(
         feature.featureId,
         parentMap,
         expandMemo,
-      );
-
-      for (const id of expanded) {
-        if (feature.presence === "variable") {
-          uncertain.add(id);
-        } else {
-          certain.add(id);
-          // If no taxon definitely bears a feature, it can never yield a split
-          allFeatureIds.add(id);
-        }
+      )) {
+        if (presence.get(id) === "present") candidateIds.add(id);
       }
     }
-
-    certainByTaxon.set(taxon.id, certain);
-    uncertainByTaxon.set(taxon.id, uncertain);
   }
 
   const results: FeaturePresentAbsentSplitResult[] = [];
 
-  for (const featureId of allFeatureIds) {
+  for (const featureId of candidateIds) {
     const present: HierarchyTaxonNode[] = [];
     const absent: HierarchyTaxonNode[] = [];
 
-    // Flag to discard split if at least one taxon only sometimes bears a feature
+    // Flag to discard split if at least one taxon can't be placed
     let unanswerable = false;
 
-    for (const taxon of taxa) {
-      // A taxon w/ no states at all is "undescribed", not "absent".
-      // Excluded from keying.
-      if (taxon.states.length === 0) continue;
-
-      // Certainty is a 'strong condition' -- if 'annulus' uncertain, but
-      // 'gills' certain, then it certainly has their parent feature 'sporocarp'
-      if (certainByTaxon.get(taxon.id)!.has(featureId)) {
+    for (const taxon of described) {
+      const status = presenceByTaxon.get(taxon.id)!.get(featureId);
+      if (status === "present") {
         present.push(taxon);
-        continue;
-      }
-
-      if (uncertainByTaxon.get(taxon.id)!.has(featureId)) {
+      } else if (status === "absent") {
+        absent.push(taxon);
+      } else {
         unanswerable = true;
         break;
       }
-
-      absent.push(taxon);
     }
 
     if (unanswerable) continue;
