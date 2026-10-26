@@ -7,7 +7,9 @@ import { taxonPath } from "../../utils/formatting/taxonUrl";
 import { assertHierarchyInvariant } from "../../utils/sql/assertHierarchyInvariant";
 import type { Transaction } from "../../utils/types/transactionType";
 import { selectFeatureIdsByCharacterIds } from "../characters/repo";
-import { getFeatureDescendantIds } from "../features/repo";
+import { getFeatureDescendantIds, selectFeatureTree } from "../features/repo";
+import type { FeatureTreeNode } from "../features/types";
+import { variantPresenceConflicts } from "../states/variantPresenceConflicts";
 import { replaceGroupedCharacterStatesForTaxon } from "../states/repo";
 import type { CharacterByFeatureUpdate } from "../states/validation";
 import { insertTaxonEdit } from "../taxon-edits/repo";
@@ -512,6 +514,20 @@ export async function publishTaxon(args: {
   });
 }
 
+function assertVariantPresenceInvariant(
+  tree: FeatureTreeNode[],
+  states: CharacterByFeatureUpdate,
+) {
+  const byId = new Map(tree.map((feature) => [feature.id, feature]));
+  const [conflict] = variantPresenceConflicts(
+    states.flatMap((state) => {
+      const feature = byId.get(state.featureId);
+      return feature ? [{ ...feature, presence: state.presence }] : [];
+    }),
+  );
+  if (conflict) throw new Error(conflict);
+}
+
 function assertNamesPayloadInvariant(names: NameItem[]) {
   const sciPreferredCount = names.filter(
     (n) => n.locale === "sci" && n.isPreferred,
@@ -596,6 +612,10 @@ export async function updateTaxon(
 
     // 4) character states replace (if provided)
     if (updates.states) {
+      assertVariantPresenceInvariant(
+        await selectFeatureTree(tx),
+        updates.states,
+      );
       const states = await dropCitationsNotOnTaxon(tx, id, updates.states);
       await replaceGroupedCharacterStatesForTaxon(tx, id, states);
     }

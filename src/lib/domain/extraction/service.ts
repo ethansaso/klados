@@ -437,6 +437,8 @@ export async function extractStates(
         curStates.push({
           featureId: feature.id,
           featureLabel: feature.label,
+          featureParentId: feature.parentFeature?.id ?? null,
+          featureSemantics: feature.semantics,
           notes: "",
           // TODO: signal for this
           presence: "present",
@@ -685,6 +687,8 @@ export async function extractStates(
       states.push({
         featureId: feature.id,
         featureLabel: feature.label,
+        featureParentId: feature.parentFeature?.id ?? null,
+        featureSemantics: feature.semantics,
         notes: "",
         // TODO: signal for this
         presence: "present",

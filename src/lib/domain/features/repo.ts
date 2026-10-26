@@ -19,6 +19,7 @@ import {
   feature as featuresTbl,
   numericCharacterMeta as numMetaTbl,
   taxonFeatureState as tfsTbl,
+  type FeatureSemantics,
 } from "../../../../db/schema/schema";
 import { likeAnywhere } from "../../utils/sql/likeAnywhere";
 import { type Transaction } from "../../utils/types/transactionType";
@@ -28,6 +29,7 @@ import type {
   FeatureDetailDTO,
   FeatureDTO,
   FeaturePaginatedResult,
+  FeatureTreeNode,
 } from "./types";
 
 /**
@@ -47,6 +49,7 @@ export async function selectFeaturesByIds(
       label: featuresTbl.label,
       description: featuresTbl.description,
       parentId: featuresTbl.parentId,
+      semantics: featuresTbl.semantics,
       characterCount: count(characterFeatureTbl.characterId),
       mediaId: featuresTbl.mediaId,
     })
@@ -89,6 +92,7 @@ export async function listFeaturesQuery(args: {
       label: featuresTbl.label,
       description: featuresTbl.description,
       parentId: featuresTbl.parentId,
+      semantics: featuresTbl.semantics,
       characterCount: count(characterFeatureTbl.characterId),
       mediaId: featuresTbl.mediaId,
     })
@@ -129,6 +133,7 @@ export async function fetchFeatureDetailById(
       id: featuresTbl.id,
       label: featuresTbl.label,
       description: featuresTbl.description,
+      semantics: featuresTbl.semantics,
       parentId: parentTbl.id,
       parentLabel: parentTbl.label,
       mediaId: featuresTbl.mediaId,
@@ -206,6 +211,7 @@ export async function fetchFeatureDetailById(
     id: featureRow.id,
     label: featureRow.label,
     description: featureRow.description,
+    semantics: featureRow.semantics,
     characterCount: characters.length,
     characters,
     media,
@@ -224,7 +230,12 @@ export async function fetchFeatureDetailById(
  */
 export async function insertFeature(
   tx: Transaction,
-  args: { label: string; description: string; parentId?: number | null },
+  args: {
+    label: string;
+    description: string;
+    parentId?: number | null;
+    semantics: FeatureSemantics;
+  },
 ): Promise<FeatureDTO | null> {
   const [featureRow] = await tx
     .insert(featuresTbl)
@@ -232,11 +243,13 @@ export async function insertFeature(
       label: args.label,
       description: args.description,
       parentId: args.parentId ?? null,
+      semantics: args.semantics,
     })
     .returning({
       id: featuresTbl.id,
       label: featuresTbl.label,
       parentId: featuresTbl.parentId,
+      semantics: featuresTbl.semantics,
       description: featuresTbl.description,
       characterCount: sql<number>`0`,
     });
@@ -251,6 +264,7 @@ export async function updateFeatureRow(
     label?: string;
     description?: string;
     parentId?: number | null;
+    semantics?: FeatureSemantics;
     mediaId?: number | null;
   },
 ): Promise<Omit<FeatureDTO, "characterCount"> | null> {
@@ -260,6 +274,7 @@ export async function updateFeatureRow(
       label: args.label,
       description: args.description,
       parentId: args.parentId,
+      semantics: args.semantics,
       mediaId: args.mediaId,
     })
     .where(eq(featuresTbl.id, id))
@@ -268,6 +283,7 @@ export async function updateFeatureRow(
       label: featuresTbl.label,
       description: featuresTbl.description,
       parentId: featuresTbl.parentId,
+      semantics: featuresTbl.semantics,
       mediaId: featuresTbl.mediaId,
     });
 
@@ -364,42 +380,6 @@ export async function countDependentsForFeature(
   };
 }
 
-/**
- * Given a set of seed feature IDs, returns a map of featureId -> parentId for
- * every feature in the ancestor chains (seeds + all of their ancestors).
- *
- * ! Assumes no cycles in the data.
- */
-export async function getFeatureAncestorMap(
-  featureIds: number[],
-): Promise<Map<number, number | null>> {
-  if (featureIds.length === 0) return new Map();
-
-  type AncRow = { id: number; parentId: number | null };
-
-  const rows = await db.execute<AncRow>(sql`
-    WITH RECURSIVE ancestors AS (
-      SELECT id, parent_id AS "parentId"
-      FROM ${featuresTbl}
-      WHERE id = ANY(ARRAY[${sql.join(
-        featureIds.map((id) => sql`${id}`),
-        sql`, `,
-      )}]::integer[])
-      UNION ALL
-      SELECT f.id, f.parent_id AS "parentId"
-      FROM ${featuresTbl} f
-      INNER JOIN ancestors a ON f.id = a."parentId"
-    )
-    SELECT DISTINCT id, "parentId" FROM ancestors
-  `);
-
-  const map = new Map<number, number | null>();
-  for (const row of rows.rows) {
-    map.set(row.id, row.parentId);
-  }
-  return map;
-}
-
 /** Given a set of root feature IDs, returns a map of rootId -> every id beneath it. */
 export async function getFeatureDescendantIds(
   rootIds: number[],
@@ -457,6 +437,22 @@ export async function deleteFeatureById(
     .returning({ id: featuresTbl.id });
 
   return deleted ?? null;
+}
+
+/**
+ * Select every feature's parent and semantics.
+ */
+export async function selectFeatureTree(
+  tx: Transaction,
+): Promise<FeatureTreeNode[]> {
+  return tx
+    .select({
+      id: featuresTbl.id,
+      label: featuresTbl.label,
+      parentId: featuresTbl.parentId,
+      semantics: featuresTbl.semantics,
+    })
+    .from(featuresTbl);
 }
 
 /**

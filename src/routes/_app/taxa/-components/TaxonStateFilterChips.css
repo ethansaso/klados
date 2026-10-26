@@ -1,0 +1,7 @@
+.taxon-state-filter-chip {
+  user-select: none;
+}
+
+.taxon-state-filter-chip[data-assumed] {
+  box-shadow: inset 0 0 0 1px var(--tomato-a8);
+}

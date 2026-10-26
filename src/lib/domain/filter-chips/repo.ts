@@ -5,6 +5,7 @@ import {
   categoricalTraitValue,
   character,
   feature,
+  type FeatureSemantics,
 } from "../../../../db/schema/schema";
 import { selectFeatureIdsByCharacterIds } from "../characters/repo";
 import { selectCharacterUnitRequirements } from "../units/repo";
@@ -15,7 +16,7 @@ export type FilterLabelMaps = {
   featuresByCharacter: Map<number, Set<number>>;
   /** Absent for non-numeric characters; see selectCharacterUnitRequirements. */
   unitRequirements: Map<number, CharacterUnitRequirement>;
-  features: Map<number, string>;
+  features: Map<number, { label: string; semantics: FeatureSemantics }>;
   characters: Map<number, string>;
   /** Carries owning character, so value can be checked against the token */
   traitValues: Map<number, { label: string; characterId: number }>;
@@ -43,7 +44,11 @@ export async function selectFilterLabels(ids: {
   ] = await Promise.all([
     ids.featureIds.length
       ? db
-          .select({ id: feature.id, label: feature.label })
+          .select({
+            id: feature.id,
+            label: feature.label,
+            semantics: feature.semantics,
+          })
           .from(feature)
           .where(inArray(feature.id, ids.featureIds))
       : [],
@@ -76,7 +81,12 @@ export async function selectFilterLabels(ids: {
   return {
     unitRequirements,
     featuresByCharacter,
-    features: toMap(features),
+    features: new Map(
+      features.map((row) => [
+        row.id,
+        { label: row.label, semantics: row.semantics },
+      ]),
+    ),
     characters: toMap(characters),
     traitValues: new Map(
       traitValues.map((row) => [

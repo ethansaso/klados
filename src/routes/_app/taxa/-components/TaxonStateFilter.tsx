@@ -1,23 +1,13 @@
-import {
-  Badge,
-  Box,
-  Button,
-  Flex,
-  IconButton,
-  Popover,
-  Spinner,
-  Text,
-} from "@radix-ui/themes";
+import { Box, Button, Flex, Popover, Text } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { type PropsWithChildren, useState } from "react";
-import { PiX } from "react-icons/pi";
+import type { FeatureSemantics } from "../../../../../db/schema/schema";
 import { ResponsiveTooltip } from "../../../../components/ResponsiveTooltip";
 import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../../components/inputs/combobox/types";
 import type { TraitSuggestion } from "../../../../lib/domain/suggestions/types";
 import type { TaxonFilterToken } from "../../../../lib/domain/taxa/search";
 import { filterTokenKey } from "../../../../lib/domain/taxa/utils";
-import { filterChipsQueryOptions } from "../../../../lib/queries/filterChips";
 import {
   characterStateFilterSuggestionsQueryOptions,
   featureSuggestionsQueryOptions,
@@ -30,7 +20,10 @@ type Props = {
   selected: TaxonFilterToken[];
   onChange: (tokens: TaxonFilterToken[]) => void;
 };
-type FeatureOption = ComboboxOption & { id: number };
+type FeatureOption = ComboboxOption & {
+  id: number;
+  semantics: FeatureSemantics;
+};
 type StateOption = ComboboxOption & { suggestion: TraitSuggestion };
 
 /**
@@ -60,6 +53,7 @@ export function TaxonStateFilterPopover({
   const featureOptions: FeatureOption[] = (featureData ?? []).map((f) => ({
     id: f.id,
     label: f.label,
+    semantics: f.semantics,
   }));
 
   const selectedKeys = new Set(selected.map(filterTokenKey));
@@ -177,6 +171,12 @@ export function TaxonStateFilterPopover({
           </SelectCombobox.Root>
         </Box>
 
+        {pending && feature?.semantics === "assumed" && (
+          <Text as="p" mt="3" size="1" color="tomato">
+            {assumedFeatureNote(feature.label)}
+          </Text>
+        )}
+
         <Flex mt="3" justify="end">
           <Button size="1" disabled={!pending} onClick={commit}>
             Add
@@ -187,46 +187,9 @@ export function TaxonStateFilterPopover({
   );
 }
 
-/** Removable chips for the active filters. */
-export function TaxonStateFilterChips({ selected, onChange }: Props) {
-  const { data: chips } = useQuery(filterChipsQueryOptions(selected));
-
-  const labelByKey = new Map(
-    (chips ?? []).map((chip) => [chip.key, chip.label]),
-  );
-
-  const remove = (key: string) =>
-    onChange(selected.filter((token) => filterTokenKey(token) !== key));
-
-  if (!selected.length) return null;
-  return (
-    <Flex gap="1" wrap="wrap">
-      {selected.map((token) => {
-        const key = filterTokenKey(token);
-        // Undefined before resolved via query.
-        const label = labelByKey.get(key);
-
-        return (
-          <Badge key={key} color={label === null ? "tomato" : undefined}>
-            {label === undefined ? (
-              <Spinner size="1" />
-            ) : (
-              (label ?? "Unrecognized filter")
-            )}
-            <IconButton
-              size="1"
-              variant="ghost"
-              color="tomato"
-              aria-label={`Remove ${label ?? "unrecognized"} filter`}
-              onClick={() => remove(key)}
-            >
-              <PiX size="0.75rem" />
-            </IconButton>
-          </Badge>
-        );
-      })}
-    </Flex>
-  );
+/** Shown wherever a filter names an assumed feature. */
+export function assumedFeatureNote(featureLabel: string) {
+  return `"${featureLabel}" is often omitted from descriptions; this will only match taxa that record it.`;
 }
 
 function tokenFromSuggestion(

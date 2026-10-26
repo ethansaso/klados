@@ -6,6 +6,7 @@ import { PiGraphFill, PiMagnifyingGlass, PiPlusCircle } from "react-icons/pi";
 import { GlossarySidebarLayout } from "../-chrome/GlossarySidebarLayout";
 import { GlossarySidebarList } from "../-chrome/GlossarySidebarList";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
+import { FeatureSemanticsIcon } from "../../../../components/icons/modular/FeatureSemanticsIcon";
 import { PaginationFooter } from "../../../../components/PaginationFooter";
 import { DebouncedTextField } from "../../../../components/inputs/DebouncedTextField";
 import { useRoutedPaginatedSearch } from "../../../../lib/hooks/useRoutedPaginatedSearch";
@@ -75,7 +76,12 @@ function RouteComponent() {
           {paginatedResult.items.map((item) => (
             <GlossarySidebarList.Item
               key={item.id}
-              label={item.label}
+              label={
+                <Flex align="center" gap="1">
+                  <FeatureSemanticsIcon semantics={item.semantics} />
+                  {item.label}
+                </Flex>
+              }
               to="/glossary/features/$id"
               params={{ id: item.id }}
               search={search}

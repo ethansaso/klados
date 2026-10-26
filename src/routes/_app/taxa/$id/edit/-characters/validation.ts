@@ -1,5 +1,9 @@
 import z from "zod";
-import { FEATURE_PRESENCES } from "../../../../../../../db/schema/schema";
+import {
+  FEATURE_PRESENCES,
+  FEATURE_SEMANTICS,
+} from "../../../../../../../db/schema/schema";
+import { variantPresenceConflicts } from "../../../../../../lib/domain/states/variantPresenceConflicts";
 
 // utils
 
@@ -71,6 +75,8 @@ export const featureFormSchema = z
   .object({
     featureId: z.number().int().positive(),
     featureLabel: z.string(),
+    featureParentId: z.number().int().positive().nullable(),
+    featureSemantics: z.enum(FEATURE_SEMANTICS),
     notes: z.string().trim(),
     presence: z.enum(FEATURE_PRESENCES).default("present"),
     characters: z.array(characterStateFormSchema),
@@ -148,6 +154,18 @@ export const groupedCharacterFormSchema = z
         });
       }
       seenFeatureIds.add(feature.featureId);
+    }
+
+    const conflicts = variantPresenceConflicts(
+      features.map((feature) => ({
+        label: feature.featureLabel,
+        parentId: feature.featureParentId,
+        semantics: feature.featureSemantics,
+        presence: feature.presence,
+      })),
+    );
+    for (const message of conflicts) {
+      ctx.addIssue({ code: "custom", message, path: [] });
     }
   });
 

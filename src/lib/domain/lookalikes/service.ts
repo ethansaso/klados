@@ -1,4 +1,5 @@
 import { db } from "../../../../db/client";
+import { selectFeatureTree } from "../features/repo";
 import { selectTaxonStatesByTaxonIds } from "../states/repo";
 import { selectTaxonDtoById, selectTaxonDtosByIds } from "../taxa/repo";
 import { selectLookalikeCandidateIds } from "./repo";
@@ -24,10 +25,14 @@ export const getLookalikesForTaxon = async (
       taxonId,
       ...candidateIds,
     ]);
+    const tree = await selectFeatureTree(tx);
     const target = statesById[taxonId] ?? [];
 
     const ranked = candidateIds
-      .map((id) => ({ id, ...scoreLookalike(target, statesById[id] ?? []) }))
+      .map((id) => ({
+        id,
+        ...scoreLookalike(tree, target, statesById[id] ?? []),
+      }))
       .sort(
         (x, y) =>
           y.score - x.score ||

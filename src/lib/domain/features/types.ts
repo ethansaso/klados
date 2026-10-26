@@ -4,9 +4,15 @@ import type { MediaDTO } from "../media/types";
 
 export type FeatureRow = typeof feature.$inferSelect;
 
+/** A feature's place in the hierarchy, for inferring presence. */
+export type FeatureTreeNode = Pick<
+  FeatureRow,
+  "id" | "label" | "parentId" | "semantics"
+>;
+
 export type FeatureDTO = Pick<
   FeatureRow,
-  "id" | "label" | "description" | "parentId"
+  "id" | "label" | "description" | "parentId" | "semantics"
 > & {
   characterCount: number;
   media: MediaDTO | null;

@@ -13,29 +13,21 @@ import { useServerFn } from "@tanstack/react-start";
 import { Form, Label } from "radix-ui";
 import { useMemo, useState } from "react";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
-import z from "zod";
 import { SelectCombobox } from "../../../../components/inputs/combobox/SelectCombobox";
 import type { ComboboxOption } from "../../../../components/inputs/combobox/types";
 import {
   a11yProps,
   ConditionalAlert,
 } from "../../../../components/inputs/ConditionalAlert";
-import { createFeatureSchema } from "../../../../lib/domain/features/validation";
 import { featuresQueryOptions } from "../../../../lib/queries/features";
 import { createFeatureFn } from "../../../../lib/server-fns/features/createFeatureFn";
 import { getErrorMessage } from "../../../../lib/utils/getErrorMessage";
 import { toast } from "../../../../lib/utils/toast";
-
-const parentRefSchema = z.object({
-  id: z.number().int().positive(),
-  label: z.string().min(1),
-});
-
-const createFeatureFormSchema = createFeatureSchema
-  .omit({ parentId: true })
-  .extend({ parent: parentRefSchema.nullable().optional() });
-
-type CreateFeatureFormInput = z.infer<typeof createFeatureFormSchema>;
+import {
+  type CreateFeatureFormInput,
+  createFeatureFormSchema,
+} from "./-formValidation";
+import { SemanticsField } from "./-SemanticsField";
 
 interface Props {
   initialLabel?: string;
@@ -50,6 +42,7 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
     register,
     control,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting, touchedFields, isSubmitted },
   } = useForm<CreateFeatureFormInput>({
     resolver: zodResolver(createFeatureFormSchema),
@@ -59,8 +52,10 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
       label: initialLabel ?? "",
       description: "",
       parent: null,
+      semantics: "explicit",
     },
   });
+  const parent = watch("parent");
 
   const [parentQuery, setParentQuery] = useState("");
   const { data: parentRes, isFetching: parentLoading } = useQuery(
@@ -80,6 +75,7 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
     label,
     description,
     parent,
+    semantics,
   }) => {
     try {
       await serverCreate({
@@ -87,6 +83,7 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
           label,
           description,
           parentId: parent ? parent.id : null,
+          semantics,
         },
       });
 
@@ -162,6 +159,20 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
                 )}
               />
             </Box>
+            <Controller
+              name="semantics"
+              control={control}
+              render={({ field }) => (
+                <SemanticsField
+                  id="feature-semantics"
+                  value={field.value}
+                  onChange={field.onChange}
+                  hasParent={!!parent}
+                  error={isSubmitted ? errors.semantics?.message : undefined}
+                  disabled={isSubmitting}
+                />
+              )}
+            />
             <Box>
               <Flex justify="between" align="baseline" mb="1">
                 <Label.Root htmlFor="feature-description">

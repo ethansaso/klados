@@ -26,10 +26,8 @@ import { taxaQueryOptions } from "../../../lib/queries/taxa";
 import { routeSeo } from "../../../lib/utils/head/routeSeo";
 import { TaxonFilters } from "./-components/TaxonFilters";
 import { TaxonGrid } from "./-components/TaxonGrid";
-import {
-  TaxonStateFilterChips,
-  TaxonStateFilterPopover,
-} from "./-components/TaxonStateFilter";
+import { TaxonStateFilterPopover } from "./-components/TaxonStateFilter";
+import { TaxonStateFilterChips } from "./-components/TaxonStateFilterChips";
 import { isDefaultTaxonListing } from "./-defaultListing";
 import { useTaxonSearchControls } from "./-hooks/useTaxonSearchControls";
 import "./index.css";

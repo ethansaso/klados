@@ -9,11 +9,7 @@ export const createFeatureFn = createServerFn({ method: "POST" })
   .middleware([requireCuratorMiddleware])
   .validator(createFeatureSchema)
   .handler(async ({ data }): Promise<FeatureDTO> => {
-    const dto = await createFeature({
-      label: data.label,
-      description: data.description,
-      parentId: data.parentId,
-    });
+    const dto = await createFeature(data);
 
     if (!dto) {
       throw new Error("Failed to create feature.");

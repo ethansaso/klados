@@ -1,11 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
 import { KEYGEN_DEBUG } from "../debug";
+import type { FeatureTreeNode } from "../../lib/domain/features/types";
 import type { HierarchyTaxonNode } from "../hierarchy/types";
 import type { KeyGenOptions } from "../options";
 import { mergeCharacterDefinitionSplits } from "../splitting/characters/mergeCompatibleCharacterSplits";
 import { resolveCharacterSplits } from "../splitting/characters/resolveCharacterSplits";
 import {
-  expandInheritedStatements,
+  reliablyBorneFeatures,
   extendInheritedStatements,
   type InheritedFeatureStatements,
   resolveFeaturePresentAbsentSplits,
@@ -186,7 +187,7 @@ function buildKeyForSiblings(
   siblings: TaxonGroup,
   hierarchy: Map<number, HierarchyTaxonNode>,
   options: KeyGenOptions,
-  featureAncestorMap: Map<number, number | null>,
+  featureTree: FeatureTreeNode[],
   inheritedStatements: InheritedFeatureStatements,
 ): void {
   if (siblings.length === 0) return;
@@ -203,7 +204,7 @@ function buildKeyForSiblings(
       childNode,
       hierarchy,
       options,
-      featureAncestorMap,
+      featureTree,
       inheritedStatements,
     );
     return;
@@ -217,8 +218,8 @@ function buildKeyForSiblings(
   );
   const featureSplits = resolveFeaturePresentAbsentSplits(
     siblings,
-    featureAncestorMap,
-    expandInheritedStatements(inheritedStatements, featureAncestorMap),
+    featureTree,
+    reliablyBorneFeatures(inheritedStatements),
   );
   const candidates: SplitResult[] = [...characterSplits, ...featureSplits];
 
@@ -242,7 +243,7 @@ function buildKeyForSiblings(
         childNode,
         hierarchy,
         options,
-        featureAncestorMap,
+        featureTree,
         inheritedStatements,
       );
     }
@@ -273,7 +274,7 @@ function buildKeyForSiblings(
         childTaxonNode,
         hierarchy,
         options,
-        featureAncestorMap,
+        featureTree,
         inheritedStatements,
       );
     } else {
@@ -287,7 +288,7 @@ function buildKeyForSiblings(
         taxaInBranch,
         hierarchy,
         options,
-        featureAncestorMap,
+        featureTree,
         inheritedStatements,
       );
     }
@@ -311,7 +312,7 @@ function buildKeyForSiblings(
       childNode,
       hierarchy,
       options,
-      featureAncestorMap,
+      featureTree,
       inheritedStatements,
     );
   } else if (unplaced.length > 1) {
@@ -326,7 +327,7 @@ function buildKeyForSiblings(
         childNode,
         hierarchy,
         options,
-        featureAncestorMap,
+        featureTree,
         inheritedStatements,
       );
     }
@@ -344,7 +345,7 @@ export function buildKeySubtreeForTaxon(
   taxonNode: KeyTaxonNode,
   hierarchy: Map<number, HierarchyTaxonNode>,
   options: KeyGenOptions,
-  featureAncestorMap: Map<number, number | null>,
+  featureTree: FeatureTreeNode[],
   inheritedStatements: InheritedFeatureStatements = new Map(),
 ): void {
   const children: TaxonGroup = getChildrenForTaxonNode(taxonNode, hierarchy);
@@ -372,7 +373,7 @@ export function buildKeySubtreeForTaxon(
       childTaxonNode,
       hierarchy,
       options,
-      featureAncestorMap,
+      featureTree,
       inheritedForChildren,
     );
     return;
@@ -384,7 +385,7 @@ export function buildKeySubtreeForTaxon(
     children,
     hierarchy,
     options,
-    featureAncestorMap,
+    featureTree,
     inheritedForChildren,
   );
 }

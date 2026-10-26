@@ -3,9 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { InputCombobox } from "../../../../../../../components/inputs/combobox/InputCombobox";
 import type { ComboboxOption } from "../../../../../../../components/inputs/combobox/types";
+import type { FeatureSuggestion } from "../../../../../../../lib/domain/suggestions/types";
 import { featureSuggestionsQueryOptions } from "../../../../../../../lib/queries/suggestions";
 
-export type FeatureOption = ComboboxOption & { id: number };
+export type FeatureOption = ComboboxOption &
+  Pick<FeatureSuggestion, "id" | "parentId" | "semantics">;
 interface FeatureSearchProps {
   onSelect: (feature: FeatureOption) => void;
   /** Called when the user presses / with an empty input. */
@@ -25,6 +27,8 @@ export const FeatureSearch = ({
     id: f.id,
     label: f.label,
     hint: f.description ?? undefined,
+    parentId: f.parentId,
+    semantics: f.semantics,
   }));
 
   return (

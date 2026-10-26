@@ -1,4 +1,5 @@
 import z from "zod";
+import { FEATURE_SEMANTICS } from "../../../../db/schema/schema";
 
 export const createFeatureSchema = z.object({
   label: z
@@ -14,6 +15,7 @@ export const createFeatureSchema = z.object({
     .positive("Must be positive")
     .nullable()
     .optional(),
+  semantics: z.enum(FEATURE_SEMANTICS),
 });
 
 export const updateFeatureMetaSchema = createFeatureSchema.partial().extend({

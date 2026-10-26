@@ -1,4 +1,7 @@
-import type { FeaturePresence } from "../../../../db/schema/schema";
+import type {
+  FeaturePresence,
+  FeatureSemantics,
+} from "../../../../db/schema/schema";
 import { type UnitDTO } from "../units/types";
 
 export type ModifierStateDTO = {
@@ -56,6 +59,8 @@ export type CharacterStateDTO =
 export type FeatureStateDTO = {
   featureId: number;
   featureLabel: string;
+  featureParentId: number | null;
+  featureSemantics: FeatureSemantics;
   featureHasInfo: boolean;
   notes: string;
   presence: FeaturePresence;

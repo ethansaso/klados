@@ -7,6 +7,7 @@ import {
   listFeaturesQuery,
   selectAllFeatureLabels,
   selectFeaturesByIds,
+  selectFeatureTree,
   setCharacterFeatureRows,
   updateFeatureRow,
 } from "./repo";
@@ -14,8 +15,12 @@ import type {
   FeatureDetailDTO,
   FeatureDTO,
   FeaturePaginatedResult,
+  FeatureTreeNode,
 } from "./types";
-import type { UpdateFeatureInput } from "./validation";
+import type { CreateFeatureInput, UpdateFeatureInput } from "./validation";
+
+const VARIANT_NEEDS_PARENT =
+  "A variant feature needs a parent feature, since it's one alternative among its siblings.";
 
 /**
  * Bulk fetch features by ID (non-paginated).
@@ -58,19 +63,22 @@ export async function getFeature(args: {
 /**
  * Create a feature.
  */
-export async function createFeature(args: {
-  label: string;
-  description?: string;
-  parentId?: number | null;
-}): Promise<FeatureDTO | null> {
+export async function createFeature(
+  args: CreateFeatureInput,
+): Promise<FeatureDTO | null> {
   const label = args.label.trim();
   const description = args.description?.trim() || "";
+
+  if (args.semantics === "variant" && args.parentId == null) {
+    throw new Error(VARIANT_NEEDS_PARENT);
+  }
 
   return db.transaction(async (tx) => {
     const base = await insertFeature(tx, {
       label,
       description,
       parentId: args.parentId,
+      semantics: args.semantics,
     });
     if (!base) {
       return null;
@@ -88,13 +96,27 @@ export async function createFeature(args: {
 export async function updateFeature(
   args: UpdateFeatureInput,
 ): Promise<FeatureDetailDTO | null> {
-  const { id, label, description, parentId, characterIds, mediaId } = args;
+  const { id, label, description, parentId, semantics, characterIds, mediaId } =
+    args;
 
   return db.transaction(async (tx) => {
+    // Covers both making a root a variant and removing a variant's parent
+    if (parentId !== undefined || semantics !== undefined) {
+      const [current] = await selectFeaturesByIds(tx, [id]);
+      if (!current) return null;
+
+      const nextParentId = parentId === undefined ? current.parentId : parentId;
+      const nextSemantics = semantics ?? current.semantics;
+      if (nextSemantics === "variant" && nextParentId === null) {
+        throw new Error(VARIANT_NEEDS_PARENT);
+      }
+    }
+
     const updated = await updateFeatureRow(tx, id, {
       label,
       description,
       parentId,
+      semantics,
       mediaId,
     });
     if (!updated) {
@@ -157,6 +179,13 @@ export async function deleteFeature(args: {
     const deleted = await deleteFeatureById(tx, id);
     return deleted;
   });
+}
+
+/**
+ * Every feature's parent and semantics.
+ */
+export async function getFeatureTree(): Promise<FeatureTreeNode[]> {
+  return db.transaction((tx) => selectFeatureTree(tx));
 }
 
 /**
