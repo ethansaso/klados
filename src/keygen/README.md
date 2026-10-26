@@ -2,9 +2,7 @@
 
 The key generation system creates dichotomous identification keys for taxonomic hierarchies. Given a root taxon, it produces a tree structure with rationales provided based off taxon feature/character states.
 
-Last updated 2/8/26.
-
-TODO: This directory will need a complete overhaul once characters/features are overhauled for semantic structure.
+Last updated 10/25/26.
 
 ## Overview
 
@@ -72,7 +70,9 @@ The splitting subsystem finds ways to partition a group of taxa based on their c
 
 ### Feature Present/Absent Splits
 
-A simpler split type: divide taxa into those that have _any_ character defined in a given feature vs. those that don't. Useful when entire features (e.g., "wing venation") are only applicable to certain taxa.
+A simpler split type: divide taxa into those that bear a feature vs. those that don't. Useful when entire features (e.g., "wing venation") are only applicable to certain taxa.
+
+Each taxon's presence comes from `resolvePresence` (`src/lib/domain/states/resolvePresence.ts`), so feature semantics decide what an unrecorded feature means. A taxon it can't call present or absent can't be placed, so the split is dropped rather than guessed. Taxa with no morphology at all are left out of the split and attached without a rationale.
 
 ### Scoring Considerations
 

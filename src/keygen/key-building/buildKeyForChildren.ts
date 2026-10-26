@@ -6,7 +6,7 @@ import type { KeyGenOptions } from "../options";
 import { mergeCharacterDefinitionSplits } from "../splitting/characters/mergeCompatibleCharacterSplits";
 import { resolveCharacterSplits } from "../splitting/characters/resolveCharacterSplits";
 import {
-  expandInheritedStatements,
+  reliablyBorneFeatures,
   extendInheritedStatements,
   type InheritedFeatureStatements,
   resolveFeaturePresentAbsentSplits,
@@ -219,7 +219,7 @@ function buildKeyForSiblings(
   const featureSplits = resolveFeaturePresentAbsentSplits(
     siblings,
     featureTree,
-    expandInheritedStatements(inheritedStatements, featureTree),
+    reliablyBorneFeatures(inheritedStatements),
   );
   const candidates: SplitResult[] = [...characterSplits, ...featureSplits];
 

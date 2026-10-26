@@ -8,7 +8,7 @@ import type { FeaturePresentAbsentSplitResult } from "./types";
  * Walks up the ancestor chain for a single feature, returning a set of that
  * feature ID plus all ancestor IDs. Memoized to avoid re-walking
  */
-export function expandWithAncestors(
+function expandWithAncestors(
   featureId: number,
   parentMap: Map<number, number | null>,
   memo: Map<number, Set<number>>,
@@ -54,24 +54,17 @@ export function extendInheritedStatements(
 }
 
 /**
- * The features descendants can be assumed to bear, expanded through the feature
- * hierarchy at the point of use rather than as statements accumulate.
+ * The features descendants can be assumed to bear. Their ancestors follow via
+ * {@link resolvePresence}.
  */
-export function expandInheritedStatements(
+export function reliablyBorneFeatures(
   inherited: InheritedFeatureStatements,
-  featureTree: FeatureTreeNode[],
 ): ReadonlySet<number> {
-  const parentMap = new Map(featureTree.map((f) => [f.id, f.parentId]));
-  const memo = new Map<number, Set<number>>();
-  const certain = new Set<number>();
-
+  const borne = new Set<number>();
   for (const [featureId, reliable] of inherited) {
-    if (!reliable) continue;
-    for (const id of expandWithAncestors(featureId, parentMap, memo)) {
-      certain.add(id);
-    }
+    if (reliable) borne.add(featureId);
   }
-  return certain;
+  return borne;
 }
 
 /**
