@@ -25,6 +25,7 @@ function RouteComponent() {
   const homeActive = useIsActive("/admin");
   const usersActive = useIsActive("/admin/users");
   const sourcesActive = useIsActive("/admin/sources");
+  const taxonEditsActive = useIsActive("/admin/taxon-edits");
 
   return (
     <div className="admin__container">
@@ -49,6 +50,9 @@ function RouteComponent() {
           </NavSidebar.Item>
           <NavSidebar.Item to="/admin/sources" active={sourcesActive}>
             Source Management
+          </NavSidebar.Item>
+          <NavSidebar.Item to="/admin/taxon-edits" active={taxonEditsActive}>
+            Taxon Edits
           </NavSidebar.Item>
         </NavSidebar.Root>
         <Outlet />

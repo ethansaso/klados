@@ -28,6 +28,7 @@ import { Route as AppVerifyEmailRouteImport } from './routes/_app/verify-email'
 import { Route as SitemapsSitemapTaxaDotxmlRouteImport } from './routes/_sitemaps/sitemap-taxa[.]xml'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminSourcesRouteRouteImport } from './routes/admin/sources/route'
+import { Route as AdminTaxonEditsRouteRouteImport } from './routes/admin/taxon-edits/route'
 import { Route as AdminUsersRouteRouteImport } from './routes/admin/users/route'
 import { Route as ApiUnauthenticatedRouteRouteImport } from './routes/api/_unauthenticated/route'
 import { Route as AppCuratorsNewRouteImport } from './routes/_app/curators/new'
@@ -41,6 +42,7 @@ import { Route as AppTaxaIdRouteRouteImport } from './routes/_app/taxa/$id/route
 import { Route as AppTaxaNewRouteImport } from './routes/_app/taxa/new'
 import { Route as AppUsersIndexRouteImport } from './routes/_app/users/index'
 import { Route as AdminSourcesIndexRouteImport } from './routes/admin/sources/index'
+import { Route as AdminTaxonEditsIndexRouteImport } from './routes/admin/taxon-edits/index'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
 import { Route as ApiUnauthenticatedExtractionRouteImport } from './routes/api/_unauthenticated/extraction'
 import { Route as ApiUnauthenticatedTaxaRouteImport } from './routes/api/_unauthenticated/taxa'
@@ -159,6 +161,11 @@ const AdminSourcesRouteRoute = AdminSourcesRouteRouteImport.update({
   path: '/sources',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminTaxonEditsRouteRoute = AdminTaxonEditsRouteRouteImport.update({
+  id: '/taxon-edits',
+  path: '/taxon-edits',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminUsersRouteRoute = AdminUsersRouteRouteImport.update({
   id: '/users',
   path: '/users',
@@ -225,6 +232,11 @@ const AdminSourcesIndexRoute = AdminSourcesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminSourcesRouteRoute,
+} as any)
+const AdminTaxonEditsIndexRoute = AdminTaxonEditsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminTaxonEditsRouteRoute,
 } as any)
 const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
   id: '/',
@@ -354,6 +366,7 @@ export interface FileRoutesByFullPath {
   '/guides': typeof AppGuidesRouteRouteWithChildren
   '/users': typeof AppUsersRouteRouteWithChildren
   '/admin/sources': typeof AdminSourcesRouteRouteWithChildren
+  '/admin/taxon-edits': typeof AdminTaxonEditsRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
   '/api': typeof ApiUnauthenticatedRouteRouteWithChildren
   '/about': typeof AppAboutRoute
@@ -381,6 +394,7 @@ export interface FileRoutesByFullPath {
   '/taxa/': typeof AppTaxaIndexRoute
   '/users/': typeof AppUsersIndexRoute
   '/admin/sources/': typeof AdminSourcesIndexRoute
+  '/admin/taxon-edits/': typeof AdminTaxonEditsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/glossary/characters/$id': typeof AppGlossaryCharactersIdRouteRouteWithChildren
   '/glossary/features/$id': typeof AppGlossaryFeaturesIdRouteRouteWithChildren
@@ -426,6 +440,7 @@ export interface FileRoutesByTo {
   '/taxa': typeof AppTaxaIndexRoute
   '/users': typeof AppUsersIndexRoute
   '/admin/sources': typeof AdminSourcesIndexRoute
+  '/admin/taxon-edits': typeof AdminTaxonEditsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
   '/glossary/modifiers/$id': typeof AppGlossaryModifiersIdRoute
   '/users/$username/edit': typeof AppUsersUsernameEditRoute
@@ -450,6 +465,7 @@ export interface FileRoutesById {
   '/_app/guides': typeof AppGuidesRouteRouteWithChildren
   '/_app/users': typeof AppUsersRouteRouteWithChildren
   '/admin/sources': typeof AdminSourcesRouteRouteWithChildren
+  '/admin/taxon-edits': typeof AdminTaxonEditsRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
   '/api/_unauthenticated': typeof ApiUnauthenticatedRouteRouteWithChildren
   '/_app/about': typeof AppAboutRoute
@@ -479,6 +495,7 @@ export interface FileRoutesById {
   '/_app/taxa/': typeof AppTaxaIndexRoute
   '/_app/users/': typeof AppUsersIndexRoute
   '/admin/sources/': typeof AdminSourcesIndexRoute
+  '/admin/taxon-edits/': typeof AdminTaxonEditsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/_app/glossary/characters/$id': typeof AppGlossaryCharactersIdRouteRouteWithChildren
   '/_app/glossary/features/$id': typeof AppGlossaryFeaturesIdRouteRouteWithChildren
@@ -508,6 +525,7 @@ export interface FileRouteTypes {
     | '/guides'
     | '/users'
     | '/admin/sources'
+    | '/admin/taxon-edits'
     | '/admin/users'
     | '/api'
     | '/about'
@@ -535,6 +553,7 @@ export interface FileRouteTypes {
     | '/taxa/'
     | '/users/'
     | '/admin/sources/'
+    | '/admin/taxon-edits/'
     | '/admin/users/'
     | '/glossary/characters/$id'
     | '/glossary/features/$id'
@@ -580,6 +599,7 @@ export interface FileRouteTypes {
     | '/taxa'
     | '/users'
     | '/admin/sources'
+    | '/admin/taxon-edits'
     | '/admin/users'
     | '/glossary/modifiers/$id'
     | '/users/$username/edit'
@@ -603,6 +623,7 @@ export interface FileRouteTypes {
     | '/_app/guides'
     | '/_app/users'
     | '/admin/sources'
+    | '/admin/taxon-edits'
     | '/admin/users'
     | '/api/_unauthenticated'
     | '/_app/about'
@@ -632,6 +653,7 @@ export interface FileRouteTypes {
     | '/_app/taxa/'
     | '/_app/users/'
     | '/admin/sources/'
+    | '/admin/taxon-edits/'
     | '/admin/users/'
     | '/_app/glossary/characters/$id'
     | '/_app/glossary/features/$id'
@@ -796,6 +818,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSourcesRouteRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/taxon-edits': {
+      id: '/admin/taxon-edits'
+      path: '/taxon-edits'
+      fullPath: '/admin/taxon-edits'
+      preLoaderRoute: typeof AdminTaxonEditsRouteRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
@@ -886,6 +915,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/sources/'
       preLoaderRoute: typeof AdminSourcesIndexRouteImport
       parentRoute: typeof AdminSourcesRouteRoute
+    }
+    '/admin/taxon-edits/': {
+      id: '/admin/taxon-edits/'
+      path: '/'
+      fullPath: '/admin/taxon-edits/'
+      preLoaderRoute: typeof AdminTaxonEditsIndexRouteImport
+      parentRoute: typeof AdminTaxonEditsRouteRoute
     }
     '/admin/users/': {
       id: '/admin/users/'
@@ -1271,6 +1307,17 @@ const AdminSourcesRouteRouteChildren: AdminSourcesRouteRouteChildren = {
 const AdminSourcesRouteRouteWithChildren =
   AdminSourcesRouteRoute._addFileChildren(AdminSourcesRouteRouteChildren)
 
+interface AdminTaxonEditsRouteRouteChildren {
+  AdminTaxonEditsIndexRoute: typeof AdminTaxonEditsIndexRoute
+}
+
+const AdminTaxonEditsRouteRouteChildren: AdminTaxonEditsRouteRouteChildren = {
+  AdminTaxonEditsIndexRoute: AdminTaxonEditsIndexRoute,
+}
+
+const AdminTaxonEditsRouteRouteWithChildren =
+  AdminTaxonEditsRouteRoute._addFileChildren(AdminTaxonEditsRouteRouteChildren)
+
 interface AdminUsersRouteRouteChildren {
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
 }
@@ -1285,12 +1332,14 @@ const AdminUsersRouteRouteWithChildren = AdminUsersRouteRoute._addFileChildren(
 
 interface AdminRouteRouteChildren {
   AdminSourcesRouteRoute: typeof AdminSourcesRouteRouteWithChildren
+  AdminTaxonEditsRouteRoute: typeof AdminTaxonEditsRouteRouteWithChildren
   AdminUsersRouteRoute: typeof AdminUsersRouteRouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminSourcesRouteRoute: AdminSourcesRouteRouteWithChildren,
+  AdminTaxonEditsRouteRoute: AdminTaxonEditsRouteRouteWithChildren,
   AdminUsersRouteRoute: AdminUsersRouteRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
 }

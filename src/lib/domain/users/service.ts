@@ -6,6 +6,7 @@ import {
   type ListUsersParams,
   modifyUserRecord,
   setUserBanned,
+  setUserRole,
   setUserUnbanned,
 } from "./repo";
 import type {
@@ -69,6 +70,18 @@ export async function banUser(
 
 export async function unbanUser(userId: string): Promise<void> {
   await setUserUnbanned(userId);
+}
+
+/** Toggles between user and curator. Throws on admins. */
+export async function setCuratorStatus(
+  userId: string,
+  curator: boolean,
+): Promise<void> {
+  const user = await findUserByIdOrUsername(userId);
+  if (!user) throw new Error("User not found.");
+  if (user.role === "admin") throw new Error("Cannot change an admin's role.");
+
+  await setUserRole(user.id, curator ? "curator" : "user");
 }
 
 /** Ignores failures. Has no effect on non-stored avatars (e.g. OAuth). */

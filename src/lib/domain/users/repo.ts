@@ -1,6 +1,6 @@
 import { asc, count, eq, inArray, SQL } from "drizzle-orm";
 import { db } from "../../../../db/client";
-import { user as userTbl } from "../../../../db/schema/schema";
+import { type UserRole, user as userTbl } from "../../../../db/schema/schema";
 import { userAdminViewDtoSelection, userDtoSelection } from "./sqlAdapters";
 import type {
   UserAdminViewDTO,
@@ -133,4 +133,11 @@ export async function setUserUnbanned(userId: string): Promise<void> {
     .update(userTbl)
     .set({ banned: false, banReason: null, banExpires: null })
     .where(eq(userTbl.id, userId));
+}
+
+export async function setUserRole(
+  userId: string,
+  role: UserRole,
+): Promise<void> {
+  await db.update(userTbl).set({ role }).where(eq(userTbl.id, userId));
 }
