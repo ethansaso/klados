@@ -42,8 +42,7 @@ export const session = pgTable("session", {
 
 export const account = pgTable("account", {
   id: text("id").primaryKey(),
-  issuer: text("issuer").notNull(),
-  providerAccountId: text("provider_account_id").notNull(),
+  accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
   userId: text("user_id")
     .notNull()
