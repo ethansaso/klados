@@ -19,9 +19,11 @@ export const BASE_HUES = [
   { name: "yellow-green", deg: 75 },
   { name: "green", deg: 120 },
   { name: "blue-green", deg: 180 },
+  { name: "azure", deg: 200 },
   { name: "blue", deg: 240 },
   { name: "purple", deg: 270 },
-  { name: "red-purple", deg: 300 },
+  { name: "magenta", deg: 300 },
+  { name: "red-purple", deg: 330 },
 ] as const;
 
 /** Saturation/lightness ramp applied to every base hue, in display order. */
