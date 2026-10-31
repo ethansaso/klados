@@ -12,10 +12,12 @@ that is, it forms a compromise between a primary/secondary/tertiary color system
 and human-parsable / familiar nomenclature.
 
 At present, it contains all tertiary definitions besides blue-purple,
-which is often an arbitrary distinction on many displays.
+which is often an arbitrary distinction on many displays. Magenta and azure
+are opposite cases to blue-purple, since the hues around them left too wide a gap for
+colors people read as distinct.
 
 Each base hue in `src/lib/domain/traits/colorPalette.ts` is crossed with a
-fixed shade ramp (pale, light, plain, grayish, dark, dark grayish) to give 66
+fixed shade ramp (pale, light, plain, grayish, dark, dark grayish) to give 78
 swatches with purely systematic names. Alongside those sit a monotone scale for
 white/gray/black and the simple "colorless". These generated names are the
 palette's **canonical** labels.
@@ -30,8 +32,10 @@ Yellow
 Yellow-Green
 Green
 Blue-Green
+Azure
 Blue
 Purple
+Magenta
 Red-Purple
 White
 Gray
