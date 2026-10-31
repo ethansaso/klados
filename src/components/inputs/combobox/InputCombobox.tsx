@@ -325,8 +325,10 @@ function List({ className, style }: ListProps) {
           </Box>
         )}
 
-        {options.map((option) => (
-          <Item key={option.id} option={option} />
+        {options.map((option, index) => (
+          // Ariakit doesn't re-sort its items when kept ones merely change
+          // order, which desyncs arrow keys from the DOM; so key by position.
+          <Item key={index} option={option} />
         ))}
       </ComboboxList>
     </ScrollArea>

@@ -300,11 +300,6 @@ export const EditingFeatureCard = memo(
       onChange(next);
     }, [getValues, onChange, feature.featureId]);
 
-    // TODO: Immediately delete if no characters exist in group
-    const handleTrashClick = () => {
-      setConfirmingDelete(true);
-    };
-
     const presence = PRESENCE_CYCLE[feature.presence];
     // Indicator for 'you left states on an absent feature'
     const absentWithStates =
@@ -373,7 +368,7 @@ export const EditingFeatureCard = memo(
                 size="1"
                 variant="ghost"
                 color="tomato"
-                onClick={handleTrashClick}
+                onClick={() => setConfirmingDelete(true)}
               >
                 <PiTrash size={16} />
               </IconButton>
