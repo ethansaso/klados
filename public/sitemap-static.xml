@@ -2,6 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://klados.bio/</loc></url>
   <url><loc>https://klados.bio/about</loc></url>
+  <url><loc>https://klados.bio/curators/new</loc></url>
   <url><loc>https://klados.bio/donate</loc></url>
   <url><loc>https://klados.bio/glossary</loc></url>
   <url><loc>https://klados.bio/glossary/characters</loc></url>
@@ -9,5 +10,4 @@
   <url><loc>https://klados.bio/glossary/modifiers</loc></url>
   <url><loc>https://klados.bio/taxa</loc></url>
   <url><loc>https://klados.bio/tos</loc></url>
-  <url><loc>https://klados.bio/users</loc></url>
 </urlset>

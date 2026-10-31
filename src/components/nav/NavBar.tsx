@@ -86,7 +86,6 @@ export function NavBar() {
             More <PiCaretDown size="10" />
           </NavDropdown.Trigger>
           <NavDropdown.Content>
-            <NavDropdown.Link to="/users">Users</NavDropdown.Link>
             <NavDropdown.Link to="/about">About</NavDropdown.Link>
             <NavDropdown.Link to="/donate">Donate</NavDropdown.Link>
             <NavDropdown.Link to="/curators/new">
