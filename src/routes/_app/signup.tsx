@@ -31,11 +31,17 @@ import { meQueryOptions } from "../../lib/queries/users";
 import { routeSeo } from "../../lib/utils/head/routeSeo";
 import { toast } from "../../lib/utils/toast";
 
-const schema = z.object({
-  username: usernameSchema,
-  email: emailSchema,
-  password: passwordSchema,
-});
+const schema = z
+  .object({
+    username: usernameSchema,
+    email: emailSchema,
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match.",
+    path: ["confirmPassword"],
+  });
 type FormFields = z.infer<typeof schema>;
 
 export const Route = createFileRoute("/_app/signup")({
@@ -172,20 +178,45 @@ function RouteComponent() {
                 </Flex>
                 <TextField.Root
                   id="password"
-                  {...register("password")}
+                  // Re-checks the match when the first field is the one corrected
+                  {...register("password", { deps: ["confirmPassword"] })}
                   {...a11yProps("password-error", !!errors.password)}
                   type={showPassword ? "text" : "password"}
                   autoComplete="false"
                 >
                   <TextField.Slot side="right">
-                    <IconButton
-                      variant="ghost"
-                      type="button"
-                      size="1"
-                      onClick={() => setShowPassword((p) => !p)}
-                    >
-                      {showPassword ? <PiEyeSlash /> : <PiEye />}
-                    </IconButton>
+                    <ShowPasswordButton
+                      showPassword={showPassword}
+                      onToggle={() => setShowPassword((p) => !p)}
+                    />
+                  </TextField.Slot>
+                </TextField.Root>
+              </Box>
+              <Box mb="4">
+                <Flex justify="between" align="baseline" mb="1">
+                  <Label.Root htmlFor="confirm-password">
+                    Confirm password
+                  </Label.Root>
+                  <ConditionalAlert
+                    id="confirm-password-error"
+                    message={errors.confirmPassword?.message}
+                  />
+                </Flex>
+                <TextField.Root
+                  id="confirm-password"
+                  {...register("confirmPassword")}
+                  {...a11yProps(
+                    "confirm-password-error",
+                    !!errors.confirmPassword,
+                  )}
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="false"
+                >
+                  <TextField.Slot side="right">
+                    <ShowPasswordButton
+                      showPassword={showPassword}
+                      onToggle={() => setShowPassword((p) => !p)}
+                    />
                   </TextField.Slot>
                 </TextField.Root>
               </Box>
@@ -237,5 +268,25 @@ function RouteComponent() {
         </Box>
       </Flex>
     </Container>
+  );
+}
+
+function ShowPasswordButton({
+  showPassword,
+  onToggle,
+}: {
+  showPassword: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <IconButton
+      variant="ghost"
+      type="button"
+      size="1"
+      aria-label={showPassword ? "Hide password" : "Show password"}
+      onClick={onToggle}
+    >
+      {showPassword ? <PiEyeSlash /> : <PiEye />}
+    </IconButton>
   );
 }
