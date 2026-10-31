@@ -123,9 +123,6 @@ export function NavSheet({ user, onNavigate }: Props) {
               )}
 
               <NavSheetSectionHeading>More</NavSheetSectionHeading>
-              <NavSheetLinkButton to="/users" onNavigate={onNavigate}>
-                Users
-              </NavSheetLinkButton>
               <NavSheetLinkButton to="/about" onNavigate={onNavigate}>
                 About
               </NavSheetLinkButton>

@@ -367,9 +367,14 @@ export async function updateModifierRow(
   tx: Transaction,
   args: UpdateModifierInput,
 ): Promise<{ id: number } | null> {
-  const patch: Record<string, unknown> = {};
+  const patch: Partial<
+    Pick<
+      typeof modifierValueTbl.$inferInsert,
+      "label" | "description" | "affixType" | "mediaId"
+    >
+  > = {};
 
-  if (args.label !== undefined) patch.value = args.label;
+  if (args.label !== undefined) patch.label = args.label;
   if (args.description !== undefined) patch.description = args.description;
   if (args.affixType !== undefined) patch.affixType = args.affixType;
   if (args.mediaId !== undefined) patch.mediaId = args.mediaId;
