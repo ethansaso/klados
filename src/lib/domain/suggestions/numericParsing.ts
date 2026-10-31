@@ -18,6 +18,14 @@ export type ParsedNumeric =
 
 const DASH_REGEX = /[–—]/g; // en/em dash → "-"
 const MICRO_REGEX = /[µμ]/g; // normalize micro symbols
+const NUMBER_PATTERN = String.raw`[+-]?(?:\d+(?:\.\d+)?|\.\d+)`;
+const BOUND_REGEX = new RegExp(
+  String.raw`^\s*(<=|>=|≤|≥|<|>)\s*(${NUMBER_PATTERN})\s*$`,
+);
+const RANGE_REGEX = new RegExp(
+  String.raw`^\s*(${NUMBER_PATTERN})\s*-\s*(${NUMBER_PATTERN})\s*$`,
+);
+const SINGLE_REGEX = new RegExp(`^${NUMBER_PATTERN}$`);
 
 /**
  * Try to interpret the query as numeric (single or range),
@@ -26,7 +34,9 @@ const MICRO_REGEX = /[µμ]/g; // normalize micro symbols
  * Supported patterns:
  * * "10"
  * * "10.5"
+ * * ".5"
  * * "7-9"
+ * * ".5-1"
  * * "7 - 9"
  * * "7–9"
  * * "10 cm"
@@ -67,9 +77,7 @@ export function parseNumericQuery(raw: string): ParsedNumeric {
   }
 
   // One-sided bound: <3, <=3, >3, >=3, ≤3, ≥3 (with optional surrounding spaces)
-  const boundMatch = numericPart.match(
-    /^\s*(<=|>=|≤|≥|<|>)\s*([+-]?\d+(\.\d+)?)\s*$/,
-  );
+  const boundMatch = numericPart.match(BOUND_REGEX);
   if (boundMatch) {
     const op = boundMatch[1]!;
     const value = Number(boundMatch[2]);
@@ -84,18 +92,16 @@ export function parseNumericQuery(raw: string): ParsedNumeric {
     }
   }
 
-  const rangeMatch = numericPart.match(
-    /^\s*([+-]?\d+(\.\d+)?)\s*-\s*([+-]?\d+(\.\d+)?)\s*$/,
-  );
+  const rangeMatch = numericPart.match(RANGE_REGEX);
   if (rangeMatch) {
     const min = Number(rangeMatch[1]);
-    const max = Number(rangeMatch[3]);
+    const max = Number(rangeMatch[2]);
     if (!Number.isNaN(min) && !Number.isNaN(max)) {
       return { kind: "range", min, max, unitText };
     }
   }
 
-  const singleMatch = numericPart.match(/^[+-]?\d+(\.\d+)?$/);
+  const singleMatch = numericPart.match(SINGLE_REGEX);
   if (singleMatch) {
     const value = Number(singleMatch[0]);
     if (!Number.isNaN(value)) {
