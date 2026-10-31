@@ -131,18 +131,17 @@ export function TraitValueFields({
         </Flex>
         <TextField.Root
           id="label"
-          placeholder="e.g. red, convex, farinaceous"
           disabled={disabled}
           // Read-only rather than disabled, so the label still submits
           readOnly={isCanonical}
           {...register("label")}
           {...a11yProps("label-error", !!errors.label)}
         />
-        {isCanonical && (
-          <Text as="p" size="1" color="gray" mt="1">
-            Canonical terms can't be renamed or assigned to other synonym sets.
-          </Text>
-        )}
+        <Text as="p" size="1" color="gray" mt="1">
+          {isCanonical
+            ? "Canonical terms can't be renamed or assigned to other synonym sets."
+            : "Common forms: red, as rings, like silk, a bulb, encrusted with lime"}
+        </Text>
       </Box>
 
       <Box>
