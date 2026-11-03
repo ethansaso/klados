@@ -1,5 +1,4 @@
-import { hslToHex } from "../../utils/color/hslToHex";
-import { BASE_HUES, NEUTRALS, SHADES } from "./colorPalette";
+import { BASE_HUES, NEUTRALS, SHADES, shadeHex } from "./colorPalette";
 
 /** Where a swatch sits in the palette; `band` runs 0 (dark) to 2 (light). */
 type PalettePosition =
@@ -100,22 +99,16 @@ function buildPalettePositions(): Map<string, PalettePosition> {
     });
   });
 
-  BASE_HUES.forEach(({ deg }, hueIndex) => {
-    for (const { s, l } of SHADES) {
-      positions.set(hslToHex(deg, s, l), {
+  BASE_HUES.forEach((baseHue, hueIndex) => {
+    for (const shade of SHADES) {
+      positions.set(shadeHex(baseHue, shade), {
         kind: "hue",
         hueIndex,
-        band: lightnessBand(l),
-        muted: s < 1,
+        band: shade.band,
+        muted: shade.muted,
       });
     }
   });
 
   return positions;
-}
-
-/** Groups pale/light, plain/grayish, and dark/dark grayish. */
-function lightnessBand(l: number): number {
-  if (l >= 0.75) return 2;
-  return l >= 0.5 ? 1 : 0;
 }
