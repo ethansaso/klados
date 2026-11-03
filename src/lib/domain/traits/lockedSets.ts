@@ -1,3 +1,4 @@
+import { buildColorAliases } from "./colorAliases";
 import { buildColorPalette, COLOR_CHARACTER_LABEL } from "./colorPalette";
 
 /**
@@ -8,14 +9,17 @@ import { buildColorPalette, COLOR_CHARACTER_LABEL } from "./colorPalette";
 const CANONICAL_LABELS_BY_CHARACTER = new Map<string, ReadonlySet<string>>([
   [
     COLOR_CHARACTER_LABEL.toLowerCase(),
-    new Set(buildColorPalette().map((color) => color.label)),
+    new Set([
+      ...buildColorPalette().map((color) => color.label),
+      ...buildColorAliases().map((alias) => alias.label),
+    ]),
   ],
 ]);
 
 /**
- * Canonical labels (lowercase) for a character with locked sets.
- * Throws when none are defined, so a missing entry never leaves a locked
- * character's canonical labels unprotected.
+ * Canonical labels (lowercase) for a character with locked sets, aliases
+ * included. Throws when none are defined, so a missing entry never leaves a
+ * locked character's canonical labels unprotected.
  */
 export function canonicalLabelsFor(
   characterLabel: string,

@@ -4,7 +4,7 @@ import {
   oklchToHex,
 } from "../../utils/color/oklch";
 
-/** One canonical color: its label and the hex its synonym set carries. */
+/** One palette color: its label and the hex its synonym set carries. */
 export type PaletteColor = {
   label: string;
   hexCode: string | null;
@@ -143,7 +143,7 @@ const VIVID_LIGHTNESS = new Map(
 );
 
 /**
- * Every canonical color in display order: the neutrals, each base hue crossed
+ * Every base color in display order: the neutrals, each base hue crossed
  * with the bands, then the specials. Labels are lowercase, as everywhere
  * else in the glossary. Throws if two colors share a label.
  */
@@ -169,7 +169,7 @@ export function buildColorPalette(): PaletteColor[] {
 
   const labels = new Set(palette.map((color) => color.label));
   if (labels.size !== palette.length) {
-    throw new Error("Two canonical colors share a label.");
+    throw new Error("Two palette colors share a label.");
   }
 
   return palette;
