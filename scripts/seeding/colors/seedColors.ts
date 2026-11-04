@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { eq } from "drizzle-orm";
+import { eq, TransactionRollbackError } from "drizzle-orm";
 import { db } from "../../../db/client";
 import {
   categoricalCharacterMeta,
@@ -8,11 +8,19 @@ import {
   traitSynonymSet,
 } from "../../../db/schema/schema";
 import {
+  buildColorAliases,
+  type ColorAlias,
+} from "../../../src/lib/domain/traits/colorAliases";
+import {
   buildColorPalette,
   COLOR_CHARACTER_LABEL,
   type PaletteColor,
 } from "../../../src/lib/domain/traits/colorPalette";
-import { insertSynonymSet } from "../../../src/lib/domain/traits/repo";
+import {
+  deleteSynonymSetIfEmpty,
+  insertSynonymSet,
+  moveTraitToSet,
+} from "../../../src/lib/domain/traits/repo";
 import type { Transaction } from "../../../src/lib/utils/types/transactionType";
 import { askYesNo } from "../../utils/askYesNo";
 import { ansiBlock } from "./ansiBlock";
@@ -23,11 +31,23 @@ type ExistingTrait = {
   synonymSetId: number;
 };
 
+type AliasMove = {
+  label: string;
+  /** Canonical label of the set it leaves, if that set has one. */
+  from: string | null;
+  to: string;
+};
+
 type SyncStats = {
   inserted: number;
+  aliasesInserted: number;
+  /** Canonical labels and aliases whose capitalisation was corrected. */
   updated: number;
   recolored: number;
   setsCreated: number;
+  aliasMoves: AliasMove[];
+  /** Sets left empty by an alias move, then deleted. */
+  setsDeleted: number;
   /** Labels of each locked set with no canonical label, e.g. hand-made sets. */
   setsWithoutCanonical: string[][];
 };
@@ -113,13 +133,15 @@ function indexCanonicalRows(
 
 /**
  * Reconcile the character's sets against the palette: one set per canonical
- * label, carrying its color's hex. Each set is found by its canonical label;
- * every other label in it belongs to curators and is never touched.
+ * label, carrying its color's hex, plus each alias in its canonical's set.
+ * Each set is found by its canonical label; every other label in it belongs
+ * to curators and is never touched.
  */
 async function syncColorSetsTx(
   tx: Transaction,
   characterId: number,
   palette: PaletteColor[],
+  aliases: ColorAlias[],
 ): Promise<SyncStats> {
   const existing: ExistingTrait[] = await tx
     .select({
@@ -139,13 +161,17 @@ async function syncColorSetsTx(
   const canonicalRows = indexCanonicalRows(existing, palette);
   const stats: SyncStats = {
     inserted: 0,
+    aliasesInserted: 0,
     updated: 0,
     recolored: 0,
     setsCreated: 0,
+    aliasMoves: [],
+    setsDeleted: 0,
     setsWithoutCanonical: [],
   };
 
-  const canonicalSets = new Set<number>();
+  const setByCanonical = new Map<string, number>();
+  const canonicalBySet = new Map<number, string>();
 
   for (const color of palette) {
     const row = canonicalRows.get(color.label);
@@ -173,7 +199,8 @@ async function syncColorSetsTx(
       }
     }
 
-    canonicalSets.add(setId);
+    setByCanonical.set(color.label, setId);
+    canonicalBySet.set(setId, color.label);
 
     if (hexBySet.get(setId) !== color.hexCode) {
       await tx
@@ -184,9 +211,51 @@ async function syncColorSetsTx(
     }
   }
 
+  const rowsByLabel = new Map(
+    existing.map((row) => [row.label.toLowerCase(), row]),
+  );
+  const vacated = new Set<number>();
+
+  for (const alias of aliases) {
+    const setId = setByCanonical.get(alias.canonical)!;
+    const row = rowsByLabel.get(alias.label);
+
+    if (!row) {
+      await tx
+        .insert(categoricalTraitValue)
+        .values({ characterId, synonymSetId: setId, label: alias.label });
+      stats.aliasesInserted += 1;
+      continue;
+    }
+
+    if (row.synonymSetId !== setId) {
+      // States follow through their cascading foreign key
+      await moveTraitToSet(tx, row.id, setId);
+      stats.aliasMoves.push({
+        label: alias.label,
+        from: canonicalBySet.get(row.synonymSetId) ?? null,
+        to: alias.canonical,
+      });
+      vacated.add(row.synonymSetId);
+      row.synonymSetId = setId;
+    }
+
+    if (row.label !== alias.label) {
+      await tx
+        .update(categoricalTraitValue)
+        .set({ label: alias.label })
+        .where(eq(categoricalTraitValue.id, row.id));
+      stats.updated += 1;
+    }
+  }
+
+  for (const setId of vacated) {
+    if (await deleteSynonymSetIfEmpty(tx, setId)) stats.setsDeleted += 1;
+  }
+
   const withoutCanonical = new Map<number, string[]>();
   for (const row of existing) {
-    if (canonicalSets.has(row.synonymSetId)) continue;
+    if (canonicalBySet.has(row.synonymSetId)) continue;
     const labels = withoutCanonical.get(row.synonymSetId) ?? [];
     labels.push(row.label);
     withoutCanonical.set(row.synonymSetId, labels);
@@ -210,32 +279,73 @@ function printPalette(palette: PaletteColor[]) {
   }
 }
 
+function hasChanges(stats: SyncStats): boolean {
+  return (
+    stats.inserted +
+      stats.aliasesInserted +
+      stats.updated +
+      stats.recolored +
+      stats.setsCreated +
+      stats.aliasMoves.length >
+    0
+  );
+}
+
+function printChanges(stats: SyncStats) {
+  console.log(
+    `\n${stats.inserted} canonical label(s) to insert, ${stats.aliasesInserted} alias(es) to insert, ` +
+      `${stats.updated} label(s) to recapitalize, ${stats.recolored} set(s) to recolor, ` +
+      `${stats.setsCreated} set(s) to create.`,
+  );
+
+  if (stats.aliasMoves.length > 0) {
+    console.log(
+      `\n${stats.aliasMoves.length} alias(es) to move, with their states:`,
+    );
+    for (const { label, from, to } of stats.aliasMoves) {
+      console.log(
+        `  - "${label}": ${from ?? "set with no canonical label"} -> ${to}`,
+      );
+    }
+    if (stats.setsDeleted > 0) {
+      console.log(`  ${stats.setsDeleted} emptied set(s) will be deleted.`);
+    }
+  }
+}
+
 export async function run() {
   const palette = buildColorPalette();
+  const aliases = buildColorAliases();
 
   printPalette(palette);
 
-  console.log();
-  const shouldProceed = await askYesNo(
-    "Proceed with upserting these colors into the database? (y/N) ",
-  );
+  // Plans inside the transaction so the confirmation shows exactly what commits
+  let stats: SyncStats;
+  try {
+    stats = await db.transaction(async (tx) => {
+      const colorCharacter = await getOrCreateColorCharacterTx(tx);
+      const planned = await syncColorSetsTx(
+        tx,
+        colorCharacter.id,
+        palette,
+        aliases,
+      );
 
-  if (!shouldProceed) {
+      if (!hasChanges(planned)) return planned;
+
+      printChanges(planned);
+      console.log();
+      if (!(await askYesNo("Apply these changes? (y/N) "))) tx.rollback();
+
+      return planned;
+    });
+  } catch (err) {
+    if (!(err instanceof TransactionRollbackError)) throw err;
     console.log("\nAborted. No database changes were made.\n");
     process.exit(0);
   }
 
-  console.log("\nUpserting colors into DB...\n");
-
-  const stats = await db.transaction(async (tx) => {
-    const colorCharacter = await getOrCreateColorCharacterTx(tx);
-    return syncColorSetsTx(tx, colorCharacter.id, palette);
-  });
-
-  console.log(
-    `Done. ${stats.inserted} canonical label(s) inserted, ${stats.updated} updated, ` +
-      `${stats.recolored} set(s) recolored, ${stats.setsCreated} set(s) created.`,
-  );
+  console.log(hasChanges(stats) ? "\nDone." : "\nAlready up to date.");
 
   if (stats.setsWithoutCanonical.length > 0) {
     console.log(

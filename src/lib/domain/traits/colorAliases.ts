@@ -10,6 +10,7 @@ export type ColorAlias = {
 const SHADE_ALIASES: Partial<
   Record<(typeof SHADES)[number]["modifier"], string[]>
 > = {
+  bright: ["vivid"],
   dark: ["deep"],
   "very dark": ["dark grayish", "blackish"],
 };
