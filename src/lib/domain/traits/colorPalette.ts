@@ -121,7 +121,7 @@ export const SHADES = [
   },
   {
     modifier: "very dark",
-    lightness: 0.33,
+    lightness: 0.355,
     follow: 0.2,
     chroma: 0.045,
     cool: 0.65,

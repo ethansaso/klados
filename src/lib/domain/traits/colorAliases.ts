@@ -11,6 +11,7 @@ const SHADE_ALIASES: Partial<
   Record<(typeof SHADES)[number]["modifier"], string[]>
 > = {
   bright: ["vivid"],
+  grayish: ["dull", "muted"],
   dark: ["deep"],
   "very dark": ["dark grayish", "blackish"],
 };
