@@ -73,6 +73,7 @@ Aliases are common names that mean one canonical color, defined in
 Some are generated for every hue:
 
 - "vivid X" for bright
+- "dull X" and "muted X" for grayish
 - "deep X" for dark
 - "dark grayish X" and "blackish X" for very dark
 - reversed and adjective forms of two-hue names, e.g. "orange-red" and
