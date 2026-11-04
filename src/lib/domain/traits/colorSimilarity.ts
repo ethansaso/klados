@@ -1,15 +1,18 @@
-import { hslToHex } from "../../utils/color/hslToHex";
-import { BASE_HUES, NEUTRALS, SHADES } from "./colorPalette";
+import { BASE_HUES, NEUTRALS, SHADES, shadeHex } from "./colorPalette";
 
-/** Where a swatch sits in the palette; `band` runs 0 (dark) to 2 (light). */
+/**
+ * Where a swatch sits in the palette; `band` runs 0 (dark) to 2 (light) and
+ * `saturation` 0 (muted) to 2 (vivid).
+ */
 type PalettePosition =
-  | { kind: "hue"; hueIndex: number; band: number; muted: boolean }
+  | { kind: "hue"; hueIndex: number; band: number; saturation: number }
   | { kind: "neutral"; level: number };
 
 const ADJACENT_HUE_SIMILARITY = 0.5;
 /** Indexed by how many lightness bands apart two shades are. */
 const BAND_GAP_SIMILARITY = [1, 0.5, 0.25];
-const MUTED_MISMATCH_SIMILARITY = 0.75;
+/** Indexed by how many saturation steps apart two shades in one band are. */
+const SATURATION_GAP_SIMILARITY = [1, 0.75, 0.5];
 const NEUTRAL_STEP_SIMILARITY = 0.5;
 const NEUTRAL_TO_MUTED_SIMILARITY = 0.5;
 /** Indexed by neutral level (0 black to 4 white): the band of muted shade it resembles. */
@@ -34,8 +37,8 @@ export function colorSimilarity(aHex: string, bHex: string): number {
 
   const bandGap = Math.abs(a.band - b.band);
   const shadeSimilarity =
-    bandGap === 0 && a.muted !== b.muted
-      ? MUTED_MISMATCH_SIMILARITY
+    bandGap === 0
+      ? SATURATION_GAP_SIMILARITY[Math.abs(a.saturation - b.saturation)]!
       : (BAND_GAP_SIMILARITY[bandGap] ?? 0);
 
   return hueSimilarity * shadeSimilarity;
@@ -43,7 +46,7 @@ export function colorSimilarity(aHex: string, bHex: string): number {
 
 /**
  * Matching palette hexes (lowercase) for a given `hex`.
- * Color rule: same and neighbouring hues, vivid or grayish, in the same lightness band only.
+ * Color rule: same and neighbouring hues in the same lightness band, at most one saturation step apart.
  * Neutral rule: within one lightness band.
  * Other rule: anything off the palette matches only itself.
  */
@@ -66,7 +69,11 @@ function searchMatches(a: PalettePosition, b: PalettePosition): boolean {
     );
   }
 
-  return hueDistance(a.hueIndex, b.hueIndex) <= 1 && a.band === b.band;
+  return (
+    hueDistance(a.hueIndex, b.hueIndex) <= 1 &&
+    a.band === b.band &&
+    Math.abs(a.saturation - b.saturation) <= 1
+  );
 }
 
 /** Steps around the hue wheel, wrapping red-purple back to red. */
@@ -80,7 +87,8 @@ function neutralSimilarity(
   other: PalettePosition,
 ): number {
   if (other.kind === "hue") {
-    return other.muted && other.band === NEUTRAL_LEVEL_BANDS[neutral.level]
+    return other.saturation === 0 &&
+      other.band === NEUTRAL_LEVEL_BANDS[neutral.level]
       ? NEUTRAL_TO_MUTED_SIMILARITY
       : 0;
   }
@@ -100,22 +108,16 @@ function buildPalettePositions(): Map<string, PalettePosition> {
     });
   });
 
-  BASE_HUES.forEach(({ deg }, hueIndex) => {
-    for (const { s, l } of SHADES) {
-      positions.set(hslToHex(deg, s, l), {
+  BASE_HUES.forEach((baseHue, hueIndex) => {
+    for (const shade of SHADES) {
+      positions.set(shadeHex(baseHue, shade), {
         kind: "hue",
         hueIndex,
-        band: lightnessBand(l),
-        muted: s < 1,
+        band: shade.band,
+        saturation: shade.saturation,
       });
     }
   });
 
   return positions;
-}
-
-/** Groups pale/light, plain/grayish, and dark/dark grayish. */
-function lightnessBand(l: number): number {
-  if (l >= 0.75) return 2;
-  return l >= 0.5 ? 1 : 0;
 }
