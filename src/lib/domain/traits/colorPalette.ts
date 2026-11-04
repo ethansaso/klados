@@ -41,30 +41,31 @@ export const BASE_HUES = [
  * `lightness + follow * (its anchor - REFERENCE_LIGHTNESS)`, where the anchor is
  * the hue's natural lightness, or its most vivid one for `vivid` bands. Chroma
  * is scaled by `cool` for cool hues and capped at `peak` of what the screen can
- * show. `band` (0 dark to 2 light) and `muted` place the shade for similarity.
+ * show. `band` (0 dark to 2 light) and `saturation` (0 muted, 1 normal, 2 vivid)
+ * place the shade for similarity.
  */
 export const SHADES = [
   {
     modifier: "pale",
     lightness: 0.92,
     follow: 0.1,
-    chroma: 0.035,
+    chroma: 0.03,
     cool: 1,
     peak: 1,
     vivid: false,
     band: 2,
-    muted: true,
+    saturation: 0,
   },
   {
     modifier: "light",
-    lightness: 0.835,
+    lightness: 0.845,
     follow: 0.3,
-    chroma: 0.08,
+    chroma: 0.07,
     cool: 0.8,
     peak: 1,
     vivid: false,
     band: 2,
-    muted: false,
+    saturation: 1,
   },
   {
     modifier: "bright",
@@ -75,7 +76,7 @@ export const SHADES = [
     peak: 1,
     vivid: true,
     band: 1,
-    muted: false,
+    saturation: 2,
   },
   {
     modifier: "",
@@ -86,7 +87,7 @@ export const SHADES = [
     peak: 0.85,
     vivid: false,
     band: 1,
-    muted: false,
+    saturation: 1,
   },
   {
     modifier: "grayish",
@@ -97,7 +98,7 @@ export const SHADES = [
     peak: 1,
     vivid: false,
     band: 1,
-    muted: true,
+    saturation: 0,
   },
   {
     modifier: "dark",
@@ -108,18 +109,18 @@ export const SHADES = [
     peak: 1,
     vivid: false,
     band: 0,
-    muted: false,
+    saturation: 1,
   },
   {
     modifier: "very dark",
     lightness: 0.33,
     follow: 0.2,
-    chroma: 0.05,
+    chroma: 0.045,
     cool: 0.65,
     peak: 1,
     vivid: false,
     band: 0,
-    muted: true,
+    saturation: 0,
   },
 ] as const;
 
