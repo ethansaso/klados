@@ -154,7 +154,7 @@ export const TaxonDetails = ({ taxon }: { taxon: TaxonDetailDTO }) => {
                     <UserHoverCard
                       username={user.username}
                       name={user.name}
-                      imageUrl={user.image ?? undefined}
+                      image={user.image}
                       description={user.description}
                       role={user.role}
                       banned={user.banned}

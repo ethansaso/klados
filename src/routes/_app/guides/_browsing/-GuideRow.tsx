@@ -59,7 +59,7 @@ export const GuideRow = ({ rowData }: GuideRowProps) => {
           <UserHoverCard
             username={author.username}
             name={author.name}
-            imageUrl={author.image ?? undefined}
+            image={author.image}
             description={author.description}
             role={author.role}
             banned={author.banned}
