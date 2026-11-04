@@ -41,18 +41,21 @@ export const BASE_HUES = [
  * `lightness + follow * (its anchor - REFERENCE_LIGHTNESS)`, where the anchor is
  * the hue's natural lightness, or its most vivid one for `vivid` bands. Chroma
  * is scaled by `cool` for cool hues and capped at `peak` of what the screen can
- * show. `band` (0 dark to 2 light) and `saturation` (0 muted, 1 normal, 2 vivid)
+ * show. A nonzero `lift` keeps each hue at least that much lighter than its plain
+ * shade, since the follow line leaves light yellows barely above plain yellow.
+ * `band` (0 dark to 2 light) and `saturation` (0 muted, 1 normal, 2 vivid)
  * place the shade for similarity.
  */
 export const SHADES = [
   {
     modifier: "pale",
-    lightness: 0.92,
+    lightness: 0.925,
     follow: 0.1,
-    chroma: 0.03,
-    cool: 1,
+    chroma: 0.035,
+    cool: 0.9,
     peak: 1,
     vivid: false,
+    lift: 0.05,
     band: 2,
     saturation: 0,
   },
@@ -64,6 +67,7 @@ export const SHADES = [
     cool: 0.8,
     peak: 1,
     vivid: false,
+    lift: 0.025,
     band: 2,
     saturation: 1,
   },
@@ -75,6 +79,7 @@ export const SHADES = [
     cool: 1,
     peak: 1,
     vivid: true,
+    lift: 0,
     band: 1,
     saturation: 2,
   },
@@ -86,6 +91,7 @@ export const SHADES = [
     cool: 0.95,
     peak: 0.85,
     vivid: false,
+    lift: 0,
     band: 1,
     saturation: 1,
   },
@@ -93,10 +99,11 @@ export const SHADES = [
     modifier: "grayish",
     lightness: 0.66,
     follow: 0.35,
-    chroma: 0.085,
+    chroma: 0.08,
     cool: 0.65,
     peak: 1,
     vivid: false,
+    lift: 0,
     band: 1,
     saturation: 0,
   },
@@ -108,6 +115,7 @@ export const SHADES = [
     cool: 0.9,
     peak: 1,
     vivid: false,
+    lift: 0,
     band: 0,
     saturation: 1,
   },
@@ -119,6 +127,7 @@ export const SHADES = [
     cool: 0.65,
     peak: 1,
     vivid: false,
+    lift: 0,
     band: 0,
     saturation: 0,
   },
@@ -138,6 +147,8 @@ export const NEUTRALS = [
 
 /** Colors with no swatch at all. */
 export const SPECIAL_COLOR_NAMES = ["colorless"] as const;
+
+const PLAIN_SHADE = SHADES.find((shade) => shade.modifier === "")!;
 
 const VIVID_LIGHTNESS = new Map(
   BASE_HUES.map(({ name, hue }) => [name, mostVividLightness(hue)]),
@@ -182,19 +193,31 @@ export function shadeLabel(baseHue: BaseHue, shade: Shade): string {
 
 /** The swatch hex for a base hue in a band. */
 export function shadeHex(baseHue: BaseHue, shade: Shade): string {
+  const lightness = shade.lift
+    ? Math.min(
+        1,
+        Math.max(
+          shadeLightness(baseHue, shade),
+          shadeLightness(baseHue, PLAIN_SHADE) + shade.lift,
+        ),
+      )
+    : shadeLightness(baseHue, shade);
+  const chroma = Math.min(
+    shade.chroma * (baseHue.cool ? shade.cool : 1),
+    shade.peak * maxChroma(lightness, baseHue.hue),
+  );
+  return oklchToHex(lightness, chroma, baseHue.hue);
+}
+
+function shadeLightness(baseHue: BaseHue, shade: Shade): number {
   const anchor = shade.vivid
     ? VIVID_LIGHTNESS.get(baseHue.name)!
     : baseHue.lightness;
-  const lightness = Math.min(
+  return Math.min(
     1,
     Math.max(
       0,
       shade.lightness + shade.follow * (anchor - REFERENCE_LIGHTNESS),
     ),
   );
-  const chroma = Math.min(
-    shade.chroma * (baseHue.cool ? shade.cool : 1),
-    shade.peak * maxChroma(lightness, baseHue.hue),
-  );
-  return oklchToHex(lightness, chroma, baseHue.hue);
 }
