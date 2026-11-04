@@ -9,6 +9,7 @@ import {
 } from "@radix-ui/themes";
 import { Link as TSLink } from "@tanstack/react-router";
 import { type UserRole } from "../../db/schema/auth";
+import { getAvatarUrl } from "../lib/storage/getAvatarUrl";
 import { getInitials } from "../lib/utils/formatting/getInitials";
 import { RoleBadge } from "./UserBadge";
 
@@ -17,7 +18,8 @@ type Size = "1" | "2" | "3";
 interface UserHoverCardProps {
   username: string;
   name: string;
-  imageUrl?: string;
+  /** Storage key or external URL. */
+  image: string | null;
   description?: string | null;
   role: UserRole;
   banned: boolean | null;
@@ -33,7 +35,7 @@ const bodySize = (size: Size) => {
 export const UserHoverCard = ({
   username,
   name,
-  imageUrl,
+  image,
   description,
   role,
   banned,
@@ -51,7 +53,7 @@ export const UserHoverCard = ({
       <HoverCard.Content maxWidth="300px" size={size}>
         <Flex gap="4">
           <Avatar
-            src={imageUrl}
+            src={getAvatarUrl(image)}
             fallback={getInitials(name)}
             radius="full"
             size={size}
