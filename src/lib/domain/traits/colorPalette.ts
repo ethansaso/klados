@@ -97,9 +97,9 @@ export const SHADES = [
   },
   {
     modifier: "grayish",
-    lightness: 0.66,
+    lightness: 0.67,
     follow: 0.35,
-    chroma: 0.08,
+    chroma: 0.065,
     cool: 0.65,
     peak: 1,
     vivid: false,
