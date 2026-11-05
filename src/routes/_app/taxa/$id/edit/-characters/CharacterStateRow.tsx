@@ -2,6 +2,9 @@ import { DataList, Flex, Text } from "@radix-ui/themes";
 import { memo, useMemo } from "react";
 import { CharacterStateDisplay } from "../../../../../../components/state-formatting/CharacterStateDisplay";
 import type { FeatureDetailDTO } from "../../../../../../lib/domain/features/types";
+import type { CategoricalValueSuggestion } from "../../../../../../lib/domain/suggestions/types";
+import { COLOR_CHARACTER_LABEL } from "../../../../../../lib/domain/traits/colorPalette";
+import { ImageColorButton } from "./ImageColorButton";
 import { ModifierTag } from "./tags/ModifierTag";
 import type {
   CharacterStateFormValue,
@@ -30,6 +33,9 @@ type CharacterStateRowProps = {
   onAutoOpenHandled?: () => void;
   /** Called when the user presses Enter on an empty modifier search. */
   onReturnToSearch?: () => void;
+  onAddCategoricalSuggestions: (
+    suggestions: CategoricalValueSuggestion[],
+  ) => void;
 };
 
 export const CharacterStateRow = memo(
@@ -43,6 +49,7 @@ export const CharacterStateRow = memo(
     autoOpenModifierFor,
     onAutoOpenHandled,
     onReturnToSearch,
+    onAddCategoricalSuggestions,
   }: CharacterStateRowProps) => {
     const hasNoStates = !states.length;
     const content = useMemo(() => {
@@ -187,7 +194,17 @@ export const CharacterStateRow = memo(
         <DataList.Label
           style={{ color: hasNoStates ? "var(--gray-a7)" : undefined }}
         >
-          {character.label}
+          <Flex align="center" justify="between" gap="2" width="100%">
+            {character.label}
+            {character.label === COLOR_CHARACTER_LABEL && (
+              <ImageColorButton
+                characterId={character.id}
+                characterLabel={character.label}
+                states={states}
+                onAdd={onAddCategoricalSuggestions}
+              />
+            )}
+          </Flex>
         </DataList.Label>
         <DataList.Value
           style={{ color: hasNoStates ? "var(--gray-a7)" : undefined }}

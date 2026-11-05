@@ -1,8 +1,5 @@
-import {
-  maxChroma,
-  mostVividLightness,
-  oklchToHex,
-} from "../../utils/color/oklch";
+import { oklchToHex } from "../../utils/color/conversion";
+import { maxChroma, mostVividLightness } from "../../utils/color/operations";
 
 /** One palette color: its label and the hex its synonym set carries. */
 export type PaletteColor = {
