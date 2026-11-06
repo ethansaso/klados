@@ -1,0 +1,63 @@
+.photo-stage {
+  --stage-height: min(46dvh, 380px);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: var(--stage-height);
+  margin-top: var(--space-3);
+  border-radius: var(--radius-3);
+  background-color: var(--gray-3);
+  overflow: hidden;
+}
+
+/* Shrinks to photo to enforce percentage-placed pins */
+.photo-stage__frame {
+  position: relative;
+  max-width: 100%;
+}
+
+.photo-stage__image {
+  display: block;
+  max-width: 100%;
+  max-height: var(--stage-height);
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+
+.photo-stage__error {
+  padding: var(--space-2) var(--space-3);
+}
+
+.photo-stage__pin {
+  position: absolute;
+  width: var(--space-3);
+  height: var(--space-3);
+  margin: -6px 0 0 -6px; /* Half of real width/height to center */
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #000;
+  cursor: grab;
+  touch-action: none;
+}
+
+/* Hit area */
+.photo-stage__pin::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+}
+
+/* Slight growth when user hovers related content */
+.photo-stage__pin[data-highlighted="true"] {
+  width: var(--space-4);
+  height: var(--space-4);
+  margin: -8px 0 0 -8px;
+}
+
+.photo-stage__pin:active {
+  cursor: grabbing;
+}

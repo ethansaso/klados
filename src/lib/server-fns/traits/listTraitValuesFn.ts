@@ -10,10 +10,14 @@ export const listTraitValuesFn = createServerFn({ method: "GET" })
       characterId: z.coerce.number().int().positive(),
       q: z.string().optional(),
       synonymSetId: z.coerce.number().int().positive().optional(),
+      hexCode: z
+        .string()
+        .regex(/^#[0-9a-f]{6}$/i)
+        .optional(),
     }),
   )
   .handler(async ({ data }): Promise<TraitValuePaginatedResult> => {
-    const { characterId, page, pageSize, q, synonymSetId } = data;
+    const { characterId, page, pageSize, q, synonymSetId, hexCode } = data;
 
     return listTraitValuesByCharacter({
       characterId,
@@ -21,5 +25,6 @@ export const listTraitValuesFn = createServerFn({ method: "GET" })
       pageSize,
       q,
       synonymSetId,
+      hexCode,
     });
   });

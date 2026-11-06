@@ -454,7 +454,7 @@ export async function selectTraitValuesByCharacterPaginated(
   characterId: number,
   page: number,
   pageSize: number,
-  opts?: { q?: string; synonymSetId?: number },
+  opts?: { q?: string; synonymSetId?: number; hexCode?: string },
 ): Promise<PaginatedResult<TraitValueBaseDTO>> {
   const offset = (page - 1) * pageSize;
 
@@ -466,6 +466,11 @@ export async function selectTraitValuesByCharacterPaginated(
   }
   if (opts?.synonymSetId !== undefined) {
     filters.push(eq(valsTbl.synonymSetId, opts.synonymSetId));
+  }
+  if (opts?.hexCode !== undefined) {
+    filters.push(
+      eq(sql`lower(${setsTbl.hexCode})`, opts.hexCode.toLowerCase()),
+    );
   }
   const where = and(...filters)!;
   const usageAgg = usageAggFor(tx, eq(tcsTbl.characterId, characterId));
@@ -495,6 +500,7 @@ export async function selectTraitValuesByCharacterPaginated(
   const [totals] = await tx
     .select({ total: count() })
     .from(valsTbl)
+    .innerJoin(setsTbl, eq(setsTbl.id, valsTbl.synonymSetId))
     .where(where);
 
   return { items, page, pageSize, total: totals?.total ?? 0 };

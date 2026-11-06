@@ -1,0 +1,52 @@
+.palette-grid {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-2);
+}
+
+.palette-grid__rows {
+  display: grid;
+  grid-template-columns: repeat(var(--palette-columns), minmax(0, 1fr));
+  gap: 2px;
+}
+
+.palette-grid__cell {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 3 / 2;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+/* Marks chosen color. Hardcoded white/black to avoid Radix themeing */
+.palette-grid__cell[aria-checked="true"]::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  box-sizing: border-box;
+  width: var(--space-2);
+  height: var(--space-2);
+  border: 1px solid #222;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.palette-grid__cell:focus-visible {
+  outline: 2px solid var(--focus-12);
+  outline-offset: 1px;
+}
+
+.palette-grid__warning {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+}
+
+/* Lets the pointer pass through to the cell the tooltip covers */
+.palette-grid__tooltip {
+  pointer-events: none;
+}

@@ -1,8 +1,5 @@
-import {
-  maxChroma,
-  mostVividLightness,
-  oklchToHex,
-} from "../../utils/color/oklch";
+import { oklchToHex } from "../../utils/color/conversion";
+import { maxChroma, mostVividLightness } from "../../utils/color/operations";
 
 /** One palette color: its label and the hex its synonym set carries. */
 export type PaletteColor = {
@@ -30,7 +27,7 @@ export const BASE_HUES = [
   { name: "green", hue: 145, lightness: 0.62, cool: true },
   { name: "blue-green", hue: 190, lightness: 0.66, cool: true },
   { name: "azure", hue: 235, lightness: 0.62, cool: true },
-  { name: "blue", hue: 265, lightness: 0.5, cool: true },
+  { name: "blue", hue: 264, lightness: 0.5, cool: true },
   { name: "purple", hue: 300, lightness: 0.5, cool: true },
   { name: "magenta", hue: 335, lightness: 0.58, cool: true },
   { name: "red-purple", hue: 5, lightness: 0.57, cool: true },
@@ -97,9 +94,9 @@ export const SHADES = [
   },
   {
     modifier: "grayish",
-    lightness: 0.67,
-    follow: 0.35,
-    chroma: 0.065,
+    lightness: 0.665,
+    follow: 0.3,
+    chroma: 0.08,
     cool: 0.65,
     peak: 1,
     vivid: false,
@@ -121,7 +118,7 @@ export const SHADES = [
   },
   {
     modifier: "very dark",
-    lightness: 0.36,
+    lightness: 0.35,
     follow: 0.2,
     chroma: 0.045,
     cool: 0.65,

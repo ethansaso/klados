@@ -142,10 +142,15 @@ export const EditingFeatureCard = memo(
       }
     }, []);
 
-    const handleSuggestionSelect = useCallback(
-      (s: TraitSuggestion) => {
-        const prev = getValues("states");
-        const next = addStateFromSuggestion(prev, feature.featureId, s);
+    const handleSuggestionsSelect = useCallback(
+      (suggestions: TraitSuggestion[]) => {
+        const s = suggestions.at(-1);
+        if (!s) return;
+        const next = suggestions.reduce(
+          (states, suggestion) =>
+            addStateFromSuggestion(states, feature.featureId, suggestion),
+          getValues("states"),
+        );
         onChange(next);
 
         const label =
@@ -169,6 +174,11 @@ export const EditingFeatureCard = memo(
         setAutoOpenFor(null);
       },
       [getValues, onChange, feature.featureId],
+    );
+
+    const handleSuggestionSelect = useCallback(
+      (s: TraitSuggestion) => handleSuggestionsSelect([s]),
+      [handleSuggestionsSelect],
     );
 
     const handleAutoOpenHandled = useCallback(() => {
@@ -378,7 +388,7 @@ export const EditingFeatureCard = memo(
 
         {absentWithStates && (
           <Callout.Root color="tomato" size="1" mt="2">
-            <Callout.Text>
+            <Callout.Text size="1">
               Marked absent. Remove all character states before saving.
             </Callout.Text>
           </Callout.Root>
@@ -409,6 +419,7 @@ export const EditingFeatureCard = memo(
             {data.characters.map((c) => (
               <CharacterStateRow
                 key={c.id}
+                featureLabel={feature.featureLabel}
                 character={c}
                 states={statesByCharacter.get(c.id) ?? NO_STATES}
                 onRemoveCategoricalTrait={handleRemoveCategoricalTrait}
@@ -420,6 +431,7 @@ export const EditingFeatureCard = memo(
                 }
                 onAutoOpenHandled={handleAutoOpenHandled}
                 onReturnToSearch={focusSearch}
+                onAddCategoricalSuggestions={handleSuggestionsSelect}
               />
             ))}
           </DataList.Root>

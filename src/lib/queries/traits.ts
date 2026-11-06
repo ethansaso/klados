@@ -12,7 +12,12 @@ export const traitValuesQueryOptions = (
   characterId: number,
   page: number,
   pageSize: number,
-  opts?: { q?: string; synonymSetId?: number; enabled?: boolean },
+  opts?: {
+    q?: string;
+    synonymSetId?: number;
+    hexCode?: string;
+    enabled?: boolean;
+  },
 ) =>
   queryOptions<TraitValuePaginatedResult>({
     queryKey: [
@@ -23,6 +28,7 @@ export const traitValuesQueryOptions = (
         pageSize,
         q: opts?.q ?? null,
         synonymSetId: opts?.synonymSetId ?? null,
+        hexCode: opts?.hexCode ?? null,
       },
     ],
     queryFn: () =>
@@ -33,6 +39,7 @@ export const traitValuesQueryOptions = (
           pageSize,
           q: opts?.q,
           synonymSetId: opts?.synonymSetId,
+          hexCode: opts?.hexCode,
         },
       }),
     enabled: opts?.enabled ?? true,

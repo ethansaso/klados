@@ -385,6 +385,8 @@ export async function listTraitValuesByCharacter(args: {
   pageSize: number;
   q?: string;
   synonymSetId?: number;
+  /** Only the set whose swatch is this hex, in any case. */
+  hexCode?: string;
 }): Promise<TraitValuePaginatedResult> {
   return db.transaction(async (tx) => {
     const result = await selectTraitValuesByCharacterPaginated(
@@ -392,7 +394,7 @@ export async function listTraitValuesByCharacter(args: {
       args.characterId,
       args.page,
       args.pageSize,
-      { q: args.q, synonymSetId: args.synonymSetId },
+      { q: args.q, synonymSetId: args.synonymSetId, hexCode: args.hexCode },
     );
 
     return { ...result, items: await withCanonicalFlags(tx, result.items) };

@@ -1,0 +1,10 @@
+.taken-warning {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--yellow-12);
+}
+
+.taken-warning path:first-child {
+  fill: var(--yellow-5);
+}
