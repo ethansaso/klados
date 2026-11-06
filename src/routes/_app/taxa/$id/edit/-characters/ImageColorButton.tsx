@@ -7,6 +7,7 @@ import type { CategoricalValueSuggestion } from "../../../../../../lib/domain/su
 import type { CharacterStateFormValue } from "./validation";
 
 type Props = {
+  featureLabel: string;
   characterId: number;
   characterLabel: string;
   states: CharacterStateFormValue[];
@@ -15,6 +16,7 @@ type Props = {
 
 /** Opens the image color picker; watches media itself so feature cards don't re-render. */
 export function ImageColorButton({
+  featureLabel,
   characterId,
   characterLabel,
   states,
@@ -25,6 +27,7 @@ export function ImageColorButton({
 
   const handleClick = async () => {
     const picked = await pickImageColors({
+      featureLabel,
       characterId,
       characterLabel,
       media,

@@ -1,0 +1,17 @@
+.number-bubble {
+  --bubble-size: 14px;
+
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  min-width: var(--bubble-size);
+  height: var(--bubble-size);
+  padding: 0 var(--space-1);
+  border-radius: 999px;
+  background-color: var(--accent-9);
+  font-size: 0.625rem;
+  font-weight: 700;
+  box-shadow: 0 0 0 1px var(--black-a5);
+}

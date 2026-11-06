@@ -1,0 +1,158 @@
+.color-pick-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--space-6) minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-7) var(--space-2) var(--space-2);
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-3);
+  background-color: var(--color-panel-solid);
+}
+
+.color-pick-card__swatch {
+  position: relative;
+  align-self: start;
+}
+
+.color-pick-card__more {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-11);
+  font-family: inherit;
+  font-size: var(--font-size-1);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.color-pick-card__more:hover {
+  color: var(--gray-12);
+}
+
+.color-pick-card__sample {
+  display: block;
+  width: var(--space-6);
+  height: var(--space-5);
+  border-radius: var(--radius-2);
+  box-shadow: inset 0 0 0 1px var(--gray-a7);
+}
+
+.color-pick-card__index {
+  position: absolute;
+  z-index: 1;
+  top: calc(var(--space-2) * -1);
+  left: calc(var(--space-2) * -1);
+  pointer-events: none;
+}
+
+.color-pick-card__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.color-pick-card__tabs {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-1);
+}
+
+/* Negative margin to avoid layout shift */
+.color-pick-card__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: var(--space-5);
+  margin-bottom: -1px;
+  padding: 0 var(--space-2);
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: var(--radius-2) var(--radius-2) 0 0;
+  background: none;
+  color: var(--gray-12);
+  font-family: inherit;
+  font-size: var(--font-size-1);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.color-pick-card__tab:hover {
+  background-color: var(--gray-a3);
+}
+
+/* Cover up negative margin */
+.color-pick-card__tab[aria-checked="true"] {
+  border-color: var(--gray-a7);
+  background-color: var(--gray-2);
+}
+
+.color-pick-card__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  border: 1px solid var(--gray-a7);
+  border-radius: var(--radius-2);
+  background-color: var(--gray-2);
+}
+
+.color-pick-card__panel[data-flush="true"] {
+  border-top-left-radius: 0;
+}
+
+.color-pick-card__dot {
+  flex: none;
+  width: var(--space-3);
+  height: var(--space-3);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--gray-a7);
+}
+
+.color-pick-card__labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.color-pick-card__label {
+  padding: calc(var(--space-1) / 2) var(--space-2);
+  border: 0;
+  border-radius: 9999px;
+  background: none;
+  color: var(--gray-11);
+  font-family: inherit;
+  font-size: var(--font-size-1);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-1);
+  cursor: pointer;
+}
+
+.color-pick-card__label:hover {
+  color: var(--gray-12);
+}
+
+.color-pick-card__label[aria-checked="true"] {
+  color: var(--gray-12);
+  background-color: var(--color-panel-solid);
+  box-shadow: inset 0 0 0 1px var(--gray-9);
+}
+
+.color-pick-card__more:focus-visible,
+.color-pick-card__tab:focus-visible,
+.color-pick-card__label:focus-visible {
+  outline: 2px solid var(--focus-8);
+  outline-offset: 1px;
+}
+
+.color-pick-card__remove {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+}

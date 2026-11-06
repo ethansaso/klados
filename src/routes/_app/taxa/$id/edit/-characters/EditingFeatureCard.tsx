@@ -419,6 +419,7 @@ export const EditingFeatureCard = memo(
             {data.characters.map((c) => (
               <CharacterStateRow
                 key={c.id}
+                featureLabel={feature.featureLabel}
                 character={c}
                 states={statesByCharacter.get(c.id) ?? NO_STATES}
                 onRemoveCategoricalTrait={handleRemoveCategoricalTrait}

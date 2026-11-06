@@ -29,4 +29,17 @@ export const HUMAN_CASED_MEDIA_LICENSES: Record<
   "all-rights-reserved": "All Rights Reserved",
 };
 
+/** Where each license's terms can be read; null when there's nothing to link. */
+export const MEDIA_LICENSE_LINKS: Record<MediaLicense, string | null> = {
+  unknown: null,
+  cc0: "https://creativecommons.org/publicdomain/zero/1.0/",
+  "cc-by": "https://creativecommons.org/licenses/by/4.0/",
+  "cc-by-sa": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "cc-by-nc": "https://creativecommons.org/licenses/by-nc/4.0/",
+  "cc-by-nc-sa": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+  "cc-by-nd": "https://creativecommons.org/licenses/by-nd/4.0/",
+  "cc-by-nc-nd": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+  "all-rights-reserved": null,
+};
+
 export const mediaLicenseEnum = pgEnum("media_license", MEDIA_LICENSES);

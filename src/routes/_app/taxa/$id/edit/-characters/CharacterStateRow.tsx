@@ -14,6 +14,7 @@ import type {
 type AutoOpenTarget = { characterId: number; traitIndex?: number };
 
 type CharacterStateRowProps = {
+  featureLabel: string;
   character: FeatureDetailDTO["characters"][number];
   states: CharacterStateFormValue[];
   onRemoveCategoricalTrait: (characterId: number, stateIndex: number) => void;
@@ -40,6 +41,7 @@ type CharacterStateRowProps = {
 
 export const CharacterStateRow = memo(
   ({
+    featureLabel,
     character,
     states,
     onRemoveCategoricalTrait,
@@ -198,6 +200,7 @@ export const CharacterStateRow = memo(
             {character.label}
             {character.label === COLOR_CHARACTER_LABEL && (
               <ImageColorButton
+                featureLabel={featureLabel}
                 characterId={character.id}
                 characterLabel={character.label}
                 states={states}

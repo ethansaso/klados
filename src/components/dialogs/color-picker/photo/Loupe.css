@@ -1,0 +1,24 @@
+.color-loupe {
+  position: absolute;
+  z-index: 1;
+  width: 220px;
+  border-radius: var(--radius-3);
+  background-color: var(--color-panel-solid);
+  box-shadow: var(--shadow-5);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.color-loupe__zoom {
+  display: block;
+  width: 100%;
+  height: 88px;
+}
+
+.color-loupe__dot {
+  flex: none;
+  width: var(--space-3);
+  height: var(--space-3);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--gray-a7);
+}
