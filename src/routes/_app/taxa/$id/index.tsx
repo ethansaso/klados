@@ -45,12 +45,13 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
       queryClient.ensureQueryData(sourcesForTaxonQueryOptions(id)),
       queryClient.ensureQueryData(distributionTilesQueryOptions(id)),
     ]);
+    // ? Mark handled now: `rest` may reject while awaiting the taxon, or be abandoned on redirect/taxon failure.
+    rest.catch(() => {});
 
     // Redirect stale or missing slugs immediately
     const taxon = await taxonPromise;
     const canonical = taxonParams(taxon);
     if (slug !== canonical.slug) {
-      rest.catch(() => {}); // abandon other reqs
       throw redirect({
         to: "/taxa/$id",
         params: canonical,
