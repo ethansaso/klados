@@ -1,4 +1,4 @@
-import { hexToRgb, isOklchInGamut, srgbToLinear } from "./conversion";
+import { isOklchInGamut } from "./conversion";
 import type { Lab } from "./types";
 
 /** Iterations when searching for the most color a screen can show. */
@@ -26,15 +26,6 @@ export function mostVividLightness(hue: number): number {
     if (chroma > best.chroma) best = { lightness: l, chroma };
   }
   return best.lightness;
-}
-
-/**
- * WCAG relative luminance of a `#rgb` or `#rrggbb` color: 0 (black) to 1
- * (white), weighted for how bright each channel looks.
- */
-export function relativeLuminance(hex: string): number {
-  const [r, g, b] = hexToRgb(hex).map(srgbToLinear) as [number, number, number];
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
 /** Distance from neutral gray in the Lab a/b plane. */
