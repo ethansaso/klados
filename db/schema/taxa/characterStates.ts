@@ -34,6 +34,9 @@ export const taxonCharacterStateCategorical = pgTable(
         onDelete: "restrict",
       }),
 
+    // Display order among this character's states on the taxon feature
+    position: integer("position").notNull(),
+
     traitValueId: integer("trait_value_id")
       .notNull()
       .references(() => categoricalTraitValue.id, { onDelete: "restrict" }),
@@ -115,6 +118,9 @@ export const taxonCharacterStateNumber = pgTable(
         onDelete: "restrict",
       }),
 
+    // Display order among this character's states on the taxon feature
+    position: integer("position").notNull(),
+
     // `mode: "number"` keeps the TS type a number while the column stays exact
     // decimal, so a bound entered as "5 cm" is stored as exactly 0.05 and a
     // search for 5 cm matches it. Binary floats can land a bit apart here.
@@ -183,6 +189,9 @@ export const taxonCharacterStateRange = pgTable(
       .references(() => numericCharacterMeta.characterId, {
         onDelete: "restrict",
       }),
+
+    // Display order among this character's states on the taxon feature
+    position: integer("position").notNull(),
 
     siBaseMin: numeric("si_base_min", {
       precision: 30,

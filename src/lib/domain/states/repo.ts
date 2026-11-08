@@ -133,7 +133,8 @@ export async function selectTaxonStatesByTaxonIds(
     .innerJoin(charsTbl, eq(charsTbl.id, catStateTbl.characterId))
     .innerJoin(catValTbl, eq(catValTbl.id, catStateTbl.traitValueId))
     .innerJoin(traitSetsTbl, eq(traitSetsTbl.id, catValTbl.synonymSetId))
-    .where(inArray(tfsTbl.taxonId, taxonIds));
+    .where(inArray(tfsTbl.taxonId, taxonIds))
+    .orderBy(asc(catStateTbl.position), asc(catStateTbl.id));
 
   const catStateIds = catRows.map((r) => r.stateId);
   const rawCatModRows = catStateIds.length
@@ -226,7 +227,8 @@ export async function selectTaxonStatesByTaxonIds(
     .innerJoin(featuresTbl, eq(featuresTbl.id, tfsTbl.featureId))
     .innerJoin(charsTbl, eq(charsTbl.id, numStateTbl.characterId))
     .leftJoin(unitsTbl, eq(unitsTbl.id, numStateTbl.displayUnitId))
-    .where(inArray(tfsTbl.taxonId, taxonIds));
+    .where(inArray(tfsTbl.taxonId, taxonIds))
+    .orderBy(asc(numStateTbl.position), asc(numStateTbl.id));
 
   const numStateIds = numRows.map((r) => r.stateId);
   const rawNumModRows = numStateIds.length
@@ -321,7 +323,8 @@ export async function selectTaxonStatesByTaxonIds(
     .innerJoin(featuresTbl, eq(featuresTbl.id, tfsTbl.featureId))
     .innerJoin(charsTbl, eq(charsTbl.id, rangeStateTbl.characterId))
     .leftJoin(unitsTbl, eq(unitsTbl.id, rangeStateTbl.displayUnitId))
-    .where(inArray(tfsTbl.taxonId, taxonIds));
+    .where(inArray(tfsTbl.taxonId, taxonIds))
+    .orderBy(asc(rangeStateTbl.position), asc(rangeStateTbl.id));
 
   const rangeStateIds = rangeRows.map((r) => r.stateId);
   const rawRangeModRows = rangeStateIds.length
@@ -610,13 +613,15 @@ async function replaceCategoricalStatesForFeatureState(
   const stateRows: Array<{
     taxonFeatureStateId: number;
     characterId: number;
+    position: number;
     traitValueId: number;
     featureId: number;
     synonymSetId: number;
   }> = [];
   const modifierIdsByRow: number[][] = [];
+  const positions = characterPositions(normalized);
 
-  for (const u of normalized) {
+  for (const [i, u] of normalized.entries()) {
     const meta = metaByCharacter.get(u.characterId);
     if (!meta) {
       throw new Error(`Character ${u.characterId} is not categorical.`);
@@ -640,6 +645,7 @@ async function replaceCategoricalStatesForFeatureState(
     stateRows.push({
       taxonFeatureStateId,
       characterId: u.characterId,
+      position: positions[i]!,
       traitValueId: u.traitValueId,
       featureId,
       // Denormalised from the value we just validated above
@@ -665,6 +671,17 @@ async function replaceCategoricalStatesForFeatureState(
   if (catModJunctionRows.length > 0) {
     await tx.insert(modCatJunctionTbl).values(catModJunctionRows);
   }
+}
+
+/** Each update's index among the updates sharing its character. */
+function characterPositions(updates: Array<{ characterId: number }>): number[] {
+  // characterId -> number of that character's states seen so far
+  const counts = new Map<number, number>();
+  return updates.map((u) => {
+    const position = counts.get(u.characterId) ?? 0;
+    counts.set(u.characterId, position + 1);
+    return position;
+  });
 }
 
 function modifierSetSignature(modifierIds: number[]): string {
@@ -731,8 +748,9 @@ async function replaceNumberStatesForFeatureState(
     .where(inArray(numMetaTbl.characterId, characterIds));
 
   const metaByCharacter = new Map(metas.map((m) => [m.characterId, m]));
+  const positions = characterPositions(updates);
 
-  const rows = updates.map((c) => {
+  const rows = updates.map((c, i) => {
     const meta = metaByCharacter.get(c.characterId);
     if (!meta || meta.kind !== "single") {
       throw new Error(
@@ -743,6 +761,7 @@ async function replaceNumberStatesForFeatureState(
     return {
       taxonFeatureStateId,
       characterId: c.characterId,
+      position: positions[i]!,
       siBaseValue: c.siBaseValue,
       displayUnitId: c.unitId ?? null,
       featureId,
@@ -795,8 +814,9 @@ async function replaceRangeStatesForFeatureState(
     .where(inArray(numMetaTbl.characterId, characterIds));
 
   const metaByCharacter = new Map(metas.map((m) => [m.characterId, m]));
+  const positions = characterPositions(updates);
 
-  const rows = updates.map((c) => {
+  const rows = updates.map((c, i) => {
     const meta = metaByCharacter.get(c.characterId);
     if (!meta || meta.kind !== "range") {
       throw new Error(`Character ${c.characterId} is not a range character.`);
@@ -818,6 +838,7 @@ async function replaceRangeStatesForFeatureState(
     return {
       taxonFeatureStateId,
       characterId: c.characterId,
+      position: positions[i]!,
       siBaseMin: c.siBaseMin,
       siBaseMax: c.siBaseMax,
       displayUnitId: c.unitId ?? null,
