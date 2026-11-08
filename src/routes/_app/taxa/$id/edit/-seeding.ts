@@ -27,6 +27,7 @@ function seedModifier(m: CategoricalStateDTO["modifiers"][number]) {
     id: m.id,
     label: m.label,
     affixType: m.affixType,
+    joiner: m.joiner,
     groupId: m.groupId,
     groupLabel: m.groupLabel,
   };

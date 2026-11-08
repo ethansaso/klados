@@ -31,6 +31,7 @@ import type {
   CharacterByFeatureUpdate,
   NumberCharacterUpdate,
   RangeCharacterUpdate,
+  StateModifierUpdate,
 } from "./validation";
 
 /** Mapping of taxon ID to TaxonCharacterFeatureStateDTO[]. */
@@ -145,7 +146,8 @@ export async function selectTaxonStatesByTaxonIds(
           label: modValTbl.label,
           description: modValTbl.description,
           mediaId: modValTbl.mediaId,
-          affixType: modValTbl.affixType,
+          affixType: modCatJunctionTbl.affixType,
+          joiner: modCatJunctionTbl.joiner,
           groupId: modGroupTbl.id,
           groupLabel: modGroupTbl.label,
         })
@@ -158,6 +160,7 @@ export async function selectTaxonStatesByTaxonIds(
             catStateIds,
           ),
         )
+        .orderBy(asc(modCatJunctionTbl.position), asc(modCatJunctionTbl.id))
     : [];
   const modifiersByCatStateId = new Map<number, ModifierStateDTO[]>();
   for (const m of rawCatModRows) {
@@ -166,6 +169,7 @@ export async function selectTaxonStatesByTaxonIds(
       id: m.id,
       label: m.label,
       affixType: m.affixType,
+      joiner: m.joiner,
       hasInfo: hasText(m.description) || m.mediaId !== null,
       groupId: m.groupId,
       groupLabel: m.groupLabel,
@@ -239,7 +243,8 @@ export async function selectTaxonStatesByTaxonIds(
           label: modValTbl.label,
           description: modValTbl.description,
           mediaId: modValTbl.mediaId,
-          affixType: modValTbl.affixType,
+          affixType: modNumJunctionTbl.affixType,
+          joiner: modNumJunctionTbl.joiner,
           groupId: modGroupTbl.id,
           groupLabel: modGroupTbl.label,
         })
@@ -249,6 +254,7 @@ export async function selectTaxonStatesByTaxonIds(
         .where(
           inArray(modNumJunctionTbl.taxonCharacterStateNumberId, numStateIds),
         )
+        .orderBy(asc(modNumJunctionTbl.position), asc(modNumJunctionTbl.id))
     : [];
   const modifiersByNumStateId = new Map<number, ModifierStateDTO[]>();
   for (const m of rawNumModRows) {
@@ -257,6 +263,7 @@ export async function selectTaxonStatesByTaxonIds(
       id: m.id,
       label: m.label,
       affixType: m.affixType,
+      joiner: m.joiner,
       hasInfo: hasText(m.description) || m.mediaId !== null,
       groupId: m.groupId,
       groupLabel: m.groupLabel,
@@ -335,7 +342,8 @@ export async function selectTaxonStatesByTaxonIds(
           label: modValTbl.label,
           description: modValTbl.description,
           mediaId: modValTbl.mediaId,
-          affixType: modValTbl.affixType,
+          affixType: modRangeJunctionTbl.affixType,
+          joiner: modRangeJunctionTbl.joiner,
           groupId: modGroupTbl.id,
           groupLabel: modGroupTbl.label,
         })
@@ -348,6 +356,7 @@ export async function selectTaxonStatesByTaxonIds(
             rangeStateIds,
           ),
         )
+        .orderBy(asc(modRangeJunctionTbl.position), asc(modRangeJunctionTbl.id))
     : [];
   const modifiersByRangeStateId = new Map<number, ModifierStateDTO[]>();
   for (const m of rawRangeModRows) {
@@ -356,6 +365,7 @@ export async function selectTaxonStatesByTaxonIds(
       id: m.id,
       label: m.label,
       affixType: m.affixType,
+      joiner: m.joiner,
       hasInfo: hasText(m.description) || m.mediaId !== null,
       groupId: m.groupId,
       groupLabel: m.groupLabel,
@@ -565,9 +575,7 @@ async function replaceCategoricalStatesForFeatureState(
   // Deduplicate by (characterId, traitValueId, modifierSet); last wins.
   const seen = new Map<string, CategoricalCharacterUpdate>();
   for (const u of updates) {
-    const sig = Array.from(new Set(u.modifierIds))
-      .sort((a, b) => a - b)
-      .join(",");
+    const sig = modifierSetSignature(u.modifiers.map((m) => m.id));
     seen.set(`${u.characterId}|${u.traitValueId}|${sig}`, u);
   }
   const normalized = Array.from(seen.values());
@@ -618,7 +626,7 @@ async function replaceCategoricalStatesForFeatureState(
     featureId: number;
     synonymSetId: number;
   }> = [];
-  const modifierIdsByRow: number[][] = [];
+  const modifiersByRow: StateModifierUpdate[][] = [];
   const positions = characterPositions(normalized);
 
   for (const [i, u] of normalized.entries()) {
@@ -651,7 +659,7 @@ async function replaceCategoricalStatesForFeatureState(
       // Denormalised from the value we just validated above
       synonymSetId: traitValue.synonymSetId,
     });
-    modifierIdsByRow.push(u.modifierIds);
+    modifiersByRow.push(u.modifiers);
   }
 
   if (stateRows.length === 0) return;
@@ -662,9 +670,9 @@ async function replaceCategoricalStatesForFeatureState(
     .returning({ id: catStateTbl.id });
 
   const catModJunctionRows = insertedCatStates.flatMap((state, i) =>
-    modifierIdsByRow[i]!.map((modifierId) => ({
+    modifierJunctionValues(modifiersByRow[i]!).map((m) => ({
       taxonCharacterStateCategoricalId: state.id,
-      modifierId,
+      ...m,
     })),
   );
 
@@ -682,6 +690,18 @@ function characterPositions(updates: Array<{ characterId: number }>): number[] {
     counts.set(u.characterId, position + 1);
     return position;
   });
+}
+
+/** Junction columns for a state's modifiers, deduped by id (first wins). */
+function modifierJunctionValues(modifiers: StateModifierUpdate[]) {
+  const unique = new Map<number, StateModifierUpdate>();
+  for (const m of modifiers) if (!unique.has(m.id)) unique.set(m.id, m);
+  return [...unique.values()].map((m, position) => ({
+    modifierId: m.id,
+    position,
+    affixType: m.affixType,
+    joiner: m.joiner,
+  }));
 }
 
 function modifierSetSignature(modifierIds: number[]): string {
@@ -702,18 +722,19 @@ function formatModifierSet(modifierIds: number[]): string {
  * * "12 mm at apex" + "14 mm at apex" -> FAIL
  */
 function assertNoDuplicateModifierSetsByCharacter(
-  updates: Array<{ characterId: number; modifierIds: number[] }>,
+  updates: Array<{ characterId: number; modifiers: StateModifierUpdate[] }>,
   stateKindLabel: "number" | "range",
 ): void {
   const seen = new Set<string>();
 
   for (const update of updates) {
-    const signature = modifierSetSignature(update.modifierIds);
+    const modifierIds = update.modifiers.map((m) => m.id);
+    const signature = modifierSetSignature(modifierIds);
     const dedupeKey = `${update.characterId}|${signature}`;
 
     if (seen.has(dedupeKey)) {
       throw new Error(
-        `Duplicate ${stateKindLabel} state for character ${update.characterId}: a state with modifiers [${formatModifierSet(update.modifierIds)}] already exists.`,
+        `Duplicate ${stateKindLabel} state for character ${update.characterId}: a state with modifiers [${formatModifierSet(modifierIds)}] already exists.`,
       );
     }
 
@@ -775,9 +796,9 @@ async function replaceNumberStatesForFeatureState(
       .returning({ id: numStateTbl.id });
 
     const numModJunctionRows = insertedNumStates.flatMap((state, i) =>
-      updates[i]!.modifierIds.map((modifierId) => ({
+      modifierJunctionValues(updates[i]!.modifiers).map((m) => ({
         taxonCharacterStateNumberId: state.id,
-        modifierId,
+        ...m,
       })),
     );
 
@@ -853,9 +874,9 @@ async function replaceRangeStatesForFeatureState(
       .returning({ id: rangeStateTbl.id });
 
     const rangeModJunctionRows = insertedRangeStates.flatMap((state, i) =>
-      updates[i]!.modifierIds.map((modifierId) => ({
+      modifierJunctionValues(updates[i]!.modifiers).map((m) => ({
         taxonCharacterStateRangeId: state.id,
-        modifierId,
+        ...m,
       })),
     );
 

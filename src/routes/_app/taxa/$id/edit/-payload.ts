@@ -63,7 +63,7 @@ function toServerCharacterValues(
             kind: "categorical",
             characterId: v.characterId,
             traitValueId: v.trait.id,
-            modifierIds: v.modifiers.map((m) => m.id),
+            modifiers: v.modifiers,
           };
 
         case "number":
@@ -72,7 +72,7 @@ function toServerCharacterValues(
             characterId: v.characterId,
             unitId: v.unit?.id,
             siBaseValue: v.siBaseValue,
-            modifierIds: v.modifiers.map((m) => m.id),
+            modifiers: v.modifiers,
           };
 
         case "range":
@@ -82,7 +82,7 @@ function toServerCharacterValues(
             unitId: v.unit?.id,
             siBaseMin: v.siBaseMin,
             siBaseMax: v.siBaseMax,
-            modifierIds: v.modifiers.map((m) => m.id),
+            modifiers: v.modifiers,
           };
       }
     }),

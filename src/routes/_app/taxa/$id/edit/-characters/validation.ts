@@ -1,7 +1,9 @@
 import z from "zod";
 import {
+  AFFIX_TYPES,
   FEATURE_PRESENCES,
   FEATURE_SEMANTICS,
+  MODIFIER_JOINERS,
 } from "../../../../../../../db/schema/schema";
 import { variantPresenceConflicts } from "../../../../../../lib/domain/states/variantPresenceConflicts";
 
@@ -17,7 +19,8 @@ function modifierSetSignature(modifierIds: number[]): string {
 const modifierTokenSchema = z.object({
   id: z.number().int(),
   label: z.string(),
-  affixType: z.enum(["prefix", "suffix"]),
+  affixType: z.enum(AFFIX_TYPES),
+  joiner: z.enum(MODIFIER_JOINERS),
   groupId: z.number().int(),
   groupLabel: z.string(),
 });

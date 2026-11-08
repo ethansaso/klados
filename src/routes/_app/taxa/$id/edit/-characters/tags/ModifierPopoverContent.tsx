@@ -46,6 +46,7 @@ export function ModifierPopoverContent({
       id: s.id,
       label: s.label,
       affixType: s.affixType,
+      joiner: "space",
       groupId: s.groupId,
       groupLabel: s.groupLabel,
     }));

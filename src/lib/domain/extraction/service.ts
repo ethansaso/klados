@@ -1458,6 +1458,7 @@ function hydrateModifiers(
       id: mod.id,
       label: mod.label,
       affixType: mod.affixType,
+      joiner: "space",
       groupId: mod.groupId,
       groupLabel: mod.groupLabel,
     });
