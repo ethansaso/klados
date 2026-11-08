@@ -1,17 +1,24 @@
 import {
   index,
   integer,
+  pgEnum,
   pgTable,
   serial,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { withTimestamps } from "../../utils/timestamps";
-import { modifierValue } from "../glossary/modifiers";
+import { modifierAffixEnum, modifierValue } from "../glossary/modifiers";
 import {
   taxonCharacterStateCategorical,
   taxonCharacterStateNumber,
   taxonCharacterStateRange,
 } from "./characterStates";
+
+export type ModifierJoiner = (typeof MODIFIER_JOINERS)[number];
+
+export const MODIFIER_JOINERS = ["space", "slash", "comma"] as const;
+
+export const modifierJoinerEnum = pgEnum("modifier_joiner", MODIFIER_JOINERS);
 
 export const taxonCharacterStateModifierCategorical = pgTable(
   "taxon_character_state_modifier_categorical",
@@ -27,6 +34,12 @@ export const taxonCharacterStateModifierCategorical = pgTable(
     modifierId: integer("modifier_id")
       .notNull()
       .references(() => modifierValue.id, { onDelete: "restrict" }),
+    // Display order among this state's modifiers
+    position: integer("position").notNull(),
+    // Side of the value this modifier renders on
+    affixType: modifierAffixEnum("affix_type").notNull(),
+    // Separator before this modifier
+    joiner: modifierJoinerEnum("joiner").notNull(),
   }),
   (t) => [
     uniqueIndex("tcsmc_state_mod_uq").on(
@@ -48,6 +61,12 @@ export const taxonCharacterStateModifierNumber = pgTable(
     modifierId: integer("modifier_id")
       .notNull()
       .references(() => modifierValue.id, { onDelete: "restrict" }),
+    // Display order among this state's modifiers
+    position: integer("position").notNull(),
+    // Side of the value this modifier renders on for this state
+    affixType: modifierAffixEnum("affix_type").notNull(),
+    // Separator before this modifier; unused for the first prefix
+    joiner: modifierJoinerEnum("joiner").notNull(),
   }),
   (t) => [
     uniqueIndex("tcsmn_state_mod_uq").on(
@@ -69,6 +88,12 @@ export const taxonCharacterStateModifierRange = pgTable(
     modifierId: integer("modifier_id")
       .notNull()
       .references(() => modifierValue.id, { onDelete: "restrict" }),
+    // Display order among this state's modifiers
+    position: integer("position").notNull(),
+    // Side of the value this modifier renders on for this state
+    affixType: modifierAffixEnum("affix_type").notNull(),
+    // Separator before this modifier
+    joiner: modifierJoinerEnum("joiner").notNull(),
   }),
   (t) => [
     uniqueIndex("tcsmr_state_mod_uq").on(

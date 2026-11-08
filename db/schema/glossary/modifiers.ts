@@ -40,6 +40,7 @@ export const modifierValue = pgTable(
       .references(() => modifierGroup.id, { onDelete: "cascade" }),
     label: text("label").notNull(),
     description: text("description").notNull().default(""),
+    // Default side when added to a state; each state can override it
     affixType: modifierAffixEnum("affix_type").notNull(),
     mediaId: integer("media_id").references(() => media.id, {
       onDelete: "set null",
