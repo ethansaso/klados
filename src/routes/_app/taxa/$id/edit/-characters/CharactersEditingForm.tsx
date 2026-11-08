@@ -11,7 +11,6 @@ import {
 } from "./EditingFeatureCard";
 import { selectExtraction } from "./ExtractionModal";
 import { type FeatureOption, FeatureSearch } from "./search/FeatureSearch";
-import { removeCategoricalTraitValue } from "./stateUtils";
 import type { GroupedCharacterFormValue } from "./validation";
 
 type CharacterEditingFormProps = {
@@ -73,21 +72,6 @@ export function CharacterEditingForm({
     [sharedValue],
   );
 
-  // getValues is stable, so these callbacks are stable
-  const handleRemoveCategoricalTrait = useCallback(
-    (groupId: number, characterId: number, stateIndex: number) => {
-      const prev = getValues("states");
-      const next = removeCategoricalTraitValue(
-        prev,
-        groupId,
-        characterId,
-        stateIndex,
-      );
-      onChange(next);
-    },
-    [getValues, onChange],
-  );
-
   return (
     <Box width="100%">
       <Flex mb="2" gap="8" width="100%" justify="between" align="center">
@@ -139,7 +123,6 @@ export function CharacterEditingForm({
               citableSources={citableSources}
               onChange={onChange}
               onDelete={handleDeleteGroup}
-              onRemoveCategoricalValue={handleRemoveCategoricalTrait}
             />
           ))}
         </div>

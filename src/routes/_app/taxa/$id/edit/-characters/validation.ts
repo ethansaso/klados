@@ -38,6 +38,8 @@ const unitSchema = z.object({
 
 export const categoricalCharacterFormSchema = z.object({
   kind: z.literal("categorical"),
+  /** Client-only identity; never sent to the server */
+  _formId: z.string(),
   characterId: z.number().int().positive(),
   characterLabel: z.string(),
   trait: traitSchema,
@@ -46,6 +48,7 @@ export const categoricalCharacterFormSchema = z.object({
 
 export const numberCharacterFormSchema = z.object({
   kind: z.literal("number"),
+  _formId: z.string(),
   characterId: z.number().int().positive(),
   characterLabel: z.string(),
   unit: unitSchema.nullable(), // Nullable in case of dimensionless (validated elsewhere)
@@ -55,6 +58,7 @@ export const numberCharacterFormSchema = z.object({
 
 export const rangeCharacterFormSchema = z.object({
   kind: z.literal("range"),
+  _formId: z.string(),
   characterId: z.number().int().positive(),
   characterLabel: z.string(),
   unit: unitSchema.nullable(), // Nullable in case of dimensionless (validated elsewhere)

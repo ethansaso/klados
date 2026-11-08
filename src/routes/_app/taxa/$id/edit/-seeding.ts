@@ -37,6 +37,7 @@ function seedCategoricalState(
 ): CharacterStateFormValue {
   return {
     kind: "categorical",
+    _formId: uuidv4(),
     characterId: dto.characterId,
     characterLabel: dto.characterLabel,
     trait: {
@@ -52,6 +53,7 @@ function seedNumericState(
   dto: NumberStateDTO | RangeStateDTO,
 ): CharacterStateFormValue {
   const shared = {
+    _formId: uuidv4(),
     characterId: dto.characterId,
     characterLabel: dto.characterLabel,
     unit: dto.unit

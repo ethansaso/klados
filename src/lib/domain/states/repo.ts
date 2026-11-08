@@ -4,6 +4,7 @@ import {
   taxonCharacterStateCategorical as catStateTbl,
   categoricalTraitValue as catValTbl,
   character as charsTbl,
+  taxonFeatureSource as featureSourceTbl,
   feature as featuresTbl,
   taxonCharacterStateModifierCategorical as modCatJunctionTbl,
   modifierGroup as modGroupTbl,
@@ -13,7 +14,6 @@ import {
   numericCharacterMeta as numMetaTbl,
   taxonCharacterStateNumber as numStateTbl,
   taxonCharacterStateRange as rangeStateTbl,
-  taxonFeatureSource as featureSourceTbl,
   taxonFeatureState as tfsTbl,
   traitSynonymSet as traitSetsTbl,
   unit as unitsTbl,
@@ -106,7 +106,7 @@ export async function selectTaxonStatesByTaxonIds(
     byTaxon.get(row.taxonId)?.get(row.featureId)?.sourceIds.push(row.sourceId);
   }
 
-  // Categorical states
+  // Categorical states first, so prose shows numbers last.
   const catRows = await tx
     .select({
       taxonId: tfsTbl.taxonId,
