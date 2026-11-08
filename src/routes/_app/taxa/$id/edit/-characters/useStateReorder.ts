@@ -14,7 +14,8 @@ type Line<T> = { start: number; items: T[]; top: number; bottom: number };
 
 /**
  * Positioned gap between items.
- * `index` is landing site, marker sits on `side` of `targetId` along `axis`.
+ * `index` is the insertion point in the full list, marker sits on `side` of
+ * `targetId` along `axis`.
  */
 export type DropGap = {
   index: number;
@@ -82,22 +83,23 @@ function getDropSlot(
       droppable.element,
     ]),
   );
-  const others = states.flatMap((state) => {
+  const items = states.flatMap((state) => {
     const element = elements.get(state._formId);
-    return state._formId !== sourceId && element
+    return element
       ? [{ id: state._formId, rect: element.getBoundingClientRect() }]
       : [];
   });
 
-  const gap = findDropGap(others, shape?.current.center ?? position.current);
+  const gap = findDropGap(items, shape?.current.center ?? position.current);
   return gap && { ...gap, sourceId };
 }
 
 /**
- * The gap nearest `point` among wrapped, LTR `items` in order, excluding the
- * dragged one. A line is chosen by height, split halfway between lines;
- * a lone item's gaps are above and below it, and gaps within a longer line
- * go by width. Points past either end fall to the nearest gap.
+ * The gap nearest `point` among wrapped, LTR `items` in order, including the
+ * dragged one's slot, so gaps beside it resolve to "no change". A line is
+ * chosen by height, split halfway between lines; a lone item's gaps are above
+ * and below it, and gaps within a longer line go by width. Points above or
+ * below the whole list land at its start or end.
  */
 function findDropGap(
   items: Array<{ id: string; rect: Rect }>,
@@ -120,12 +122,33 @@ function findDropGap(
     }
   }
 
-  let line = lines[0];
+  const first = lines[0];
+  const last = lines.at(-1);
+  if (!first || !last) return null;
+
+  // Lifting a tag's middle clear of the list reaches its ends from any column
+  if (point.y < first.top) {
+    return {
+      index: 0,
+      targetId: first.items[0]!.id,
+      side: "before",
+      axis: first.items.length === 1 ? "y" : "x",
+    };
+  }
+  if (point.y > last.bottom) {
+    return {
+      index: items.length,
+      targetId: last.items.at(-1)!.id,
+      side: "after",
+      axis: last.items.length === 1 ? "y" : "x",
+    };
+  }
+
+  let line = first;
   for (const [i, next] of lines.entries()) {
     const prev = lines[i - 1];
     if (prev && point.y >= (prev.bottom + next.top) / 2) line = next;
   }
-  if (!line) return null;
 
   const [only] = line.items;
   if (only && line.items.length === 1) {
@@ -163,7 +186,8 @@ function resolveMove(
   slot: DropSlot,
 ): { fromIndex: number; toIndex: number } | null {
   const fromIndex = states.findIndex((s) => s._formId === slot.sourceId);
-  if (fromIndex < 0 || slot.index === fromIndex) return null;
-  // The gap's index already counts only the other items
-  return { fromIndex, toIndex: slot.index };
+  if (fromIndex < 0) return null;
+  // Removing the source first shifts later insertion points back by one
+  const toIndex = slot.index > fromIndex ? slot.index - 1 : slot.index;
+  return toIndex === fromIndex ? null : { fromIndex, toIndex };
 }
