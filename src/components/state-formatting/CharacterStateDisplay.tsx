@@ -62,9 +62,7 @@ function getStateModifiers(state: UICharacterState) {
 function getModifierSignature(state: UICharacterState): string {
   return getStateModifiers(state)
     .map((modifier) =>
-      [modifier.id, modifier.label, modifier.affixType, modifier.groupId].join(
-        ":",
-      ),
+      [modifier.id, modifier.affixType, modifier.joiner].join(":"),
     )
     .join("|");
 }
