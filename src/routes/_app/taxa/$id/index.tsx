@@ -246,7 +246,7 @@ function TaxonPage() {
             {/* Lookalikes */}
             {/* Keyed so the scroller remounts at the start in the same commit as
                 new data; the router's scroll reset lands a frame later. */}
-            {taxon.status !== "draft" && supportsLookalikes(taxon.rank) && (
+            {supportsLookalikes(taxon.rank) && (
               <LookalikesList
                 key={id}
                 taxonId={id}
