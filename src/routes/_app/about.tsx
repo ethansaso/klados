@@ -46,16 +46,16 @@ function RouteComponent() {
 
         <Text as="p" size="4" mb="4">
           Klados is a free, community-driven website for learning to identify
-          organisms. Built on shared glossary of morphological terms, every
-          species becomes a living resource, explaining terms in place and
-          powering comparison across the platform.
+          organisms. Every species described here is a living resource, ensuring
+          definitions stay relevant and grow alongside our understanding of
+          biodiversity.
         </Text>
         <Text as="p" size="4" mb="4">
           Field guides, dichotomous keys, and the wisdom of experienced
           naturalists are wonderful resources. Nonetheless, they can be hard to
-          come by, and often difficult to understand. Klados aims to make
+          come by, and sometimes difficult to understand. Klados aims to make
           identification accessible to all audiences: it helps you learn the
-          vocabulary, study and compare similar species, and work through
+          vocabulary, find and compare similar species, and work through
           visual-first identification guides.
         </Text>
         <Text as="p" size="4" mb="7">
