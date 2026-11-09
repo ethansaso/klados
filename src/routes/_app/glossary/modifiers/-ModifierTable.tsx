@@ -28,7 +28,7 @@ export default function ModifierTable({
       <Table.Header>
         <Table.Row>
           <Table.ColumnHeaderCell>Value</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Affix Type</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Default affix</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Description</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell justify="center">
             Media

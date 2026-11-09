@@ -2,6 +2,7 @@ import {
   Box,
   Flex,
   SegmentedControl,
+  Text,
   TextArea,
   TextField,
 } from "@radix-ui/themes";
@@ -68,7 +69,7 @@ export function ModifierFields({ disabled = false }: Props) {
 
       <Box>
         <Box mb="1">
-          <Label.Root>Placement</Label.Root>
+          <Label.Root>Default affix type</Label.Root>
         </Box>
         <Controller
           control={control}
@@ -88,6 +89,9 @@ export function ModifierFields({ disabled = false }: Props) {
             </SegmentedControl.Root>
           )}
         />
+        <Text as="p" size="1" color="gray" mt="1">
+          Starting side when applied; each state can override it.
+        </Text>
       </Box>
 
       <Box>
