@@ -1,13 +1,16 @@
 import type {
+  AffixType,
   FeaturePresence,
   FeatureSemantics,
+  ModifierJoiner,
 } from "../../../../db/schema/schema";
 import { type UnitDTO } from "../units/types";
 
 export type ModifierStateDTO = {
   id: number;
   label: string;
-  affixType: "prefix" | "suffix";
+  affixType: AffixType;
+  joiner: ModifierJoiner;
   hasInfo: boolean;
   groupId: number;
   groupLabel: string;

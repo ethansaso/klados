@@ -1,4 +1,5 @@
 import { generateText, Output } from "ai";
+import { v4 as uuidv4 } from "uuid";
 
 import { extractionModel } from "../../../llms/client";
 import type {
@@ -1457,6 +1458,7 @@ function hydrateModifiers(
       id: mod.id,
       label: mod.label,
       affixType: mod.affixType,
+      joiner: "space",
       groupId: mod.groupId,
       groupLabel: mod.groupLabel,
     });
@@ -1510,6 +1512,7 @@ function hydrateCharacters(
         for (const tv of hydratedTraitValues) {
           characters.push({
             kind: "categorical",
+            _formId: uuidv4(),
             characterId: rawChar.characterId,
             characterLabel: charMeta.label,
             trait: { id: tv.id, label: tv.label, hexCode: tv.hexCode },
@@ -1545,6 +1548,7 @@ function hydrateCharacters(
 
         characters.push({
           kind: "number",
+          _formId: uuidv4(),
           characterId: rawChar.characterId,
           characterLabel: charMeta.label,
           unit: unit
@@ -1593,6 +1597,7 @@ function hydrateCharacters(
 
         characters.push({
           kind: "range",
+          _formId: uuidv4(),
           characterId: rawChar.characterId,
           characterLabel: charMeta.label,
           unit: unit

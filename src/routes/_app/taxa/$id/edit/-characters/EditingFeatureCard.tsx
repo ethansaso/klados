@@ -31,13 +31,15 @@ import type { FeaturePresence } from "../../../../../../../db/schema/schema";
 import type { TraitSuggestion } from "../../../../../../lib/domain/suggestions/types";
 import { featureQueryOptions } from "../../../../../../lib/queries/features";
 import { CharacterStateRow } from "./CharacterStateRow";
+import {
+  addStateFromSuggestion,
+  moveCharacterState,
+  removeState,
+  updateStateModifiers,
+} from "./dnd/stateUtils";
 import { FeatureSources } from "./FeatureSources";
 import { CharacterStateSearch } from "./search/CharacterStateSearch";
 import { FEATURE_SEARCH_INPUT_ID } from "./search/FeatureSearch";
-import {
-  addStateFromSuggestion,
-  updateCategoricalTraitValueModifiers,
-} from "./stateUtils";
 import type {
   CharacterStateFormValue,
   FeatureFormValue,
@@ -46,8 +48,7 @@ import type {
 
 type LastAdded = {
   characterId: number;
-  traitIndex?: number;
-  label: string;
+  formId: string;
 };
 
 const PRESENCE_CYCLE: Record<
@@ -93,21 +94,10 @@ type Props = {
   citableSources: NumberedFeatureCitation[];
   onChange: (nextFeatures: FeatureFormValue[]) => void;
   onDelete: (featureId: number) => void;
-  onRemoveCategoricalValue: (
-    featureId: number,
-    characterId: number,
-    stateIndex: number,
-  ) => void;
 };
 
 export const EditingFeatureCard = memo(
-  ({
-    feature,
-    citableSources,
-    onChange,
-    onDelete,
-    onRemoveCategoricalValue,
-  }: Props) => {
+  ({ feature, citableSources, onChange, onDelete }: Props) => {
     const { getValues } = useFormContext<TaxonEditFormValues>();
     const [confirmingDelete, setConfirmingDelete] = useState(false);
     const [notesExpanded, setNotesExpanded] = useState(
@@ -153,24 +143,13 @@ export const EditingFeatureCard = memo(
         );
         onChange(next);
 
-        const label =
-          s.kind === "categorical-value" ? s.traitValueLabel : s.displayValue;
-        if (s.kind === "categorical-value") {
-          const catStatesForChar =
-            next
-              .find((g) => g.featureId === feature.featureId)
-              ?.characters.filter(
-                (c) =>
-                  c.characterId === s.characterId && c.kind === "categorical",
-              ) ?? [];
-          setLastAdded({
-            characterId: s.characterId,
-            traitIndex: catStatesForChar.length - 1,
-            label,
-          });
-        } else {
-          setLastAdded({ characterId: s.characterId, label });
-        }
+        const added = next
+          .find((g) => g.featureId === feature.featureId)
+          ?.characters.filter((c) => c.characterId === s.characterId)
+          .at(-1);
+        setLastAdded(
+          added ? { characterId: s.characterId, formId: added._formId } : null,
+        );
         setAutoOpenFor(null);
       },
       [getValues, onChange, feature.featureId],
@@ -185,94 +164,38 @@ export const EditingFeatureCard = memo(
       setAutoOpenFor(null);
     }, []);
 
-    const handleRemoveCategoricalTrait = useCallback(
-      (characterId: number, stateIndex: number) =>
-        onRemoveCategoricalValue(feature.featureId, characterId, stateIndex),
-      [onRemoveCategoricalValue, feature.featureId],
-    );
-
     const statesByCharacter = useStatesByCharacter(feature.characters);
 
-    const handleUpdateCategoricalModifiers = useCallback(
-      (
-        characterId: number,
-        stateIndex: number,
-        mods: ModifierTokenFormValue[],
-      ) => {
-        const prev = getValues("states");
-        const next = updateCategoricalTraitValueModifiers(
-          prev,
-          feature.featureId,
-          characterId,
-          stateIndex,
-          mods,
-        );
-        onChange(next);
-      },
+    const handleRemoveState = useCallback(
+      (formId: string) =>
+        onChange(removeState(getValues("states"), feature.featureId, formId)),
       [getValues, onChange, feature.featureId],
     );
 
-    const handleUpdateNumericModifiers = useCallback(
-      (
-        characterId: number,
-        stateIndex: number,
-        mods: ModifierTokenFormValue[],
-      ) => {
-        const prev = getValues("states");
-        const next = prev.map((group) => {
-          if (group.featureId !== feature.featureId) return group;
-
-          let numericSeen = -1;
-
-          return {
-            ...group,
-            characters: group.characters.map((row) => {
-              if (
-                row.characterId !== characterId ||
-                (row.kind !== "number" && row.kind !== "range")
-              ) {
-                return row;
-              }
-
-              numericSeen += 1;
-              if (numericSeen !== stateIndex) return row;
-
-              return { ...row, modifiers: mods };
-            }),
-          };
-        });
-
-        onChange(next);
-      },
+    const handleUpdateModifiers = useCallback(
+      (formId: string, mods: ModifierTokenFormValue[]) =>
+        onChange(
+          updateStateModifiers(
+            getValues("states"),
+            feature.featureId,
+            formId,
+            mods,
+          ),
+        ),
       [getValues, onChange, feature.featureId],
     );
 
-    const handleRemoveNumericState = useCallback(
-      (characterId: number, stateIndex: number) => {
-        const prev = getValues("states");
-        const next = prev.map((group) => {
-          if (group.featureId !== feature.featureId) return group;
-
-          let numericSeen = -1;
-
-          return {
-            ...group,
-            characters: group.characters.filter((row) => {
-              if (
-                row.characterId !== characterId ||
-                (row.kind !== "number" && row.kind !== "range")
-              ) {
-                return true;
-              }
-
-              numericSeen += 1;
-              return numericSeen !== stateIndex;
-            }),
-          };
-        });
-
-        onChange(next);
-      },
+    const handleMoveState = useCallback(
+      (characterId: number, fromIndex: number, toIndex: number) =>
+        onChange(
+          moveCharacterState(
+            getValues("states"),
+            feature.featureId,
+            characterId,
+            fromIndex,
+            toIndex,
+          ),
+        ),
       [getValues, onChange, feature.featureId],
     );
 
@@ -422,12 +345,13 @@ export const EditingFeatureCard = memo(
                 featureLabel={feature.featureLabel}
                 character={c}
                 states={statesByCharacter.get(c.id) ?? NO_STATES}
-                onRemoveCategoricalTrait={handleRemoveCategoricalTrait}
-                onRemoveNumericState={handleRemoveNumericState}
-                onUpdateCategoricalModifiers={handleUpdateCategoricalModifiers}
-                onUpdateNumericModifiers={handleUpdateNumericModifiers}
-                autoOpenModifierFor={
-                  autoOpenFor?.characterId === c.id ? autoOpenFor : undefined
+                onRemoveState={handleRemoveState}
+                onUpdateModifiers={handleUpdateModifiers}
+                onMoveState={handleMoveState}
+                autoOpenFormId={
+                  autoOpenFor?.characterId === c.id
+                    ? autoOpenFor.formId
+                    : undefined
                 }
                 onAutoOpenHandled={handleAutoOpenHandled}
                 onReturnToSearch={focusSearch}

@@ -1,6 +1,5 @@
 import { Text } from "@radix-ui/themes";
 import { memo } from "react";
-import { relativeLuminance } from "../../lib/utils/color/operations";
 import { CategoricalStateDisplay } from "./displays/CategoricalStateDisplay";
 import { NumericStateDisplay } from "./displays/NumericStateDisplay";
 import { AffixedValue } from "./helpers/AffixedValue";
@@ -63,9 +62,7 @@ function getStateModifiers(state: UICharacterState) {
 function getModifierSignature(state: UICharacterState): string {
   return getStateModifiers(state)
     .map((modifier) =>
-      [modifier.id, modifier.label, modifier.affixType, modifier.groupId].join(
-        ":",
-      ),
+      [modifier.id, modifier.affixType, modifier.joiner].join(":"),
     )
     .join("|");
 }
@@ -79,21 +76,6 @@ function getStateKey(state: UICharacterState): string {
     case "range":
       return `range:${state.siBaseMin ?? ""}:${state.siBaseMax ?? ""}:${getModifierSignature(state)}`;
   }
-}
-
-/** Swatchless first, then light to dark; non-colors all tie. */
-function colorRank(state: UICharacterState): number {
-  const hex = state.kind === "categorical" ? state.trait.hexCode : null;
-  return hex ? 1 - relativeLuminance(hex) : -1;
-}
-
-/** Fewest modifiers first; within each count, colors run light to dark. */
-function orderStates(states: UICharacterState[]): UICharacterState[] {
-  return [...states].sort(
-    (a, b) =>
-      getStateModifiers(a).length - getStateModifiers(b).length ||
-      colorRank(a) - colorRank(b),
-  );
 }
 
 function collapseStatesByExactModifiers(states: UICharacterState[]) {
@@ -130,7 +112,7 @@ export const CharacterStateDisplay = memo(
       );
     }
 
-    const collapsedGroups = collapseStatesByExactModifiers(orderStates(states));
+    const collapsedGroups = collapseStatesByExactModifiers(states);
 
     return (
       <Text as="span">

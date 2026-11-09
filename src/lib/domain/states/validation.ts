@@ -1,11 +1,22 @@
 import z from "zod";
-import { FEATURE_PRESENCES } from "../../../../db/schema/schema";
+import {
+  AFFIX_TYPES,
+  FEATURE_PRESENCES,
+  MODIFIER_JOINERS,
+} from "../../../../db/schema/schema";
+
+// Array order is stored/display order
+const stateModifierSchema = z.object({
+  id: z.number(),
+  affixType: z.enum(AFFIX_TYPES),
+  joiner: z.enum(MODIFIER_JOINERS),
+});
 
 const categoricalCharacterUpdateSchema = z.object({
   kind: z.literal("categorical"),
   characterId: z.number(),
   traitValueId: z.number().int().positive(),
-  modifierIds: z.array(z.number()).default([]),
+  modifiers: z.array(stateModifierSchema).default([]),
 });
 
 const numberCharacterUpdateSchema = z.object({
@@ -13,7 +24,7 @@ const numberCharacterUpdateSchema = z.object({
   characterId: z.number(),
   unitId: z.int().positive().optional(),
   siBaseValue: z.number(),
-  modifierIds: z.array(z.number()).default([]),
+  modifiers: z.array(stateModifierSchema).default([]),
 });
 
 const rangeCharacterUpdateSchema = z
@@ -23,7 +34,7 @@ const rangeCharacterUpdateSchema = z
     unitId: z.int().positive().optional(),
     siBaseMin: z.number().nullable(),
     siBaseMax: z.number().nullable(),
-    modifierIds: z.array(z.number()).default([]),
+    modifiers: z.array(stateModifierSchema).default([]),
   })
   .refine((d) => d.siBaseMin !== null || d.siBaseMax !== null, {
     message: "At least one bound must be set.",
@@ -76,7 +87,7 @@ const featureUpdateSchema = z
 
     for (const [idx, c] of group.characters.entries()) {
       if (c.kind === "categorical") {
-        const signature = modifierSetSignature(c.modifierIds);
+        const signature = modifierSetSignature(c.modifiers.map((m) => m.id));
         const key = `${c.characterId}|${c.traitValueId}|${signature}`;
         if (seenCategorical.has(key)) {
           ctx.addIssue({
@@ -87,7 +98,7 @@ const featureUpdateSchema = z
         }
         seenCategorical.add(key);
       } else if (c.kind === "number" || c.kind === "range") {
-        const signature = modifierSetSignature(c.modifierIds);
+        const signature = modifierSetSignature(c.modifiers.map((m) => m.id));
         const key = `${c.kind}|${c.characterId}|${signature}`;
 
         if (seenNumericModifierSets.has(key)) {
@@ -122,6 +133,8 @@ export const groupedCharacterUpdateSchema = z
       seenGroups.add(group.featureId);
     }
   });
+
+export type StateModifierUpdate = z.infer<typeof stateModifierSchema>;
 
 export type CategoricalCharacterUpdate = z.infer<
   typeof categoricalCharacterUpdateSchema

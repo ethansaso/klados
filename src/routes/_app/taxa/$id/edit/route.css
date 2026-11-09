@@ -29,6 +29,7 @@ main:has(.taxon-editor) {
 
   .modifier-tag {
     background: var(--color-background);
+    color: var(--gray-12);
     padding-right: calc(var(--space-4) + var(--space-1));
     max-width: 100%;
     text-wrap: wrap;

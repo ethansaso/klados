@@ -1,7 +1,9 @@
 import z from "zod";
 import {
+  AFFIX_TYPES,
   FEATURE_PRESENCES,
   FEATURE_SEMANTICS,
+  MODIFIER_JOINERS,
 } from "../../../../../../../db/schema/schema";
 import { variantPresenceConflicts } from "../../../../../../lib/domain/states/variantPresenceConflicts";
 
@@ -17,7 +19,8 @@ function modifierSetSignature(modifierIds: number[]): string {
 const modifierTokenSchema = z.object({
   id: z.number().int(),
   label: z.string(),
-  affixType: z.enum(["prefix", "suffix"]),
+  affixType: z.enum(AFFIX_TYPES),
+  joiner: z.enum(MODIFIER_JOINERS),
   groupId: z.number().int(),
   groupLabel: z.string(),
 });
@@ -38,6 +41,8 @@ const unitSchema = z.object({
 
 export const categoricalCharacterFormSchema = z.object({
   kind: z.literal("categorical"),
+  /** Client-only identity; never sent to the server */
+  _formId: z.string(),
   characterId: z.number().int().positive(),
   characterLabel: z.string(),
   trait: traitSchema,
@@ -46,6 +51,7 @@ export const categoricalCharacterFormSchema = z.object({
 
 export const numberCharacterFormSchema = z.object({
   kind: z.literal("number"),
+  _formId: z.string(),
   characterId: z.number().int().positive(),
   characterLabel: z.string(),
   unit: unitSchema.nullable(), // Nullable in case of dimensionless (validated elsewhere)
@@ -55,6 +61,7 @@ export const numberCharacterFormSchema = z.object({
 
 export const rangeCharacterFormSchema = z.object({
   kind: z.literal("range"),
+  _formId: z.string(),
   characterId: z.number().int().positive(),
   characterLabel: z.string(),
   unit: unitSchema.nullable(), // Nullable in case of dimensionless (validated elsewhere)

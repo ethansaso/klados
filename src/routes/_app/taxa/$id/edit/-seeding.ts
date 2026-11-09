@@ -27,6 +27,7 @@ function seedModifier(m: CategoricalStateDTO["modifiers"][number]) {
     id: m.id,
     label: m.label,
     affixType: m.affixType,
+    joiner: m.joiner,
     groupId: m.groupId,
     groupLabel: m.groupLabel,
   };
@@ -37,6 +38,7 @@ function seedCategoricalState(
 ): CharacterStateFormValue {
   return {
     kind: "categorical",
+    _formId: uuidv4(),
     characterId: dto.characterId,
     characterLabel: dto.characterLabel,
     trait: {
@@ -52,6 +54,7 @@ function seedNumericState(
   dto: NumberStateDTO | RangeStateDTO,
 ): CharacterStateFormValue {
   const shared = {
+    _formId: uuidv4(),
     characterId: dto.characterId,
     characterLabel: dto.characterLabel,
     unit: dto.unit

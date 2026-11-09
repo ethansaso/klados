@@ -1,4 +1,8 @@
-import type { CharacterStateDTO, Trait } from "../../lib/domain/states/types";
+import type {
+  CharacterStateDTO,
+  ModifierStateDTO,
+  Trait,
+} from "../../lib/domain/states/types";
 import type { UnitDTO } from "../../lib/domain/units/types";
 
 // UI-focused types with optional weight styling.
@@ -20,12 +24,11 @@ export type UIUnit = Pick<UnitDTO, "symbol" | "scale">;
  * A modifier token for display purposes — just the fields needed to render
  * prefix/suffix text around a state badge.
  */
-export type UIModifier = {
-  id: number;
-  label: string;
-  affixType: "prefix" | "suffix";
+export type UIModifier = Pick<
+  ModifierStateDTO,
+  "id" | "label" | "affixType" | "joiner"
+> & {
   hasInfo?: boolean;
-  groupId: number;
 };
 
 export type UICategoricalState = Pick<

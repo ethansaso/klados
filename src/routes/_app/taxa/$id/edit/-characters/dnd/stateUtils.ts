@@ -1,15 +1,16 @@
+import { v4 as uuidv4 } from "uuid";
 import type {
   CategoricalValueSuggestion,
   NumericRangeSuggestion,
   NumericSingleSuggestion,
   TraitSuggestion,
-} from "../../../../../../lib/domain/suggestions/types";
-import { convertToSI } from "../../../../../../lib/domain/units/utils";
+} from "../../../../../../../lib/domain/suggestions/types";
+import { convertToSI } from "../../../../../../../lib/domain/units/utils";
 import type {
   CharacterStateFormValue,
   GroupedCharacterFormValue,
   ModifierTokenFormValue,
-} from "./validation";
+} from "../validation";
 
 function updateFeature(
   featureStates: GroupedCharacterFormValue,
@@ -31,6 +32,7 @@ export function addCategoricalStateFromSuggestion(
       ...current,
       {
         kind: "categorical",
+        _formId: uuidv4(),
         characterId: suggestion.characterId,
         characterLabel: suggestion.characterLabel,
         trait: {
@@ -56,6 +58,7 @@ export function addNumericSingleStateFromSuggestion(
         ...current,
         {
           kind: "number",
+          _formId: uuidv4(),
           characterId: suggestion.characterId,
           characterLabel: suggestion.characterLabel,
           unit: null,
@@ -77,6 +80,7 @@ export function addNumericSingleStateFromSuggestion(
       ...current,
       {
         kind: "number",
+        _formId: uuidv4(),
         characterId: suggestion.characterId,
         characterLabel: suggestion.characterLabel,
         unit: {
@@ -103,6 +107,7 @@ export function addNumericRangeStateFromSuggestion(
         ...current,
         {
           kind: "range",
+          _formId: uuidv4(),
           characterId: suggestion.characterId,
           characterLabel: suggestion.characterLabel,
           unit: null,
@@ -132,6 +137,7 @@ export function addNumericRangeStateFromSuggestion(
       ...current,
       {
         kind: "range",
+        _formId: uuidv4(),
         characterId: suggestion.characterId,
         characterLabel: suggestion.characterLabel,
         unit: {
@@ -175,38 +181,49 @@ export function addStateFromSuggestion(
   }
 }
 
-export function removeCategoricalTraitValue(
+export function removeState(
   featureStates: GroupedCharacterFormValue,
-  groupId: number,
-  characterId: number,
-  stateIndex: number,
+  featureId: number,
+  formId: string,
 ): GroupedCharacterFormValue {
-  return updateFeature(featureStates, groupId, (current) => {
-    let catSeen = -1;
-    return current.filter((row) => {
-      if (row.kind !== "categorical" || row.characterId !== characterId)
-        return true;
-      catSeen += 1;
-      return catSeen !== stateIndex;
-    });
-  });
+  return updateFeature(featureStates, featureId, (current) =>
+    current.filter((state) => state._formId !== formId),
+  );
 }
 
-export function updateCategoricalTraitValueModifiers(
+export function updateStateModifiers(
+  featureStates: GroupedCharacterFormValue,
+  featureId: number,
+  formId: string,
+  modifiers: ModifierTokenFormValue[],
+): GroupedCharacterFormValue {
+  return updateFeature(featureStates, featureId, (current) =>
+    current.map((state) =>
+      state._formId === formId ? { ...state, modifiers } : state,
+    ),
+  );
+}
+
+/**
+ * Moves a character's states within its list.
+ * Other states keep their positions in the flat array.
+ */
+export function moveCharacterState(
   featureStates: GroupedCharacterFormValue,
   featureId: number,
   characterId: number,
-  stateIndex: number,
-  modifiers: ModifierTokenFormValue[],
+  fromIndex: number,
+  toIndex: number,
 ): GroupedCharacterFormValue {
   return updateFeature(featureStates, featureId, (current) => {
-    let catSeen = -1;
-    return current.map((row) => {
-      if (row.kind !== "categorical" || row.characterId !== characterId)
-        return row;
-      catSeen += 1;
-      if (catSeen !== stateIndex) return row;
-      return { ...row, modifiers };
-    });
+    const reordered = current.filter((s) => s.characterId === characterId);
+    const [moved] = reordered.splice(fromIndex, 1);
+    if (!moved) return current;
+    reordered.splice(toIndex, 0, moved);
+
+    let next = 0;
+    return current.map((s) =>
+      s.characterId === characterId ? reordered[next++]! : s,
+    );
   });
 }
