@@ -1,18 +1,18 @@
-import { Feedback } from "@dnd-kit/dom";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { Badge, Flex, IconButton, Popover } from "@radix-ui/themes";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { PiX } from "react-icons/pi";
-import type { DropGap } from "../useStateReorder";
+import { REORDER_SORTABLE_PLUGINS, type DropGap } from "../dnd/useListReorder";
 import type { ModifierTokenFormValue } from "../validation";
 import { ModifierPopoverContent } from "./ModifierPopoverContent";
-import "./ModifierTag.css";
 
 type ModifierTagProps = {
   id: string;
   index: number;
   children: ReactNode;
+  /** The state's value alone, for the modifier editor. */
+  value: ReactNode;
   modifiers: ModifierTokenFormValue[];
   onRemove: () => void;
   onModifiersChange: (mods: ModifierTokenFormValue[]) => void;
@@ -26,12 +26,6 @@ type ModifierTagProps = {
   dropMarker?: Pick<DropGap, "side" | "axis">;
 };
 
-// Purposely disables live reordering to prevent jitter.
-// The small interaction zone + volatility makes it unstable.
-const SORTABLE_PLUGINS = [
-  Feedback.configure({ feedback: "clone", dropAnimation: null }),
-];
-
 /**
  * A sortable state tag (badge) that opens a Radix Popover for inline modifier
  * editing.
@@ -40,6 +34,7 @@ export function ModifierTag({
   id,
   index,
   children,
+  value,
   modifiers,
   onRemove,
   onModifiersChange,
@@ -54,7 +49,7 @@ export function ModifierTag({
   const { ref, handleRef } = useSortable({
     id,
     index,
-    plugins: SORTABLE_PLUGINS,
+    plugins: REORDER_SORTABLE_PLUGINS,
     transition: null,
   });
 
@@ -73,7 +68,7 @@ export function ModifierTag({
         ref={ref}
         display="inline-flex"
         position="relative"
-        className="modifier-tag-item"
+        className="reorder-item"
         data-drop-side={dropMarker?.side}
         data-drop-axis={dropMarker?.axis}
       >
@@ -105,7 +100,7 @@ export function ModifierTag({
       <Popover.Content
         side="bottom"
         align="start"
-        width="240px"
+        width="320px"
         size="1"
         className="modifier-tag__popover"
         onOpenAutoFocus={(e) => {
@@ -121,11 +116,9 @@ export function ModifierTag({
       >
         <ModifierPopoverContent
           modifiers={modifiers}
+          value={value}
           filterInputRef={filterInputRef}
-          onAdd={(m) => onModifiersChange([...modifiers, m])}
-          onRemove={(id) =>
-            onModifiersChange(modifiers.filter((m) => m.id !== id))
-          }
+          onChange={onModifiersChange}
         />
       </Popover.Content>
     </Popover.Root>

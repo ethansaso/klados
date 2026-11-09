@@ -1,19 +1,17 @@
-import {
-  Accessibility,
-  defaultPreset,
-  PointerActivationConstraints,
-  PointerSensor,
-} from "@dnd-kit/dom";
 import { DragDropProvider } from "@dnd-kit/react";
 import { DataList, Flex, Text } from "@radix-ui/themes";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { CharacterStateDisplay } from "../../../../../../components/state-formatting/CharacterStateDisplay";
 import type { FeatureDetailDTO } from "../../../../../../lib/domain/features/types";
 import type { CategoricalValueSuggestion } from "../../../../../../lib/domain/suggestions/types";
 import { COLOR_CHARACTER_LABEL } from "../../../../../../lib/domain/traits/colorPalette";
+import {
+  REORDER_PLUGINS,
+  REORDER_SENSORS,
+  useListReorder,
+} from "./dnd/useListReorder";
 import { ImageColorButton } from "./ImageColorButton";
 import { ModifierTag } from "./tags/ModifierTag";
-import { useStateReorder } from "./useStateReorder";
 import type {
   CharacterStateFormValue,
   ModifierTokenFormValue,
@@ -40,21 +38,6 @@ type CharacterStateRowProps = {
   ) => void;
 };
 
-// Pointer only; Enter and Space are for popovers
-const SENSORS = [
-  PointerSensor.configure({
-    // Clicks must trigger popover. Also, don't disrupt touch scroll.
-    activationConstraints: (event) =>
-      event.pointerType === "touch"
-        ? [new PointerActivationConstraints.Delay({ value: 250, tolerance: 5 })]
-        : [new PointerActivationConstraints.Distance({ value: 5 })],
-  }),
-];
-
-const PLUGINS = defaultPreset.plugins.filter(
-  (plugin) => plugin !== Accessibility,
-);
-
 export const CharacterStateRow = memo(
   ({
     featureLabel,
@@ -74,8 +57,9 @@ export const CharacterStateRow = memo(
         onMoveState(character.id, fromIndex, toIndex),
       [onMoveState, character.id],
     );
-    const { marker, handleDragMove, handleDragEnd } = useStateReorder(
-      states,
+    const ids = useMemo(() => states.map((s) => s._formId), [states]);
+    const { marker, handleDragMove, handleDragEnd } = useListReorder(
+      ids,
       handleMove,
     );
 
@@ -105,8 +89,8 @@ export const CharacterStateRow = memo(
           ) : (
             // One provider per character to keep states in list
             <DragDropProvider
-              sensors={SENSORS}
-              plugins={PLUGINS}
+              sensors={REORDER_SENSORS}
+              plugins={REORDER_PLUGINS}
               onDragMove={handleDragMove}
               onDragEnd={handleDragEnd}
             >
@@ -121,6 +105,12 @@ export const CharacterStateRow = memo(
                     key={state._formId}
                     id={state._formId}
                     index={index}
+                    value={
+                      <CharacterStateDisplay
+                        states={[{ ...state, modifiers: [] }]}
+                        forceLowercase
+                      />
+                    }
                     modifiers={state.modifiers}
                     onModifiersChange={(mods) =>
                       onUpdateModifiers(state._formId, mods)

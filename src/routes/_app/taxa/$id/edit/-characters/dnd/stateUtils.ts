@@ -4,13 +4,13 @@ import type {
   NumericRangeSuggestion,
   NumericSingleSuggestion,
   TraitSuggestion,
-} from "../../../../../../lib/domain/suggestions/types";
-import { convertToSI } from "../../../../../../lib/domain/units/utils";
+} from "../../../../../../../lib/domain/suggestions/types";
+import { convertToSI } from "../../../../../../../lib/domain/units/utils";
 import type {
   CharacterStateFormValue,
   GroupedCharacterFormValue,
   ModifierTokenFormValue,
-} from "./validation";
+} from "../validation";
 
 function updateFeature(
   featureStates: GroupedCharacterFormValue,

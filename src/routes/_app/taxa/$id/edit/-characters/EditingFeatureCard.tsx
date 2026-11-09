@@ -31,15 +31,15 @@ import type { FeaturePresence } from "../../../../../../../db/schema/schema";
 import type { TraitSuggestion } from "../../../../../../lib/domain/suggestions/types";
 import { featureQueryOptions } from "../../../../../../lib/queries/features";
 import { CharacterStateRow } from "./CharacterStateRow";
-import { FeatureSources } from "./FeatureSources";
-import { CharacterStateSearch } from "./search/CharacterStateSearch";
-import { FEATURE_SEARCH_INPUT_ID } from "./search/FeatureSearch";
 import {
   addStateFromSuggestion,
   moveCharacterState,
   removeState,
   updateStateModifiers,
-} from "./stateUtils";
+} from "./dnd/stateUtils";
+import { FeatureSources } from "./FeatureSources";
+import { CharacterStateSearch } from "./search/CharacterStateSearch";
+import { FEATURE_SEARCH_INPUT_ID } from "./search/FeatureSearch";
 import type {
   CharacterStateFormValue,
   FeatureFormValue,

@@ -1,5 +1,4 @@
 import {
-  Badge,
   Box,
   Button,
   Flex,
@@ -10,24 +9,33 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useId, useRef, useState, type RefObject } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { PiPlus, PiX } from "react-icons/pi";
 import { DebouncedTextField } from "../../../../../../../components/inputs/DebouncedTextField";
 import { modifierSuggestionsQueryOptions } from "../../../../../../../lib/queries/suggestions";
 import type { ModifierTokenFormValue } from "../validation";
+import { ModifierLayoutRow } from "./ModifierLayoutRow";
 
 type Props = {
   modifiers: ModifierTokenFormValue[];
+  /** The state's value, shown between its prefixes and suffixes. */
+  value: ReactNode;
   filterInputRef: RefObject<HTMLInputElement | null>;
-  onAdd: (m: ModifierTokenFormValue) => void;
-  onRemove: (id: number) => void;
+  onChange: (modifiers: ModifierTokenFormValue[]) => void;
 };
 
 export function ModifierPopoverContent({
   modifiers,
+  value,
   filterInputRef,
-  onAdd,
-  onRemove,
+  onChange,
 }: Props) {
   // `q` is the debounced/committed query that drives the server call.
   const [q, setQ] = useState("");
@@ -71,7 +79,7 @@ export function ModifierPopoverContent({
   };
 
   const handleAdd = (m: ModifierTokenFormValue) => {
-    onAdd(m);
+    onChange([...modifiers, m]);
     // Reset the text input and clear the committed query.
     setQ("");
     setActiveIndexRaw(0);
@@ -113,32 +121,24 @@ export function ModifierPopoverContent({
           </IconButton>
         </Popover.Close>
       </Flex>
+      {modifiers.length > 0 && (
+        <Text as="p" size="1" color="gray">
+          Drag to reorder. Click a gap to change its joiner.
+        </Text>
+      )}
 
-      <Separator orientation="horizontal" size="4" mt="1" mb="2" />
+      <Separator orientation="horizontal" size="4" mt="2" mb="2" />
 
       {/* ── Currently applied ── */}
-      <Flex wrap="wrap" gap="1" mb={modifiers.length ? "2" : "0"}>
-        {modifiers.map((m) => (
-          <Badge
-            key={m.id}
-            variant="soft"
-            color={m.affixType === "prefix" ? "crimson" : "cyan"}
-            className="modifier-tag__applied-pill"
-          >
-            <Flex align="center" gap="1">
-              <Text size="1">{m.label}</Text>
-              <IconButton
-                size="1"
-                type="button"
-                variant="ghost"
-                onClick={() => onRemove(m.id)}
-              >
-                <PiX />
-              </IconButton>
-            </Flex>
-          </Badge>
-        ))}
-      </Flex>
+      {modifiers.length > 0 && (
+        <Box mb="3">
+          <ModifierLayoutRow
+            modifiers={modifiers}
+            value={value}
+            onChange={onChange}
+          />
+        </Box>
+      )}
 
       {/* ── Filter input ── */}
       <DebouncedTextField

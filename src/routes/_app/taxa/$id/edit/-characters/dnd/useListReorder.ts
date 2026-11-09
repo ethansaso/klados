@@ -1,10 +1,17 @@
+import {
+  Accessibility,
+  defaultPreset,
+  Feedback,
+  PointerActivationConstraints,
+  PointerSensor,
+} from "@dnd-kit/dom";
 import type {
   DragDropManager,
   DragEndEvent,
   DragMoveEvent,
 } from "@dnd-kit/react";
 import { useCallback, useState } from "react";
-import type { CharacterStateFormValue } from "./validation";
+import "./useListReorder.css";
 
 type Rect = { top: number; bottom: number; left: number; right: number };
 
@@ -26,16 +33,42 @@ export type DropGap = {
 
 type DropSlot = DropGap & { sourceId: string };
 
-/** Drag handlers for one character's tag list, plus the drop marker to show. */
-export function useStateReorder(
-  states: CharacterStateFormValue[],
+// Pointer only; Enter and Space are for popovers
+export const REORDER_SENSORS = [
+  PointerSensor.configure({
+    // Clicks must trigger popover. Also, don't disrupt touch scroll.
+    activationConstraints: (event) =>
+      event.pointerType === "touch"
+        ? [new PointerActivationConstraints.Delay({ value: 250, tolerance: 5 })]
+        : [new PointerActivationConstraints.Distance({ value: 5 })],
+  }),
+];
+
+export const REORDER_PLUGINS = defaultPreset.plugins.filter(
+  (plugin) => plugin !== Accessibility,
+);
+
+// Purposely disables live reordering to prevent jitter.
+// The small interaction zone + volatility makes it unstable.
+export const REORDER_SORTABLE_PLUGINS = [
+  Feedback.configure({ feedback: "clone", dropAnimation: null }),
+];
+
+/**
+ * Drag handlers for one wrapped list, plus the drop marker to show.
+ * `ids` are every item's droppable id in order, including fixed items that
+ * can be dropped beside but not dragged.
+ * Items need the `reorder-item` class and the marker's data attributes.
+ */
+export function useListReorder(
+  ids: string[],
   onMove: (fromIndex: number, toIndex: number) => void,
 ) {
   const [dropSlot, setDropSlot] = useState<DropSlot | null>(null);
 
   const handleDragMove = useCallback(
     (event: DragMoveEvent, manager: DragDropManager) => {
-      const next = getDropSlot(event.operation, manager, states);
+      const next = getDropSlot(event.operation, manager, ids);
       setDropSlot((prev) =>
         prev?.index === next?.index &&
         prev?.targetId === next?.targetId &&
@@ -44,34 +77,34 @@ export function useStateReorder(
           : next,
       );
     },
-    [states],
+    [ids],
   );
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent, manager: DragDropManager) => {
       setDropSlot(null);
-      const slot = getDropSlot(event.operation, manager, states);
-      const move = slot && resolveMove(states, slot);
+      const slot = getDropSlot(event.operation, manager, ids);
+      const move = slot && resolveMove(ids, slot);
       if (event.canceled || !move) return;
       onMove(move.fromIndex, move.toIndex);
     },
-    [states, onMove],
+    [ids, onMove],
   );
 
   // No marker where dropping would leave the order unchanged
-  const marker = dropSlot && resolveMove(states, dropSlot) ? dropSlot : null;
+  const marker = dropSlot && resolveMove(ids, dropSlot) ? dropSlot : null;
 
   return { marker, handleDragMove, handleDragEnd };
 }
 
 /**
- * Resolved from the dragged tag's center, so the grab point doesn't matter.
- * Tags are measured now, since dnd-kit's shapes update asynchronously.
+ * Resolved from the dragged item's center, so the grab point doesn't matter.
+ * Items are measured now, since dnd-kit's shapes update asynchronously.
  */
 function getDropSlot(
   operation: DragEndEvent["operation"],
   manager: DragDropManager,
-  states: CharacterStateFormValue[],
+  ids: string[],
 ): DropSlot | null {
   const { source, shape, position } = operation;
   if (!source) return null;
@@ -83,11 +116,9 @@ function getDropSlot(
       droppable.element,
     ]),
   );
-  const items = states.flatMap((state) => {
-    const element = elements.get(state._formId);
-    return element
-      ? [{ id: state._formId, rect: element.getBoundingClientRect() }]
-      : [];
+  const items = ids.flatMap((id) => {
+    const element = elements.get(id);
+    return element ? [{ id, rect: element.getBoundingClientRect() }] : [];
   });
 
   const gap = findDropGap(items, shape?.current.center ?? position.current);
@@ -126,7 +157,7 @@ function findDropGap(
   const last = lines.at(-1);
   if (!first || !last) return null;
 
-  // Lifting a tag's middle clear of the list reaches its ends from any column
+  // Lifting an item's middle clear of the list reaches its ends from any column
   if (point.y < first.top) {
     return {
       index: 0,
@@ -182,10 +213,10 @@ function findDropGap(
 
 /** Null when the slot is invalid or wouldn't change the order. */
 function resolveMove(
-  states: CharacterStateFormValue[],
+  ids: string[],
   slot: DropSlot,
 ): { fromIndex: number; toIndex: number } | null {
-  const fromIndex = states.findIndex((s) => s._formId === slot.sourceId);
+  const fromIndex = ids.indexOf(slot.sourceId);
   if (fromIndex < 0) return null;
   // Removing the source first shifts later insertion points back by one
   const toIndex = slot.index > fromIndex ? slot.index - 1 : slot.index;
