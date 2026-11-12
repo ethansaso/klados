@@ -16,6 +16,7 @@ export const createFeatureSchema = z.object({
     .nullable()
     .optional(),
   semantics: z.enum(FEATURE_SEMANTICS),
+  fieldDiagnosable: z.boolean(),
 });
 
 export const updateFeatureMetaSchema = createFeatureSchema.partial().extend({

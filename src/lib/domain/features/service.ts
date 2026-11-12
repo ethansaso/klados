@@ -79,6 +79,7 @@ export async function createFeature(
       description,
       parentId: args.parentId,
       semantics: args.semantics,
+      fieldDiagnosable: args.fieldDiagnosable,
     });
     if (!base) {
       return null;
@@ -96,8 +97,16 @@ export async function createFeature(
 export async function updateFeature(
   args: UpdateFeatureInput,
 ): Promise<FeatureDetailDTO | null> {
-  const { id, label, description, parentId, semantics, characterIds, mediaId } =
-    args;
+  const {
+    id,
+    label,
+    description,
+    parentId,
+    semantics,
+    fieldDiagnosable,
+    characterIds,
+    mediaId,
+  } = args;
 
   return db.transaction(async (tx) => {
     // Covers both making a root a variant and removing a variant's parent
@@ -117,6 +126,7 @@ export async function updateFeature(
       description,
       parentId,
       semantics,
+      fieldDiagnosable,
       mediaId,
     });
     if (!updated) {

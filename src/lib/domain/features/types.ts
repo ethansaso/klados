@@ -12,7 +12,7 @@ export type FeatureTreeNode = Pick<
 
 export type FeatureDTO = Pick<
   FeatureRow,
-  "id" | "label" | "description" | "parentId" | "semantics"
+  "id" | "label" | "description" | "parentId" | "semantics" | "fieldDiagnosable"
 > & {
   characterCount: number;
   media: MediaDTO | null;

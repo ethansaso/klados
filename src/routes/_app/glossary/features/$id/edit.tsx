@@ -28,6 +28,7 @@ import {
   updateFeatureFormSchema,
   type UpdateFeatureFormInput,
 } from "../-formValidation";
+import { FieldDiagnosableField } from "../-FieldDiagnosableField";
 import { SemanticsField } from "../-SemanticsField";
 import { MediaField } from "../../-MediaField";
 import { InputCombobox } from "../../../../../components/inputs/combobox/InputCombobox";
@@ -90,6 +91,7 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
         label: c.label,
       })),
       semantics: feature.semantics,
+      fieldDiagnosable: feature.fieldDiagnosable,
       mediaId: feature.media?.id ?? null,
     },
     resolver: zodResolver(updateFeatureFormSchema),
@@ -287,6 +289,18 @@ function FeatureEditingLayout({ feature }: { feature: FeatureDetailDTO }) {
               onChange={field.onChange}
               hasParent={!!parent}
               error={errors.semantics?.message}
+              disabled={mutation.isPending}
+            />
+          )}
+        />
+        <Controller
+          name="fieldDiagnosable"
+          control={control}
+          render={({ field }) => (
+            <FieldDiagnosableField
+              id="field-diagnosable"
+              value={field.value}
+              onChange={field.onChange}
               disabled={mutation.isPending}
             />
           )}
