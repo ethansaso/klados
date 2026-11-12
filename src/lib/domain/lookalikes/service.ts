@@ -15,9 +15,15 @@ export const getLookalikesForTaxon = async (
   limit: number,
 ): Promise<TaxonLookalikeDTO[]> => {
   return db.transaction(async (tx) => {
+    const tree = await selectFeatureTree(tx);
+    const excludedFeatureIds = tree
+      .filter((node) => !node.fieldDiagnosable)
+      .map((node) => node.id);
+
     const candidateIds = await selectLookalikeCandidateIds(tx, {
       taxonId,
       limit: CANDIDATE_POOL_SIZE,
+      excludedFeatureIds,
     });
     if (!candidateIds.length) return [];
 
@@ -25,13 +31,13 @@ export const getLookalikesForTaxon = async (
       taxonId,
       ...candidateIds,
     ]);
-    const tree = await selectFeatureTree(tx);
     const target = statesById[taxonId] ?? [];
+    const excluded = new Set(excludedFeatureIds);
 
     const ranked = candidateIds
       .map((id) => ({
         id,
-        ...scoreLookalike(tree, target, statesById[id] ?? []),
+        ...scoreLookalike(tree, target, statesById[id] ?? [], excluded),
       }))
       .sort(
         (x, y) =>

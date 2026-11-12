@@ -28,10 +28,14 @@ const PRIOR_SIMILARITY = 0.5;
 function buildSlotProfile(
   tree: FeatureTreeNode[],
   features: FeatureStateDTO[],
+  excludedFeatureIds: ReadonlySet<number>,
 ): SlotProfile {
   const values = new Map<string, SlotValues>();
+  const included = features.filter(
+    (feature) => !excludedFeatureIds.has(feature.featureId),
+  );
 
-  for (const feature of features) {
+  for (const feature of included) {
     for (const state of feature.states) {
       // TODO: consider number/range as well
       if (state.kind !== "categorical") continue;
@@ -42,9 +46,13 @@ function buildSlotProfile(
     }
   }
 
+  // Resolved over every mark, so excluded features still inform the hierarchy
+  const presence = resolvePresence(tree, features);
+  for (const featureId of excludedFeatureIds) presence.delete(featureId);
+
   return {
-    marked: new Set(features.map((feature) => feature.featureId)),
-    presence: resolvePresence(tree, features),
+    marked: new Set(included.map((feature) => feature.featureId)),
+    presence,
     values,
   };
 }
@@ -80,14 +88,16 @@ function presenceSimilarity(a: FeaturePresence, b: FeaturePresence): number {
  * Compares two taxa slot by slot (feature + character). Silence is neutral and
  * contradictions count against, including a slot recorded on a feature the
  * other taxon lacks (e.g. gill color against pores, which rule out gills).
+ * Excluded features (e.g. not field-diagnosable) are ignored entirely.
  */
 export function scoreLookalike(
   tree: FeatureTreeNode[],
   target: FeatureStateDTO[],
   candidate: FeatureStateDTO[],
+  excludedFeatureIds: ReadonlySet<number>,
 ): LookalikeScore {
-  const a = buildSlotProfile(tree, target);
-  const b = buildSlotProfile(tree, candidate);
+  const a = buildSlotProfile(tree, target, excludedFeatureIds);
+  const b = buildSlotProfile(tree, candidate, excludedFeatureIds);
   let total = 0;
   let sharedSlotCount = 0;
 
