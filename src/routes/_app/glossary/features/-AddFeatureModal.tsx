@@ -27,6 +27,7 @@ import {
   type CreateFeatureFormInput,
   createFeatureFormSchema,
 } from "./-formValidation";
+import { FieldDiagnosableField } from "./-FieldDiagnosableField";
 import { SemanticsField } from "./-SemanticsField";
 
 interface Props {
@@ -53,6 +54,7 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
       description: "",
       parent: null,
       semantics: "explicit",
+      fieldDiagnosable: true,
     },
   });
   const parent = watch("parent");
@@ -76,6 +78,7 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
     description,
     parent,
     semantics,
+    fieldDiagnosable,
   }) => {
     try {
       await serverCreate({
@@ -84,6 +87,7 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
           description,
           parentId: parent ? parent.id : null,
           semantics,
+          fieldDiagnosable,
         },
       });
 
@@ -169,6 +173,18 @@ export const AddFeatureModal = NiceModal.create(({ initialLabel }: Props) => {
                   onChange={field.onChange}
                   hasParent={!!parent}
                   error={isSubmitted ? errors.semantics?.message : undefined}
+                  disabled={isSubmitting}
+                />
+              )}
+            />
+            <Controller
+              name="fieldDiagnosable"
+              control={control}
+              render={({ field }) => (
+                <FieldDiagnosableField
+                  id="feature-field-diagnosable"
+                  value={field.value}
+                  onChange={field.onChange}
                   disabled={isSubmitting}
                 />
               )}

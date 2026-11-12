@@ -27,6 +27,7 @@ export const updateFeatureFormSchema = updateFeatureSchema
     parent: refSchema.nullable(),
     characters: z.array(refSchema),
     semantics: z.enum(FEATURE_SEMANTICS),
+    fieldDiagnosable: z.boolean(),
   })
   .superRefine(requireParentForVariant);
 

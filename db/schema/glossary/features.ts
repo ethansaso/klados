@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   foreignKey,
   index,
@@ -32,6 +33,8 @@ export const feature = pgTable(
     description: text("description").notNull().default(""),
     parentId: integer("parent_id"),
     semantics: featureSemantics("semantics").notNull(),
+    /** Observable without chemicals, a microscope, etc. */
+    fieldDiagnosable: boolean("field_diagnosable").notNull(),
     mediaId: integer("media_id").references(() => media.id, {
       onDelete: "set null",
     }),

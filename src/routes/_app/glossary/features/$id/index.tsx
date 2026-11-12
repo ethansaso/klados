@@ -92,7 +92,10 @@ function RouteComponent() {
           <FeatureSemanticsIcon semantics={feature.semantics} />
         </Text>
         <Text size="2" color="gray">
-          {SEMANTICS_OPTIONS[feature.semantics].label}
+          {SEMANTICS_OPTIONS[feature.semantics].label} ·{" "}
+          {feature.fieldDiagnosable
+            ? "Field-diagnosable"
+            : "Not field-diagnosable"}
         </Text>
       </Flex>
       <Box mb="3">
