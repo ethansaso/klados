@@ -1,8 +1,8 @@
 import type { FeaturePresence } from "../../../../db/schema/schema";
 import type { FeatureTreeNode } from "../features/types";
+import { resolvePresence } from "../states/resolvePresence";
 import type { FeatureStateDTO } from "../states/types";
 import { colorSimilarity } from "../traits/colorSimilarity";
-import { resolvePresence } from "../states/resolvePresence";
 
 /** Synonym set id to its swatch hex, if any. */
 type SlotValues = Map<number, string | undefined>;
@@ -47,7 +47,9 @@ function buildSlotProfile(
   }
 
   // Resolved over every mark, so excluded features still inform the hierarchy
-  const presence = resolvePresence(tree, features);
+  const presence = resolvePresence(tree, features, {
+    inferExplicitAbsence: true,
+  });
   for (const featureId of excludedFeatureIds) presence.delete(featureId);
 
   return {
@@ -85,10 +87,15 @@ function presenceSimilarity(a: FeaturePresence, b: FeaturePresence): number {
 }
 
 /**
- * Compares two taxa slot by slot (feature + character). Silence is neutral and
- * contradictions count against, including a slot recorded on a feature the
- * other taxon lacks (e.g. gill color against pores, which rule out gills).
- * Excluded features (e.g. not field-diagnosable) are ignored entirely.
+ * Compares two taxa slot by slot (feature + character):
+ * - Recorded by both: scored by how well the values match.
+ * - Recorded by one, and the other lacks the feature, by mark or inference
+ *   (e.g. gill color vs. pores): 0, or 0.5 if the recording taxon marks the
+ *   feature variable.
+ * - Recorded by one, and the other has the feature or its presence is
+ *   unknown: not scored, since the other just didn't describe that character.
+ * Presence marks are compared as extra slots. Unmarked Explicit features count
+ * as absent, and excluded features (e.g. not field-diagnosable) are ignored.
  */
 export function scoreLookalike(
   tree: FeatureTreeNode[],
@@ -103,18 +110,19 @@ export function scoreLookalike(
 
   for (const [key, aValues] of a.values) {
     const bValues = b.values.get(key);
+    const featureId = Number(key.split(":")[0]);
     if (bValues) {
       total += valueSimilarity(aValues, bValues);
       sharedSlotCount++;
-    } else if (b.presence.get(Number(key.split(":")[0])) === "absent") {
+    } else if (b.presence.get(featureId) === "absent") {
+      total += presenceSimilarity(a.presence.get(featureId)!, "absent");
       sharedSlotCount++;
     }
   }
   for (const key of b.values.keys()) {
-    if (
-      !a.values.has(key) &&
-      a.presence.get(Number(key.split(":")[0])) === "absent"
-    ) {
+    const featureId = Number(key.split(":")[0]);
+    if (!a.values.has(key) && a.presence.get(featureId) === "absent") {
+      total += presenceSimilarity(b.presence.get(featureId)!, "absent");
       sharedSlotCount++;
     }
   }
