@@ -2,22 +2,13 @@ import "./FeatureRenderer.css";
 
 import { Box, HoverCard, Link, Strong, Text } from "@radix-ui/themes";
 import { Fragment } from "react";
-import type { FeaturePresence } from "../../../../../../db/schema/schema";
 import { GlossaryCharacterCard } from "../../../../../components/glossary-cards/GlossaryCharacterCard";
 import { GlossaryFeatureCard } from "../../../../../components/glossary-cards/GlossaryFeatureCard";
 import { CharacterStateDisplay } from "../../../../../components/state-formatting/CharacterStateDisplay";
-import type {
-  CharacterStateDTO,
-  FeatureStateDTO,
-} from "../../../../../lib/domain/states/types";
+import type { FeatureStateDTO } from "../../../../../lib/domain/states/types";
 import { formatPublicationUsage } from "../../../../../lib/utils/formatting/formatPublication";
 import type { NumberedFeatureCitation } from "../edit/-sources/citableSources";
-
-const PRESENCE_LABELS: Record<FeaturePresence, string> = {
-  present: "present",
-  variable: "sometimes present",
-  absent: "absent",
-};
+import { groupStatesByCharacter, PRESENCE_LABELS } from "./featureText";
 
 export const FeatureRenderer = ({
   feature,
@@ -39,30 +30,7 @@ export const FeatureRenderer = ({
     feature.featureLabel
   );
 
-  // Group states by characterId, preserving order of first appearance.
-  const characterGroups = new Map<
-    number,
-    {
-      label: string;
-      hasInfo: boolean;
-      showInProse: boolean;
-      states: CharacterStateDTO[];
-    }
-  >();
-  for (const state of feature.states) {
-    let group = characterGroups.get(state.characterId);
-    if (!group) {
-      group = {
-        label: state.characterLabel,
-        hasInfo: state.characterHasInfo,
-        showInProse: state.showInProse,
-        states: [],
-      };
-      characterGroups.set(state.characterId, group);
-    }
-    group.states.push(state);
-  }
-  const entries = Array.from(characterGroups.entries());
+  const entries = groupStatesByCharacter(feature.states);
   const Wrapper = indentDescription ? Box : Fragment;
 
   return (

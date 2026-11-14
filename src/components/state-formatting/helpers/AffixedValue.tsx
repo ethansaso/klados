@@ -1,7 +1,7 @@
 import { Text } from "@radix-ui/themes";
 import { memo, type ReactNode } from "react";
 import { ModifierDisplay } from "../displays/ModifierDisplay";
-import { formatModifierLabel } from "../formatting";
+import { formatModifierLabel, JOINER_TEXT } from "../formatting";
 import type { UIModifier } from "../types";
 import { ColorBubble } from "./ColorBubble";
 
@@ -18,12 +18,6 @@ type Props = {
   /** When provided, renders a color swatch before the prefixes and content. */
   hexCode?: string | null;
   children: ReactNode;
-};
-
-const JOINER_TEXT: Record<UIModifier["joiner"], string> = {
-  space: " ",
-  slash: "/",
-  comma: ", ",
 };
 
 export const AffixedValue = memo(
