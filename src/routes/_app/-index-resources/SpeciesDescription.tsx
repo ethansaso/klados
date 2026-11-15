@@ -198,18 +198,8 @@ export const SpeciesDescription = () => (
           wrap="pretty"
           style={{ maxWidth: 560 }}
         >
-          Using a curated vocabulary, Klados renders{" "}
-          <GlossaryCard
-            info={{
-              title: "Machine-readable",
-              description:
-                "Data in a format that can be processed by computers for operations like sorting, filtering, and comparison.",
-              media: null,
-            }}
-          >
-            <span className="has-information">machine-readable</span>
-          </GlossaryCard>{" "}
-          data as regular prose, and explains the technical terms in place.
+          Technical terms come with their definitions built in. Hover or tap any
+          underlined word to try it.
         </Text>
       </Flex>
 
