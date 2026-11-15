@@ -450,7 +450,7 @@ export async function deleteFeatureById(
 }
 
 /**
- * Select every feature's parent and semantics.
+ * Select every feature's parent, semantics, and field-diagnosability.
  */
 export async function selectFeatureTree(
   tx: Transaction,
@@ -461,6 +461,7 @@ export async function selectFeatureTree(
       label: featuresTbl.label,
       parentId: featuresTbl.parentId,
       semantics: featuresTbl.semantics,
+      fieldDiagnosable: featuresTbl.fieldDiagnosable,
     })
     .from(featuresTbl);
 }

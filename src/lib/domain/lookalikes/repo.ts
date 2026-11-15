@@ -1,4 +1,4 @@
-import { and, desc, eq, ne, sql } from "drizzle-orm";
+import { and, desc, eq, ne, notInArray, sql } from "drizzle-orm";
 
 import {
   taxon as taxaTbl,
@@ -10,11 +10,17 @@ import { supportsLookalikes } from "./util";
 
 /**
  * Cheap candidate pass for lookalike scoring: active same-rank taxa sharing
- * at least `minShared` (feature, character, synonym set) states with the target.
+ * at least `minShared` (feature, character, synonym set) states with the target,
+ * ignoring states on `excludedFeatureIds`.
  */
 export async function selectLookalikeCandidateIds(
   tx: Transaction,
-  args: { taxonId: number; limit: number; minShared?: number },
+  args: {
+    taxonId: number;
+    limit: number;
+    excludedFeatureIds: number[];
+    minShared?: number;
+  },
 ): Promise<number[]> {
   const minShared = args.minShared ?? 2;
 
@@ -35,7 +41,12 @@ export async function selectLookalikeCandidateIds(
     })
     .from(tcsCatTbl)
     .innerJoin(tfsTbl, eq(tfsTbl.id, tcsCatTbl.taxonFeatureStateId))
-    .where(eq(tfsTbl.taxonId, args.taxonId))
+    .where(
+      and(
+        eq(tfsTbl.taxonId, args.taxonId),
+        notInArray(tfsTbl.featureId, args.excludedFeatureIds),
+      ),
+    )
     .as("target");
 
   // Distinct, since a taxon may record several labels from one set
