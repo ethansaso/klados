@@ -58,6 +58,12 @@ function RouteComponent() {
           vocabulary, find and compare similar species, and work through
           visual-first identification guides.
         </Text>
+        <Text as="p" size="4" mb="4">
+          Descriptions on Klados are written by curators, domain experts who
+          have applied and been approved to contribute. Taxa list the published
+          sources their descriptions draw from, and link to external resources
+          like iNaturalist and GBIF for further research.
+        </Text>
         <Text as="p" size="4" mb="7">
           Klados is still very young. Right now, it describes only{" "}
           <strong>{countLabel(stats.taxaCount, "taxon", "taxa")}</strong> and
