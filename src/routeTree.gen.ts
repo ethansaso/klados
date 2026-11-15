@@ -44,7 +44,6 @@ import { Route as AppUsersIndexRouteImport } from './routes/_app/users/index'
 import { Route as AdminSourcesIndexRouteImport } from './routes/admin/sources/index'
 import { Route as AdminTaxonEditsIndexRouteImport } from './routes/admin/taxon-edits/index'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
-import { Route as ApiUnauthenticatedExtractionRouteImport } from './routes/api/_unauthenticated/extraction'
 import { Route as ApiUnauthenticatedTaxaRouteImport } from './routes/api/_unauthenticated/taxa'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppGlossaryCharactersIndexRouteImport } from './routes/_app/glossary/characters/index'
@@ -243,12 +242,6 @@ const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminUsersRouteRoute,
 } as any)
-const ApiUnauthenticatedExtractionRoute =
-  ApiUnauthenticatedExtractionRouteImport.update({
-    id: '/extraction',
-    path: '/extraction',
-    getParentRoute: () => ApiUnauthenticatedRouteRoute,
-  } as any)
 const ApiUnauthenticatedTaxaRoute = ApiUnauthenticatedTaxaRouteImport.update({
   id: '/taxa',
   path: '/taxa',
@@ -387,7 +380,6 @@ export interface FileRoutesByFullPath {
   '/taxa/$id': typeof AppTaxaIdRouteRouteWithChildren
   '/curators/new': typeof AppCuratorsNewRoute
   '/taxa/new': typeof AppTaxaNewRoute
-  '/api/extraction': typeof ApiUnauthenticatedExtractionRoute
   '/api/taxa': typeof ApiUnauthenticatedTaxaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/glossary/': typeof AppGlossaryIndexRoute
@@ -433,7 +425,6 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/curators/new': typeof AppCuratorsNewRoute
   '/taxa/new': typeof AppTaxaNewRoute
-  '/api/extraction': typeof ApiUnauthenticatedExtractionRoute
   '/api/taxa': typeof ApiUnauthenticatedTaxaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/glossary': typeof AppGlossaryIndexRoute
@@ -488,7 +479,6 @@ export interface FileRoutesById {
   '/_app/taxa/$id': typeof AppTaxaIdRouteRouteWithChildren
   '/_app/curators/new': typeof AppCuratorsNewRoute
   '/_app/taxa/new': typeof AppTaxaNewRoute
-  '/api/_unauthenticated/extraction': typeof ApiUnauthenticatedExtractionRoute
   '/api/_unauthenticated/taxa': typeof ApiUnauthenticatedTaxaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_app/glossary/': typeof AppGlossaryIndexRoute
@@ -546,7 +536,6 @@ export interface FileRouteTypes {
     | '/taxa/$id'
     | '/curators/new'
     | '/taxa/new'
-    | '/api/extraction'
     | '/api/taxa'
     | '/api/auth/$'
     | '/glossary/'
@@ -592,7 +581,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/curators/new'
     | '/taxa/new'
-    | '/api/extraction'
     | '/api/taxa'
     | '/api/auth/$'
     | '/glossary'
@@ -646,7 +634,6 @@ export interface FileRouteTypes {
     | '/_app/taxa/$id'
     | '/_app/curators/new'
     | '/_app/taxa/new'
-    | '/api/_unauthenticated/extraction'
     | '/api/_unauthenticated/taxa'
     | '/api/auth/$'
     | '/_app/glossary/'
@@ -929,13 +916,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/users/'
       preLoaderRoute: typeof AdminUsersIndexRouteImport
       parentRoute: typeof AdminUsersRouteRoute
-    }
-    '/api/_unauthenticated/extraction': {
-      id: '/api/_unauthenticated/extraction'
-      path: '/extraction'
-      fullPath: '/api/extraction'
-      preLoaderRoute: typeof ApiUnauthenticatedExtractionRouteImport
-      parentRoute: typeof ApiUnauthenticatedRouteRoute
     }
     '/api/_unauthenticated/taxa': {
       id: '/api/_unauthenticated/taxa'
@@ -1349,13 +1329,11 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 )
 
 interface ApiUnauthenticatedRouteRouteChildren {
-  ApiUnauthenticatedExtractionRoute: typeof ApiUnauthenticatedExtractionRoute
   ApiUnauthenticatedTaxaRoute: typeof ApiUnauthenticatedTaxaRoute
 }
 
 const ApiUnauthenticatedRouteRouteChildren: ApiUnauthenticatedRouteRouteChildren =
   {
-    ApiUnauthenticatedExtractionRoute: ApiUnauthenticatedExtractionRoute,
     ApiUnauthenticatedTaxaRoute: ApiUnauthenticatedTaxaRoute,
   }
 
