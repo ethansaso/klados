@@ -1,15 +1,13 @@
-import { Box, Button, Flex, Heading, Text } from "@radix-ui/themes";
+import { Box, Heading, Text } from "@radix-ui/themes";
 import { replaceEqualDeep } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { PiSparkle } from "react-icons/pi";
 import type { TaxonEditFormValues } from "..";
 import type { NumberedFeatureCitation } from "../-sources/citableSources";
 import {
   characterSearchInputId,
   EditingFeatureCard,
 } from "./EditingFeatureCard";
-import { selectExtraction } from "./ExtractionModal";
 import { type FeatureOption, FeatureSearch } from "./search/FeatureSearch";
 import type { GroupedCharacterFormValue } from "./validation";
 
@@ -74,32 +72,13 @@ export function CharacterEditingForm({
 
   return (
     <Box width="100%">
-      <Flex mb="2" gap="8" width="100%" justify="between" align="center">
-        <Box>
-          <Heading size="3">Morphology</Heading>
-          <Text color="gray" size="2">
-            Add features and character states using the input boxes. Click on
-            any character state to attach modifiers.
-          </Text>
-        </Box>
-
-        <Button
-          type="button"
-          size="1"
-          color="iris"
-          onClick={async () => {
-            const result = await selectExtraction();
-            if (result) {
-              console.log("Extraction result:", result);
-            }
-          }}
-          aria-label="Extract states from text description"
-          style={{ display: "none" }}
-        >
-          <PiSparkle size="16" />
-          Import text
-        </Button>
-      </Flex>
+      <Box mb="2">
+        <Heading size="3">Morphology</Heading>
+        <Text color="gray" size="2">
+          Add features and character states using the input boxes. Click on any
+          character state to attach modifiers.
+        </Text>
+      </Box>
       <Box mb="5">
         <FeatureSearch
           onSelect={handleGroupSelect}

@@ -10,7 +10,6 @@ import {
   insertSynonymSet,
   insertTraitValueRow,
   moveTraitToSet,
-  selectAllTraitValuesByCharacters,
   selectSynonymCandidateRows,
   selectTraitByLabelIgnoringCase,
   selectTraitIdentityById,
@@ -398,18 +397,6 @@ export async function listTraitValuesByCharacter(args: {
     );
 
     return { ...result, items: await withCanonicalFlags(tx, result.items) };
-  });
-}
-
-/**
- * List all trait values for a list of characters (unpaginated),
- * grouped by character ID.
- */
-export async function listAllTraitValuesByCharacters(
-  characterIds: number[],
-): Promise<ReturnType<typeof selectAllTraitValuesByCharacters>> {
-  return db.transaction(async (tx) => {
-    return selectAllTraitValuesByCharacters(tx, characterIds);
   });
 }
 

@@ -387,27 +387,3 @@ export async function updateModifierRow(
 
   return updated ?? null;
 }
-
-/**
- * Select all modifiers with their group labels (unpaginated).
- */
-export async function selectAllModifiersWithGroups(tx: Transaction): Promise<
-  (Pick<ModifierDTO, "id" | "label" | "affixType" | "groupId"> & {
-    groupLabel: string;
-  })[]
-> {
-  return tx
-    .select({
-      id: modifierValueTbl.id,
-      label: modifierValueTbl.label,
-      affixType: modifierValueTbl.affixType,
-      groupId: modifierValueTbl.groupId,
-      groupLabel: modifierGroupTbl.label,
-    })
-    .from(modifierValueTbl)
-    .innerJoin(
-      modifierGroupTbl,
-      eq(modifierValueTbl.groupId, modifierGroupTbl.id),
-    )
-    .orderBy(asc(modifierGroupTbl.label), asc(modifierValueTbl.label));
-}
