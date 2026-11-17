@@ -5,7 +5,6 @@ import {
   fetchFeatureDetailById,
   insertFeature,
   listFeaturesQuery,
-  selectAllFeatureLabels,
   selectFeaturesByIds,
   selectFeatureTree,
   setCharacterFeatureRows,
@@ -196,15 +195,4 @@ export async function deleteFeature(args: {
  */
 export async function getFeatureTree(): Promise<FeatureTreeNode[]> {
   return db.transaction((tx) => selectFeatureTree(tx));
-}
-
-/**
- * List all feature labels (unpaginated).
- */
-export async function listAllFeatureLabels(): Promise<
-  Pick<FeatureDTO, "id" | "label" | "description">[]
-> {
-  return db.transaction(async (tx) => {
-    return selectAllFeatureLabels(tx);
-  });
 }
