@@ -1,7 +1,8 @@
 import * as Sentry from "@sentry/tanstackstart-react";
 
 Sentry.init({
-  dsn: "https://0442575edd7f257a4c0eb4dd312cfebe@o4510767609413632.ingest.us.sentry.io/4510767610855424",
+  // Runs before Vite loads .env, so this must be in the process environment.
+  dsn: process.env.VITE_SENTRY_DSN,
   // TODO: we need a privacy policy for this!!!
   sendDefaultPii: true,
 });

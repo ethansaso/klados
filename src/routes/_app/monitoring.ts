@@ -7,6 +7,8 @@ export const Route = createFileRoute("/_app/monitoring")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        if (!sentryIngestURL) return new Response(null, { status: 404 });
+
         const headers = new Headers(request.headers);
         headers.delete("host");
         headers.delete("content-length");
