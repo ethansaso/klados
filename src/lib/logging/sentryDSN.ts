@@ -1,5 +1,11 @@
-export const sentryDSN =
-  "https://0442575edd7f257a4c0eb4dd312cfebe@o4510767609413632.ingest.us.sentry.io/4510767610855424";
+/** Unset in local development, which leaves Sentry disabled. */
+export const sentryDSN = import.meta.env.VITE_SENTRY_DSN;
 
-export const sentryIngestURL =
-  "https://o4510767609413632.ingest.us.sentry.io/api/4510767610855424/envelope/";
+/** Envelope endpoint for {@link sentryDSN}, used by the /monitoring tunnel. */
+export const sentryIngestURL = sentryDSN ? toIngestURL(sentryDSN) : undefined;
+
+/** `https://<key>@<host>/<project>` → `https://<host>/api/<project>/envelope/` */
+function toIngestURL(dsn: string): string {
+  const { protocol, host, pathname } = new URL(dsn);
+  return `${protocol}//${host}/api${pathname}/envelope/`;
+}
