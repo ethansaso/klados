@@ -108,7 +108,7 @@ export const SHADES = [
     modifier: "dark",
     lightness: 0.445,
     follow: 0.35,
-    chroma: 0.1,
+    chroma: 0.095,
     cool: 0.9,
     peak: 1,
     vivid: false,

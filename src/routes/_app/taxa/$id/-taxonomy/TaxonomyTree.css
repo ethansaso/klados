@@ -1,0 +1,12 @@
+.taxonomy-tree {
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.taxonomy-tree__row {
+  display: flex;
+  align-items: center;
+  padding-block: var(--space-1);
+  padding-left: calc(var(--space-4) * var(--taxonomy-depth));
+}

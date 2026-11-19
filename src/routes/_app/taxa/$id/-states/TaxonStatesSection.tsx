@@ -3,6 +3,7 @@ import type { FeatureStateDTO } from "../../../../../lib/domain/states/types";
 import type { TaxonSourceDTO } from "../../../../../lib/domain/taxon-sources/types";
 import type { NumberedFeatureCitation } from "../edit/-sources/citableSources";
 import { FeatureRenderer } from "./FeatureRenderer";
+import { sortFeatures } from "./featureText";
 
 export const TaxonStateSection = ({
   groups,
@@ -17,9 +18,7 @@ export const TaxonStateSection = ({
   const citations = new Map<number, NumberedFeatureCitation>(
     sources.map((source, i) => [source.sourceId, { number: i + 1, source }]),
   );
-  const sortedGroups = [...groups].sort((left, right) =>
-    left.featureLabel.localeCompare(right.featureLabel),
-  );
+  const sortedGroups = sortFeatures(groups);
 
   return (
     groups.length > 0 && (

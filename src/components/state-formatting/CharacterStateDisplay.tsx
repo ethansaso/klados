@@ -2,6 +2,10 @@ import { Text } from "@radix-ui/themes";
 import { memo } from "react";
 import { CategoricalStateDisplay } from "./displays/CategoricalStateDisplay";
 import { NumericStateDisplay } from "./displays/NumericStateDisplay";
+import {
+  collapseStatesByExactModifiers,
+  getModifierSignature,
+} from "./formatting";
 import { AffixedValue } from "./helpers/AffixedValue";
 import type { UICharacterState } from "./types";
 
@@ -49,22 +53,11 @@ function SingleStateDisplay({
           state={state}
           isLast={isLast}
           highlightAffixes={highlightAffixes}
+          lowercaseFirst={lowercaseFirst}
           hideModifiers={hideModifiers}
         />
       );
   }
-}
-
-function getStateModifiers(state: UICharacterState) {
-  return state.modifiers ?? [];
-}
-
-function getModifierSignature(state: UICharacterState): string {
-  return getStateModifiers(state)
-    .map((modifier) =>
-      [modifier.id, modifier.affixType, modifier.joiner].join(":"),
-    )
-    .join("|");
 }
 
 function getStateKey(state: UICharacterState): string {
@@ -76,27 +69,6 @@ function getStateKey(state: UICharacterState): string {
     case "range":
       return `range:${state.siBaseMin ?? ""}:${state.siBaseMax ?? ""}:${getModifierSignature(state)}`;
   }
-}
-
-function collapseStatesByExactModifiers(states: UICharacterState[]) {
-  return states.reduce<
-    Array<{ states: UICharacterState[]; signature: string }>
-  >((groups, state) => {
-    const signature = getModifierSignature(state);
-    const lastGroup = groups.at(-1);
-
-    if (
-      signature.length > 0 &&
-      lastGroup &&
-      lastGroup.signature === signature
-    ) {
-      lastGroup.states.push(state);
-      return groups;
-    }
-
-    groups.push({ states: [state], signature });
-    return groups;
-  }, []);
 }
 
 export const CharacterStateDisplay = memo(
@@ -132,7 +104,7 @@ export const CharacterStateDisplay = memo(
                 />
               ) : (
                 <AffixedValue
-                  modifiers={getStateModifiers(groupStates[0]!)}
+                  modifiers={groupStates[0]!.modifiers ?? []}
                   weight={
                     groupStates[0]!.kind === "categorical"
                       ? groupStates[0]!.trait.weight

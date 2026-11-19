@@ -13,6 +13,7 @@ import {
 import { ContentContainer } from "../../../../components/ContentContainer";
 import { TaxonName } from "../../../../components/TaxonName";
 import { supportsLookalikes } from "../../../../lib/domain/lookalikes/util";
+import type { FeatureStateDTO } from "../../../../lib/domain/states/types";
 import type { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
 import { distributionTilesQueryOptions } from "../../../../lib/queries/distributionTiles";
 import { lookalikesQueryOptions } from "../../../../lib/queries/lookalikes";
@@ -29,11 +30,13 @@ import {
 } from "../../../../lib/utils/formatting/taxonUrl";
 import { routeSeo } from "../../../../lib/utils/head/routeSeo";
 import { LookalikesList } from "./-lookalikes/LookalikesList";
+import { formatFeaturesText } from "./-states/featureText";
 import { TaxonStateSection } from "./-states/TaxonStatesSection";
 import { StatusCallout } from "./-StatusCallout";
 import { TaxonDetails } from "./-TaxonDetails";
 import { TaxonGBIFDistribution } from "./-TaxonGBIFDistribution";
 import { TaxonImageBrowser } from "./-TaxonImageBrowser";
+import { TaxonomyTree } from "./-taxonomy/TaxonomyTree";
 
 export const Route = createFileRoute("/_app/taxa/$id/")({
   loader: async ({ context, params: { id, slug } }) => {
@@ -60,16 +63,17 @@ export const Route = createFileRoute("/_app/taxa/$id/")({
         headers: { "Cache-Control": "no-store" },
       });
     }
-    await rest;
+    const [characterStates] = await rest;
 
-    return { id, taxon };
+    return { id, taxon, characterStates };
   },
   head: ({ loaderData, match }) =>
     routeSeo({
       title: loaderData
         ? `${formatTaxonName(loaderData.taxon.rank, loaderData.taxon.acceptedName)} | Klados`
         : "Klados",
-      ...(loaderData && taxonPreview(loaderData.taxon)),
+      ...(loaderData &&
+        taxonPreview(loaderData.taxon, loaderData.characterStates)),
       canonicalUrl: loaderData ? taxonPath(loaderData.taxon) : match.pathname,
     }),
   component: TaxonPage,
@@ -278,6 +282,8 @@ function TaxonPage() {
               )}
             </Box>
 
+            <TaxonomyTree taxon={taxon} />
+
             {/* Sources */}
             <Box className="taxon-section taxon-page__sources">
               <Heading
@@ -310,7 +316,10 @@ function TaxonPage() {
 }
 
 /** Link preview text and image for a taxon. */
-function taxonPreview(taxon: TaxonDetailDTO) {
+function taxonPreview(
+  taxon: TaxonDetailDTO,
+  characterStates: FeatureStateDTO[],
+) {
   const parent = taxon.ancestors.at(-1);
   const name = taxon.preferredCommonName
     ? `${capitalizeFirstLetter(taxon.preferredCommonName)} (${taxon.acceptedName})`
@@ -320,9 +329,10 @@ function taxonPreview(taxon: TaxonDetailDTO) {
     ? `${article} ${taxon.rank} in the ${parent.rank} ${parent.acceptedName}`
     : `${article} ${taxon.rank}`;
   const photo = taxon.media[0];
+  const morphology = formatFeaturesText(characterStates);
 
   return {
-    description: `${name}, ${placement}. Morphology, similar taxa, and distribution on Klados.`,
+    description: `${name}, ${placement}.${morphology && ` ${morphology}`}`,
     image: photo ? getMediaUrl(photo.storageKey) : undefined,
   };
 }

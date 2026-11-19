@@ -11,7 +11,6 @@ import {
   sql,
   type SQL,
 } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "../../../../db/client";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
@@ -37,7 +36,6 @@ import {
   taxonSelector,
 } from "./sqlAdapters";
 import type {
-  LeanTaxonDTO,
   TaxonDetailDTO,
   TaxonDTO,
   TaxonHierarchyDTO,
@@ -293,8 +291,20 @@ export async function fetchTaxonDetailById(
     ORDER BY chain.depth DESC
   `);
 
-  // Batch-load media for the focal taxon and all ancestors in one query
-  const allIds = [id, ...ancRows.rows.map((r) => r.id)];
+  const childRows = await db
+    .select(taxonSelector)
+    .from(taxaTbl)
+    .innerJoin(sci, sciJoinPred)
+    .leftJoin(common, commonJoinPred)
+    .where(and(eq(taxaTbl.parentId, id), eq(taxaTbl.status, "active")))
+    .orderBy(asc(taxaTbl.rank), asc(sci.value));
+
+  // Batch-load media for the focal taxon, its ancestors, and its children in one query
+  const allIds = [
+    id,
+    ...ancRows.rows.map((r) => r.id),
+    ...childRows.map((r) => r.id),
+  ];
   const mediaMap = await selectMediaByTaxonIds(allIds);
 
   const baseDto = { ...baseRow, media: mediaMap.get(id) ?? [] };
@@ -333,31 +343,9 @@ export async function fetchTaxonDetailById(
     isPreferred: n.isPreferred,
   }));
 
-  // Fetch direct subtaxa with accepted scientific names
-  const childSci = alias(namesTbl, "child_sci");
-
-  const childRows = await db
-    .select({
-      id: taxaTbl.id,
-      rank: taxaTbl.rank,
-      acceptedName: childSci.value,
-    })
-    .from(taxaTbl)
-    .innerJoin(
-      childSci,
-      and(
-        eq(childSci.taxonId, taxaTbl.id),
-        eq(childSci.locale, "sci"),
-        eq(childSci.isPreferred, true),
-      ),
-    )
-    .where(and(eq(taxaTbl.parentId, id), eq(taxaTbl.status, "active")))
-    .orderBy(asc(taxaTbl.rank), asc(taxaTbl.id));
-
-  const subtaxa: LeanTaxonDTO[] = childRows.map((c) => ({
-    id: c.id,
-    rank: c.rank,
-    acceptedName: c.acceptedName,
+  const subtaxa: TaxonDTO[] = childRows.map((c) => ({
+    ...c,
+    media: mediaMap.get(c.id) ?? [],
   }));
 
   const curation = await selectTaxonCuration(db, id);

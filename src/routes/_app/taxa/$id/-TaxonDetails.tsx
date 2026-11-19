@@ -13,8 +13,6 @@ import { PiPencilSimple } from "react-icons/pi";
 import { CuratorOnly } from "../../../../components/CuratorOnly";
 import { ExGbif } from "../../../../components/icons/individual/ExGbif";
 import { ExInat } from "../../../../components/icons/individual/ExInat";
-import { RouterRadixLink } from "../../../../components/RouterRadixLink";
-import { TaxonName } from "../../../../components/TaxonName";
 import { UserHoverCard } from "../../../../components/UserHoverCard";
 import type { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
 import type { TaxonCurationDTO } from "../../../../lib/domain/taxon-edits/types";
@@ -31,7 +29,6 @@ const DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
 /** Taxonomy, links, and names: under the photo on desktop, its own section on phones. */
 export const TaxonDetails = ({ taxon }: { taxon: TaxonDetailDTO }) => {
   const [namesOpen, setNamesOpen] = useState(false);
-  const parent = taxon.ancestors.at(-1);
   const contributors = getUniqueContributors(taxon.curation);
   const lastUpdated = taxon.curation[0]?.createdAt;
 
@@ -66,45 +63,46 @@ export const TaxonDetails = ({ taxon }: { taxon: TaxonDetailDTO }) => {
           <DataList.Label minWidth="88px">Rank</DataList.Label>
           <DataList.Value>{capitalizeFirstLetter(taxon.rank)}</DataList.Value>
         </DataList.Item>
-        {parent && (
-          <DataList.Item>
-            <DataList.Label minWidth="88px">Parent</DataList.Label>
-            <DataList.Value>
-              <RouterRadixLink to="/taxa/$id" params={taxonParams(parent)}>
-                <TaxonName rank={parent.rank} name={parent.acceptedName} />
-              </RouterRadixLink>
-            </DataList.Value>
-          </DataList.Item>
-        )}
-        {taxon.subtaxa.length > 0 && (
-          <DataList.Item>
-            <DataList.Label minWidth="88px">
-              Subtaxa ({taxon.activeChildCount})
-            </DataList.Label>
-            <DataList.Value>
-              <Flex wrap="wrap" gap="1">
-                {taxon.subtaxa.map((st, i, arr) => (
-                  <Flex key={st.id} display="inline-flex" align="center">
-                    <RadixLink asChild>
-                      <Link to="/taxa/$id" params={taxonParams(st)}>
-                        <Text as="span">
-                          <TaxonName rank={st.rank} name={st.acceptedName} />
-                        </Text>
-                      </Link>
-                    </RadixLink>
-                    {i !== arr.length - 1 && <Text as="span">,</Text>}
-                  </Flex>
-                ))}
-              </Flex>
-            </DataList.Value>
-          </DataList.Item>
-        )}
         {taxon.notes && (
           <DataList.Item>
             <DataList.Label minWidth="88px">Notes</DataList.Label>
             <DataList.Value>{taxon.notes}</DataList.Value>
           </DataList.Item>
         )}
+        <DataList.Item>
+          <DataList.Label minWidth="88px">Last updated</DataList.Label>
+          <DataList.Value>
+            {lastUpdated && DATE_FORMAT.format(new Date(lastUpdated))}
+          </DataList.Value>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.Label minWidth="88px">Contributors</DataList.Label>
+          <DataList.Value>
+            <Flex wrap="wrap" gap="1">
+              {contributors.map((user, i, arr) => (
+                <Flex
+                  key={user?.id ?? "deleted"}
+                  display="inline-flex"
+                  align="center"
+                >
+                  {user ? (
+                    <UserHoverCard
+                      username={user.username}
+                      name={user.name}
+                      image={user.image}
+                      description={user.description}
+                      role={user.role}
+                      banned={user.banned}
+                    />
+                  ) : (
+                    <Text color="gray">[deleted]</Text>
+                  )}
+                  {i !== arr.length - 1 && <Text as="span">,</Text>}
+                </Flex>
+              ))}
+            </Flex>
+          </DataList.Value>
+        </DataList.Item>
         {(taxon.sourceInatId !== null || taxon.sourceGbifId !== null) && (
           <DataList.Item>
             <DataList.Label minWidth="88px">External Links</DataList.Label>
@@ -140,40 +138,6 @@ export const TaxonDetails = ({ taxon }: { taxon: TaxonDetailDTO }) => {
             </DataList.Value>
           </DataList.Item>
         )}
-        <DataList.Item>
-          <DataList.Label minWidth="88px">Contributors</DataList.Label>
-          <DataList.Value>
-            <Flex wrap="wrap" gap="1">
-              {contributors.map((user, i, arr) => (
-                <Flex
-                  key={user?.id ?? "deleted"}
-                  display="inline-flex"
-                  align="center"
-                >
-                  {user ? (
-                    <UserHoverCard
-                      username={user.username}
-                      name={user.name}
-                      image={user.image}
-                      description={user.description}
-                      role={user.role}
-                      banned={user.banned}
-                    />
-                  ) : (
-                    <Text color="gray">[deleted]</Text>
-                  )}
-                  {i !== arr.length - 1 && <Text as="span">,</Text>}
-                </Flex>
-              ))}
-            </Flex>
-          </DataList.Value>
-        </DataList.Item>
-        <DataList.Item>
-          <DataList.Label minWidth="88px">Last updated</DataList.Label>
-          <DataList.Value>
-            {lastUpdated && DATE_FORMAT.format(new Date(lastUpdated))}
-          </DataList.Value>
-        </DataList.Item>
         <DataList.Item>
           <DataList.Label minWidth="88px">Names</DataList.Label>
           <DataList.Value>
