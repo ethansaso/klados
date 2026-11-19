@@ -8,6 +8,7 @@ import type {
   TaxonDetailDTO,
   TaxonDTO,
 } from "../../../../../lib/domain/taxa/types";
+import { useScrollAnchor } from "../../../../../lib/hooks/useScrollAnchor";
 import { taxonParams } from "../../../../../lib/utils/formatting/taxonUrl";
 
 type TreeRow = {
@@ -16,12 +17,17 @@ type TreeRow = {
   isCurrent: boolean;
 };
 
+type TreeRowProps = TreeRow & {
+  linkProps: ReturnType<typeof useScrollAnchor>["linkProps"];
+};
+
 /** Full ancestry down to the taxon, then its direct subtaxa. */
 export const TaxonomyTree = ({ taxon }: { taxon: TaxonDetailDTO }) => {
+  const { ref, linkProps } = useScrollAnchor<HTMLDivElement>("taxonomy");
   const rows = getTreeRows(taxon);
 
   return (
-    <Box id="taxonomy" className="taxon-section">
+    <Box ref={ref} id="taxonomy" className="taxon-section">
       <Heading
         size="4"
         mb="1"
@@ -32,18 +38,18 @@ export const TaxonomyTree = ({ taxon }: { taxon: TaxonDetailDTO }) => {
       </Heading>
       <ul className="taxonomy-tree">
         {rows.map((row) => (
-          <TaxonomyTreeRow key={row.taxon.id} {...row} />
+          <TaxonomyTreeRow key={row.taxon.id} {...row} linkProps={linkProps} />
         ))}
       </ul>
     </Box>
   );
 };
 
-function TaxonomyTreeRow({ taxon, depth, isCurrent }: TreeRow) {
+function TaxonomyTreeRow({ taxon, depth, isCurrent, linkProps }: TreeRowProps) {
   const name = <TaxonName rank={taxon.rank} name={taxon.acceptedName} />;
   const commonName = taxon.preferredCommonName && (
     <>
-      {" "}
+      {" "}
       <Text color="gray" size="1">
         ({taxon.preferredCommonName})
       </Text>
@@ -62,7 +68,11 @@ function TaxonomyTreeRow({ taxon, depth, isCurrent }: TreeRow) {
             {commonName}
           </Text>
         ) : (
-          <RouterRadixLink to="/taxa/$id" params={taxonParams(taxon)}>
+          <RouterRadixLink
+            to="/taxa/$id"
+            params={taxonParams(taxon)}
+            {...linkProps}
+          >
             {name}
             {commonName}
           </RouterRadixLink>
