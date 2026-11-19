@@ -9,7 +9,6 @@ import {
   insertModifierGroup,
   listModifierGroupsQuery,
   listModifiersQuery,
-  selectAllModifiersWithGroups,
   selectModifierDtoById,
   selectModifierGroupById,
   updateModifierRow,
@@ -135,16 +134,5 @@ export async function deleteModifierGroup(
 
     const deleted = await deleteModifierGroupById(tx, id);
     return deleted;
-  });
-}
-
-/** List all modifiers with group labels (unpaginated). */
-export async function listAllModifiers(): Promise<
-  (Pick<ModifierDTO, "id" | "label" | "affixType" | "groupId"> & {
-    groupLabel: string;
-  })[]
-> {
-  return db.transaction(async (tx) => {
-    return selectAllModifiersWithGroups(tx);
   });
 }

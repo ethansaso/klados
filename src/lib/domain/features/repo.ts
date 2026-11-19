@@ -450,7 +450,7 @@ export async function deleteFeatureById(
 }
 
 /**
- * Select every feature's parent and semantics.
+ * Select every feature's parent, semantics, and field-diagnosability.
  */
 export async function selectFeatureTree(
   tx: Transaction,
@@ -461,22 +461,7 @@ export async function selectFeatureTree(
       label: featuresTbl.label,
       parentId: featuresTbl.parentId,
       semantics: featuresTbl.semantics,
+      fieldDiagnosable: featuresTbl.fieldDiagnosable,
     })
     .from(featuresTbl);
-}
-
-/**
- * Select all feature labels (unpaginated, canonical only).
- */
-export async function selectAllFeatureLabels(
-  tx: Transaction,
-): Promise<Pick<FeatureDTO, "id" | "label" | "description">[]> {
-  return tx
-    .select({
-      id: featuresTbl.id,
-      label: featuresTbl.label,
-      description: featuresTbl.description,
-    })
-    .from(featuresTbl)
-    .orderBy(asc(featuresTbl.label));
 }

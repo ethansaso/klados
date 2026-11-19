@@ -24,7 +24,6 @@ import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
 import type { PaginatedResult } from "../../validation/pagination";
 import { hydrateMedia } from "../media/repo";
 import type {
-  ExtractionTraitValue,
   TraitSynonymDTO,
   TraitValueBaseDTO,
   TraitValueRow,
@@ -504,41 +503,4 @@ export async function selectTraitValuesByCharacterPaginated(
     .where(where);
 
   return { items, page, pageSize, total: totals?.total ?? 0 };
-}
-
-/**
- * Select all trait values for the given characters (unpaginated).
- */
-export async function selectAllTraitValuesByCharacters(
-  tx: Transaction,
-  characterIds: number[],
-): Promise<Map<number, ExtractionTraitValue[]>> {
-  if (!characterIds.length) return new Map();
-
-  const rows = await tx
-    .select({
-      id: valsTbl.id,
-      characterId: valsTbl.characterId,
-      label: valsTbl.label,
-      hexCode: setsTbl.hexCode,
-    })
-    .from(valsTbl)
-    .innerJoin(setsTbl, eq(setsTbl.id, valsTbl.synonymSetId))
-    .where(inArray(valsTbl.characterId, characterIds))
-    .orderBy(asc(valsTbl.characterId), asc(valsTbl.label));
-
-  const grouped = new Map<number, ExtractionTraitValue[]>();
-  for (const row of rows) {
-    let list = grouped.get(row.characterId);
-    if (!list) {
-      list = [];
-      grouped.set(row.characterId, list);
-    }
-    list.push({
-      id: row.id,
-      label: row.label,
-      hexCode: row.hexCode,
-    });
-  }
-  return grouped;
 }

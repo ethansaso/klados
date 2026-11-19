@@ -2,6 +2,7 @@
   display: inline-block;
   text-decoration: underline;
   text-decoration-style: dotted;
-  text-decoration-color: var(--gray-9);
+  text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
+  text-decoration-thickness: 0.1em;
   cursor: help;
 }

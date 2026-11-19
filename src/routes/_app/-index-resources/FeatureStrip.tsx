@@ -18,7 +18,7 @@ const CAPABILITIES = [
   {
     icon: PiTreeStructure,
     verb: "Identify",
-    object: "using visual, flowchart-style guides",
+    object: "using flowchart-style guides",
   },
   {
     icon: PiBrowsers,

@@ -1,7 +1,7 @@
 # Klados
 
 ![CI](https://github.com/ethansaso/klados/actions/workflows/ci.yml/badge.svg)
-![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
+![Node.js](https://img.shields.io/badge/node-%3E%3D22.12-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 [klados.bio](https://klados.bio)
@@ -19,7 +19,7 @@ These instructions are a starting point and may change as the project evolves.
 
 ### Prerequisites
 
-- Node.js (LTS recommended)
+- Node.js 22.12 or newer
 - A package manager (npm / pnpm / yarn)
 - Docker (for local Postgres)
 
@@ -45,10 +45,11 @@ DATABASE_URL=postgres://app:app@localhost:5434/taxokeys
 BETTER_AUTH_SECRET=<your secret here>
 BETTER_AUTH_URL=http://localhost:3000
 VITE_SITE_URL=http://localhost:3000
-VITE_GA_ID="G-xxxxxxxxxx"
-RESEND_API_KEY="re_xxxxxxxxxxxxxxxxxxxxx"
-OPENAI_API_KEY="sk-xxxxxxxxxxxxxxxxxxxxxx"
-OPENAI_ORGANIZATION_ID="org-xxxxxxxxxxxxxxxxx"
+
+# (prod-only unless testing)
+# VITE_GA_ID="G-xxxxxxxxxx"
+# RESEND_API_KEY="re_xxxxxxxxxxxxxxxxxxxxx"
+# VITE_SENTRY_DSN="https://<key>@<host>/<project>"
 ```
 
 ### Set up the database
