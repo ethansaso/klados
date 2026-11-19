@@ -40,8 +40,8 @@ export type TaxonDetailDTO = TaxonDTO & {
   /* Full lineage of ancestors in descending order. */
   ancestors: TaxonDTO[];
   names: NameItem[];
-  /* Direct children (subtaxa) with IDs, ranks, and accepted scientific names. */
-  subtaxa: LeanTaxonDTO[];
+  /* Active direct children, by rank then accepted name. */
+  subtaxa: TaxonDTO[];
   /* Edit log, newest first. */
   curation: TaxonCurationDTO[];
 };

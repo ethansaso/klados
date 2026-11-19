@@ -36,6 +36,7 @@ import { StatusCallout } from "./-StatusCallout";
 import { TaxonDetails } from "./-TaxonDetails";
 import { TaxonGBIFDistribution } from "./-TaxonGBIFDistribution";
 import { TaxonImageBrowser } from "./-TaxonImageBrowser";
+import { TaxonomyTree } from "./-taxonomy/TaxonomyTree";
 
 export const Route = createFileRoute("/_app/taxa/$id/")({
   loader: async ({ context, params: { id, slug } }) => {
@@ -280,6 +281,8 @@ function TaxonPage() {
                 </Text>
               )}
             </Box>
+
+            <TaxonomyTree taxon={taxon} />
 
             {/* Sources */}
             <Box className="taxon-section taxon-page__sources">
