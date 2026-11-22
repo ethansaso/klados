@@ -3,9 +3,9 @@ import "./-TaxonImageBrowser.css";
 import { Box, Flex, Heading, Text, Theme } from "@radix-ui/themes";
 import { useState } from "react";
 import { AnnotationBubbleWrap } from "../../../../components/annotations/AnnotationBubbleWrap";
+import { MediaImage } from "../../../../components/MediaImage";
 import { TaxonName } from "../../../../components/TaxonName";
 import type { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
-import { getMediaUrl } from "../../../../lib/storage/getMediaUrl";
 import { formatTaxonName } from "../../../../lib/utils/formatting/formatTaxonName";
 
 const PLACEHOLDER_SRC = "/logos/LogoDotted.svg";
@@ -15,9 +15,6 @@ export const TaxonImageBrowser = ({ taxon }: { taxon: TaxonDetailDTO }) => {
   const taxonName = formatTaxonName(rank, acceptedName);
   const [selectedMediaIdx, setSelectedMediaIdx] = useState(0);
   const displayedMediaItem = media.at(selectedMediaIdx) ?? null;
-  const displayedMediaSrc = displayedMediaItem
-    ? getMediaUrl(displayedMediaItem.storageKey)
-    : PLACEHOLDER_SRC;
   const hasMultipleMedia = media.length > 1;
 
   return (
@@ -26,9 +23,12 @@ export const TaxonImageBrowser = ({ taxon }: { taxon: TaxonDetailDTO }) => {
     >
       <Box className="taxon-image-browser__preview">
         <AnnotationBubbleWrap media={displayedMediaItem} spacing="2">
-          <img
+          <MediaImage
             className="taxon-image-browser__preview-image"
-            src={displayedMediaSrc}
+            media={displayedMediaItem}
+            fallbackSrc={PLACEHOLDER_SRC}
+            sizes="(max-width: 767px) 100vw, 304px"
+            coverAspect={1}
             alt={
               displayedMediaItem
                 ? `${taxonName}, copyright ${displayedMediaItem.owner}`
@@ -69,8 +69,12 @@ export const TaxonImageBrowser = ({ taxon }: { taxon: TaxonDetailDTO }) => {
                     aria-label={`Show ${taxonName} image ${idx + 1}`}
                     aria-pressed={idx === selectedMediaIdx}
                   >
-                    <img
-                      src={getMediaUrl(mediaItem.storageKey)}
+                    <MediaImage
+                      media={mediaItem}
+                      // Use real thumbnail split at bottom w/ fallback to 76px
+                      sizes="auto, (max-width: 767px) 48px, 76px"
+                      coverAspect={1}
+                      loading="lazy"
                       alt={`${taxonName} thumbnail ${idx + 1}`}
                     />
                   </button>

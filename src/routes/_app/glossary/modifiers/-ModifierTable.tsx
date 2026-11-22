@@ -1,7 +1,7 @@
 import { Flex, IconButton, Table, Text } from "@radix-ui/themes";
 import { PiPencil, PiTrash } from "react-icons/pi";
+import { MediaImage } from "../../../../components/MediaImage";
 import type { ModifierDTO } from "../../../../lib/domain/modifiers/types";
-import { getMediaUrl } from "../../../../lib/storage/getMediaUrl";
 
 type RootProps = {
   values: ModifierDTO[];
@@ -81,8 +81,10 @@ function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
 
       <Table.Cell justify="center">
         {value.media && (
-          <img
-            src={getMediaUrl(value.media.storageKey)}
+          <MediaImage
+            media={value.media}
+            sizes="32px"
+            coverAspect={1}
             alt={value.media.title || value.label}
             loading="lazy"
             style={{

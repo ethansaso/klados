@@ -1,7 +1,7 @@
 import { Inset, Spinner, Text } from "@radix-ui/themes";
 import type { MediaDTO } from "../../lib/domain/media/types";
-import { getMediaUrl } from "../../lib/storage/getMediaUrl";
 import { AnnotationBubbleWrap } from "../annotations/AnnotationBubbleWrap";
+import { MediaImage } from "../MediaImage";
 import { ResponsiveHoverCard } from "../ResponsiveHoverCard";
 
 interface Props {
@@ -14,6 +14,8 @@ interface Props {
   children: React.ReactNode;
 }
 
+const CARD_MAX_WIDTH = "224px";
+
 export const GlossaryCard: React.FC<Props> = ({
   info,
   onOpenChange,
@@ -23,7 +25,7 @@ export const GlossaryCard: React.FC<Props> = ({
     <ResponsiveHoverCard
       onOpenChange={onOpenChange}
       contentProps={{
-        maxWidth: "224px",
+        maxWidth: CARD_MAX_WIDTH,
         size: "1",
         align: "center",
         side: "top",
@@ -34,8 +36,10 @@ export const GlossaryCard: React.FC<Props> = ({
             {info.media && (
               <Inset side="top" pb="current">
                 <AnnotationBubbleWrap media={info.media} spacing="2">
-                  <img
-                    src={getMediaUrl(info.media.storageKey)}
+                  <MediaImage
+                    media={info.media}
+                    sizes={CARD_MAX_WIDTH}
+                    coverAspect={16 / 9}
                     alt={info.media.title}
                     style={{
                       width: "100%",

@@ -23,8 +23,8 @@ export const media = pgTable(
     source: text("source").notNull().default(""),
 
     /** Source dimensions after EXIF orientation. */
-    width: integer("width"),
-    height: integer("height"),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
 
     uploadedBy: text("uploaded_by").references(() => user.id, {
       onDelete: "set null",

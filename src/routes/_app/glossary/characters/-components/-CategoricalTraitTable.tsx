@@ -2,10 +2,10 @@ import { Box, Flex, IconButton, Table, Text } from "@radix-ui/themes";
 import { useMemo } from "react";
 import { PiPencil, PiShareFat, PiTrash } from "react-icons/pi";
 import { applyToSynonymsBlocker } from "../-hooks/useSynonymApply";
+import { MediaImage } from "../../../../../components/MediaImage";
 import { ResponsiveTooltip } from "../../../../../components/ResponsiveTooltip";
 import { ColorBubble } from "../../../../../components/state-formatting/helpers/ColorBubble";
 import type { TraitValueDTO } from "../../../../../lib/domain/traits/types";
-import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 
 type RootProps = {
   values: TraitValueDTO[];
@@ -127,8 +127,10 @@ function Row({
 
       <Table.Cell justify="center">
         {value.media && (
-          <img
-            src={getMediaUrl(value.media.storageKey)}
+          <MediaImage
+            media={value.media}
+            sizes="32px"
+            coverAspect={1}
             alt={value.media.title || value.label}
             loading="lazy"
             style={{

@@ -333,6 +333,6 @@ function taxonPreview(
 
   return {
     description: `${name}, ${placement}.${morphology && ` ${morphology}`}`,
-    image: photo ? getMediaUrl(photo.storageKey) : undefined,
+    image: photo ? getMediaUrl(photo, "large") : undefined,
   };
 }

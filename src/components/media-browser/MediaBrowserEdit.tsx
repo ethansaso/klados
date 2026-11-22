@@ -4,9 +4,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type React from "react";
 import { FormProvider, type SubmitHandler, useForm } from "react-hook-form";
+import { MediaImage } from "../MediaImage";
 import type { MediaDTO } from "../../lib/domain/media/types";
 import { updateMediaFn } from "../../lib/server-fns/media/updateMediaFn";
-import { getMediaUrl } from "../../lib/storage/getMediaUrl";
 import SurfaceDialog from "../dialogs/SurfaceDialog";
 import {
   MediaMetaFields,
@@ -80,8 +80,10 @@ export const MediaBrowserEdit: React.FC<Props> = ({
               </Box>
             ) : null}
             <Flex gap="3" align="center">
-              <img
-                src={getMediaUrl(media.storageKey)}
+              <MediaImage
+                media={media}
+                sizes="64px"
+                coverAspect={1}
                 alt={media.title}
                 style={{
                   width: "64px",

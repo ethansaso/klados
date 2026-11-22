@@ -1,4 +1,5 @@
 import { getMediaUrl } from "../../../../lib/storage/getMediaUrl";
+import type { StoredMedia } from "../../../../lib/storage/mediaSizes";
 import { rgbToHex } from "../../../../lib/utils/color/conversion";
 import type { Rgb } from "../../../../lib/utils/color/types";
 import type { ColorSample } from "../types";
@@ -22,21 +23,23 @@ const BRIGHT_PERCENTILE = 0.95;
 const MAX_EXPOSURE_GAIN = 1.5;
 
 /**
- * URL for reading a photo's pixels. Remote copies get their own cache key so
- * a browser never reuses one it cached without CORS headers, which canvas
- * reads reject.
+ * URL for reading a photo's pixels, always `medium`
+ * (`medium` matches original matcher tuning)
+ *
+ * Remote copies get their own cache key so a browser never
+ * reuses one it cached without CORS headers, which canvas reads reject.
  */
-export function readableMediaUrl(storageKey: string): string {
-  const url = getMediaUrl(storageKey);
+export function readableMediaUrl(photo: StoredMedia): string {
+  const url = getMediaUrl(photo, "medium");
   return url.startsWith("http") ? `${url}?cors=1` : url;
 }
 
 /** Warms the browser cache so switching photos shows them at once. */
-export function preloadPhotos(photos: { storageKey: string }[]): void {
-  for (const { storageKey } of photos) {
+export function preloadPhotos(photos: StoredMedia[]): void {
+  for (const photo of photos) {
     const image = new Image();
     image.crossOrigin = "anonymous";
-    image.src = readableMediaUrl(storageKey);
+    image.src = readableMediaUrl(photo);
   }
 }
 

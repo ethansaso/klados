@@ -133,7 +133,7 @@ export const MediaEditingForm = ({ inatId }: MediaEditorProps) => {
                 <MediaThumbnailCard
                   key={field.rhfId}
                   id={field.rhfId}
-                  storageKey={field.storageKey}
+                  media={field}
                   onRemove={() => remove(i)}
                 />
               ))}

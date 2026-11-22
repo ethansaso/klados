@@ -111,7 +111,7 @@ export function PhotoStage({
       <div className="photo-stage__frame">
         <img
           ref={imageRef}
-          src={readableMediaUrl(photo.storageKey)}
+          src={readableMediaUrl(photo)}
           crossOrigin="anonymous"
           alt={alt}
           className="photo-stage__image"
