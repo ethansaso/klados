@@ -6,6 +6,7 @@ import { AnnotationBubbleWrap } from "../../../../components/annotations/Annotat
 import { MediaImage } from "../../../../components/MediaImage";
 import { TaxonName } from "../../../../components/TaxonName";
 import type { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
+import { getMediaUrl } from "../../../../lib/storage/getMediaUrl";
 import { formatTaxonName } from "../../../../lib/utils/formatting/formatTaxonName";
 
 const PLACEHOLDER_SRC = "/logos/LogoDotted.svg";
@@ -14,6 +15,8 @@ export const TaxonImageBrowser = ({ taxon }: { taxon: TaxonDetailDTO }) => {
   const { media, rank, acceptedName, preferredCommonName } = taxon;
   const taxonName = formatTaxonName(rank, acceptedName);
   const [selectedMediaIdx, setSelectedMediaIdx] = useState(0);
+  // First photo renders before hydration, so only handle backdrop logic on true switches
+  const [hasSwitched, setHasSwitched] = useState(false);
   const displayedMediaItem = media.at(selectedMediaIdx) ?? null;
   const hasMultipleMedia = media.length > 1;
 
@@ -24,6 +27,8 @@ export const TaxonImageBrowser = ({ taxon }: { taxon: TaxonDetailDTO }) => {
       <Box className="taxon-image-browser__preview">
         <AnnotationBubbleWrap media={displayedMediaItem} spacing="2">
           <MediaImage
+            // A fresh element per photo, so the old one never lingers on screen
+            key={displayedMediaItem?.storageKey}
             className="taxon-image-browser__preview-image"
             media={displayedMediaItem}
             fallbackSrc={PLACEHOLDER_SRC}
@@ -34,6 +39,17 @@ export const TaxonImageBrowser = ({ taxon }: { taxon: TaxonDetailDTO }) => {
                 ? `${taxonName}, copyright ${displayedMediaItem.owner}`
                 : `Placeholder image for ${taxonName}`
             }
+            // The strip has already loaded `small`; show it until this paints
+            style={
+              hasSwitched && displayedMediaItem
+                ? {
+                    backgroundImage: `url("${getMediaUrl(displayedMediaItem, "small")}")`,
+                  }
+                : undefined
+            }
+            onLoad={(e) => {
+              e.currentTarget.style.backgroundImage = "none";
+            }}
           />
         </AnnotationBubbleWrap>
         {/* Phone overlay. */}
@@ -65,7 +81,10 @@ export const TaxonImageBrowser = ({ taxon }: { taxon: TaxonDetailDTO }) => {
                     className={
                       idx === selectedMediaIdx ? "is-selected" : undefined
                     }
-                    onClick={() => setSelectedMediaIdx(idx)}
+                    onClick={() => {
+                      setSelectedMediaIdx(idx);
+                      setHasSwitched(true);
+                    }}
                     aria-label={`Show ${taxonName} image ${idx + 1}`}
                     aria-pressed={idx === selectedMediaIdx}
                   >
