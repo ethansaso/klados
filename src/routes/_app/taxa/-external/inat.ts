@@ -9,7 +9,10 @@ import type { NameItem } from "../../../../lib/domain/taxon-names/validation";
 import type { ExternalCandidate } from "./types";
 
 export type InatPhoto = {
-  url: string;
+  /** iNat's `medium` (500px), for selection. */
+  previewUrl: string;
+  /** iNat's `original` (2048px), for importing. */
+  originalUrl: string;
   license: Exclude<MediaLicense, "all-rights-reserved">;
   owner: string;
   source: string;
@@ -53,6 +56,8 @@ export const INTERNAL_RANK_TO_INAT_MAPPING: Record<TaxonRank, string | null> = {
 };
 
 const INAT_API = "https://api.inaturalist.org/v1";
+/** Openly licensed photos; `static.inaturalist.org` hosts the rest. */
+const INAT_OPEN_DATA_HOST = "inaturalist-open-data.s3.amazonaws.com";
 const SUGGEST_LIMIT = 5;
 const MAX_PHOTOS = 9;
 
@@ -178,7 +183,7 @@ export async function fetchInatImport(
 export function inatPhotoToUploadItem(p: InatPhoto): UploadMediaWireItem {
   return {
     type: "url",
-    url: p.url,
+    url: p.originalUrl,
     license: p.license,
     owner: p.owner,
     source: p.source,
@@ -209,10 +214,12 @@ function parseInatPhotos(data: unknown): InatPhoto[] | null {
   return (taxon?.taxon_photos ?? [])
     .flatMap(({ photo: p }) => {
       const lic = AllowedLicenseSchema.safeParse(p.license_code);
-      if (!lic.success) return [];
+      const originalUrl = openDataOriginalUrl(p.medium_url);
+      if (!lic.success || !originalUrl) return [];
       return [
         {
-          url: p.medium_url,
+          previewUrl: p.medium_url,
+          originalUrl,
           license: lic.data,
           owner: p.attribution_name ?? "",
           source: `https://www.inaturalist.org/photos/${p.id}`,
@@ -221,6 +228,24 @@ function parseInatPhotos(data: unknown): InatPhoto[] | null {
       ];
     })
     .slice(0, MAX_PHOTOS);
+}
+
+/**
+ * `.../photos/{id}/medium.jpg` → `.../photos/{id}/original.jpg`, for Open Data
+ * photos only; null otherwise.
+ */
+function openDataOriginalUrl(mediumUrl: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(mediumUrl);
+  } catch {
+    return null;
+  }
+  if (url.hostname !== INAT_OPEN_DATA_HOST) return null;
+  const pathname = url.pathname.replace(/\/medium(\.\w+)$/, "/original$1");
+  if (pathname === url.pathname) return null;
+  url.pathname = pathname;
+  return url.toString();
 }
 
 function normalizeInatNames(rawNames: InatRawName[]): NameItem[] {

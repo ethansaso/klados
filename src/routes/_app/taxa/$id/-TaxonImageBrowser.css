@@ -24,6 +24,8 @@
     display: block;
     object-position: center;
     object-fit: cover;
+    background-position: center;
+    background-size: cover;
   }
 
   .taxon-image-browser__preview > .annotation-bubble__wrapper {

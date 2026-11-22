@@ -83,7 +83,7 @@ const InatPhotoSelectModal = NiceModal.create<Props>(
             ) : error ? (
               <Text color="red">{error}</Text>
             ) : allMedia ? (
-              <Box>
+              <Box width="100%">
                 {allMedia.length !== 0 && (
                   <Flex align="center" justify="between" mb="2">
                     <Flex align="center" gap="2">
@@ -129,8 +129,8 @@ const InatPhotoSelectModal = NiceModal.create<Props>(
                 >
                   {allMedia.length !== 0 ? (
                     allMedia.map((m, i) => (
-                      <CheckboxCards.Item value={String(i)} key={m.url}>
-                        <img src={m.url} />
+                      <CheckboxCards.Item value={String(i)} key={m.previewUrl}>
+                        <img src={m.previewUrl} />
                       </CheckboxCards.Item>
                     ))
                   ) : (
