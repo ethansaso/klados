@@ -2,6 +2,7 @@ import { and, asc, count, eq, ilike, inArray, or, type SQL } from "drizzle-orm";
 import { db } from "../../../../db/client";
 import { media as mediaTbl } from "../../../../db/schema/media/media";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
+import type { MediaDimensions } from "../../storage/mediaSizes";
 import { likeAnywhere } from "../../utils/sql/likeAnywhere";
 import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
 import type {
@@ -69,6 +70,23 @@ export async function updateMediaById(
     .returning();
 
   return row ?? null;
+}
+
+/** Every row, oldest first. */
+export async function selectAllMedia(tx: TxOrDb): Promise<MediaDTO[]> {
+  return tx.select().from(mediaTbl).orderBy(asc(mediaTbl.id));
+}
+
+/** Points a row at newly written files. */
+export async function setMediaStorage(
+  tx: TxOrDb,
+  id: number,
+  { storageKey, width, height }: MediaDimensions & { storageKey: string },
+): Promise<void> {
+  await tx
+    .update(mediaTbl)
+    .set({ storageKey, width, height })
+    .where(eq(mediaTbl.id, id));
 }
 
 export async function deleteMediaById(

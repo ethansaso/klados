@@ -1,0 +1,4 @@
+/* The width/height attributes only reserve aspect ratio; any caller sizing wins. */
+:where(.media-image) {
+  height: auto;
+}

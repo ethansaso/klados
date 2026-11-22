@@ -1,4 +1,10 @@
-import { pgTable, serial, text, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  integer,
+  pgTable,
+  serial,
+  text,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { mediaLicenseEnum } from "../../utils/mediaLicense";
 import { withTimestamps } from "../../utils/timestamps";
 import { user } from "../auth";
@@ -15,6 +21,10 @@ export const media = pgTable(
     license: mediaLicenseEnum("license").notNull(),
     owner: text("owner").notNull().default(""),
     source: text("source").notNull().default(""),
+
+    /** Source dimensions after EXIF orientation. */
+    width: integer("width"),
+    height: integer("height"),
 
     uploadedBy: text("uploaded_by").references(() => user.id, {
       onDelete: "set null",

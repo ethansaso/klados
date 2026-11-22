@@ -24,6 +24,11 @@ export class LocalStorage implements StorageAdapter {
     };
   }
 
+  async download(key: string): Promise<Buffer> {
+    assertSafeKey(key);
+    return fs.readFile(path.join(uploadDir, key));
+  }
+
   async delete(key: string): Promise<void> {
     assertSafeKey(key);
     await fs.rm(path.join(uploadDir, key), { force: true, recursive: false });
