@@ -8,6 +8,7 @@ export interface UploadArgs {
 
 export interface StorageAdapter {
   upload(args: UploadArgs): Promise<{ url: string }>;
+  download(key: string): Promise<Buffer>;
   delete(key: string): Promise<void>;
   getUrl(key: string): string;
 }

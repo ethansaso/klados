@@ -42,3 +42,4 @@ TanStack Start (React 19, Router, Query) · Radix Themes · react-hook-form + zo
 - For UI or UX changes, discuss the approach before building unless told to go ahead.
 - Never permanently modify the local database.
 - Never attempt to access, and especially never attempt to modify, the production server or database.
+- Any time you attempt to make a claim about another tool during a discussion, you need to look up and verify your claim, or specify you don't have evidence.
