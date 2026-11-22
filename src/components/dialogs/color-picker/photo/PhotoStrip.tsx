@@ -1,4 +1,4 @@
-import { getMediaUrl } from "../../../../lib/storage/getMediaUrl";
+import { MediaImage } from "../../../MediaImage";
 import { NumberBubble } from "../../../NumberBubble";
 import "./PhotoStrip.css";
 import type { ColorPick, PickerPhoto } from "../types";
@@ -32,7 +32,7 @@ export function PhotoStrip({ media, selectedIndex, picks, onSelect }: Props) {
           aria-pressed={i === selectedIndex}
           onClick={() => onSelect(i)}
         >
-          <img src={getMediaUrl(photo.storageKey)} alt="" />
+          <MediaImage media={photo} sizes="56px" alt="" />
           <span className="photo-strip__picks">
             {picks.map(
               (pick, n) =>

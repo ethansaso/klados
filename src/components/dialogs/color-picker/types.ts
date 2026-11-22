@@ -4,7 +4,14 @@ import type { PaletteSwatch } from "./sampling/nearestPaletteColor";
 /** A photo the picker can sample, with what's needed to credit it. */
 export type PickerPhoto = Pick<
   MediaDTO,
-  "id" | "storageKey" | "owner" | "license" | "source"
+  | "id"
+  | "storageKey"
+  | "contentType"
+  | "width"
+  | "height"
+  | "owner"
+  | "license"
+  | "source"
 >;
 
 /** What the color at one spot in a photo reads as. */

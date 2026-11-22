@@ -5,7 +5,6 @@ import {
   type MediaDimensions,
   type MediaSize,
   mediaVariantDimensions,
-  mediaVariantKey,
   type StoredMedia,
 } from "./mediaSizes";
 
@@ -30,9 +29,6 @@ export function getMediaSrcSet(
   }
 
   return [...sizeByWidth]
-    .map(
-      ([width, size]) =>
-        `${getMediaUrl(mediaVariantKey(media, size))} ${width}w`,
-    )
+    .map(([width, size]) => `${getMediaUrl(media, size)} ${width}w`)
     .join(", ");
 }

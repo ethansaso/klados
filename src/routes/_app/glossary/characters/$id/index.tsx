@@ -22,6 +22,7 @@ import { DeleteTraitValueModal } from "../-modal/DeleteTraitValueModal";
 import { EditTraitValueModal } from "../-modal/EditTraitValueModal";
 import { AnnotationBubbleWrap } from "../../../../../components/annotations/AnnotationBubbleWrap";
 import { CuratorOnly } from "../../../../../components/CuratorOnly";
+import { MediaImage } from "../../../../../components/MediaImage";
 import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
 import { CharacterIcon } from "../../../../../components/icons/modular/CharacterIcon";
 import { DebouncedTextField } from "../../../../../components/inputs/DebouncedTextField";
@@ -32,7 +33,6 @@ import type { CharacterDetailDTO } from "../../../../../lib/domain/characters/ty
 import { characterQueryOptions } from "../../../../../lib/queries/characters";
 import { traitValuesQueryOptions } from "../../../../../lib/queries/traits";
 import { deleteCharacterFn } from "../../../../../lib/server-fns/characters/deleteCharacterFn";
-import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 import { capitalizeFirstLetter } from "../../../../../lib/utils/formatting/casing";
 import { toast } from "../../../../../lib/utils/toast";
 import { Route as CharactersLayoutRoute } from "../route";
@@ -201,8 +201,9 @@ function RouteComponent() {
       {character.media && (
         <AnnotationBubbleWrap media={character.media} spacing="1">
           <Box mb="3">
-            <img
-              src={getMediaUrl(character.media.storageKey)}
+            <MediaImage
+              media={character.media}
+              sizes="128px"
               alt={character.media.title}
               style={{
                 width: "128px",

@@ -35,6 +35,7 @@ import { getMediaUrl } from "../../lib/storage/getMediaUrl";
 import { toast } from "../../lib/utils/toast";
 import SurfaceDialog from "../dialogs/SurfaceDialog";
 import { DebouncedTextField } from "../inputs/DebouncedTextField";
+import { MediaImage } from "../MediaImage";
 
 type Props = MediaBrowserProps & {
   selected: MediaDTO[];
@@ -169,8 +170,9 @@ export const MediaBrowserView: React.FC<Props> = ({
                           paddingInline: 0,
                         }}
                       >
-                        <img
-                          src={getMediaUrl(media.storageKey)}
+                        <MediaImage
+                          media={media}
+                          sizes="(min-width: 768px) 180px, 50vw"
                           alt={media.title}
                           style={{
                             display: "block",
@@ -245,8 +247,7 @@ export const MediaBrowserView: React.FC<Props> = ({
                 size="1"
                 disabled={!viewing}
                 onClick={() =>
-                  viewing &&
-                  window.open(getMediaUrl(viewing.storageKey), "_blank")
+                  viewing && window.open(getMediaUrl(viewing, "full"), "_blank")
                 }
               >
                 <PiDownloadSimple />
@@ -272,8 +273,10 @@ export const MediaBrowserView: React.FC<Props> = ({
                   align="center"
                   justify="center"
                 >
-                  <img
-                    src={getMediaUrl(viewing.storageKey)}
+                  <MediaImage
+                    media={viewing}
+                    // Blurred backdrop, so the smallest file will do.
+                    sizes="64px"
                     alt={viewing.title}
                     style={{
                       position: "absolute",
@@ -290,8 +293,9 @@ export const MediaBrowserView: React.FC<Props> = ({
                       filter: "blur(10px) brightness(0.3)",
                     }}
                   />
-                  <img
-                    src={getMediaUrl(viewing.storageKey)}
+                  <MediaImage
+                    media={viewing}
+                    sizes="300px"
                     alt={viewing.title}
                     style={{
                       position: "relative",

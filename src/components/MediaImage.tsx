@@ -1,37 +1,63 @@
 import "./MediaImage.css";
 
-import type { ComponentPropsWithoutRef } from "react";
+import { type ComponentPropsWithoutRef, useState } from "react";
 import { getMediaSrcSet } from "../lib/storage/getMediaSrcSet";
 import { getMediaUrl } from "../lib/storage/getMediaUrl";
-import {
-  type MediaDimensions,
-  mediaVariantKey,
-  type StoredMedia,
-} from "../lib/storage/mediaSizes";
+import type { MediaDimensions, StoredMedia } from "../lib/storage/mediaSizes";
 
-type Props = Omit<
-  ComponentPropsWithoutRef<"img">,
-  "src" | "srcSet" | "sizes" | "width" | "height"
-> & {
-  media: StoredMedia & MediaDimensions;
+type Props = Omit<ComponentPropsWithoutRef<"img">, "src" | "srcSet"> & {
+  media: (StoredMedia & MediaDimensions) | null | undefined;
   alt: string;
   /**
    * Rendered width, as for `<img sizes>`. Required because browsers otherwise
    * assume the full viewport width. `auto` only works with `loading="lazy"`.
    */
   sizes: string;
+  /**
+   * Shown when no media or file fails to load. Marked with `data-placeholder`.
+   * If not passed, renders as `null`.
+   */
+  fallbackSrc?: string;
 };
 
-/** A stored image fetched at whichever size its layout and pixel density need. */
-export function MediaImage({ media, sizes, className, ...rest }: Props) {
+/**
+ * Image fetched from storage at whichever size its layout and pixel density need.
+ * `width`/`height` default to the media's, which only reserve aspect ratio.
+ */
+export function MediaImage({
+  media,
+  sizes,
+  fallbackSrc,
+  className,
+  onError,
+  ...rest
+}: Props) {
+  const [failedKey, setFailedKey] = useState<string | null>(null);
+  const classes = className ? `media-image ${className}` : "media-image";
+
+  if (!media || failedKey === media.storageKey) {
+    return fallbackSrc ? (
+      <img
+        src={fallbackSrc}
+        data-placeholder=""
+        className={classes}
+        {...rest}
+      />
+    ) : null;
+  }
+
   return (
     <img
       sizes={sizes}
       srcSet={getMediaSrcSet(media)}
-      src={getMediaUrl(mediaVariantKey(media, "medium"))}
+      src={getMediaUrl(media, "medium")}
       width={media.width}
       height={media.height}
-      className={className ? `media-image ${className}` : "media-image"}
+      className={classes}
+      onError={(e) => {
+        if (fallbackSrc) setFailedKey(media.storageKey);
+        onError?.(e);
+      }}
       {...rest}
     />
   );

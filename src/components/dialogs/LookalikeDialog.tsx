@@ -20,8 +20,8 @@ import type {
 } from "../../lib/domain/lookalikes/types";
 import type { TaxonDTO } from "../../lib/domain/taxa/types";
 import { lookalikeDetailsQueryOptions } from "../../lib/queries/lookalikes";
-import { getMediaUrl } from "../../lib/storage/getMediaUrl";
 import { formatTaxonName } from "../../lib/utils/formatting/formatTaxonName";
+import { MediaImage } from "../MediaImage";
 import { TaxonName } from "../TaxonName";
 import { GlossaryFeatureCard } from "../glossary-cards/GlossaryFeatureCard";
 import { CharacterStateDisplay } from "../state-formatting/CharacterStateDisplay";
@@ -163,15 +163,13 @@ function TaxonColumnHeader({ taxon }: { taxon: TaxonDTO }) {
   return (
     <Box>
       <AspectRatio ratio={4 / 3}>
-        <img
+        <MediaImage
           className="lookalike-modal__photo"
-          src={taxonImageSrc(taxon)}
+          media={taxon.media[0]}
+          fallbackSrc={PLACEHOLDER_SRC}
+          sizes="auto, (min-width: 768px) 300px, 45vw"
           alt={formatTaxonName(taxon.rank, taxon.acceptedName)}
           loading="lazy"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = PLACEHOLDER_SRC;
-          }}
         />
       </AspectRatio>
       <Flex align="center" gap="2" mt="2">
@@ -217,9 +215,11 @@ function TaxonRowLabel({ taxon }: { taxon: TaxonDTO }) {
 
 function TaxonAvatar({ taxon, size }: { taxon: TaxonDTO; size: number }) {
   return (
-    <img
+    <MediaImage
       className="lookalike-modal__avatar"
-      src={taxonImageSrc(taxon)}
+      media={taxon.media[0]}
+      fallbackSrc={PLACEHOLDER_SRC}
+      sizes={`${size}px`}
       alt=""
       width={size}
       height={size}
@@ -356,9 +356,4 @@ function differenceClassname(differs: boolean): string {
   return differs
     ? "lookalike-modal__value--different"
     : "lookalike-modal__value--shared";
-}
-
-function taxonImageSrc(taxon: TaxonDTO) {
-  const primaryMedia = taxon.media[0];
-  return primaryMedia ? getMediaUrl(primaryMedia.storageKey) : PLACEHOLDER_SRC;
 }

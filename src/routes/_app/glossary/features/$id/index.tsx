@@ -14,11 +14,11 @@ import { PiPencil, PiTrash } from "react-icons/pi";
 import { Fragment } from "react/jsx-runtime";
 import { AnnotationBubbleWrap } from "../../../../../components/annotations/AnnotationBubbleWrap";
 import { CuratorOnly } from "../../../../../components/CuratorOnly";
+import { MediaImage } from "../../../../../components/MediaImage";
 import { ConfirmDeleteModal } from "../../../../../components/dialogs/ConfirmDeleteModal";
 import { FeatureSemanticsIcon } from "../../../../../components/icons/modular/FeatureSemanticsIcon";
 import { featureQueryOptions } from "../../../../../lib/queries/features";
 import { deleteFeatureFn } from "../../../../../lib/server-fns/features/deleteFeatureFn";
-import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 import { toast } from "../../../../../lib/utils/toast";
 import { SEMANTICS_OPTIONS } from "../-SemanticsField";
 
@@ -108,8 +108,9 @@ function RouteComponent() {
       {feature.media && (
         <AnnotationBubbleWrap media={feature.media} spacing="1">
           <Box mb="3">
-            <img
-              src={getMediaUrl(feature.media.storageKey)}
+            <MediaImage
+              media={feature.media}
+              sizes="128px"
               alt={feature.media.title}
               style={{
                 width: "128px",

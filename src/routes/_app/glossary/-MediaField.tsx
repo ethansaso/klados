@@ -10,8 +10,8 @@ import {
 import { PiImage, PiX } from "react-icons/pi";
 import { HUMAN_CASED_MEDIA_LICENSES } from "../../../../db/utils/mediaLicense";
 import MediaBrowser from "../../../components/media-browser";
+import { MediaImage } from "../../../components/MediaImage";
 import type { MediaDTO } from "../../../lib/domain/media/types";
-import { getMediaUrl } from "../../../lib/storage/getMediaUrl";
 import "./-MediaField.css";
 import {
   selectWikimediaPhotos,
@@ -53,8 +53,9 @@ export function MediaField({
     <Flex align="center" gap="3" p="2" className="media-field">
       {value ? (
         <Box asChild width={THUMB_SIZE} height={THUMB_SIZE} flexShrink="0">
-          <img
-            src={getMediaUrl(value.storageKey)}
+          <MediaImage
+            media={value}
+            sizes={THUMB_SIZE}
             alt={value.title}
             className="media-field__thumb"
           />
@@ -160,8 +161,9 @@ function SuggestionGroup({
               height={SUGGESTION_THUMB_SIZE}
               flexShrink="0"
             >
-              <img
-                src={getMediaUrl(media.storageKey)}
+              <MediaImage
+                media={media}
+                sizes={SUGGESTION_THUMB_SIZE}
                 alt=""
                 className="media-field__thumb"
               />

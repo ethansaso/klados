@@ -2,10 +2,8 @@ import crypto from "node:crypto";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "../../../../db/client";
 import { storage } from "../../storage";
-import {
-  extFromContentType,
-  type SupportedImageType,
-} from "../../storage/utils";
+import { mediaVariantKeys } from "../../storage/mediaSizes";
+import type { SupportedImageType } from "../../storage/utils";
 import {
   bulkInsertMedia,
   deleteMediaById,
@@ -14,6 +12,7 @@ import {
   selectMediaById,
   updateMediaById,
 } from "./repo";
+import { renderVariants } from "./renderVariants";
 import type {
   InsertMediaArgs,
   MediaDTO,
@@ -47,7 +46,7 @@ export async function updateMedia({
 
 /**
  * Deletes a media item by ID. Removes the DB row first inside a transaction,
- * then deletes the file from storage. Returns false if the item did not exist.
+ * then deletes its stored files. Returns false if the item did not exist.
  */
 export async function deleteMedia(id: number): Promise<boolean> {
   const deleted = await db.transaction(async (tx) => {
@@ -58,7 +57,7 @@ export async function deleteMedia(id: number): Promise<boolean> {
   });
 
   if (!deleted) return false;
-  await storage.delete(deleted.storageKey);
+  await Promise.all(mediaVariantKeys(deleted).map((k) => storage.delete(k)));
   return true;
 }
 
@@ -78,7 +77,7 @@ export async function listMedia(args: {
  *
  * 1) Computes a SHA-256 hash of the body
  * 2) If a media row with that hash already exists, return w/o insert, and flag `alreadyExisted`. Submitted metadata is NOT applied in this case.
- * 3) Otherwise, upload to storage under UUID-based key and insert a new media row
+ * 3) Otherwise, write every stored size under a UUID-based base key and insert a new media row
  *
  * Guarantees order of items.
  */
@@ -103,31 +102,39 @@ export async function uploadMedia(
     }
   }
 
-  // Upload new files to storage and build insert args.
+  // Write every stored size and build insert args.
   const insertArgs: InsertMediaArgs[] = [];
-  const storageKeys: string[] = [];
 
   await Promise.all(
     newItems.map(async ({ input, hash }) => {
-      const ext = extFromContentType(input.contentType);
-      const key = `media/${uuidv4()}.${ext}`;
-      await storage.upload({
-        key,
-        body: input.body,
+      const storageKey = `media/${uuidv4()}`;
+      const { width, height, files } = await renderVariants({
+        storageKey,
         contentType: input.contentType,
+        body: input.body,
       });
+      await Promise.all(
+        files.map((file) =>
+          storage.upload({
+            key: file.key,
+            body: file.body,
+            contentType: file.contentType,
+          }),
+        ),
+      );
       // Keep parallel-safe ordering by pushing after upload.
       insertArgs.push({
-        storageKey: key,
+        storageKey,
         contentType: input.contentType,
         contentHash: hash,
+        width,
+        height,
         title: input.title,
         license: input.license,
         owner: input.owner,
         source: input.source,
         uploadedBy: input.uploadedBy,
       });
-      storageKeys.push(key);
     }),
   );
 

@@ -4,11 +4,11 @@ import classNames from "classnames";
 import { memo, type PropsWithChildren } from "react";
 import type { TaxonRank } from "../../db/schema/schema";
 import type { MediaDTO } from "../lib/domain/media/types";
-import { getMediaUrl } from "../lib/storage/getMediaUrl";
 import { capitalizeFirstLetter } from "../lib/utils/formatting/casing";
 import { formatTaxonName } from "../lib/utils/formatting/formatTaxonName";
 import { taxonParams } from "../lib/utils/formatting/taxonUrl";
 import { AnnotationBubbleWrap } from "./annotations/AnnotationBubbleWrap";
+import { MediaImage } from "./MediaImage";
 import "./TaxonCard.css";
 import { TaxonName } from "./TaxonName";
 
@@ -40,18 +40,12 @@ export const TaxonCard = memo(
     const content = (
       <>
         <Inset side="top" pb="current">
-          <img
-            src={
-              thumbnail
-                ? getMediaUrl(thumbnail.storageKey)
-                : "/logos/LogoDotted.svg"
-            }
+          <MediaImage
+            media={thumbnail}
+            fallbackSrc="/logos/LogoDotted.svg"
+            sizes="auto, (min-width: 520px) 240px, 40vw"
             alt={formatTaxonName(rank, acceptedName)}
             loading="lazy"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = "/logos/LogoDotted.svg";
-            }}
           />
         </Inset>
         <Flex direction="column" flexGrow="1" justify="between">

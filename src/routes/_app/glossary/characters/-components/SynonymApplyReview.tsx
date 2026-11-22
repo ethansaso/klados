@@ -15,9 +15,9 @@ import type {
   SynonymField,
   SynonymFieldPair,
 } from "../-hooks/useSynonymApply";
+import { MediaImage } from "../../../../../components/MediaImage";
 import type { MediaDTO } from "../../../../../lib/domain/media/types";
 import type { TraitValueDTO } from "../../../../../lib/domain/traits/types";
-import { getMediaUrl } from "../../../../../lib/storage/getMediaUrl";
 import "./SynonymApplyReview.css";
 
 type Props = {
@@ -250,8 +250,9 @@ function Thumbnail({ media }: { media: MediaDTO | null }) {
 
   return (
     <Box asChild width={THUMB_SIZE} height={THUMB_SIZE} flexShrink="0">
-      <img
-        src={getMediaUrl(media.storageKey)}
+      <MediaImage
+        media={media}
+        sizes={THUMB_SIZE}
         alt={media.title}
         className="synonym-apply-review__thumb"
       />
