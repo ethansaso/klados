@@ -173,6 +173,7 @@ export const MediaBrowserView: React.FC<Props> = ({
                         <MediaImage
                           media={media}
                           sizes="(min-width: 768px) 180px, 50vw"
+                          coverAspect={1}
                           alt={media.title}
                           style={{
                             display: "block",
@@ -277,6 +278,7 @@ export const MediaBrowserView: React.FC<Props> = ({
                     media={viewing}
                     // Blurred backdrop, so the smallest file will do.
                     sizes="64px"
+                    coverAspect={1}
                     alt={viewing.title}
                     style={{
                       position: "absolute",

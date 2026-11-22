@@ -32,7 +32,7 @@ export function PhotoStrip({ media, selectedIndex, picks, onSelect }: Props) {
           aria-pressed={i === selectedIndex}
           onClick={() => onSelect(i)}
         >
-          <MediaImage media={photo} sizes="56px" alt="" />
+          <MediaImage media={photo} sizes="56px" coverAspect={1} alt="" />
           <span className="photo-strip__picks">
             {picks.map(
               (pick, n) =>

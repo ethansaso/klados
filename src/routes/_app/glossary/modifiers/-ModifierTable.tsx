@@ -84,6 +84,7 @@ function Row({ value, showActions, onDeleteClick, onEditClick }: RowProps) {
           <MediaImage
             media={value.media}
             sizes="32px"
+            coverAspect={1}
             alt={value.media.title || value.label}
             loading="lazy"
             style={{

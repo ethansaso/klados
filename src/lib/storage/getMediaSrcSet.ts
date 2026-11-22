@@ -11,9 +11,14 @@ import {
 /**
  * `srcset` listing each stored size at its real width. Undefined for SVGs,
  * which scale freely.
+ *
+ * With `coverAspect` (the box's width / height), each size is instead listed at
+ * the widest such box it can fill when cover-cropped, so browsers don't pick a
+ * landscape file too short for a square tile.
  */
 export function getMediaSrcSet(
   media: StoredMedia & MediaDimensions,
+  coverAspect?: number,
 ): string | undefined {
   if (isVectorMedia(media)) return undefined;
 
@@ -23,9 +28,12 @@ export function getMediaSrcSet(
   // tie, since `small` doesn't animate.
   const sizeByWidth = new Map<number, MediaSize>();
   for (const size of MEDIA_SIZE_NAMES) {
-    const { width } = mediaVariantDimensions(media, size);
-    const kept = sizeByWidth.get(width);
-    if (!kept || kept === "small") sizeByWidth.set(width, size);
+    const { width, height } = mediaVariantDimensions(media, size);
+    const listed = coverAspect
+      ? Math.min(width, Math.round(height * coverAspect))
+      : width;
+    const kept = sizeByWidth.get(listed);
+    if (!kept || kept === "small") sizeByWidth.set(listed, size);
   }
 
   return [...sizeByWidth]

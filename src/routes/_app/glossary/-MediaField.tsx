@@ -56,6 +56,7 @@ export function MediaField({
           <MediaImage
             media={value}
             sizes={THUMB_SIZE}
+            coverAspect={1}
             alt={value.title}
             className="media-field__thumb"
           />
@@ -164,6 +165,7 @@ function SuggestionGroup({
               <MediaImage
                 media={media}
                 sizes={SUGGESTION_THUMB_SIZE}
+                coverAspect={1}
                 alt=""
                 className="media-field__thumb"
               />

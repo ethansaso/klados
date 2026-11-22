@@ -36,6 +36,8 @@ export const TaxonTile = memo(function TaxonTile({ taxon, sizes }: Props) {
           media={thumbnail}
           fallbackSrc={PLACEHOLDER_SRC}
           sizes={sizes}
+          // Featured tiles are 3:2 but square on phones; 1 keeps both sharp.
+          coverAspect={1}
           alt=""
           loading="lazy"
         />

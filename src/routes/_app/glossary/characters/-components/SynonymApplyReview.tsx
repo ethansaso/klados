@@ -253,6 +253,7 @@ function Thumbnail({ media }: { media: MediaDTO | null }) {
       <MediaImage
         media={media}
         sizes={THUMB_SIZE}
+        coverAspect={1}
         alt={media.title}
         className="synonym-apply-review__thumb"
       />

@@ -44,6 +44,7 @@ export const TaxonCard = memo(
             media={thumbnail}
             fallbackSrc="/logos/LogoDotted.svg"
             sizes="auto, (min-width: 520px) 240px, 40vw"
+            coverAspect={1}
             alt={formatTaxonName(rank, acceptedName)}
             loading="lazy"
           />

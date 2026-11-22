@@ -83,6 +83,7 @@ export const MediaBrowserEdit: React.FC<Props> = ({
               <MediaImage
                 media={media}
                 sizes="64px"
+                coverAspect={1}
                 alt={media.title}
                 style={{
                   width: "64px",

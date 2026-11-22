@@ -39,6 +39,7 @@ export const GlossaryCard: React.FC<Props> = ({
                   <MediaImage
                     media={info.media}
                     sizes={CARD_MAX_WIDTH}
+                    coverAspect={16 / 9}
                     alt={info.media.title}
                     style={{
                       width: "100%",

@@ -204,6 +204,7 @@ function RouteComponent() {
             <MediaImage
               media={character.media}
               sizes="128px"
+              coverAspect={1}
               alt={character.media.title}
               style={{
                 width: "128px",

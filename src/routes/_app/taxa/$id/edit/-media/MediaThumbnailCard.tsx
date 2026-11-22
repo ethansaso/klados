@@ -41,6 +41,7 @@ export const MediaThumbnailCard = ({
       <MediaImage
         media={media}
         sizes="auto, 160px"
+        coverAspect={1}
         alt=""
         loading="lazy"
         draggable={false}

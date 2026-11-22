@@ -28,6 +28,7 @@ export const TaxonImageBrowser = ({ taxon }: { taxon: TaxonDetailDTO }) => {
             media={displayedMediaItem}
             fallbackSrc={PLACEHOLDER_SRC}
             sizes="(max-width: 767px) 100vw, 304px"
+            coverAspect={1}
             alt={
               displayedMediaItem
                 ? `${taxonName}, copyright ${displayedMediaItem.owner}`
@@ -72,6 +73,7 @@ export const TaxonImageBrowser = ({ taxon }: { taxon: TaxonDetailDTO }) => {
                       media={mediaItem}
                       // Use real thumbnail split at bottom w/ fallback to 76px
                       sizes="auto, (max-width: 767px) 48px, 76px"
+                      coverAspect={1}
                       loading="lazy"
                       alt={`${taxonName} thumbnail ${idx + 1}`}
                     />

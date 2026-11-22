@@ -168,6 +168,7 @@ function TaxonColumnHeader({ taxon }: { taxon: TaxonDTO }) {
           media={taxon.media[0]}
           fallbackSrc={PLACEHOLDER_SRC}
           sizes="auto, (min-width: 768px) 300px, 45vw"
+          coverAspect={4 / 3}
           alt={formatTaxonName(taxon.rank, taxon.acceptedName)}
           loading="lazy"
         />
@@ -220,6 +221,7 @@ function TaxonAvatar({ taxon, size }: { taxon: TaxonDTO; size: number }) {
       media={taxon.media[0]}
       fallbackSrc={PLACEHOLDER_SRC}
       sizes={`${size}px`}
+      coverAspect={1}
       alt=""
       width={size}
       height={size}

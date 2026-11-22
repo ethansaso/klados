@@ -18,6 +18,12 @@ type Props = Omit<ComponentPropsWithoutRef<"img">, "src" | "srcSet"> & {
    * If not passed, renders as `null`.
    */
   fallbackSrc?: string;
+  /**
+   * Optional width / height of the box when the image is cover-cropped (`object-fit:
+   * cover`); {@link getMediaSrcSet}. When the box's shape varies, pass the
+   * smallest ratio: lower is always sharp, just heavier.
+   */
+  coverAspect?: number;
 };
 
 /**
@@ -28,6 +34,7 @@ export function MediaImage({
   media,
   sizes,
   fallbackSrc,
+  coverAspect,
   className,
   onError,
   ...rest
@@ -49,7 +56,7 @@ export function MediaImage({
   return (
     <img
       sizes={sizes}
-      srcSet={getMediaSrcSet(media)}
+      srcSet={getMediaSrcSet(media, coverAspect)}
       src={getMediaUrl(media, "medium")}
       width={media.width}
       height={media.height}
