@@ -13,6 +13,9 @@ import {
   extFromContentType,
   SUPPORTED_IMAGE_TYPES,
 } from "../src/lib/storage/utils";
+import { createRefetchTask } from "./media/refetchSources";
+import { StopError } from "./media/stopError";
+import type { Task } from "./media/task";
 import { askYesNo } from "./utils/askYesNo";
 
 /*
@@ -24,24 +27,17 @@ import { askYesNo } from "./utils/askYesNo";
  * Old files are kept until `--delete-sources`, which deletes them for every
  * converted row. Nothing references them after conversion.
  *
- *   npm run media:backfill -- [--dry-run] [--limit N] [--delete-sources]
+ * `--refetch` replaces small iNat/Wikimedia copies with full-size files; see
+ * ./media/refetchSources.ts.
+ *
+ *   npm run media:backfill -- [--dry-run] [--limit N] [--delete-sources | --refetch]
  */
 
 type Options = {
   dryRun: boolean;
   limit: number | undefined;
   deleteSources: boolean;
-};
-
-type Task = {
-  /** Shown before the y/N prompt. */
-  question: string;
-  /** Which rows the task applies to, oldest first. */
-  select: (rows: MediaDTO[]) => MediaDTO[];
-  /** Short dry-run description of what would happen to a row. */
-  describe: (row: MediaDTO) => string;
-  /** Does the work; returns a short log line. */
-  apply: (row: MediaDTO) => Promise<string>;
+  refetch: boolean;
 };
 
 /** Created in the working directory; delete it by hand if a crash leaves it. */
@@ -74,8 +70,12 @@ function parseOptions(): Options {
       "dry-run": { type: "boolean", default: false },
       limit: { type: "string" },
       "delete-sources": { type: "boolean", default: false },
+      refetch: { type: "boolean", default: false },
     },
   });
+  if (values["delete-sources"] && values.refetch) {
+    throw new Error("Pass at most one of --delete-sources and --refetch.");
+  }
 
   const limit = values.limit === undefined ? undefined : Number(values.limit);
   if (limit !== undefined && !(Number.isInteger(limit) && limit > 0)) {
@@ -85,6 +85,7 @@ function parseOptions(): Options {
     dryRun: values["dry-run"],
     limit,
     deleteSources: values["delete-sources"],
+    refetch: values.refetch,
   };
 }
 
@@ -142,6 +143,7 @@ async function run(task: Task, { dryRun, limit }: Options): Promise<boolean> {
 
   if (dryRun) {
     for (const row of rows) console.log(`  #${row.id} ${task.describe(row)}`);
+    for (const line of (await task.summarize?.(rows)) ?? []) console.log(line);
     console.log("Dry run: no files were read or written, no rows updated.");
     return true;
   }
@@ -150,9 +152,12 @@ async function run(task: Task, { dryRun, limit }: Options): Promise<boolean> {
     console.log("Aborted.");
     return true;
   }
+  await task.prepare?.(rows);
 
   const failures: string[] = [];
+  let attempted = 0;
   for (const [i, row] of rows.entries()) {
+    attempted++;
     const prefix = `[${i + 1}/${rows.length}] #${row.id} ${row.storageKey}`;
     try {
       console.log(`${prefix}: ${await task.apply(row)}`);
@@ -160,11 +165,17 @@ async function run(task: Task, { dryRun, limit }: Options): Promise<boolean> {
       const message = err instanceof Error ? err.message : String(err);
       failures.push(`#${row.id} ${row.storageKey}: ${message}`);
       console.error(`${prefix}: FAILED ${message}`);
+      if (err instanceof StopError) {
+        console.error("Stopped the whole run.");
+        break;
+      }
     }
   }
 
+  const notAttempted = rows.length - attempted;
   console.log(
-    `Done: ${rows.length - failures.length} succeeded, ${failures.length} failed.`,
+    `Done: ${attempted - failures.length} succeeded, ${failures.length} failed` +
+      (notAttempted ? `, ${notAttempted} not attempted.` : "."),
   );
   for (const failure of failures) console.error(`  ${failure}`);
   return failures.length === 0;
@@ -172,7 +183,11 @@ async function run(task: Task, { dryRun, limit }: Options): Promise<boolean> {
 
 async function main() {
   const options = parseOptions();
-  const task = options.deleteSources ? DELETE_SOURCES : CONVERT;
+  const task = options.refetch
+    ? createRefetchTask()
+    : options.deleteSources
+      ? DELETE_SOURCES
+      : CONVERT;
 
   let lock: number;
   try {

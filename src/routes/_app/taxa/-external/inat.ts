@@ -6,6 +6,10 @@ import {
 } from "../../../../../db/utils/mediaLicense";
 import type { UploadMediaWireItem } from "../../../../lib/domain/media/validation";
 import type { NameItem } from "../../../../lib/domain/taxon-names/validation";
+import {
+  INAT_API_URL,
+  mediumToOpenDataOriginalUrl,
+} from "../../../../lib/external/inat";
 import type { ExternalCandidate } from "./types";
 
 export type InatPhoto = {
@@ -55,9 +59,6 @@ export const INTERNAL_RANK_TO_INAT_MAPPING: Record<TaxonRank, string | null> = {
   form: "form",
 };
 
-const INAT_API = "https://api.inaturalist.org/v1";
-/** Openly licensed photos; `static.inaturalist.org` hosts the rest. */
-const INAT_OPEN_DATA_HOST = "inaturalist-open-data.s3.amazonaws.com";
 const SUGGEST_LIMIT = 5;
 const MAX_PHOTOS = 9;
 
@@ -123,7 +124,7 @@ export async function searchInatCandidates(
   rank: TaxonRank,
   signal: AbortSignal,
 ): Promise<ExternalCandidate[]> {
-  const url = new URL(`${INAT_API}/taxa`);
+  const url = new URL(`${INAT_API_URL}/taxa`);
   url.searchParams.set("q", name);
   url.searchParams.set("per_page", String(SUGGEST_LIMIT));
 
@@ -138,7 +139,7 @@ export async function searchInatCandidates(
   if (ids.length === 0) return [];
 
   // Search results omit ancestor names; the by-ID endpoint has them
-  const res = await fetch(`${INAT_API}/taxa/${ids.join(",")}`, { signal });
+  const res = await fetch(`${INAT_API_URL}/taxa/${ids.join(",")}`, { signal });
   if (!res.ok) throw new Error(`iNaturalist lookup failed: ${res.status}`);
   const { results } = InatTaxaDetailResponseSchema.parse(await res.json());
   const byId = new Map(results.map((t) => [t.id, t]));
@@ -164,7 +165,7 @@ export async function fetchInatImport(
   inatId: number,
   signal?: AbortSignal,
 ): Promise<InatTaxonImport> {
-  const url = new URL(`${INAT_API}/taxa/${inatId}`);
+  const url = new URL(`${INAT_API_URL}/taxa/${inatId}`);
   url.searchParams.set("all_names", "true");
 
   const res = await fetch(url, { signal });
@@ -214,7 +215,7 @@ function parseInatPhotos(data: unknown): InatPhoto[] | null {
   return (taxon?.taxon_photos ?? [])
     .flatMap(({ photo: p }) => {
       const lic = AllowedLicenseSchema.safeParse(p.license_code);
-      const originalUrl = openDataOriginalUrl(p.medium_url);
+      const originalUrl = mediumToOpenDataOriginalUrl(p.medium_url);
       if (!lic.success || !originalUrl) return [];
       return [
         {
@@ -228,24 +229,6 @@ function parseInatPhotos(data: unknown): InatPhoto[] | null {
       ];
     })
     .slice(0, MAX_PHOTOS);
-}
-
-/**
- * `.../photos/{id}/medium.jpg` → `.../photos/{id}/original.jpg`, for Open Data
- * photos only; null otherwise.
- */
-function openDataOriginalUrl(mediumUrl: string): string | null {
-  let url: URL;
-  try {
-    url = new URL(mediumUrl);
-  } catch {
-    return null;
-  }
-  if (url.hostname !== INAT_OPEN_DATA_HOST) return null;
-  const pathname = url.pathname.replace(/\/medium(\.\w+)$/, "/original$1");
-  if (pathname === url.pathname) return null;
-  url.pathname = pathname;
-  return url.toString();
 }
 
 function normalizeInatNames(rawNames: InatRawName[]): NameItem[] {
