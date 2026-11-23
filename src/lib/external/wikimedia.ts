@@ -33,16 +33,13 @@ const WikimediaImportInfoResponseSchema = z.object({
  * URL to import a Commons file from.
  * 1) It's a raster format we store and already within {@link WIKIMEDIA_IMPORT_WIDTH} take original
  * 2) Otherwise, use API's thumbnail. (SVGs take the thumbnail)
- *
- * `fetchFn` lets server-side callers add headers and pacing.
  */
 export async function fetchWikimediaImportUrl(
   fileTitle: string,
-  fetchFn: (url: string) => Promise<Response> = (url) => fetch(url),
 ): Promise<string> {
   const url = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileTitle)}&prop=imageinfo&iiprop=url%7Csize%7Cmime&iiurlwidth=${WIKIMEDIA_IMPORT_WIDTH}&format=json&origin=*`;
 
-  const res = await fetchFn(url);
+  const res = await fetch(url);
   if (!res.ok) throw new Error(`Wikimedia lookup failed: ${res.status}`);
   const parsed = WikimediaImportInfoResponseSchema.parse(await res.json());
   const info = Object.values(parsed.query?.pages ?? {})[0]?.imageinfo?.[0];
