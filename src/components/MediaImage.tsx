@@ -24,6 +24,11 @@ type Props = Omit<ComponentPropsWithoutRef<"img">, "src" | "srcSet"> & {
    * smallest ratio: lower is always sharp, just heavier.
    */
   coverAspect?: number;
+  /**
+   * Already-loaded smaller copy shown behind the image until it paints, i.e. thumbnail.
+   * Only for images rendered after hydration.
+   */
+  placeholderSrc?: string;
 };
 
 /**
@@ -35,8 +40,11 @@ export function MediaImage({
   sizes,
   fallbackSrc,
   coverAspect,
+  placeholderSrc,
   className,
+  style,
   onError,
+  onLoad,
   ...rest
 }: Props) {
   const [failedKey, setFailedKey] = useState<string | null>(null);
@@ -48,6 +56,7 @@ export function MediaImage({
         src={fallbackSrc}
         data-placeholder=""
         className={classes}
+        style={style}
         {...rest}
       />
     ) : null;
@@ -61,6 +70,20 @@ export function MediaImage({
       width={media.width}
       height={media.height}
       className={classes}
+      style={
+        placeholderSrc
+          ? {
+              backgroundImage: `url("${placeholderSrc}")`,
+              backgroundPosition: "center",
+              backgroundSize: "cover",
+              ...style,
+            }
+          : style
+      }
+      onLoad={(e) => {
+        if (placeholderSrc) e.currentTarget.style.backgroundImage = "none";
+        onLoad?.(e);
+      }}
       onError={(e) => {
         if (fallbackSrc) setFailedKey(media.storageKey);
         onError?.(e);
