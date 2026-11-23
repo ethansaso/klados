@@ -1,0 +1,84 @@
+.media-lightbox__overlay,
+.media-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+}
+
+.media-lightbox__overlay {
+  background-color: var(--black-a11);
+}
+
+.media-lightbox {
+  --lightbox-arrow-room: var(--space-9);
+
+  display: grid;
+  place-items: center;
+  outline: none;
+}
+
+/* Shrinks to the photo so the attribution bubble sits on its corner */
+.media-lightbox__frame {
+  width: fit-content;
+}
+
+.media-lightbox__image {
+  --fit-width: 100vw;
+  --fit-height: calc(100dvh - 2 * var(--lightbox-arrow-room));
+
+  display: block;
+
+  &[data-zoomable] {
+    cursor: zoom-in;
+  }
+
+  @media (min-width: 768px) {
+    --fit-width: calc(100vw - 2 * var(--lightbox-arrow-room));
+  }
+}
+
+.media-lightbox__zoom {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  overflow: auto;
+  overscroll-behavior: contain;
+  /* Panning handled via JS logic. */
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.media-lightbox__zoomed-image {
+  flex: none;
+  margin: auto;
+  max-width: none;
+  cursor: zoom-out;
+  background-position: center;
+  background-size: cover;
+}
+
+.media-lightbox__arrow,
+.media-lightbox__close {
+  position: fixed;
+}
+
+.media-lightbox__arrow {
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.media-lightbox__arrow--prev {
+  left: max(var(--space-3), env(safe-area-inset-left, 0px));
+}
+
+.media-lightbox__arrow--next {
+  right: max(var(--space-3), env(safe-area-inset-right, 0px));
+}
+
+.media-lightbox__close {
+  top: max(var(--space-3), env(safe-area-inset-top, 0px));
+  right: max(var(--space-3), env(safe-area-inset-right, 0px));
+}

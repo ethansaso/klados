@@ -3,6 +3,7 @@ import "./-TaxonImageBrowser.css";
 import { Box, Flex, Heading, Text, Theme } from "@radix-ui/themes";
 import { useState } from "react";
 import { AnnotationBubbleWrap } from "../../../../components/annotations/AnnotationBubbleWrap";
+import { viewMediaFullscreen } from "../../../../components/dialogs/MediaLightbox";
 import { MediaImage } from "../../../../components/MediaImage";
 import { TaxonName } from "../../../../components/TaxonName";
 import type { TaxonDetailDTO } from "../../../../lib/domain/taxa/types";
@@ -20,37 +21,55 @@ export const TaxonImageBrowser = ({ taxon }: { taxon: TaxonDetailDTO }) => {
   const displayedMediaItem = media.at(selectedMediaIdx) ?? null;
   const hasMultipleMedia = media.length > 1;
 
+  const preview = (
+    <MediaImage
+      // A fresh element per photo, so the old one never lingers on screen
+      key={displayedMediaItem?.storageKey}
+      className="taxon-image-browser__preview-image"
+      media={displayedMediaItem}
+      fallbackSrc={PLACEHOLDER_SRC}
+      sizes="(max-width: 767px) 100vw, 304px"
+      coverAspect={1}
+      alt={
+        displayedMediaItem
+          ? `${taxonName}, copyright ${displayedMediaItem.owner}`
+          : `Placeholder image for ${taxonName}`
+      }
+      // The strip has already loaded `small`
+      placeholderSrc={
+        hasSwitched && displayedMediaItem
+          ? getMediaUrl(displayedMediaItem, "small")
+          : undefined
+      }
+    />
+  );
+
   return (
     <Box
       className={`taxon-image-browser${hasMultipleMedia ? " taxon-image-browser--with-thumbnails" : ""}`}
     >
       <Box className="taxon-image-browser__preview">
         <AnnotationBubbleWrap media={displayedMediaItem} spacing="2">
-          <MediaImage
-            // A fresh element per photo, so the old one never lingers on screen
-            key={displayedMediaItem?.storageKey}
-            className="taxon-image-browser__preview-image"
-            media={displayedMediaItem}
-            fallbackSrc={PLACEHOLDER_SRC}
-            sizes="(max-width: 767px) 100vw, 304px"
-            coverAspect={1}
-            alt={
-              displayedMediaItem
-                ? `${taxonName}, copyright ${displayedMediaItem.owner}`
-                : `Placeholder image for ${taxonName}`
-            }
-            // The strip has already loaded `small`; show it until this paints
-            style={
-              hasSwitched && displayedMediaItem
-                ? {
-                    backgroundImage: `url("${getMediaUrl(displayedMediaItem, "small")}")`,
-                  }
-                : undefined
-            }
-            onLoad={(e) => {
-              e.currentTarget.style.backgroundImage = "none";
-            }}
-          />
+          {displayedMediaItem ? (
+            <button
+              type="button"
+              className="taxon-image-browser__open"
+              aria-label={`View ${taxonName} image ${selectedMediaIdx + 1} full screen`}
+              onClick={(e) =>
+                viewMediaFullscreen({
+                  media,
+                  startIndex: selectedMediaIdx,
+                  label: taxonName,
+                  startPlaceholderSrc:
+                    e.currentTarget.querySelector("img")?.currentSrc,
+                })
+              }
+            >
+              {preview}
+            </button>
+          ) : (
+            preview
+          )}
         </AnnotationBubbleWrap>
         {/* Phone overlay. */}
         <div className="taxon-image-browser__overlay">
