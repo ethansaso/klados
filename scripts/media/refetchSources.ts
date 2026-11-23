@@ -12,6 +12,7 @@ import {
 import type { MediaDTO } from "../../src/lib/domain/media/types";
 import {
   INAT_API_URL,
+  INAT_OPEN_DATA_HOST,
   mediumToOpenDataOriginalUrl,
 } from "../../src/lib/external/inat";
 import {
@@ -161,7 +162,14 @@ export function createRefetchTask(): Task {
         const mediumUrl = inatPhotoUrls.get(source.photoId);
         if (!mediumUrl) return skip(row, "not among its taxa's iNat photos");
         const originalUrl = mediumToOpenDataOriginalUrl(mediumUrl);
-        if (!originalUrl) return skip(row, "not on the iNat Open Data host");
+        if (!originalUrl) {
+          return skip(
+            row,
+            new URL(mediumUrl).hostname === INAT_OPEN_DATA_HOST
+              ? `unrecognized photo URL ${mediumUrl}`
+              : "not on the iNat Open Data host",
+          );
+        }
         url = originalUrl;
       } else {
         try {
