@@ -24,3 +24,6 @@ yarn.lock
 /uploads/
 /.backups/
 ISSUES.md
+# Media backfill script state (see scripts/backfillMediaVariants.ts)
+.media-backfill.lock
+.media-refetch-ledger.json
