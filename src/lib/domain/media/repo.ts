@@ -1,19 +1,7 @@
-import {
-  and,
-  asc,
-  count,
-  eq,
-  ilike,
-  inArray,
-  isNotNull,
-  or,
-  type SQL,
-} from "drizzle-orm";
+import { and, asc, count, eq, ilike, inArray, or, type SQL } from "drizzle-orm";
 import { db } from "../../../../db/client";
 import { media as mediaTbl } from "../../../../db/schema/media/media";
 import { taxonMedia as taxonMediaTbl } from "../../../../db/schema/media/taxonMedia";
-import { taxon as taxonTbl } from "../../../../db/schema/taxa/taxon";
-import type { MediaDimensions } from "../../storage/mediaSizes";
 import { likeAnywhere } from "../../utils/sql/likeAnywhere";
 import type { Transaction, TxOrDb } from "../../utils/types/transactionType";
 import type {
@@ -81,60 +69,6 @@ export async function updateMediaById(
     .returning();
 
   return row ?? null;
-}
-
-/** Every row, oldest first. */
-export async function selectAllMedia(tx: TxOrDb): Promise<MediaDTO[]> {
-  return tx.select().from(mediaTbl).orderBy(asc(mediaTbl.id));
-}
-
-/** Points a row at newly written files, and their source's hash if it changed. */
-export async function setMediaStorage(
-  tx: TxOrDb,
-  id: number,
-  {
-    storageKey,
-    width,
-    height,
-    contentHash,
-  }: MediaDimensions & { storageKey: string; contentHash?: string },
-): Promise<void> {
-  await tx
-    .update(mediaTbl)
-    .set(
-      contentHash
-        ? { storageKey, width, height, contentHash }
-        : { storageKey, width, height },
-    )
-    .where(eq(mediaTbl.id, id));
-}
-
-/** iNat taxon IDs of the taxa each media item is attached to. */
-export async function selectSourceInatIdsByMediaIds(
-  tx: TxOrDb,
-  mediaIds: number[],
-): Promise<Map<number, number[]>> {
-  const map = new Map<number, number[]>();
-  if (!mediaIds.length) return map;
-
-  const rows = await tx
-    .select({
-      mediaId: taxonMediaTbl.mediaId,
-      inatId: taxonTbl.sourceInatId,
-    })
-    .from(taxonMediaTbl)
-    .innerJoin(taxonTbl, eq(taxonTbl.id, taxonMediaTbl.taxonId))
-    .where(
-      and(
-        inArray(taxonMediaTbl.mediaId, mediaIds),
-        isNotNull(taxonTbl.sourceInatId),
-      ),
-    );
-  for (const { mediaId, inatId } of rows) {
-    if (inatId === null) continue;
-    map.set(mediaId, [...(map.get(mediaId) ?? []), inatId]);
-  }
-  return map;
 }
 
 export async function deleteMediaById(

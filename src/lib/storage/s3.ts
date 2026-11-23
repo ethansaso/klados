@@ -1,6 +1,5 @@
 import {
   DeleteObjectCommand,
-  GetObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -42,14 +41,6 @@ export class S3Storage implements StorageAdapter {
     );
 
     return { url: this.getUrl(key) };
-  }
-
-  async download(key: string): Promise<Buffer> {
-    const res = await this.client.send(
-      new GetObjectCommand({ Bucket: this.bucketName, Key: key }),
-    );
-    if (!res.Body) throw new Error(`Empty body for storage key: ${key}`);
-    return Buffer.from(await res.Body.transformToByteArray());
   }
 
   async delete(key: string): Promise<void> {
